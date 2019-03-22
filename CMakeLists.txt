@@ -4,11 +4,10 @@ set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type on single-configuration generators")
 
 set(HUNTER_CONFIGURATION_TYPES Release)
-set(HUNTER_CACHE_SERVERS "https://github.com/ethereum/hunter-cache")
 include(HunterGate)
 HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.19.144.tar.gz"
-    SHA1 "e3efd470f8b60468db8730eac8c04792f77fe1b1"
+    URL "https://github.com/ruslo/hunter/archive/v0.23.142.tar.gz"
+    SHA1 "1d841ca74150c92054896a7f6d88a123dd9e615d"
     LOCAL
 )
 
@@ -45,7 +44,8 @@ else()
 	  	set(LIBS ${LIBS} "ws2_32")
 	endif()
 endif()
-find_package(Boost REQUIRED COMPONENTS system filesystem)
+#find_package(Boost REQUIRED COMPONENTS system filesystem)
+find_package(Boost REQUIRED COMPONENTS system)
 
 if (Boost_FOUND)
   include_directories (SYSTEM ${Boost_INCLUDE_DIR})
