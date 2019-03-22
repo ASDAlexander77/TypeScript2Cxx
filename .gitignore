@@ -4,3 +4,4 @@
 /__build_release
 /__build_mingw32_release
 /__build_win32_release
+/.vscode/ipch

@@ -12,7 +12,7 @@ HunterGate(
     LOCAL
 )
 
-project(guard)
+project(tsc2cxx)
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 set(PROJECT_VERSION 0.0.0.dev0)
 
@@ -27,7 +27,7 @@ cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0054 NEW)
 
 # SETUP FOR CPP FILES
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS Off)
 
@@ -59,7 +59,7 @@ message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 
 # files
-file(GLOB Guard_SRC
+file(GLOB Tsc2cxx_SRC
     "*.cpp"
 )
 
@@ -91,7 +91,7 @@ if (MINGW)
     SET(EXTRA_LIBS ${EXTRA_LIBS} "ws2_32")
 endif()
 
-add_executable (${PROJECT_NAME} "${Guard_SRC}")
+add_executable (${PROJECT_NAME} "${Tsc2cxx_SRC}")
 
 if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})
