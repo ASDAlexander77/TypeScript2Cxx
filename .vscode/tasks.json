@@ -1,0 +1,102 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",    
+    "tasks": [
+        {
+            "label": "Build MinGW32 Debug",
+            "type": "shell",
+            "command": "./scripts/build_debug.sh",
+            "windows": {
+                "command": ".\\scripts\\build_mingw32_debug.cmd"
+            },
+            "group": "build",                
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
+            "label": "Build MinGW32 Release",
+            "type": "shell",
+            "command": "./scripts/build_release.sh",
+            "windows": {
+                "command": ".\\scripts\\build_mingw32_release.cmd"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Build VS2017 Debug",
+            "type": "shell",
+            "command": "./scripts/build_debug.sh",
+            "windows": {
+                "command": ".\\scripts\\build_vs2017_debug.cmd"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },           
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "Build VS2017 Release",
+            "type": "shell",
+            "command": "./scripts/build_release.sh",
+            "windows": {
+                "command": ".\\scripts\\build_vs2017_release.cmd"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Build (shell) Debug",
+            "type": "shell",
+            "command": "C:\\WINDOWS\\System32\\bash.exe",
+            "args": [
+                "-c", 
+                "/mnt/d/Developing/Guard/scripts/build_debug.sh"
+            ],            
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },       
+        {
+            "label": "Build (shell) Release",
+            "type": "shell",
+            "command": "C:\\WINDOWS\\System32\\bash.exe",
+            "args": [
+                "-c", 
+                "/mnt/d/Developing/Guard/scripts/build_release.sh"
+            ],
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        }
+    ]
+}

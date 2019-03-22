@@ -1,0 +1,6 @@
+/__build_debug
+/__build_mingw32_debug
+/__build_win32_debug
+/__build_release
+/__build_mingw32_release
+/__build_win32_release
