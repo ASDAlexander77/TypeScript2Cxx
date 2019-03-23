@@ -50,6 +50,15 @@ namespace js {
 
             throw "cast";
         }
+
+        void operator ()() {
+            if (_type == anyTypeId::function) {
+                _value.function();
+                return; 
+            }
+
+            throw "is not function";            
+        }        
     };
 
 }

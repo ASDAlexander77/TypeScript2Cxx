@@ -15,5 +15,7 @@ int main(int argc, char** argv)
 
     std::cout << (int)a << " " << (int)b << std::endl;
 
+    c();
+
     return 0;
 }
