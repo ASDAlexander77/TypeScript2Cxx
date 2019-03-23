@@ -37,6 +37,12 @@ namespace js {
             _value.integer = value;
         }
 
+        template <class T>
+        any(T value) {
+            _type = anyTypeId::function;
+            _value.function = (functionPtr)value;
+        }
+
         operator int() const {
             if (_type == anyTypeId::integer) {
                 return _value.integer; 
