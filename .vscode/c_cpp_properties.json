@@ -50,8 +50,7 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared",
-                "C:/.hunter/_Base/e3efd47/da18628/114da71/Install/include",
-                "C:/.hunter/_Base/e3efd47/fcb95d4/114da71/Install/include",
+                "C:/.hunter/_Base/1d841ca/5453206/8f02892/Install/include",
                 "${workspaceRoot}"
             ],
             "browse": {
@@ -67,8 +66,7 @@
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared",
-                    "C:/.hunter/_Base/e3efd47/da18628/114da71/Install/include",
-                    "C:/.hunter/_Base/e3efd47/fcb95d4/114da71/Install/include",
+                    "C:/.hunter/_Base/1d841ca/5453206/8f02892/Install/include",
                     "${workspaceRoot}"
                 ]
             },

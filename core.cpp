@@ -1,0 +1,10 @@
+namespace js {
+
+    
+
+    struct any
+    {
+
+    };
+
+}
