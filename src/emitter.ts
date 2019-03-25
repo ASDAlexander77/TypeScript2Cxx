@@ -869,7 +869,7 @@ export class Emitter {
         this.functionContext.newFileScope(sourceFile.fileName);
 
         if (this.generateSourceMap) {
-            const filePath: string = Helpers.correctFileNameForLua((<any>sourceFile).__path);
+            const filePath: string = Helpers.correctFileNameForCxx((<any>sourceFile).__path);
             this.filePathLua = filePath.replace(/\.ts$/, '.lua');
             this.filePathLuaMap = filePath.replace(/\.ts$/, '.lua.map');
 
