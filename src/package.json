@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "watch": "tsc -w -p .."
+  }
+}

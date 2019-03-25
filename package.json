@@ -1,0 +1,42 @@
+{
+  "keywords": [
+    "typescript",
+    "cxx",
+    "tsc-cxx",
+    "compiler"
+  ],
+  "license": "MIT",
+  "main": "__out/main.js",
+  "name": "typescript_cxx",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "run": "node __out/main.js",
+    "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
+    "watch": "tsc -w -p ./",
+    "lint": "tslint src/**/*.ts -t verbose",
+    "build": "tsc -p tsconfig.json",
+    "exec": "ts-node src/main.ts"
+  },
+  "bin": {
+    "tsc-lua": "./__out/main.js"
+  },
+  "private": true,
+  "dependencies": {
+    "cross-spawn": "^6.0.5",
+    "fs-extra": "^7.0.1",
+    "path": "^0.12.7",
+    "source-map": "^0.7.3",
+    "typescript": "^3.3.3333"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/fs-extra": "^5.0.5",
+    "@types/mocha": "^5.2.6",
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.12.1",
+    "typescript": "^3.3.3333-dev"
+  }
+}
