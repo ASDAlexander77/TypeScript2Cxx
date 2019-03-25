@@ -6,3 +6,4 @@
 /__build_mingw32_release
 /__build_win32_release
 /.vscode/ipch
+/node_modules
