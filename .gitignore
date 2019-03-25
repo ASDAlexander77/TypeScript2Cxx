@@ -1,10 +1,10 @@
 /build
-/__build_debug
-/__build_mingw32_debug
-/__build_win32_debug
-/__build_release
-/__build_mingw32_release
-/__build_win32_release
-/.vscode/ipch
 /node_modules
 /__out
+ipch
+__build_debug
+__build_mingw32_debug
+__build_win32_debug
+__build_release
+__build_mingw32_release
+__build_win32_release

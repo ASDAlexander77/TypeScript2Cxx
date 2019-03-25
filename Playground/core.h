@@ -1,64 +1,141 @@
-namespace js {
+#include <functional>
+#include <memory>
+#include <vector>
+#include <ostream>
 
-    typedef void (*functionPtr)();
+namespace js
+{
 
-    enum anyTypeId
+typedef void (*functionPtr)(void);
+typedef std::function<void(void)> func;
+
+enum anyTypeId
+{
+    undefined,
+    null,
+    boolean,
+    integer,
+    integer64,
+    real,
+    string,
+    function,
+    closure
+};
+
+union anyType {
+    bool boolean;
+    int integer;
+    long integer64;
+    double real;
+    char *string;
+    functionPtr function;
+    int closure;
+};
+
+struct any
+{
+    static std::vector<func> closures;
+
+    anyTypeId _type;
+    anyType _value;
+
+    any()
     {
-        undefined,
-        boolean,
-        integer,
-        integer64,
-        real,
-        string,
-        function
-    };
+        _type = anyTypeId::undefined;
+    }
 
-    union anyType
+    any(const any &other)
     {
-        bool boolean;
-        int integer;
-        long integer64;
-        double real;
-        char* string;
-        functionPtr function;
-    };
+        _type = other._type;
+        _value = other._value;
+    }
 
-    struct any
+    any(any &&other)
     {
-        anyTypeId _type;
-        anyType _value;
+        _type = other._type;
+        _value = other._value;
+        other._type = undefined;
+    }
 
-        any() {
-            _type = anyTypeId::undefined;            
+    any(bool value)
+    {
+        _type = anyTypeId::boolean;
+        _value.boolean = value;
+    }
+
+    any(int value)
+    {
+        _type = anyTypeId::integer;
+        _value.integer = value;
+    }
+
+    any(long value)
+    {
+        _type = anyTypeId::integer64;
+        _value.integer64 = value;
+    }
+
+    any(double value)
+    {
+        _type = anyTypeId::real;
+        _value.real = value;
+    }
+
+    any(std::nullptr_t value)
+    {
+        _type = anyTypeId::null;
+        _value.string = value;
+    }    
+
+    any(char* value)
+    {
+        _type = anyTypeId::string;
+        _value.string = value;
+    }
+
+    template <class R, class... Args>
+    any(R (*value)(Args &&...))
+    {
+        _type = anyTypeId::function;
+        _value.function = (functionPtr)value;
+    }
+
+    template <class R, class... Args>
+    any(std::function<R(Args &&...)> func)
+    {
+        _type = anyTypeId::closure;
+        closures.push_back(func);
+        _value.closure = closures.size() - 1;
+    }
+
+    operator int() const
+    {
+        if (_type == anyTypeId::integer)
+        {
+            return _value.integer;
         }
 
-        any(int value) {
-            _type = anyTypeId::integer;
-            _value.integer = value;
+        throw "wrong cast";
+    }
+
+    void operator()()
+    {
+        if (_type == anyTypeId::function)
+        {
+            _value.function();
+            return;
         }
 
-        template <class T>
-        any(T value) {
-            _type = anyTypeId::function;
-            _value.function = (functionPtr)value;
+        if (_type == anyTypeId::closure)
+        {
+            closures[_value.closure]();
+            return;
         }
 
-        operator int() const {
-            if (_type == anyTypeId::integer) {
-                return _value.integer; 
-            }
+        throw "not function or closure";
+    }
 
-            throw "cast";
-        }
+    friend std::ostream& operator<<(std::ostream& os, const any& other);
+};
 
-        void operator ()() {
-            if (_type == anyTypeId::function) {
-                _value.function();
-                return; 
-            }
-
-            throw "is not function";            
-        }        
-    };
-
-}
+} // namespace js
