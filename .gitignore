@@ -7,3 +7,4 @@
 /__build_win32_release
 /.vscode/ipch
 /node_modules
+/__out

@@ -1,0 +1,29 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+      "module": "commonjs",
+      "target": "es2018",
+      "outDir": "./__out",
+      "sourceMap": true,
+      "declaration": false,
+      "moduleResolution": "node",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "alwaysStrict": true,
+      "typeRoots": [
+        "node_modules/@types"
+      ],
+      "lib": [
+        "es2018",
+        "dom"
+      ]
+    },
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "node_modules",
+      "spec/**/*.spec.ts"
+    ]    
+  }
+  

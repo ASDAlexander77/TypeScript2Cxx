@@ -13,17 +13,14 @@ try {
 }
 
 function print() {
-    console.log(`Version 1.0.11
+    console.log(`Version 0.0.0
     Syntax:   tsc-cxx [options] [file...]
 
     Examples: tsc-cxx hello.ts
-              tsc-cxx --jslib file.ts
               tsc-cxx tsconfig.json
               tsc-cxx
 
     Options:
-     -jslib                                             Use JS library.
-     -singleModule                                      Output single file.
      -varAsLet                                          Use all 'var' variables as 'let'.
      `);
 }
