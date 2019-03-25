@@ -4,6 +4,7 @@
 
 namespace js {
     std::vector<func> any::closures;
+    std::vector<std::vector<any>> any::arrays;
 
     std::ostream& operator<<(std::ostream& os, const any& other)
     {

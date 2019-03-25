@@ -19,7 +19,9 @@ enum anyTypeId
     real,
     string,
     function,
-    closure
+    closure,
+    array,
+    object
 };
 
 union anyType {
@@ -30,11 +32,14 @@ union anyType {
     char *string;
     functionPtr function;
     int closure;
+    int array;
+    int object;
 };
 
 struct any
 {
     static std::vector<func> closures;
+    static std::vector<std::vector<any>> arrays;
 
     anyTypeId _type;
     anyType _value;
@@ -44,13 +49,13 @@ struct any
         _type = anyTypeId::undefined;
     }
 
-    any(const any &other)
+    any(const any& other)
     {
         _type = other._type;
         _value = other._value;
     }
 
-    any(any &&other)
+    any(any&& other)
     {
         _type = other._type;
         _value = other._value;
@@ -85,9 +90,9 @@ struct any
     {
         _type = anyTypeId::null;
         _value.string = value;
-    }    
+    }
 
-    any(char* value)
+    any(char *value)
     {
         _type = anyTypeId::string;
         _value.string = value;
@@ -108,34 +113,130 @@ struct any
         _value.closure = closures.size() - 1;
     }
 
-    operator int() const
+    any(const std::initializer_list<any> &values)
     {
-        if (_type == anyTypeId::integer)
+        _type = anyTypeId::array;
+
+        std::vector<any> vals;
+        vals.reserve(values.size());
+        for (auto &item : values)
         {
-            return _value.integer;
+            vals.push_back(item);
         }
 
-        throw "wrong cast";
+        arrays.push_back(vals);
+        _value.array = arrays.size() - 1;
     }
 
     void operator()()
     {
-        if (_type == anyTypeId::function)
+        switch (_type)
         {
+        case anyTypeId::function:
             _value.function();
             return;
-        }
 
-        if (_type == anyTypeId::closure)
-        {
+        case anyTypeId::closure:
             closures[_value.closure]();
             return;
+
+        default:
+            break;
         }
 
         throw "not function or closure";
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const any& other);
+    any operator[](any index)
+    {
+        switch (_type)
+        {
+        case anyTypeId::array:
+            switch (index._type)
+            {
+            case anyTypeId::integer:
+                return arrays[_value.array][index._value.integer];
+            case anyTypeId::integer64:
+                return arrays[_value.array][index._value.integer64];
+            }
+
+            throw "not allowed index type";
+        }
+
+        throw "not array";
+    }
+
+    std::vector<js::any>::iterator begin() 
+    { 
+        if (_type == anyTypeId::array) 
+        {
+            return arrays[_value.array].begin(); 
+        }
+
+        throw "not array";
+    }
+    
+    std::vector<js::any>::const_iterator cbegin() const 
+    { 
+        if (_type == anyTypeId::array) 
+        {
+            return arrays[_value.array].cbegin(); 
+        }
+
+        throw "not array";
+    }
+    
+    std::vector<js::any>::iterator end() 
+    { 
+        if (_type == anyTypeId::array) 
+        {
+            return arrays[_value.array].end(); 
+        }
+
+        throw "not array";
+    }
+
+    std::vector<js::any>::const_iterator cend() const 
+    { 
+        if (_type == anyTypeId::array) 
+        {
+            return arrays[_value.array].cend(); 
+        }
+
+        throw "not array";
+    }    
+
+    any& operator=(const any& other)
+    {
+        _type = other._type;
+        _value = other._value;        
+        return *this;
+    }
+
+    any operator+(any other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return any(_value.integer + other._value.integer);
+
+        case anyTypeId::integer64:
+            break;
+
+        case anyTypeId::real:
+            break;
+
+        case anyTypeId::string:
+            break;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, const any &other);
 };
 
 } // namespace js
