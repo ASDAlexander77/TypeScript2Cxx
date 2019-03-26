@@ -18,6 +18,7 @@ export class Emitter {
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
         private cmdLineOptions: any, private singleModule: boolean, private rootFolder?: string) {
 
+        this.writer = new CodeWriter();
         this.resolver = new IdentifierResolver(typeChecker);
         this.typeInfo = new TypeInfo(this.resolver);
         this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
@@ -62,7 +63,7 @@ export class Emitter {
     }
 
     public save() {
-        throw new Error('Method not implemented.');
+        // TODO: ...
     }
 
     private processFunction(
@@ -85,6 +86,10 @@ export class Emitter {
 
     private processFile(sourceFile: ts.SourceFile): void {
         this.sourceFileName = sourceFile.fileName;
+
+        // added header
+        this.writer.writeString(`#include "core.h"`);
+
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[]);
     }
 
@@ -361,7 +366,15 @@ export class Emitter {
 
     private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean) {
         const nameText: string = name.text;
-        throw new Error('Method not implemented.');
+
+        // write declaration
+        this.writer.writeString('any nameText');
+        if (initializer) {
+            this.writer.writeString(' = ');
+            this.processExpression(initializer);
+        }
+
+        this.writer.writeStringNewLine(';');
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
@@ -452,11 +465,11 @@ export class Emitter {
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString(node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false');
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('nullptr');
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
