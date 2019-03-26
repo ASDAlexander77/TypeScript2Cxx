@@ -41,32 +41,26 @@
         {
             "name": "Win32",
             "includePath": [
-                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/VC/Tools/MSVC/14.11.25503/include",
-                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.12.25827/include",
-                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.10.25017/include",
+                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/include",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared",
-                "C:/.hunter/_Base/1d841ca/5453206/8f02892/Install/include",
                 "${workspaceRoot}"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "",
                 "path": [
-                    "C:/Program Files (x86)/Microsoft Visual Studio/2017/Professional/VC/Tools/MSVC/14.11.25503/include",
-                    "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.12.25827/include",
-                    "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.10.25017/include",
+                    "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/include",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/ucrt",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/ucrt",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/um",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.14393.0/shared",
-                    "C:/.hunter/_Base/1d841ca/5453206/8f02892/Install/include",
                     "${workspaceRoot}"
                 ]
             },

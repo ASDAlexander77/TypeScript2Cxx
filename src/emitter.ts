@@ -88,7 +88,8 @@ export class Emitter {
         this.sourceFileName = sourceFile.fileName;
 
         // added header
-        this.writer.writeString(`#include "core.h"`);
+        this.writer.writeStringNewLine(`#include "core.h";`);
+        this.writer.writeStringNewLine('');
 
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[]);
     }
@@ -368,7 +369,7 @@ export class Emitter {
         const nameText: string = name.text;
 
         // write declaration
-        this.writer.writeString('any nameText');
+        this.writer.writeString(`any ${nameText}`);
         if (initializer) {
             this.writer.writeString(' = ');
             this.processExpression(initializer);

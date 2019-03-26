@@ -1,19 +1,19 @@
 {
 	"folders": [
 		{
-			"name": "TypeScript to Cxx Source"
+			"name": "TypeScript to Cxx Source",
 			"path": "./src"
 		},
 		{
-			"name": "TypeScript to Cxx Specs"
+			"name": "TypeScript to Cxx Specs",
 			"path": "./spec"
 		},
 		{
-			"name": "TypeScript to Cxx Tests"
+			"name": "TypeScript to Cxx Tests",
 			"path": "./test"
 		},
 		{
-			"name": "Cxx Playground"
+			"name": "Cxx Playground",
 			"path": "./playground"
 		}
 	],
