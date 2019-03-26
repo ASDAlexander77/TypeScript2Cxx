@@ -1,19 +1,9 @@
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type on single-configuration generators")
 
-set(HUNTER_CONFIGURATION_TYPES Release)
-include(HunterGate)
-HunterGate(
-    URL "https://github.com/ruslo/hunter/archive/v0.23.142.tar.gz"
-    SHA1 "1d841ca74150c92054896a7f6d88a123dd9e615d"
-    LOCAL
-)
-
-project(tsc2cxx)
+project(test)
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 set(PROJECT_VERSION 0.0.0.dev0)
 
@@ -32,36 +22,11 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS Off)
 
-# BOOST
-hunter_add_package(Boost COMPONENTS system filesystem)
-
-set(Boost_USE_STATIC_LIBS ON)
-if (MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DBOOST_ALL_NO_LIB=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DBOOST_ALL_NO_LIB=1")
-else()
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DBOOST_ALL_NO_LIB=1")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DBOOST_ALL_NO_LIB=1")
-	if(MINGW)
-	  	set(LIBS ${LIBS} "ws2_32")
-	endif()
-endif()
-#find_package(Boost REQUIRED COMPONENTS system filesystem)
-find_package(Boost REQUIRED COMPONENTS system)
-
-if (Boost_FOUND)
-  include_directories (SYSTEM ${Boost_INCLUDE_DIR})
-  link_directories (${Boost_LIBRARY_DIRS})
-  set(EXTRA_LIBS ${EXTRA_LIBS} ${Boost_LIBRARIES})
-else()
-    message("Boost_FOUND NOT FOUND")
-endif ()
-
 message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 
 # files
-file(GLOB Tsc2cxx_SRC
+file(GLOB test_SRC
     "*.cpp"
 )
 
@@ -85,18 +50,10 @@ else()
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
 endif()
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    SET(EXTRA_LIBS ${EXTRA_LIBS} "pthread")
-endif()
-
-if (MINGW)
-    SET(EXTRA_LIBS ${EXTRA_LIBS} "ws2_32")
-endif()
-
-add_executable (${PROJECT_NAME} "${Tsc2cxx_SRC}")
+add_executable (${PROJECT_NAME} "${test_SRC}")
 
 if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})
 else()
-target_link_libraries (${PROJECT_NAME} "stdc++" "stdc++fs" ${EXTRA_LIBS})
+target_link_libraries (${PROJECT_NAME} "stdc++" ${EXTRA_LIBS})
 endif()
