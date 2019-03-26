@@ -66,5 +66,16 @@ int main(int argc, char** argv)
         index = index + 1;
     }
 
+    any m = 
+    { 
+        std::make_tuple("field 1", 1), 
+        std::make_tuple("field 2", 2), 
+        std::make_tuple("field 3", 3) 
+    };
+
+    std::cout << "m['field 1'] = " << m["field 1"] << std::endl;
+    std::cout << "m['field 2'] = " << m["field 2"] << std::endl;
+    std::cout << "m['field 3'] = " << m["field 3"] << std::endl;
+
     return 0;
 }

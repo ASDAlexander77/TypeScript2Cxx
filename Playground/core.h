@@ -1,6 +1,9 @@
-#include <functional>
 #include <memory>
+#include <string>
+#include <functional>
 #include <vector>
+#include <tuple>
+#include <unordered_map>
 #include <ostream>
 
 namespace js
@@ -40,6 +43,7 @@ struct any
 {
     static std::vector<func> closures;
     static std::vector<std::vector<any>> arrays;
+    static std::vector<std::unordered_map<std::string, any>> objects;
 
     anyTypeId _type;
     anyType _value;
@@ -113,13 +117,13 @@ struct any
         _value.closure = closures.size() - 1;
     }
 
-    any(const std::initializer_list<any> &values)
+    any(const std::initializer_list<any>& values)
     {
         _type = anyTypeId::array;
 
         std::vector<any> vals;
         vals.reserve(values.size());
-        for (auto &item : values)
+        for (auto& item : values)
         {
             vals.push_back(item);
         }
@@ -127,6 +131,20 @@ struct any
         arrays.push_back(vals);
         _value.array = arrays.size() - 1;
     }
+
+    any(const std::initializer_list<std::tuple<std::string, any>>& values)
+    {
+        _type = anyTypeId::object;
+
+        std::unordered_map<std::string, any> obj;
+        for (auto& item : values)
+        {
+            obj[std::get<0>(item)] = std::get<1>(item);
+        }
+
+        objects.push_back(obj);
+        _value.object = objects.size() - 1;        
+    }    
 
     void operator()()
     {
@@ -158,6 +176,14 @@ struct any
                 return arrays[_value.array][index._value.integer];
             case anyTypeId::integer64:
                 return arrays[_value.array][index._value.integer64];
+            }
+
+            throw "not allowed index type";
+        case anyTypeId::object:
+            switch (index._type)
+            {
+            case anyTypeId::string:
+                return objects[_value.object][index._value.string];
             }
 
             throw "not allowed index type";

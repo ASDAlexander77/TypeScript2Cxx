@@ -1,10 +1,9 @@
-#include <functional>
-#include <vector>
 #include "core.h"
 
 namespace js {
     std::vector<func> any::closures;
     std::vector<std::vector<any>> any::arrays;
+    std::vector<std::unordered_map<std::string, any>> any::objects;
 
     std::ostream& operator<<(std::ostream& os, const any& other)
     {
