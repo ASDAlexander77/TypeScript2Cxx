@@ -12,6 +12,6 @@ export class CodeWriter {
     }
 
     public getText(): string {
-        return this.parts.join();
+        return this.parts.join('');
     }
 }
