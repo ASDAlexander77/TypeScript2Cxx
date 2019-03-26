@@ -1,0 +1,5 @@
+[
+  { "directory": ".",
+    "command": "cl /EHsc /MD /std:c++latest /Fe:test.exe /I ..\\Playground ..\\Playground\\core.cpp test.cpp",
+    "file": "test.cpp" }
+]

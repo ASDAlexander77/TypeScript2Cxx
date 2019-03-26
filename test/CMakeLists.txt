@@ -1,9 +1,7 @@
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
 set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type on single-configuration generators")
 
-project(test)
+project(test CXX)
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 set(PROJECT_VERSION 0.0.0.dev0)
 
@@ -21,6 +19,7 @@ cmake_policy(SET CMP0054 NEW)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS Off)
+set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
 message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
@@ -31,6 +30,7 @@ file(GLOB test_SRC
 )
 
 include_directories("./")
+include_directories("../Playground")
 link_directories("./")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
