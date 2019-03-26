@@ -88,10 +88,17 @@ export class Emitter {
         this.sourceFileName = sourceFile.fileName;
 
         // added header
-        this.writer.writeStringNewLine(`#include "core.h";`);
+        this.writer.writeStringNewLine(`#include "core.h"`);
+        this.writer.writeStringNewLine('');
+        this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
         this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[]);
+
+        this.writer.writeStringNewLine('');
+        this.writer.writeStringNewLine('int main(int argc, char** argv)');
+        this.writer.writeStringNewLine('{');
+        this.writer.writeStringNewLine('};');
     }
 
     private processBundle(bundle: ts.Bundle): void {
