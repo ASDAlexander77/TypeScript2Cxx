@@ -1,0 +1,71 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Node.js (Test)",
+            "preLaunchTask": "npm",
+            "program": "${workspaceFolder}/../__out/main.js",
+            "cwd": "${workspaceFolder}/../test",
+            "args": [
+                "tsconfig.json"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch TS-Node (Test)",
+            "runtimeExecutable": "${workspaceFolder}/../node_modules/.bin/ts-node",
+            "program": "${workspaceFolder}/../src/main.ts",
+            "cwd": "${workspaceFolder}/../test",
+            "args": [
+                "tsconfig.json"
+            ],
+            "sourceMaps": true,
+            "outFiles": [
+              "${workspaceRoot}/../__out/**/*.js"
+            ],
+            "protocol": "inspector"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Tests",
+            "program": "${workspaceFolder}/../node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u",
+                "tdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "-r",
+                "ts-node/register",
+                "${workspaceFolder}/../spec/**/*.spec.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/../"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Tests - Single",
+            "program": "${workspaceFolder}/../node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u",
+                "tdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "-r",
+                "ts-node/register",
+                "${workspaceFolder}/../spec/**/undefined.spec.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/../"
+        }
+    ]
+}

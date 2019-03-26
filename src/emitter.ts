@@ -1,12 +1,12 @@
 import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
-import * as path from 'path';
 import { Preprocessor } from './preprocessor';
 import { TypeInfo } from './typeInfo';
+import { CodeWriter } from './codewriter';
 
 export class Emitter {
-    public fileModuleName: string;
+    public writer: CodeWriter;
     private resolver: IdentifierResolver;
     private preprocessor: Preprocessor;
     private typeInfo: TypeInfo;
@@ -21,9 +21,6 @@ export class Emitter {
         this.resolver = new IdentifierResolver(typeChecker);
         this.typeInfo = new TypeInfo(this.resolver);
         this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
-        if (options && options.outFile && singleModule) {
-            this.fileModuleName = options.outFile;
-        }
 
         this.jsLib = (
             options

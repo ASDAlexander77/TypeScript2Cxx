@@ -1,0 +1,9 @@
+{
+    "files.exclude": {
+        "**/node_modules/*/**": true,
+        "**/*.lua": {
+            "when": "$(basename).ts"
+        },
+        "**/*.lua.map": true
+    }
+}

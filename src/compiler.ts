@@ -207,84 +207,58 @@ export class Run {
 
         const sourceFiles = program.getSourceFiles();
 
-        const isSingleModule = cmdLineOptions && cmdLineOptions.singleModule;
-        if (!isSingleModule) {
-            sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
-                // track version
-                const paths = sources.filter(sf => s.fileName.endsWith(sf));
-                (<any>s).__path = paths[0];
-                const fileVersion = (<any>s).version;
-                if (fileVersion) {
-                    const latestVersion = this.versions[s.fileName];
-                    if (latestVersion && parseInt(latestVersion, 10) >= parseInt(fileVersion, 10)) {
-                        console.log(
-                            'File: '
-                            + ForegroundColorEscapeSequences.White
-                            + s.fileName
-                            + resetEscapeSequence
-                            + ' current version:'
-                            + fileVersion
-                            + ', last version:'
-                            + latestVersion
-                            + '. '
-                            + ForegroundColorEscapeSequences.Red
-                            + 'Skipped.'
-                            + resetEscapeSequence);
-                        return;
-                    }
-
-                    this.versions[s.fileName] = fileVersion;
+        sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
+            // track version
+            const paths = sources.filter(sf => s.fileName.endsWith(sf));
+            (<any>s).__path = paths[0];
+            const fileVersion = (<any>s).version;
+            if (fileVersion) {
+                const latestVersion = this.versions[s.fileName];
+                if (latestVersion && parseInt(latestVersion, 10) >= parseInt(fileVersion, 10)) {
+                    console.log(
+                        'File: '
+                        + ForegroundColorEscapeSequences.White
+                        + s.fileName
+                        + resetEscapeSequence
+                        + ' current version:'
+                        + fileVersion
+                        + ', last version:'
+                        + latestVersion
+                        + '. '
+                        + ForegroundColorEscapeSequences.Red
+                        + 'Skipped.'
+                        + resetEscapeSequence);
+                    return;
                 }
 
-                console.log(
-                    ForegroundColorEscapeSequences.Cyan
-                    + 'Processing File: '
-                    + resetEscapeSequence
-                    + ForegroundColorEscapeSequences.White
-                    + s.fileName
-                    + resetEscapeSequence);
-                const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
-
-                emitter.processNode(s);
-                emitter.save();
-
-                const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-                const fileName = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'cpp'));
-
-                console.log(
-                    ForegroundColorEscapeSequences.Cyan
-                    + 'Writing to file: '
-                    + resetEscapeSequence
-                    + ForegroundColorEscapeSequences.White
-                    + s.fileName
-                    + resetEscapeSequence);
-
-                fs.writeFileSync(fileName, emitter.writer.getBytes());
-            });
-        } else {
-            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, true, program.getCurrentDirectory());
-            sourceFiles.forEach(s => {
-                const paths = sources.filter(sf => s.fileName.endsWith(sf));
-                if (paths && paths.length > 0) {
-                    (<any>s).__path = paths[0];
-                    emitter.processNode(s);
-                    console.log('File: ' + ForegroundColorEscapeSequences.White + s.fileName + resetEscapeSequence);
-                }
-            });
-
-            const fileName = (emitter.fileModuleName || 'out').replace(/\./g, '_') + '.' + 'cpp';
+                this.versions[s.fileName] = fileVersion;
+            }
 
             console.log(
                 ForegroundColorEscapeSequences.Cyan
-                + 'Writing to file '
+                + 'Processing File: '
                 + resetEscapeSequence
                 + ForegroundColorEscapeSequences.White
-                + fileName
+                + s.fileName
+                + resetEscapeSequence);
+            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
+
+            emitter.processNode(s);
+            emitter.save();
+
+            const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+            const fileName = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'cpp'));
+
+            console.log(
+                ForegroundColorEscapeSequences.Cyan
+                + 'Writing to file: '
+                + resetEscapeSequence
+                + ForegroundColorEscapeSequences.White
+                + s.fileName
                 + resetEscapeSequence);
 
-            emitter.save();
-            fs.writeFileSync(fileName, emitter.writer.getBytes());
-        }
+            fs.writeFileSync(fileName, emitter.writer.getText());
+        });
 
         console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
     }
@@ -330,7 +304,7 @@ export class Run {
                     emitter.save();
 
                     const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
-                    fs.writeFileSync(cxxFile, emitter.writer.getBytes());
+                    fs.writeFileSync(cxxFile, emitter.writer.getText());
 
                     lastCxxFile = cxxFile;
 
