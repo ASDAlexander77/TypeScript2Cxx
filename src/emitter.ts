@@ -592,7 +592,9 @@ export class Emitter {
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
+        this.writer.writeString('(');
         this.processExpression(node.expression);
+        this.writer.writeString(')');
     }
 
     private processTypeAssertionExpression(node: ts.TypeAssertion) {
