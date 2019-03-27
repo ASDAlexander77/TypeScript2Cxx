@@ -584,11 +584,25 @@ export class Emitter {
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
-        throw new Error('Method not implemented.');
+        let next = false;
+        this.writer.writeString('{ ');
+        node.elements.forEach(element => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processExpression(element);
+            next = true;
+        });
+
+        this.writer.writeString(' }');
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
-        throw new Error('Method not implemented.');
+        this.processExpression(node.expression);
+        this.writer.writeString('[');
+        this.processExpression(node.argumentExpression);
+        this.writer.writeString(']');
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {
@@ -644,7 +658,19 @@ export class Emitter {
     }
 
     private processCallExpression(node: ts.CallExpression): void {
-        throw new Error('Method not implemented.');
+        this.processExpression(node.expression);
+        this.writer.writeString('(');
+
+        let next = false;
+        node.arguments.forEach(element => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processExpression(element);
+            next = true;
+        });
+        this.writer.writeString(')');
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -680,7 +706,9 @@ export class Emitter {
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
-        throw new Error('Method not implemented.');
+        this.processExpression(node.expression);
+        this.writer.writeString('.');
+        this.processExpression(node.name);
     }
 }
 
