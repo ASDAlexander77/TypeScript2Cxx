@@ -32,7 +32,7 @@ union anyType {
     int integer;
     long integer64;
     double real;
-    char *string;
+    const char *string;
     functionPtr function;
     int closure;
     int array;
@@ -96,7 +96,7 @@ struct any
         _value.string = value;
     }
 
-    any(char *value)
+    any(const char *value)
     {
         _type = anyTypeId::string;
         _value.string = value;
@@ -239,7 +239,7 @@ struct any
         return *this;
     }
 
-    any operator+(any other)
+    any operator+(const any& other)
     {
         switch (_type)
         {
@@ -262,7 +262,10 @@ struct any
         throw "not implemented";
     }
 
-    friend std::ostream &operator<<(std::ostream &os, const any &other);
+    friend any operator+(int value, const any& rhs);    
+    friend any operator+(const char* value, const any& rhs);    
+
+    friend std::ostream& operator<<(std::ostream& os, const any& other);
 };
 
 } // namespace js
