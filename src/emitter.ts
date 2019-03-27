@@ -12,6 +12,8 @@ export class Emitter {
     private typeInfo: TypeInfo;
     private sourceFileName: string;
     private jsLib: boolean;
+    private scope: Array<ts.Node> = new Array<ts.Node>();
+    private opsMap: Map<number, string> = new Map<number, string>();
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
@@ -30,6 +32,45 @@ export class Emitter {
             || cmdLineOptions.jslib)
             ? true
             : false;
+
+        this.opsMap[ts.SyntaxKind.EqualsToken] = '=';
+        this.opsMap[ts.SyntaxKind.PlusToken] = '+';
+        this.opsMap[ts.SyntaxKind.MinusToken] = '-';
+        this.opsMap[ts.SyntaxKind.AsteriskToken] = '*';
+        this.opsMap[ts.SyntaxKind.PercentToken] = '%';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '**';
+        this.opsMap[ts.SyntaxKind.SlashToken] = '/';
+        this.opsMap[ts.SyntaxKind.AmpersandToken] = '&';
+        this.opsMap[ts.SyntaxKind.BarToken] = '|';
+        this.opsMap[ts.SyntaxKind.CaretToken] = '^';
+        this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '<<';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '>>';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__shiftRightInt';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '==';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '__strictEquals';
+        this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
+        this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = '<=';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '!=';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '__strictNotEquals';
+        this.opsMap[ts.SyntaxKind.GreaterThanToken] = '>';
+        this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';
+
+        this.opsMap[ts.SyntaxKind.PlusEqualsToken] = '+=';
+        this.opsMap[ts.SyntaxKind.MinusEqualsToken] = '-=';
+        this.opsMap[ts.SyntaxKind.AsteriskEqualsToken] = '*=';
+        this.opsMap[ts.SyntaxKind.PercentEqualsToken] = '%=';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskEqualsToken] = '**=';
+        this.opsMap[ts.SyntaxKind.SlashEqualsToken] = '/=';
+        this.opsMap[ts.SyntaxKind.AmpersandEqualsToken] = '&=';
+        this.opsMap[ts.SyntaxKind.BarEqualsToken] = '|=';
+        this.opsMap[ts.SyntaxKind.CaretEqualsToken] = '^=';
+        this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = '<<=';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>=';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__strictNotEqualsAssign';
+    }
+
+    public get isGlobalScope() {
+        return this.scope.length > 0 && this.scope[this.scope.length - 1].kind === ts.SyntaxKind.SourceFile;
     }
 
     public printNode(node: ts.Statement): string {
@@ -70,7 +111,11 @@ export class Emitter {
         statements: ts.NodeArray<ts.Statement>,
         parameters: ts.NodeArray<ts.ParameterDeclaration>): void {
 
+        this.scope.push(location);
+
         this.processFunctionWithinContext(location, statements, parameters);
+
+        this.scope.pop();
     }
 
     private processFunctionWithinContext(
@@ -86,18 +131,33 @@ export class Emitter {
     private processFile(sourceFile: ts.SourceFile): void {
         this.sourceFileName = sourceFile.fileName;
 
+        this.scope.push(sourceFile);
+
         // added header
         this.writer.writeStringNewLine(`#include "core.h"`);
         this.writer.writeStringNewLine('');
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
-        this.processFunctionWithinContext(sourceFile, sourceFile.statements, <any>[]);
+        const isDeclarationStatement = function (f: ts.Statement): boolean {
+            return f.kind === ts.SyntaxKind.VariableStatement;
+        };
+
+        sourceFile.statements.filter(f => isDeclarationStatement(f)).forEach(s => {
+            this.processStatement(s);
+        });
 
         this.writer.writeStringNewLine('');
         this.writer.writeStringNewLine('int main(int argc, char** argv)');
-        this.writer.writeStringNewLine('{');
-        this.writer.writeStringNewLine('};');
+        this.writer.BeginBlock();
+
+        sourceFile.statements.filter(f => !isDeclarationStatement(f)).forEach(s => {
+            this.processStatement(s);
+        });
+
+        this.writer.EndBlock();
+
+        this.scope.pop();
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -199,6 +259,7 @@ export class Emitter {
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
         this.processExpression(node.expression);
+        this.writer.writeStringNewLine(';');
     }
 
     private fixupParentReferences<T extends ts.Node>(rootNode: T, setParent?: ts.Node): T {
@@ -366,27 +427,40 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
+        // write declaration
+        // Helpers.isConstOrLet(declarationList)
+        this.writer.writeString('any ');
+
+        const next = false;
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, Helpers.isConstOrLet(declarationList), isExport));
+                <ts.Identifier>d.name, d.initializer, next, isExport));
     }
 
-    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, isLetOrConst: boolean, isExport?: boolean) {
-        const nameText: string = name.text;
-
-        // write declaration
-        this.writer.writeString(`any ${nameText}`);
-        if (initializer) {
-            this.writer.writeString(' = ');
-            this.processExpression(initializer);
+    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, next: boolean, isExport?: boolean) {
+        if (next) {
+            this.writer.writeStringNewLine(',');
         }
 
-        this.writer.writeStringNewLine(';');
+        this.writer.writeString(name.text);
+        if (initializer) {
+            if (this.isGlobalScope) {
+                this.writer.writeString('(');
+                this.processExpression(initializer);
+                this.writer.writeString(')');
+            } else {
+                this.writer.writeString(' = ');
+                this.processExpression(initializer);
+            }
+        }
+
+        next = true;
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
         this.processVariableDeclarationList(node.declarationList, isExport);
+        this.writer.writeStringNewLine(';');
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
@@ -480,11 +554,11 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString(node.text);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString(`"${node.text}"`);
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
@@ -532,7 +606,25 @@ export class Emitter {
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
-        throw new Error('Not Implemented');
+        const op = this.opsMap[node.operatorToken.kind];
+        const isFunction = op.substr(0, 2) === '__';
+        if (isFunction) {
+            this.writer.writeString(op + '(');
+        }
+
+        this.processExpression(node.left);
+
+        if (isFunction) {
+            this.writer.writeString(', ');
+        } else {
+            this.writer.writeString(' ' + op + ' ');
+        }
+
+        this.processExpression(node.right);
+
+        if (isFunction) {
+            this.writer.writeString(')');
+        }
     }
 
     private processDeleteExpression(node: ts.DeleteExpression): void {
@@ -576,10 +668,11 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString(node.text);
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
         throw new Error('Method not implemented.');
     }
 }
+

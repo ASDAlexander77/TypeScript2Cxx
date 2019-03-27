@@ -1,6 +1,8 @@
 let isDone1: boolean = false;
-const isDone2: boolean = false;
-var isDone3: boolean = false;
-let val1: any = null;
-const val2: any = null;
-var val3: any = null;
+let decimal: number = 6;
+let hex: number = 0xf00d;
+let binary: number = 0b1010;
+let octal: number = 0o744;
+let color: string = "blue";
+
+color = 'red';

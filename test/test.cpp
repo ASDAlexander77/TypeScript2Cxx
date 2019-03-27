@@ -2,13 +2,14 @@
 
 using namespace js;
 
-any isDone1 = false;
-any isDone2 = false;
-any isDone3 = false;
-any val1 = nullptr;
-any val2 = nullptr;
-any val3 = nullptr;
+any isDone1(false);
+any decimal(6);
+any hex(61453);
+any binary(10);
+any octal(484);
+any color("blue");
 
 int main(int argc, char** argv)
 {
-};
+    color = "red";
+}
