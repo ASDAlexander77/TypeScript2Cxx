@@ -1,34 +1,7 @@
 #include "core.h"
 
 namespace js {
-    std::vector<func> any::closures;
-    std::vector<std::vector<any>> any::arrays;
-    std::vector<std::unordered_map<std::string, any>> any::objects;
-
     any operator+(int value, const any& rhs)
-    {
-        switch (_type)
-        {
-        case anyTypeId::integer:
-            return any(value + rhs.integer);
-
-        case anyTypeId::integer64:
-            break;
-
-        case anyTypeId::real:
-            break;
-
-        case anyTypeId::string:
-            break;
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }    
-
-    any operator+(const char* value, const any& rhs)
     {
         switch (rhs._type)
         {
@@ -41,18 +14,28 @@ namespace js {
         case anyTypeId::real:
             break;
 
+        case anyTypeId::const_string:
         case anyTypeId::string:
-            std::string str;
-            str.reserve(50);      
-            str += value;  
-            str += rhs.string;
-            return any(std::quoted(str));        
+        {
+            std::stringstream stream;
+            stream << value;
+            stream << rhs;
+            return any(stream.str());
+        }
 
         default:
             throw "wrong type";
         }
 
         throw "not implemented";
+    }    
+
+    any operator+(const char* value, const any& rhs)
+    {
+        std::stringstream stream;
+        stream << value;
+        stream << rhs;
+        return any(stream.str());
     }    
 
     std::ostream& operator<<(std::ostream& os, const any& other)
@@ -83,8 +66,12 @@ namespace js {
             os << other._value.real;
             break;
 
+        case anyTypeId::const_string:
+            os << other._value.const_string;
+            break;
+
         case anyTypeId::string:
-            os << other._value.string;
+            os << *other._value.string;
             break;
 
         case anyTypeId::function:

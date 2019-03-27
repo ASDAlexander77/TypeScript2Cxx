@@ -1,4 +1,5 @@
 #include "core.h"
+#include <iostream>
 
 using namespace js;
 
@@ -8,4 +9,5 @@ any sentence("Hello, my name is " + fullName + ". I'll be " + age + 1 + " years 
 
 int main(int argc, char** argv)
 {
+    std::cout << sentence << std::endl;
 }

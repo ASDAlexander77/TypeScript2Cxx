@@ -4,13 +4,18 @@
 #include <vector>
 #include <tuple>
 #include <unordered_map>
+#include <sstream>
 #include <ostream>
 
 namespace js
 {
 
+struct any;
+
 typedef void (*functionPtr)(void);
-typedef std::function<void(void)> func;
+typedef std::function<void(void)> functionType;
+typedef std::unordered_map<std::string, any> objectType;
+typedef std::vector<any> arrayType;
 
 enum anyTypeId
 {
@@ -20,31 +25,30 @@ enum anyTypeId
     integer,
     integer64,
     real,
-    string,
+    const_string,
     function,
     closure,
     array,
-    object
+    object,
+    string,
 };
 
 union anyType {
     bool boolean;
     int integer;
-    long integer64;
-    double real;
-    const char *string;
+    long integer64; // i think we can use pointer to data to reduce size of anyType
+    double real;  // i think we can use pointer to data to reduce size of anyType
+    const char *const_string;
     functionPtr function;
-    int closure;
-    int array;
-    int object;
+
+    functionType* closure;
+    objectType* object;
+    arrayType* array;
+    std::string* string;
 };
 
 struct any
 {
-    static std::vector<func> closures;
-    static std::vector<std::vector<any>> arrays;
-    static std::vector<std::unordered_map<std::string, any>> objects;
-
     anyTypeId _type;
     anyType _value;
 
@@ -98,9 +102,15 @@ struct any
 
     any(const char *value)
     {
-        _type = anyTypeId::string;
-        _value.string = value;
+        _type = anyTypeId::const_string;
+        _value.const_string = value;
     }
+
+    any(const std::string& value)
+    {
+        _type = anyTypeId::string;
+        _value.string = new std::string(value);
+    }    
 
     template <class R, class... Args>
     any(R (*value)(Args &&...))
@@ -113,8 +123,7 @@ struct any
     any(std::function<R(Args &&...)> func)
     {
         _type = anyTypeId::closure;
-        closures.push_back(func);
-        _value.closure = closures.size() - 1;
+        _value.closure = new functionType(func);
     }
 
     any(const std::initializer_list<any>& values)
@@ -128,22 +137,20 @@ struct any
             vals.push_back(item);
         }
 
-        arrays.push_back(vals);
-        _value.array = arrays.size() - 1;
+        _value.array = new arrayType(vals);
     }
 
     any(const std::initializer_list<std::tuple<std::string, any>>& values)
     {
         _type = anyTypeId::object;
 
-        std::unordered_map<std::string, any> obj;
+        objectType obj;
         for (auto& item : values)
         {
             obj[std::get<0>(item)] = std::get<1>(item);
         }
 
-        objects.push_back(obj);
-        _value.object = objects.size() - 1;        
+        _value.object = new objectType(obj);
     }    
 
     void operator()()
@@ -155,7 +162,7 @@ struct any
             return;
 
         case anyTypeId::closure:
-            closures[_value.closure]();
+            (*(_value.closure))();
             return;
 
         default:
@@ -173,17 +180,19 @@ struct any
             switch (index._type)
             {
             case anyTypeId::integer:
-                return arrays[_value.array][index._value.integer];
+                return (*(_value.array))[index._value.integer];
             case anyTypeId::integer64:
-                return arrays[_value.array][index._value.integer64];
+                return (*(_value.array))[index._value.integer64];
             }
 
             throw "not allowed index type";
         case anyTypeId::object:
             switch (index._type)
             {
+            case anyTypeId::const_string:
+                return (*(_value.object))[index._value.const_string];
             case anyTypeId::string:
-                return objects[_value.object][index._value.string];
+                return (*(_value.object))[(const char*) index._value.string];
             }
 
             throw "not allowed index type";
@@ -196,7 +205,7 @@ struct any
     { 
         if (_type == anyTypeId::array) 
         {
-            return arrays[_value.array].begin(); 
+            return _value.array->begin(); 
         }
 
         throw "not array";
@@ -206,7 +215,7 @@ struct any
     { 
         if (_type == anyTypeId::array) 
         {
-            return arrays[_value.array].cbegin(); 
+            return _value.array->cbegin(); 
         }
 
         throw "not array";
@@ -216,7 +225,7 @@ struct any
     { 
         if (_type == anyTypeId::array) 
         {
-            return arrays[_value.array].end(); 
+            return _value.array->end(); 
         }
 
         throw "not array";
@@ -226,7 +235,7 @@ struct any
     { 
         if (_type == anyTypeId::array) 
         {
-            return arrays[_value.array].cend(); 
+            return _value.array->cend(); 
         }
 
         throw "not array";
@@ -241,6 +250,18 @@ struct any
 
     any operator+(const any& other)
     {
+        switch (other._type)
+        {
+            case anyTypeId::const_string:
+            case anyTypeId::string:
+            {
+                std::stringstream stream;
+                stream << *this;
+                stream << other;
+                return any(stream.str());
+            }            
+        }
+
         switch (_type)
         {
         case anyTypeId::integer:
@@ -252,8 +273,14 @@ struct any
         case anyTypeId::real:
             break;
 
+        case anyTypeId::const_string:
         case anyTypeId::string:
-            break;
+        {
+            std::stringstream stream;
+            stream << *this;
+            stream << other;
+            return any(stream.str());
+        }
 
         default:
             throw "wrong type";

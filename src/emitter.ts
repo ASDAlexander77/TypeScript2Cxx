@@ -367,6 +367,12 @@ export class Emitter {
 
     private processTSNode(node: ts.Node, transformText?: (string) => string) {
         const statements = this.transpileTSNode(node, transformText);
+
+        if (statements && statements.length === 1 && (<any>statements[0]).expression) {
+            this.processExpression((<any>statements[0]).expression);
+            return;
+        }
+
         statements.forEach(s => {
             this.processStatementInternal(s);
         });

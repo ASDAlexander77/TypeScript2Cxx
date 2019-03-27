@@ -29,6 +29,10 @@ file(GLOB test_SRC
     "*.cpp"
 )
 
+set(core_SRC
+    "../Playground/core.cpp"
+)
+
 include_directories("./")
 include_directories("../Playground")
 link_directories("./")
@@ -50,7 +54,7 @@ else()
     SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
 endif()
 
-add_executable (${PROJECT_NAME} "${test_SRC}")
+add_executable (${PROJECT_NAME} "${core_SRC}" "${test_SRC}")
 
 if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})

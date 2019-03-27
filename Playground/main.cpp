@@ -25,6 +25,8 @@ auto functionTest2() -> std::function<void(void)> {
 
 int main(int argc, char** argv)
 {
+    std::cout << "'any' size = " << sizeof(any) << std::endl;
+
     // const
     any a;
     any b = nullptr;
