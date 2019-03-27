@@ -9,4 +9,5 @@ any sentence("Hello, my name is " + fullName + ". I'll be " + (age + 1) + " year
 int main(int argc, char** argv)
 {
     console.log(sentence);
+    console["log"]();
 }
