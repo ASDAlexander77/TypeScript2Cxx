@@ -38,14 +38,14 @@ union anyType {
     bool boolean;
     int integer;
     long integer64; // i think we can use pointer to data to reduce size of anyType
-    double real;  // i think we can use pointer to data to reduce size of anyType
+    double real;    // i think we can use pointer to data to reduce size of anyType
     const char *const_string;
     functionPtr function;
 
-    functionType* closure;
-    objectType* object;
-    arrayType* array;
-    std::string* string;
+    functionType *closure;
+    objectType *object;
+    arrayType *array;
+    std::string *string;
 };
 
 struct any
@@ -58,13 +58,13 @@ struct any
         _type = anyTypeId::undefined;
     }
 
-    any(const any& other)
+    any(const any &other)
     {
         _type = other._type;
         _value = other._value;
     }
 
-    any(any&& other)
+    any(any &&other)
     {
         _type = other._type;
         _value = other._value;
@@ -107,11 +107,11 @@ struct any
         _value.const_string = value;
     }
 
-    any(const std::string& value)
+    any(const std::string &value)
     {
         _type = anyTypeId::string;
         _value.string = new std::string(value);
-    }    
+    }
 
     template <class R, class... Args>
     any(R (*value)(Args &&...))
@@ -133,7 +133,7 @@ struct any
 
         std::vector<any> vals;
         vals.reserve(values.size());
-        for (auto& item : values)
+        for (auto &item : values)
         {
             vals.push_back(item);
         }
@@ -146,13 +146,31 @@ struct any
         _type = anyTypeId::object;
 
         objectType obj;
-        for (auto& item : values)
+        for (auto &item : values)
         {
             obj[std::get<0>(item)] = std::get<1>(item);
         }
 
         _value.object = new objectType(obj);
-    }    
+    }
+
+    any(anyTypeId initType)
+    {
+        _type = initType;
+
+        switch (_type)
+        {
+        case anyTypeId::array:
+            _value.array = new arrayType();        
+            return;
+
+        case anyTypeId::object:
+            _value.object = new objectType();        
+            return;
+        }        
+
+        throw "wrong type";
+    }
 
     void operator()()
     {
@@ -173,7 +191,7 @@ struct any
         throw "not function or closure";
     }
 
-    any operator[](any index)
+    any& operator[](const any index)
     {
         switch (_type)
         {
@@ -193,7 +211,7 @@ struct any
             case anyTypeId::const_string:
                 return (*(_value.object))[index._value.const_string];
             case anyTypeId::string:
-                return (*(_value.object))[(const char*) index._value.string];
+                return (*(_value.object))[(const char *)index._value.string];
             }
 
             throw "not allowed index type";
@@ -202,65 +220,94 @@ struct any
         throw "not array";
     }
 
-    std::vector<js::any>::iterator begin() 
-    { 
-        if (_type == anyTypeId::array) 
+    const any operator[](any index) const
+    {
+        switch (_type)
         {
-            return _value.array->begin(); 
+        case anyTypeId::array:
+            switch (index._type)
+            {
+            case anyTypeId::integer:
+                return (*(_value.array))[index._value.integer];
+            case anyTypeId::integer64:
+                return (*(_value.array))[index._value.integer64];
+            }
+
+            throw "not allowed index type";
+        case anyTypeId::object:
+            switch (index._type)
+            {
+            case anyTypeId::const_string:
+                return (*(_value.object))[index._value.const_string];
+            case anyTypeId::string:
+                return (*(_value.object))[(const char *)index._value.string];
+            }
+
+            throw "not allowed index type";
         }
 
         throw "not array";
     }
-    
-    std::vector<js::any>::const_iterator cbegin() const 
-    { 
-        if (_type == anyTypeId::array) 
-        {
-            return _value.array->cbegin(); 
-        }
 
-        throw "not array";
-    }
-    
-    std::vector<js::any>::iterator end() 
-    { 
-        if (_type == anyTypeId::array) 
+    std::vector<js::any>::iterator begin()
+    {
+        if (_type == anyTypeId::array)
         {
-            return _value.array->end(); 
+            return _value.array->begin();
         }
 
         throw "not array";
     }
 
-    std::vector<js::any>::const_iterator cend() const 
-    { 
-        if (_type == anyTypeId::array) 
+    std::vector<js::any>::const_iterator cbegin() const
+    {
+        if (_type == anyTypeId::array)
         {
-            return _value.array->cend(); 
+            return _value.array->cbegin();
         }
 
         throw "not array";
-    }    
+    }
 
-    any& operator=(const any& other)
+    std::vector<js::any>::iterator end()
+    {
+        if (_type == anyTypeId::array)
+        {
+            return _value.array->end();
+        }
+
+        throw "not array";
+    }
+
+    std::vector<js::any>::const_iterator cend() const
+    {
+        if (_type == anyTypeId::array)
+        {
+            return _value.array->cend();
+        }
+
+        throw "not array";
+    }
+
+    any &operator=(const any &other)
     {
         _type = other._type;
-        _value = other._value;        
+        _value = other._value;
         return *this;
     }
 
-    any operator+(const any& other)
+    any operator+(const any &other)
     {
         switch (other._type)
         {
-            case anyTypeId::const_string:
-            case anyTypeId::string:
-            {
-                std::stringstream stream;
-                stream << *this;
-                stream << other;
-                return any(stream.str());
-            }            
+        case anyTypeId::const_string:
+        case anyTypeId::string:
+        {
+            std::stringstream stream;
+            stream << *this;
+            stream << other;
+            return any(stream.str());
+        }
         }
 
         switch (_type)
@@ -290,17 +337,22 @@ struct any
         throw "not implemented";
     }
 
-    friend any operator+(int value, const any& rhs);    
-    friend any operator+(const char* value, const any& rhs);    
+    friend any operator+(int value, const any &rhs);
+    friend any operator+(const char *value, const any &rhs);
 
-    friend std::ostream& operator<<(std::ostream& os, const any& other);
+    friend std::ostream &operator<<(std::ostream &os, const any &other);
 };
 
-    static struct Console {
-        void log(any value) {
-            std::cout << value;
-            std::cout << std::endl;
-        }
-    } console;
-    
+static struct Console : any
+{
+    Console() : any(anyTypeId::object) {}
+
+    void log(any value)
+    {
+        std::cout << value;
+        std::cout << std::endl;
+    }
+} console;
+//console["log"] = console.log;
+
 } // namespace js
