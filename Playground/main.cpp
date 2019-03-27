@@ -8,7 +8,7 @@ void functionTest() {
 } 
 
 
-auto functionTest2() -> std::function<void()> {
+auto functionTest2() -> std::function<void(void)> {
     std::cout << "Hello - functionTest2" << std::endl;
 
     std::shared_ptr<any> bptr = std::make_shared<any>(12);
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
     }
 
     any m = 
-    { 
+    {
         std::make_tuple("field 1", 1), 
         std::make_tuple("field 2", 2), 
         std::make_tuple("field 3", 3) 

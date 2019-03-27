@@ -17,5 +17,31 @@
 			"path": "./playground"
 		}
 	],
-	"settings": {}
+    "settings": {
+        "files.associations": {
+            "functional": "cpp",
+            "memory": "cpp",
+            "cstddef": "cpp",
+            "cwchar": "cpp",
+            "exception": "cpp",
+            "initializer_list": "cpp",
+            "ios": "cpp",
+            "istream": "cpp",
+            "new": "cpp",
+            "ostream": "cpp",
+            "stdexcept": "cpp",
+            "streambuf": "cpp",
+            "system_error": "cpp",
+            "tuple": "cpp",
+            "type_traits": "cpp",
+            "vector": "cpp",
+            "xiosbase": "cpp",
+            "xlocale": "cpp",
+            "xlocinfo": "cpp",
+            "xlocnum": "cpp",
+            "xmemory0": "cpp",
+            "xstddef": "cpp",
+            "xstring": "cpp"
+        }
+    }
 }

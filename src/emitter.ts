@@ -11,7 +11,6 @@ export class Emitter {
     private preprocessor: Preprocessor;
     private typeInfo: TypeInfo;
     private sourceFileName: string;
-    private filePathCpp: string;
     private jsLib: boolean;
 
     public constructor(
