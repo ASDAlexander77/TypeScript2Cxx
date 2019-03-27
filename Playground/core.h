@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <sstream>
 #include <ostream>
+#include <iostream>
 
 namespace js
 {
@@ -295,4 +296,11 @@ struct any
     friend std::ostream& operator<<(std::ostream& os, const any& other);
 };
 
+    static struct Console {
+        void log(any value) {
+            std::cout << value;
+            std::cout << std::endl;
+        }
+    } console;
+    
 } // namespace js
