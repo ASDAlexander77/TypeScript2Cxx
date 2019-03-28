@@ -22,8 +22,8 @@
         "dom"
       ]
     },
-    "files": [
-      "test.ts"
+    "include": [
+      "test*.ts"
     ],
     "exclude": [
       "node_modules"

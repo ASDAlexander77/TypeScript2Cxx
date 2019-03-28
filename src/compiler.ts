@@ -266,6 +266,9 @@ export class Run {
     public test(sources: string[], cmdLineOptions?: any): string {
         let actualOutput = '';
 
+        // change folder
+        process.chdir('test');
+
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempCxxFiles = sources.map((s: string, index: number) => 'test' + index + '.cpp');
 
@@ -279,7 +282,8 @@ export class Run {
 
         try {
             sources.forEach((s: string, index: number) => {
-                fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
+                //// fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
+                fs.writeFileSync('test' + index + '.ts', s);
             });
 
             const program = ts.createProgram(tempSourceFiles, {});
@@ -294,7 +298,7 @@ export class Run {
                 }
             });
 
-            let lastCxxFile;
+            let lastCxxFiles = [];
             const sourceFiles = program.getSourceFiles();
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
@@ -306,17 +310,17 @@ export class Run {
                     const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
                     fs.writeFileSync(cxxFile, emitter.writer.getText());
 
-                    lastCxxFile = cxxFile;
+                    lastCxxFiles.push(cxxFile);
                 }
             });
 
             // compiling
-            const result_compile: any = spawn.sync('ms_test.bat', [lastCxxFile]);
+            const result_compile: any = spawn.sync('ms_test.bat', lastCxxFiles);
             if (result_compile.error) {
                 actualOutput = result_compile.error.stack;
             } else {
                 // start program and test it to
-                const result: any = spawn.sync('testapp1', [lastCxxFile]);
+                const result: any = spawn.sync('testapp1', []);
                 if (result.error) {
                     actualOutput = result.error.stack;
                 } else {
@@ -332,6 +336,8 @@ export class Run {
                 if (fs.existsSync(f)) { fs.unlinkSync(f); }
             });
 
+            process.chdir('..');
+
             throw e;
         }
 
@@ -342,6 +348,8 @@ export class Run {
         tempCxxFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
+
+        process.chdir('..');
 
         return actualOutput;
     }

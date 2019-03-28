@@ -90,11 +90,14 @@ export class Emitter {
 
     public processNode(node: ts.Node): void {
         switch (node.kind) {
-            case ts.SyntaxKind.SourceFile: this.processFile(<ts.SourceFile>node);
+            case ts.SyntaxKind.SourceFile:
+                this.processFile(<ts.SourceFile>node);
                 break;
-            case ts.SyntaxKind.Bundle: this.processBundle(<ts.Bundle>node);
+            case ts.SyntaxKind.Bundle:
+                this.processBundle(<ts.Bundle>node);
                 break;
-            case ts.SyntaxKind.UnparsedSource: this.processUnparsedSource(<ts.UnparsedSource>node);
+            case ts.SyntaxKind.UnparsedSource:
+                this.processUnparsedSource(<ts.UnparsedSource>node);
                 break;
             default:
                 // TODO: finish it

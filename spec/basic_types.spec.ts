@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Basic Types', () => {
 
-    it('simple bool/null value: local', () => expect('false\r\nfalse\r\nfalse\r\nnil\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('simple bool/null value: local', () => expect(new Run().test([
         'let isDone1: boolean = false;  \
         const isDone2: boolean = false; \
         var isDone3: boolean = false;   \
@@ -17,7 +17,7 @@ describe('Basic Types', () => {
         console.log(val1);              \
         console.log(val2);              \
         console.log(val3);              \
-    '])));
+    '])).to.equals('false\r\nfalse\r\nfalse\r\nnull\r\nnull\r\nnull\r\n'));
 
     it('Basic Types', () => expect('false\r\n6\r\n61453\r\n10\r\n484\r\nred\r\n').to.equals(new Run().test([
         'let isDone1: boolean = false;  \
@@ -73,7 +73,7 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
     '])));
 
     it('Enum', () => expect('Green\r\n').to.equals(new Run().test([
-        'enum Color {Red = 1, Green, Blue};     \
+        'enum Color {Red = 1, Green, Blue}      \
         let colorName: string = Color[2];       \
         console.log(colorName);                 \
     '])));
