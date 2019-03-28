@@ -143,12 +143,27 @@ export class Emitter {
         this.writer.writeStringNewLine('');
 
         const isDeclarationStatement = function (f: ts.Statement): boolean {
-            return f.kind === ts.SyntaxKind.VariableStatement;
+            if (f.kind === ts.SyntaxKind.FunctionDeclaration
+                || f.kind === ts.SyntaxKind.EnumDeclaration
+                || f.kind === ts.SyntaxKind.ClassDeclaration) {
+                return true;
+            }
+
+            if (f.kind === ts.SyntaxKind.VariableStatement) {
+                const variableStatement = <ts.VariableStatement>f;
+                if (Helpers.isConstOrLet(variableStatement.declarationList)) {
+                    return false;
+                }
+
+                return true;
+            }
         };
 
         sourceFile.statements.filter(f => isDeclarationStatement(f)).forEach(s => {
             this.processStatement(s);
         });
+
+        this.scope.pop();
 
         this.writer.writeStringNewLine('');
         this.writer.writeStringNewLine('int main(int argc, char** argv)');
@@ -158,9 +173,9 @@ export class Emitter {
             this.processStatement(s);
         });
 
+        this.writer.writeStringNewLine('');
+        this.writer.writeStringNewLine('return 0;');
         this.writer.EndBlock();
-
-        this.scope.pop();
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -412,7 +427,40 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
-        throw new Error('Method not implemented.');
+        const properties = [];
+        let value = 0;
+        for (const member of node.members) {
+            if (member.initializer) {
+                switch (member.initializer.kind) {
+                    case ts.SyntaxKind.NumericLiteral:
+                        value = parseInt((<ts.NumericLiteral>member.initializer).text, 10);
+                        break;
+                    default:
+                        throw new Error('Not Implemented');
+                }
+            } else {
+                value++;
+            }
+
+            const namedProperty = ts.createPropertyAssignment(
+                member.name,
+                ts.createNumericLiteral(value.toString()));
+
+            const valueProperty = ts.createPropertyAssignment(
+                ts.createNumericLiteral(value.toString()),
+                ts.createStringLiteral((<ts.Identifier>member.name).text));
+
+            properties.push(namedProperty);
+            properties.push(valueProperty);
+        }
+
+        const enumLiteralObject = ts.createObjectLiteral(properties);
+        const enumDeclare =
+            ts.createVariableStatement(
+                [],
+                [ts.createVariableDeclaration(node.name, undefined, enumLiteralObject)]);
+
+        this.processStatement(this.fixupParentReferences(enumDeclare, node));
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
@@ -473,7 +521,28 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('auto ');
+        this.processExpression(node.name);
+
+        this.writer.writeString('(');
+        let next = false;
+        node.parameters.forEach(element => {
+            if (next) {
+                this.writer.writeStringNewLine(',');
+            }
+
+            this.writer.writeString('any ');
+            if (element.name.kind === ts.SyntaxKind.Identifier) {
+                this.processExpression(element.name);
+            } else {
+                throw new Error('Not implemented');
+            }
+
+            next = true;
+        });
+
+        this.writer.writeString(')');
+        this.processStatement(node.body);
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -499,11 +568,16 @@ export class Emitter {
     }
 
     private processIfStatement(node: ts.IfStatement): void {
+        this.writer.writeString('if ');
+
+        this.writer.writeString('(');
         this.processExpression(node.expression);
+        this.writer.writeString(') ');
 
         this.processStatement(node.thenStatement);
 
         if (node.elseStatement) {
+            this.writer.writeString('else ');
             this.processStatement(node.elseStatement);
         }
     }
@@ -545,7 +619,13 @@ export class Emitter {
     }
 
     private processBlock(node: ts.Block): void {
-        throw new Error('Method not implemented.');
+        this.writer.BeginBlock();
+
+        node.statements.forEach(element => {
+            this.processStatement(element);
+        });
+
+        this.writer.EndBlock();
     }
 
     private processModuleBlock(node: ts.ModuleBlock): void {
@@ -583,12 +663,36 @@ export class Emitter {
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
-        throw new Error('Method not implemented.');
+        let next = false;
+        this.writer.BeginBlock();
+        node.properties.forEach(element => {
+            if (next) {
+                this.writer.writeStringNewLine(', ');
+            }
+
+            const property = <ts.PropertyAssignment>element;
+
+            this.writer.writeString('std::make_tuple(');
+
+            if (property.name.kind === ts.SyntaxKind.Identifier) {
+                this.processExpression(ts.createStringLiteral(property.name.text));
+            } else {
+                this.processExpression(<ts.Expression>property.name);
+            }
+
+            this.writer.writeString(', ');
+            this.processExpression(property.initializer);
+            this.writer.writeString(')');
+
+            next = true;
+        });
+
+        this.writer.EndBlock(true);
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
-        this.writer.writeString('{ ');
+        this.writer.BeginBlockNoIntent();
         node.elements.forEach(element => {
             if (next) {
                 this.writer.writeString(', ');
@@ -598,7 +702,7 @@ export class Emitter {
             next = true;
         });
 
-        this.writer.writeString(' }');
+        this.writer.EndBlockNoIntent();
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {

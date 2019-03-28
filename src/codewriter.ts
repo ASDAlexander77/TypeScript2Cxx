@@ -9,14 +9,26 @@ export class CodeWriter {
         this.writeStringNewLine('{');
     }
 
-    public EndBlock() {
+    public EndBlock(noNewLineAtTheEnd?: boolean) {
         this.intent -= 4;
 
         if (!this.newLine) {
             this.writeStringNewLine('');
         }
 
-        this.writeStringNewLine('}');
+        if (noNewLineAtTheEnd) {
+            this.writeString('}');
+        } else {
+            this.writeStringNewLine('}');
+        }
+    }
+
+    public BeginBlockNoIntent() {
+        this.writeStringNewLine('{ ');
+    }
+
+    public EndBlockNoIntent() {
+        this.writeStringNewLine(' }');
     }
 
     public writeString(data: string): void {

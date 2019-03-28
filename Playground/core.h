@@ -127,7 +127,7 @@ struct any
         _value.closure = new functionType(func);
     }
 
-    any(const std::initializer_list<any>& values)
+    any(const std::initializer_list<any> &values)
     {
         _type = anyTypeId::array;
 
@@ -141,14 +141,32 @@ struct any
         _value.array = new arrayType(vals);
     }
 
-    any(const std::initializer_list<std::tuple<std::string, any>>& values)
+    any(const std::initializer_list<std::tuple<any, any>> &values)
     {
         _type = anyTypeId::object;
 
         objectType obj;
         for (auto &item : values)
         {
-            obj[std::get<0>(item)] = std::get<1>(item);
+            std::string stringIndex;
+            auto index = std::get<0>(item);
+            switch (index._type)
+            {
+            case anyTypeId::integer:
+                stringIndex = std::to_string(index._value.integer);
+                break;
+            case anyTypeId::integer64:
+                stringIndex = std::to_string(index._value.integer64);
+                break;
+            case anyTypeId::const_string:
+                stringIndex = index._value.const_string;
+                break;
+            case anyTypeId::string:
+                stringIndex = *index._value.string;
+                break;
+            }
+
+            obj[stringIndex] = std::get<1>(item);
         }
 
         _value.object = new objectType(obj);
@@ -161,15 +179,42 @@ struct any
         switch (_type)
         {
         case anyTypeId::array:
-            _value.array = new arrayType();        
+            _value.array = new arrayType();
             return;
 
         case anyTypeId::object:
-            _value.object = new objectType();        
+            _value.object = new objectType();
             return;
-        }        
+        }
 
         throw "wrong type";
+    }
+
+    operator bool()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return false;
+
+        case anyTypeId::boolean:
+            return _value.boolean;
+
+        case anyTypeId::integer:
+            return (bool)_value.integer;
+
+        case anyTypeId::integer64:
+            return (bool)_value.integer64;
+
+        case anyTypeId::const_string:
+            return (bool)_value.const_string[0];
+
+        case anyTypeId::string:
+            return _value.string->size() > 0;
+        }
+
+        return true;
     }
 
     void operator()()
@@ -191,62 +236,188 @@ struct any
         throw "not function or closure";
     }
 
-    any& operator[](const any index)
+    const any operator[](const char* field) const
     {
-        switch (_type)
+        try
         {
-        case anyTypeId::array:
-            switch (index._type)
+            switch (_type)
             {
-            case anyTypeId::integer:
-                return (*(_value.array))[index._value.integer];
-            case anyTypeId::integer64:
-                return (*(_value.array))[index._value.integer64];
+            case anyTypeId::object:
+                return (*(_value.object))[field];
             }
-
-            throw "not allowed index type";
-        case anyTypeId::object:
-            switch (index._type)
-            {
-            case anyTypeId::const_string:
-                return (*(_value.object))[index._value.const_string];
-            case anyTypeId::string:
-                return (*(_value.object))[(const char *)index._value.string];
-            }
-
-            throw "not allowed index type";
+        }
+        catch (const std::out_of_range &)
+        {
+            return any();
         }
 
-        throw "not array";
+        throw "not an array or an object";
     }
 
-    const any operator[](any index) const
+    any &operator[](const char *field)
     {
-        switch (_type)
+        int tries = 1;
+        while (tries-- > 0)
         {
-        case anyTypeId::array:
-            switch (index._type)
+            try
             {
-            case anyTypeId::integer:
-                return (*(_value.array))[index._value.integer];
-            case anyTypeId::integer64:
-                return (*(_value.array))[index._value.integer64];
+                switch (_type)
+                {
+                case anyTypeId::object:
+                    return (_value.object)->at(field);
+                }
             }
-
-            throw "not allowed index type";
-        case anyTypeId::object:
-            switch (index._type)
+            catch (const std::out_of_range &)
             {
-            case anyTypeId::const_string:
-                return (*(_value.object))[index._value.const_string];
-            case anyTypeId::string:
-                return (*(_value.object))[(const char *)index._value.string];
-            }
+                if (tries < 1)
+                {
+                    throw;
+                }
 
-            throw "not allowed index type";
+                // create new element
+                any newUndefined;
+                switch (_type)
+                {
+                case anyTypeId::object:
+                    (*(_value.object))[field] = newUndefined;
+                    break;
+                }
+
+                continue;
+            }
         }
 
-        throw "not array";
+        throw "not an object";
+    }
+
+    any &operator[](const any &index)
+    {
+        int tries = 1;
+        while (tries-- > 0)
+        {
+            try
+            {
+                switch (_type)
+                {
+                case anyTypeId::array:
+                    switch (index._type)
+                    {
+                    case anyTypeId::integer:
+                        return (_value.array)->at(index._value.integer);
+                    case anyTypeId::integer64:
+                        return (_value.array)->at(index._value.integer64);
+                    }
+
+                    throw "not allowed index type";
+                case anyTypeId::object:
+                    switch (index._type)
+                    {
+                    case anyTypeId::integer:
+                        return (_value.object)->at(std::to_string(index._value.integer));
+                    case anyTypeId::integer64:
+                        return (_value.object)->at(std::to_string(index._value.integer64));
+                    case anyTypeId::const_string:
+                        return (_value.object)->at(index._value.const_string);
+                    case anyTypeId::string:
+                        return (_value.object)->at((const char *)index._value.string);
+                    }
+
+                    throw "not allowed index type";
+                }
+            }
+            catch (const std::out_of_range &)
+            {
+                if (tries < 1)
+                {
+                    throw;
+                }
+
+                // create new element
+                any newUndefined;
+                switch (_type)
+                {
+                case anyTypeId::array:
+                    switch (index._type)
+                    {
+                    case anyTypeId::integer:
+                        (*(_value.array))[index._value.integer] = newUndefined;
+                        break;
+                    case anyTypeId::integer64:
+                        (*(_value.array))[index._value.integer64] = newUndefined;
+                        break;
+                    default:
+                        throw "not allowed index type";
+                        break;
+                    }
+
+                    continue;
+
+                case anyTypeId::object:
+                    switch (index._type)
+                    {
+                    case anyTypeId::integer:
+                        (*(_value.object))[std::to_string(index._value.integer)] = newUndefined;
+                        break;
+                    case anyTypeId::integer64:
+                        (*(_value.object))[std::to_string(index._value.integer64)] = newUndefined;
+                        break;
+                    case anyTypeId::const_string:
+                        (*(_value.object))[index._value.const_string] = newUndefined;
+                        break;
+                    case anyTypeId::string:
+                        (*(_value.object))[*(index._value.string)] = newUndefined;
+                        break;
+                    default:
+                        throw "not allowed index type";
+                        break;
+                    }
+
+                    continue;
+                }
+            }
+        }
+
+        throw "not an array or an object";
+    }
+
+    const any operator[](const any &index) const
+    {
+        try
+        {
+            switch (_type)
+            {
+            case anyTypeId::array:
+                switch (index._type)
+                {
+                case anyTypeId::integer:
+                    return (*(_value.array))[index._value.integer];
+                case anyTypeId::integer64:
+                    return (*(_value.array))[index._value.integer64];
+                }
+
+                throw "not allowed index type";
+            case anyTypeId::object:
+                switch (index._type)
+                {
+                case anyTypeId::integer:
+                    return (*(_value.object))[std::to_string(index._value.integer)];
+                case anyTypeId::integer64:
+                    return (*(_value.object))[std::to_string(index._value.integer64)];
+                case anyTypeId::const_string:
+                    return (*(_value.object))[index._value.const_string];
+                case anyTypeId::string:
+                    return (*(_value.object))[(const char *)index._value.string];
+                }
+
+                throw "not allowed index type";
+            }
+        }
+        catch (const std::out_of_range &)
+        {
+            return any();
+        }
+
+        throw "not an array or an object";
     }
 
     std::vector<js::any>::iterator begin()
@@ -345,7 +516,8 @@ struct any
 
 static struct Console : any
 {
-    Console() : any(anyTypeId::object) {
+    Console() : any(anyTypeId::object)
+    {
         //(*this)["log"] = static_cast<std::function<void(void)>>(std::bind(&Console::__log, this));
     }
 

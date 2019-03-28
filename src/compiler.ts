@@ -298,7 +298,7 @@ export class Run {
                 }
             });
 
-            let lastCxxFiles = [];
+            const lastCxxFiles = [];
             const sourceFiles = program.getSourceFiles();
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
