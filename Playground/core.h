@@ -236,6 +236,27 @@ struct any
         throw "not function or closure";
     }
 
+    template < class T, class = std::is_integral_v<T> >
+    const any operator[](T index) const
+    {
+        try
+        {
+            switch (_type)
+            {
+            case anyTypeId::array:
+                return (*(_value.array))[index];
+            case anyTypeId::object:
+                return (*(_value.object))[std::to_string(index)];
+            }
+        }
+        catch (const std::out_of_range &)
+        {
+            return any();
+        }
+
+        throw "not an array or an object";
+    }    
+
     const any operator[](const char* field) const
     {
         try
@@ -254,9 +275,51 @@ struct any
         throw "not an array or an object";
     }
 
+    template < class T, class = std::is_integral_v<T> >
+    any &operator[](T index)
+    {
+        int tries = 2;
+        while (tries-- > 0)
+        {
+            try
+            {
+                switch (_type)
+                {
+                case anyTypeId::array:
+                    return (_value.array)->at(index);
+                case anyTypeId::object:
+                    return (_value.object)->at(std::to_string(index));
+                }
+            }
+            catch (const std::out_of_range &)
+            {
+                if (tries < 1)
+                {
+                    throw;
+                }
+
+                // create new element
+                any newUndefined;
+                switch (_type)
+                {
+                case anyTypeId::array:
+                    (*(_value.array))[index] = newUndefined;
+                    break;
+                case anyTypeId::object:
+                    (*(_value.object))[std::to_string(index)] = newUndefined;
+                    break;
+                }
+
+                continue;
+            }
+        }
+
+        throw "not an object";
+    }    
+
     any &operator[](const char *field)
     {
-        int tries = 1;
+        int tries = 2;
         while (tries-- > 0)
         {
             try
@@ -292,7 +355,7 @@ struct any
 
     any &operator[](const any &index)
     {
-        int tries = 1;
+        int tries = 2;
         while (tries-- > 0)
         {
             try
