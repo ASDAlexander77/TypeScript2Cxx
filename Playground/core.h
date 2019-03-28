@@ -237,7 +237,7 @@ struct any
         throw "not function or closure";
     }
 
-    template < class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
     const any operator[](T index) const
     {
         try
@@ -256,9 +256,9 @@ struct any
         }
 
         throw "not an array or an object";
-    }    
+    }
 
-    const any operator[](const char* field) const
+    const any operator[](const char *field) const
     {
         try
         {
@@ -276,7 +276,7 @@ struct any
         throw "not an array or an object";
     }
 
-    template < class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
     any &operator[](T index)
     {
         int tries = 2;
@@ -304,7 +304,13 @@ struct any
                 switch (_type)
                 {
                 case anyTypeId::array:
-                    (*(_value.array))[index] = newUndefined;
+                    {
+                        auto &arrayInst = (*(_value.array));
+                        while (arrayInst.size() <= index) {
+                            arrayInst.push_back(newUndefined);
+                        }
+                    }
+
                     break;
                 case anyTypeId::object:
                     (*(_value.object))[std::to_string(index)] = newUndefined;
@@ -316,7 +322,7 @@ struct any
         }
 
         throw "not an object";
-    }    
+    }
 
     any &operator[](const char *field)
     {
@@ -404,10 +410,22 @@ struct any
                     switch (index._type)
                     {
                     case anyTypeId::integer:
-                        (*(_value.array))[index._value.integer] = newUndefined;
-                        break;
+                        {
+                            auto &arrayInst = (*(_value.array));
+                            while (arrayInst.size() <= index._value.integer) {
+                                arrayInst.push_back(newUndefined);
+                            }     
+                        }
+
+                        break;                        
                     case anyTypeId::integer64:
-                        (*(_value.array))[index._value.integer64] = newUndefined;
+                        {
+                            auto &arrayInst = (*(_value.array));
+                            while (arrayInst.size() <= index._value.integer64) {
+                                arrayInst.push_back(newUndefined);
+                            }     
+                        }
+
                         break;
                     default:
                         throw "not allowed index type";
