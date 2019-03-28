@@ -2,19 +2,15 @@
 
 using namespace js;
 
-any list({ 1, 2, 3 });
-any list2({ 1, 2, 3 });
+any x;
+any x2;
 
 int main(int argc, char** argv)
 {
-    console.log(list[0]);
-    console.log(list[1]);
-    console.log(list[2]);
-    list[2] = 10;
-    console.log(list[2]);
-    console.log(list2[0]);
-    console.log(list2[1]);
-    console.log(list2[2]);
-    list2[2] = 10;
-    console.log(list2[2]);
+    x = { "hello", 10 };
+    console.log(x[0]);
+    console.log(x[1]);
+    x2 = { "hello", 10 };
+    console.log(x2[0]);
+    console.log(x2[1]);
 }

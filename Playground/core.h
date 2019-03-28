@@ -346,7 +346,7 @@ struct any
 static struct Console : any
 {
     Console() : any(anyTypeId::object) {
-        (*this)["log"] = static_cast<std::function<void(void)>>(std::bind(&Console::__log, this));
+        //(*this)["log"] = static_cast<std::function<void(void)>>(std::bind(&Console::__log, this));
     }
 
     void log(any value)
@@ -354,11 +354,13 @@ static struct Console : any
         std::cout << value << std::endl;
     }
 
+    /*
     void __log()
     {
         // experiment to call method by expression
         std::cout << "I'm working..." << std::endl;
     }
+    */
 } console;
 
 } // namespace js

@@ -307,16 +307,21 @@ export class Run {
                     fs.writeFileSync(cxxFile, emitter.writer.getText());
 
                     lastCxxFile = cxxFile;
-
                 }
             });
 
-            // start program and test it to
-            const result: any = spawn.sync('testapp1', [lastCxxFile]);
-            if (result.error) {
-                actualOutput = result.error.stack;
+            // compiling
+            const result_compile: any = spawn.sync('ms_test.bat', [lastCxxFile]);
+            if (result_compile.error) {
+                actualOutput = result_compile.error.stack;
             } else {
-                actualOutput = (<Uint8Array>result.stdout).toString();
+                // start program and test it to
+                const result: any = spawn.sync('testapp1', [lastCxxFile]);
+                if (result.error) {
+                    actualOutput = result.error.stack;
+                } else {
+                    actualOutput = (<Uint8Array>result.stdout).toString();
+                }
             }
         } catch (e) {
             // clean up
