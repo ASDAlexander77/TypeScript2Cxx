@@ -1,6 +1,7 @@
 #include <memory>
 #include <string>
 #include <functional>
+#include <type_traits>
 #include <vector>
 #include <tuple>
 #include <unordered_map>
@@ -236,7 +237,7 @@ struct any
         throw "not function or closure";
     }
 
-    template < class T, class = std::is_integral_v<T> >
+    template < class T, class = std::enable_if<std::is_integral_v<T>> >
     const any operator[](T index) const
     {
         try
@@ -275,7 +276,7 @@ struct any
         throw "not an array or an object";
     }
 
-    template < class T, class = std::is_integral_v<T> >
+    template < class T, class = std::enable_if<std::is_integral_v<T>> >
     any &operator[](T index)
     {
         int tries = 2;
