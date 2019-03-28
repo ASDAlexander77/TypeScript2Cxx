@@ -8,3 +8,7 @@ __build_win32_debug
 __build_release
 __build_mingw32_release
 __build_win32_release
+/test/test.cpp
+/test/test0.cpp
+/test/test1.cpp
+/test/testapp1.exe

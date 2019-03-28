@@ -549,6 +549,66 @@ struct any
         return *this;
     }
 
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    any operator+(T other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return any(_value.integer + other);
+
+        case anyTypeId::integer64:
+            return any(_value.integer64 + other);
+            break;
+
+        case anyTypeId::real:
+            return any(_value.real + other);
+            break;
+
+        case anyTypeId::const_string:
+        case anyTypeId::string:
+        {
+            std::stringstream stream;
+            stream << *this;
+            stream << other;
+            return any(stream.str());
+        }
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }    
+
+
+    any operator+(const char* other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return any(_value.integer + std::stoi(other));
+
+        case anyTypeId::integer64:
+            return any(_value.integer64 + std::stol(other));
+            break;
+
+        case anyTypeId::const_string:
+        case anyTypeId::string:
+        {
+            std::stringstream stream;
+            stream << *this;
+            stream << other;
+            return any(stream.str());
+        }
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }    
+
     any operator+(const any &other)
     {
         switch (other._type)
@@ -565,15 +625,6 @@ struct any
 
         switch (_type)
         {
-        case anyTypeId::integer:
-            return any(_value.integer + other._value.integer);
-
-        case anyTypeId::integer64:
-            break;
-
-        case anyTypeId::real:
-            break;
-
         case anyTypeId::const_string:
         case anyTypeId::string:
         {
