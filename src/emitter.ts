@@ -812,10 +812,25 @@ export class Emitter {
         this.writer.writeString(node.text);
     }
 
+    private isAnyLikeType(typeInfo: ts.Type) {
+        return ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
+    }
+
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
+
+        const typeInfo = this.resolver.getTypeOf(node.expression);
+
         this.processExpression(node.expression);
-        this.writer.writeString('.');
-        this.processExpression(node.name);
+
+        if (this.isAnyLikeType(typeInfo)) {
+            this.writer.writeString('["');
+            this.processExpression(node.name);
+            this.writer.writeString('"]');
+        } else {
+            // member access when type is known
+            this.writer.writeString('.');
+            this.processExpression(node.name);
+        }
     }
 }
 

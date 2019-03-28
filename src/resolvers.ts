@@ -5,22 +5,17 @@ export class IdentifierResolver {
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
-    public getSymbolAtLocation(location: ts.Node): any {
-        try {
-            return (<any>this.typeChecker).getSymbolAtLocation(location);
-        } catch (e) {
-        }
-
-        return undefined;
+    public getTypeOf(location: ts.Node): ts.Type {
+        const type = this.getTypeAtLocation(location);
+        return type;
     }
 
-    public getTypeAtLocation(location: ts.Node): any {
-        try {
-            return (<any>this.typeChecker).getTypeAtLocation(location);
-        } catch (e) {
-        }
+    public getSymbolAtLocation(location: ts.Node): ts.Symbol {
+        return this.typeChecker.getSymbolAtLocation(location);
+    }
 
-        return undefined;
+    public getTypeAtLocation(location: ts.Node): ts.Type {
+        return this.typeChecker.getTypeAtLocation(location);
     }
 
 }

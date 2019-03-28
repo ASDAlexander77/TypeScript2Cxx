@@ -1,5 +1,5 @@
-let fullName: string = `Bob Bobbington`;
-let age: number = 37;
-let sentence: string = `Hello, my name is ${ fullName }. \
-I\'ll be ${ age + 1 } years old next month.`;
-console.log(sentence);
+function f(events: { name: string; handler: any; }[]) {
+    console.log(events[0].name);
+    if (events[1]) console.log("failed");
+}
+f([{ name: "blur", handler: 1 }]);
