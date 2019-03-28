@@ -2,14 +2,12 @@ import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
-import { TypeInfo } from './typeInfo';
 import { CodeWriter } from './codewriter';
 
 export class Emitter {
     public writer: CodeWriter;
     private resolver: IdentifierResolver;
     private preprocessor: Preprocessor;
-    private typeInfo: TypeInfo;
     private sourceFileName: string;
     private jsLib: boolean;
     private scope: Array<ts.Node> = new Array<ts.Node>();
@@ -21,8 +19,7 @@ export class Emitter {
 
         this.writer = new CodeWriter();
         this.resolver = new IdentifierResolver(typeChecker);
-        this.typeInfo = new TypeInfo(this.resolver);
-        this.preprocessor = new Preprocessor(this.resolver, this.typeInfo);
+        this.preprocessor = new Preprocessor(this.resolver);
 
         this.jsLib = (
             options

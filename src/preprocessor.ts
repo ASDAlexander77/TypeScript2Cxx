@@ -1,10 +1,9 @@
 import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
-import { TypeInfo } from './typeInfo';
 
 export class Preprocessor {
 
-    public constructor(private resolver: IdentifierResolver, private typeInfo: TypeInfo) {
+    public constructor(private resolver: IdentifierResolver) {
     }
 
     public preprocessStatement(node: ts.Statement): ts.Statement {
