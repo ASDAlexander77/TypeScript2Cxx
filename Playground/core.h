@@ -641,6 +641,58 @@ struct any
         throw "not implemented";
     }
 
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    auto operator>(T other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer > other;
+
+        case anyTypeId::integer64:
+            return _value.integer64 > other;
+
+        case anyTypeId::real:
+            return _value.real > other;
+
+        case anyTypeId::const_string:
+            return std::stoi(_value.const_string) > other;
+        case anyTypeId::string:
+            return std::stoi(*(_value.string)) > other;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }       
+
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    any operator-(T other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return any(_value.integer - other);
+
+        case anyTypeId::integer64:
+            return any(_value.integer64 - other);
+
+        case anyTypeId::real:
+            return any(_value.real - other);
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }  
+
+    any operator--()
+    {
+        return operator-(1);
+    }  
+
     friend any operator+(int value, const any &rhs);
     friend any operator+(const char *value, const any &rhs);
 

@@ -1,5 +1,7 @@
-let vals = [10, 20, 30];
-let i;
-for (i in vals) {
-    console.log(vals[i]);
+let a = 1;
+let count = 0;
+while (a) {
+    a--;
+    count++;
 }
+console.log(count);

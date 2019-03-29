@@ -602,15 +602,29 @@ export class Emitter {
     }
 
     private processDoStatement(node: ts.DoStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeStringNewLine('do');
+        this.processStatement(node.statement);
+        this.writer.writeString('while (');
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(');');
     }
 
     private processWhileStatement(node: ts.WhileStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('while (');
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(')');
+        this.processStatement(node.statement);
     }
 
     private processForStatement(node: ts.ForStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('for (');
+        this.processExpression(<any>node.initializer);
+        this.writer.writeString('; ');
+        this.processExpression(<any>node.condition);
+        this.writer.writeString('; ');
+        this.processExpression(<any>node.incrementor);
+        this.writer.writeStringNewLine(')');
+        this.processStatement(node.statement);
     }
 
     private processForInStatement(node: ts.ForInStatement): void {
@@ -627,7 +641,12 @@ export class Emitter {
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('for (auto& ');
+        this.processExpression(<any>node.initializer);
+        this.writer.writeString(' : ');
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(')');
+        this.processStatement(node.statement);
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
@@ -637,7 +656,7 @@ export class Emitter {
     private processContinueStatement(node: ts.ContinueStatement) {
         throw new Error('Method not implemented.');
     }
-
+ 
     private processSwitchStatement(node: ts.SwitchStatement) {
         throw new Error('Method not implemented.');
     }
@@ -688,45 +707,55 @@ export class Emitter {
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         let next = false;
-        this.writer.BeginBlock();
-        node.properties.forEach(element => {
-            if (next) {
-                this.writer.writeStringNewLine(', ');
-            }
 
-            const property = <ts.PropertyAssignment>element;
+        if (node.properties.length === 0) {
+            this.writer.writeString('any(anyTypeId::object)');
+        } else {
+            this.writer.BeginBlock();
+            node.properties.forEach(element => {
+                if (next) {
+                    this.writer.writeStringNewLine(', ');
+                }
 
-            this.writer.writeString('std::make_tuple(');
+                const property = <ts.PropertyAssignment>element;
 
-            if (property.name.kind === ts.SyntaxKind.Identifier) {
-                this.processExpression(ts.createStringLiteral(property.name.text));
-            } else {
-                this.processExpression(<ts.Expression>property.name);
-            }
+                this.writer.writeString('std::make_tuple(');
 
-            this.writer.writeString(', ');
-            this.processExpression(property.initializer);
-            this.writer.writeString(')');
+                if (property.name.kind === ts.SyntaxKind.Identifier) {
+                    this.processExpression(ts.createStringLiteral(property.name.text));
+                } else {
+                    this.processExpression(<ts.Expression>property.name);
+                }
 
-            next = true;
-        });
+                this.writer.writeString(', ');
+                this.processExpression(property.initializer);
+                this.writer.writeString(')');
 
-        this.writer.EndBlock(true);
+                next = true;
+            });
+
+            this.writer.EndBlock(true);
+        }
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
-        this.writer.BeginBlockNoIntent();
-        node.elements.forEach(element => {
-            if (next) {
-                this.writer.writeString(', ');
-            }
 
-            this.processExpression(element);
-            next = true;
-        });
+        if (node.elements.length === 0) {
+            this.writer.writeString('any(anyTypeId::array)');
+        } else {
+            this.writer.BeginBlockNoIntent();
+            node.elements.forEach(element => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
 
-        this.writer.EndBlockNoIntent();
+                this.processExpression(element);
+                next = true;
+            });
+
+            this.writer.EndBlockNoIntent();
+        }
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
@@ -752,7 +781,8 @@ export class Emitter {
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
-        throw new Error('Method not implemented.');
+        this.processExpression(node.operand);
+        this.writer.writeString(this.opsMap[node.operator]);
     }
 
     private processConditionalExpression(node: ts.ConditionalExpression): void {
