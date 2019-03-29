@@ -688,10 +688,65 @@ struct any
         throw "not implemented";
     }  
 
-    any operator--()
+    any& operator++ ()
     {
-        return operator-(1);
-    }  
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            _value.integer++;
+            break;
+
+        case anyTypeId::integer64:
+            _value.integer64++;
+            break;
+
+        case anyTypeId::real:
+            _value.real++;
+            break;
+
+        default:
+            throw "wrong type";
+        }
+
+        return *this;
+    }
+
+    any  operator++ (int)
+    {
+        any res(*this);
+        ++(*this);
+        return res;
+    }
+
+    any& operator-- ()
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            _value.integer--;
+            break;
+
+        case anyTypeId::integer64:
+            _value.integer64--;
+            break;
+
+        case anyTypeId::real:
+            _value.real--;
+            break;
+
+        default:
+            throw "wrong type";
+        }
+
+        return *this;
+    }
+
+    any  operator-- (int)
+    {
+        any res(*this);
+        --(*this);
+        return res;
+    }    
 
     friend any operator+(int value, const any &rhs);
     friend any operator+(const char *value, const any &rhs);
