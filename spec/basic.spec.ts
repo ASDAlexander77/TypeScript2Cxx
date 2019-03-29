@@ -52,7 +52,7 @@ describe('Test 1', () => {
         })()                                    \
     '])));
 
-    it('var declaration: print - true,1,1.5,Hello World!', () => expect('true\r\n1\r\n1.5\r\nHello World!\r\n').to.equals(new Run().test([
+    it('var declaration: print - true,1,1.5,Hello World!', () => expect(new Run().test([
         '                                       \
             var x = true;                       \
             console.log(x);                     \
@@ -62,9 +62,9 @@ describe('Test 1', () => {
             console.log(x);                     \
             var x = "Hello World!";             \
             console.log(x);                     \
-        '])));
+        '])).to.equals('true\r\n1\r\n1.5\r\nHello World!\r\n'));
 
-    it('equals(var): print - 2 true,1,1.5,Hello World!', () => expect('true\r\n1\r\n1.5\r\nHello World!\r\n').to.equals(new Run().test([
+    it('equals(var): print - 2 true,1,1.5,Hello World!', () => expect(new Run().test([
         '                                       \
             var x;                              \
             x = true;                           \
@@ -75,7 +75,7 @@ describe('Test 1', () => {
             console.log(x);                     \
             x = "Hello World!";                 \
             console.log(x);                     \
-        '])));
+        '])).to.equals('true\r\n1\r\n1.5\r\nHello World!\r\n'));
 
     it('equals(local): print - 3 true,1,1.5,Hello World!', () => expect('true\r\n1\r\n1.5\r\nHello World!\r\n').to.equals(new Run().test([
         '                                       \

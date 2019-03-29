@@ -52,6 +52,14 @@ export class CodeWriter {
         }
     }
 
+    public cancelNewLine() {
+        if (this.newLine) {
+            this.pendingIntent = false;
+            this.newLine = false;
+            this.parts.pop();
+        }
+    }
+
     public getText(): string {
         return this.parts.join('');
     }

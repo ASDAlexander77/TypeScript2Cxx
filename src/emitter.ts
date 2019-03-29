@@ -518,8 +518,17 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        this.writer.writeString('auto ');
-        this.processExpression(node.name);
+
+        const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
+                                 || node.kind === ts.SyntaxKind.ArrowFunction;
+        if (isLambdaFunction) {
+            // lambda
+            this.writer.writeString('(functionType)[]');
+        } else {
+            // named function
+            this.writer.writeString('auto ');
+            this.processExpression(node.name);
+        }
 
         this.writer.writeString('(');
         let next = false;
@@ -540,6 +549,11 @@ export class Emitter {
 
         this.writer.writeString(')');
         this.processStatement(node.body);
+
+        // formatting
+        if (isLambdaFunction) {
+            this.writer.cancelNewLine();
+        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -561,7 +575,13 @@ export class Emitter {
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('return');
+        if (node.expression) {
+            this.writer.writeString(' ');
+            this.processExpression(node.expression);
+        }
+
+        this.writer.writeStringNewLine(';');
     }
 
     private processIfStatement(node: ts.IfStatement): void {
