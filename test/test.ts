@@ -1,8 +1,5 @@
-var x = true;
-console.log(x);
-var x = 1;
-console.log(x);
-var x = 1.5;
-console.log(x);
-var x = "Hello World!";
-console.log(x);
+let vals = [10, 20, 30];
+let i;
+for (i in vals) {
+    console.log(vals[i]);
+}

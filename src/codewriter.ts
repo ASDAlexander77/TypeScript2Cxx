@@ -5,13 +5,13 @@ export class CodeWriter {
     private newLine = false;
 
     public BeginBlock() {
-        this.intent += 4;
         this.writeStringNewLine('{');
+        this.intent += 4;
+        this.pendingIntent = true;
     }
 
     public EndBlock(noNewLineAtTheEnd?: boolean) {
         this.intent -= 4;
-
         if (!this.newLine) {
             this.writeStringNewLine('');
         }
@@ -24,11 +24,11 @@ export class CodeWriter {
     }
 
     public BeginBlockNoIntent() {
-        this.writeStringNewLine('{ ');
+        this.writeString('{ ');
     }
 
     public EndBlockNoIntent() {
-        this.writeStringNewLine(' }');
+        this.writeString(' }');
     }
 
     public writeString(data: string): void {

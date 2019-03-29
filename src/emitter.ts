@@ -64,6 +64,8 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = '<<=';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>=';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__strictNotEqualsAssign';
+
+        this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
     }
 
     public get isGlobalScope() {
@@ -616,7 +618,12 @@ export class Emitter {
     }
 
     private processForInStatementNoScope(node: ts.ForInStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('for (auto& ');
+        this.processExpression(<any>node.initializer);
+        this.writer.writeString(' : ');
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(')');
+        this.processStatement(node.statement);
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
@@ -740,7 +747,8 @@ export class Emitter {
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString(this.opsMap[node.operator]);
+        this.processExpression(node.operand);
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
