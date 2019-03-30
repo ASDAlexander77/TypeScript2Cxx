@@ -509,7 +509,7 @@ struct any
             return _value.array->begin();
         }
 
-        throw "not array";
+        throw "not an array or anobject";
     }
 
     std::vector<js::any>::const_iterator cbegin() const
@@ -519,7 +519,7 @@ struct any
             return _value.array->cbegin();
         }
 
-        throw "not array";
+        throw "not an array or anobject";
     }
 
     std::vector<js::any>::iterator end()
@@ -529,7 +529,7 @@ struct any
             return _value.array->end();
         }
 
-        throw "not array";
+        throw "not an array or anobject";
     }
 
     std::vector<js::any>::const_iterator cend() const
@@ -539,7 +539,7 @@ struct any
             return _value.array->cend();
         }
 
-        throw "not array";
+        throw "not an array or anobject";
     }
 
     any &operator=(const any &other)
@@ -666,6 +666,32 @@ struct any
 
         throw "not implemented";
     }       
+
+    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    auto operator<(T other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer < other;
+
+        case anyTypeId::integer64:
+            return _value.integer64 < other;
+
+        case anyTypeId::real:
+            return _value.real < other;
+
+        case anyTypeId::const_string:
+            return std::stoi(_value.const_string) < other;
+        case anyTypeId::string:
+            return std::stoi(*(_value.string)) < other;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }        
 
     template <class T, class = std::enable_if<std::is_integral_v<T>> >
     any operator-(T other)
