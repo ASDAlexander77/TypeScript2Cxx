@@ -652,11 +652,11 @@ export class Emitter {
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
-        throw new Error('Method not implemented.');
+        this.writer.writeStringNewLine('break;');
     }
 
     private processContinueStatement(node: ts.ContinueStatement) {
-        throw new Error('Method not implemented.');
+        this.writer.writeStringNewLine('continue;');
     }
  
     private processSwitchStatement(node: ts.SwitchStatement) {
