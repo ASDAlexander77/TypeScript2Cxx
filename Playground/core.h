@@ -218,6 +218,36 @@ struct any
         return true;
     }
 
+    operator int()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return 0;
+
+        case anyTypeId::boolean:
+            return (int)_value.boolean;
+
+        case anyTypeId::integer:
+            return _value.integer;
+
+        case anyTypeId::integer64:
+            return (int)_value.integer64;
+
+        case anyTypeId::real:
+            return (int)_value.real;
+
+        case anyTypeId::const_string:
+            return std::stoi(_value.const_string);
+
+        case anyTypeId::string:
+            return std::stoi(*_value.string);
+        }
+
+        return true;
+    }    
+
     void operator()()
     {
         switch (_type)

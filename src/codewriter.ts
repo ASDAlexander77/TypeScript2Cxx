@@ -6,12 +6,12 @@ export class CodeWriter {
 
     public BeginBlock() {
         this.writeStringNewLine('{');
-        this.intent += 4;
+        this.IncreaseIntent();
         this.pendingIntent = true;
     }
 
     public EndBlock(noNewLineAtTheEnd?: boolean) {
-        this.intent -= 4;
+        this.DecreaseIntent();
         if (!this.newLine) {
             this.writeStringNewLine('');
         }
@@ -21,6 +21,14 @@ export class CodeWriter {
         } else {
             this.writeStringNewLine('}');
         }
+    }
+
+    public IncreaseIntent() {
+        this.intent += 4;
+    }
+
+    public DecreaseIntent() {
+        this.intent -= 4;
     }
 
     public BeginBlockNoIntent() {

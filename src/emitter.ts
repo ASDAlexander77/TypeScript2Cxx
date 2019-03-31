@@ -412,19 +412,44 @@ export class Emitter {
     }
 
     private processTryStatement(node: ts.TryStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeStringNewLine('try');
+        this.processStatement(node.tryBlock);
+        if (node.catchClause) {
+            this.writer.writeStringNewLine('catch (const any& ');
+            if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
+            this.processVariableDeclarationOne(
+                <ts.Identifier>(node.catchClause.variableDeclaration.name),
+                node.catchClause.variableDeclaration.initializer,
+                false);
+            } else {
+                throw new Error('Method not implemented.');
+            }
+
+            this.writer.writeStringNewLine(')');
+            this.processStatement(node.catchClause.block);
+        }
+
+        if (node.finallyBlock) {
+            throw new Error('Method not implemented.');
+        }
     }
 
     private processThrowStatement(node: ts.ThrowStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('throw');
+        if (node.expression) {
+            this.writer.writeString(' ');
+            this.processExpression(node.expression);
+        }
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('typeof(');
+        this.processExpression(node.expression);
+        this.writer.writeString(')');
     }
 
     private processDebuggerStatement(node: ts.DebuggerStatement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('__asm { int 3 }');
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
@@ -658,9 +683,32 @@ export class Emitter {
     private processContinueStatement(node: ts.ContinueStatement) {
         this.writer.writeStringNewLine('continue;');
     }
- 
+
     private processSwitchStatement(node: ts.SwitchStatement) {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('switch ((int)');
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(')');
+
+        this.writer.BeginBlock();
+
+        node.caseBlock.clauses.forEach(element => {
+            this.writer.DecreaseIntent();
+            if (element.kind === ts.SyntaxKind.CaseClause) {
+                this.writer.writeString('case ');
+                this.processExpression(element.expression);
+            } else {
+                this.writer.writeString('default');
+            }
+
+            this.writer.IncreaseIntent();
+
+            this.writer.writeStringNewLine(':');
+            element.statements.forEach(elementCase => {
+                this.processStatement(elementCase);
+            });
+        });
+
+        this.writer.EndBlock();
     }
 
     private processBlock(node: ts.Block): void {
@@ -788,7 +836,12 @@ export class Emitter {
     }
 
     private processConditionalExpression(node: ts.ConditionalExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('(');
+        this.processExpression(node.condition);
+        this.writer.writeString(') ');
+        this.processExpression(node.whenTrue);
+        this.writer.writeString(' ? ');
+        this.processExpression(node.whenFalse);
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
@@ -814,7 +867,16 @@ export class Emitter {
     }
 
     private processDeleteExpression(node: ts.DeleteExpression): void {
-        throw new Error('Method not implemented.');
+        if (node.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            const propertyAccess = <ts.PropertyAccessExpression>node.expression;
+            this.processExpression(propertyAccess.expression);
+            this.writer.writeString('.delete(');
+            this.writer.writeString('("');
+            this.processExpression(propertyAccess.name);
+            this.writer.writeString('")');
+        } else {
+            throw new Error('Method not implemented.');
+        }
     }
 
     private processNewExpression(node: ts.NewExpression): void {
@@ -838,15 +900,18 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('this');
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('__super');
     }
 
     private processVoidExpression(node: ts.VoidExpression): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('void(');
+        this.writer.writeString('(');
+        this.processExpression(node.expression);
+        this.writer.writeString(')');
     }
 
     private processNonNullExpression(node: ts.NonNullExpression): void {
@@ -858,7 +923,8 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        throw new Error('Method not implemented.');
+        this.writer.writeString('...');
+        this.processExpression(node.expression);
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
