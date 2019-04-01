@@ -71,11 +71,6 @@ struct index_const_iterator
 
     const reference operator*() const
     {
-        if (_isObjIter) 
-        {
-            return any(_objIter->first);
-        }
-
         return (reference) _indx;
     }
 
@@ -84,6 +79,7 @@ struct index_const_iterator
         if (_isObjIter) 
         {
             ++_objIter;
+            _indx = _objIter->first;
         } 
         else 
         {
@@ -130,11 +126,6 @@ class index_iterator
 
     reference operator*() const
     {
-        if (_isObjIter) 
-        {
-            return any(_objIter->first);
-        }
-
         return (reference) _indx;
     }
 
@@ -143,6 +134,7 @@ class index_iterator
         if (_isObjIter) 
         {
             ++_objIter;
+            _indx = _objIter->first;
         }
         else 
         {
@@ -574,7 +566,7 @@ struct any
                     case anyTypeId::const_string:
                         return (_value.object)->at(index._value.const_string);
                     case anyTypeId::string:
-                        return (_value.object)->at((const char *)index._value.string);
+                        return (_value.object)->at(*(index._value.string));
                     }
 
                     throw "not allowed index type";
@@ -675,7 +667,7 @@ struct any
                 case anyTypeId::const_string:
                     return (*(_value.object))[index._value.const_string];
                 case anyTypeId::string:
-                    return (*(_value.object))[(const char *)index._value.string];
+                    return (*(_value.object))[*(index._value.string)];
                 }
 
                 throw "not allowed index type";

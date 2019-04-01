@@ -1,6 +1,6 @@
-let a = [10, 20, 30, 40];
-let count = 0;
-for (let i in a)
-{
-    console.log(i);
+let person = { fname: "John", lname: "Doe", age: 25 };
+
+let x;
+for (x in person) {
+    console.log(person[x]);
 }
