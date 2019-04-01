@@ -695,7 +695,6 @@ export class Emitter {
     private processForStatement(node: ts.ForStatement): void {
         this.writer.writeString('for (');
         const initVar = <any>node.initializer;
-        initVar.__ignore_type = true;
         this.processExpression(initVar);
         this.writer.writeString('; ');
         this.processExpression(node.condition);

@@ -1,3 +1,5 @@
-enum Color { Red = 1, Green, Blue }
-let colorName: string = Color[2];
-console.log(colorName);
+for (let i = 0; i < 3; i++) {
+    console.log(i);
+    if (i == 0) continue;
+    break;
+}
