@@ -849,6 +849,12 @@ struct any
         throw "not implemented";
     }
 
+    any& operator+=(const any &other)
+    {
+        (*this) = (*this) + other;
+        return *this;
+    }    
+
     template <class T, class = std::enable_if<std::is_integral_v<T>>>
     auto operator>(T other)
     {

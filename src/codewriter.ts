@@ -3,6 +3,7 @@ export class CodeWriter {
     private intent = 0;
     private pendingIntent = false;
     private newLine = false;
+    private endOfStatement = false;
 
     public BeginBlock() {
         this.writeStringNewLine('{');
@@ -39,7 +40,18 @@ export class CodeWriter {
         this.writeString(' }');
     }
 
+    public EndOfStatement() {
+        if (this.endOfStatement) {
+            // cancelling empty statement;
+            return;
+        }
+
+        this.writeStringNewLine(';');
+        this.endOfStatement = true;
+    }
+
     public writeString(data: string): void {
+        this.endOfStatement = false;
         if (this.pendingIntent) {
             this.parts.push(' '.repeat(this.intent));
             this.pendingIntent = false;

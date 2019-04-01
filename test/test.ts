@@ -1,6 +1,8 @@
-let person = { fname: "John", lname: "Doe", age: 25 };
-
-let x;
-for (x in person) {
-    console.log(person[x]);
-}
+var x = true;
+console.log(x);
+var x = 1;
+console.log(x);
+var x = 1.5;
+console.log(x);
+var x = "Hello World!";
+console.log(x);

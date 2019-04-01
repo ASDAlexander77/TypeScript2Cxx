@@ -132,6 +132,29 @@ export class Emitter {
         });
     }
 
+    private isDeclarationStatement(f: ts.Statement): boolean {
+        if (f.kind === ts.SyntaxKind.FunctionDeclaration
+            || f.kind === ts.SyntaxKind.EnumDeclaration
+            || f.kind === ts.SyntaxKind.ClassDeclaration) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isGlobalVarDeclaration(f: ts.Statement): boolean {
+        if (f.kind === ts.SyntaxKind.VariableStatement) {
+            const variableStatement = <ts.VariableStatement>f;
+            if (Helpers.isConstOrLet(variableStatement.declarationList)) {
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     private processFile(sourceFile: ts.SourceFile): void {
         this.sourceFileName = sourceFile.fileName;
 
@@ -143,24 +166,7 @@ export class Emitter {
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
-        const isDeclarationStatement = function (f: ts.Statement): boolean {
-            if (f.kind === ts.SyntaxKind.FunctionDeclaration
-                || f.kind === ts.SyntaxKind.EnumDeclaration
-                || f.kind === ts.SyntaxKind.ClassDeclaration) {
-                return true;
-            }
-
-            if (f.kind === ts.SyntaxKind.VariableStatement) {
-                const variableStatement = <ts.VariableStatement>f;
-                if (Helpers.isConstOrLet(variableStatement.declarationList)) {
-                    return false;
-                }
-
-                return true;
-            }
-        };
-
-        sourceFile.statements.filter(f => isDeclarationStatement(f)).forEach(s => {
+        sourceFile.statements.filter(f => this.isDeclarationStatement(f) || this.isGlobalVarDeclaration(f)).forEach(s => {
             this.processStatement(s);
         });
 
@@ -170,7 +176,7 @@ export class Emitter {
         this.writer.writeStringNewLine('int main(int argc, char** argv)');
         this.writer.BeginBlock();
 
-        sourceFile.statements.filter(f => !isDeclarationStatement(f)).forEach(s => {
+        sourceFile.statements.filter(f => !this.isDeclarationStatement(f)).forEach(s => {
             this.processStatement(s);
         });
 
@@ -278,7 +284,7 @@ export class Emitter {
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine(';');
+        this.writer.EndOfStatement();
     }
 
     private fixupParentReferences<T extends ts.Node>(rootNode: T, setParent?: ts.Node): T {
@@ -509,10 +515,44 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
+    private isAlreadyDeclaredInGlobalScope(name: string) {
+        return (<any>this.scope).declaredVars && (<any>this.scope).declaredVars.indexOf(name) >= 0;
+    }
+
+    private addToDeclaredInGlobalScope(name: string) {
+        if (!(<any>this.scope).declaredVars) {
+            (<any>this.scope).declaredVars = [];
+        }
+
+        return (<any>this.scope).declaredVars.push(name);
+    }
+
+    private isAlreadyDeclared(name: string) {
+        const currentScope = (<any>this.scope[this.scope.length - 1]);
+        return currentScope.declaredVars
+            && currentScope.declaredVars.indexOf(name) >= 0;
+    }
+
+    private addToDeclared(name: string) {
+        const currentScope = (<any>this.scope[this.scope.length - 1]);
+        if (!(currentScope).declaredVars) {
+            (currentScope).declaredVars = [];
+        }
+
+        return currentScope.declaredVars.push(name);
+    }
+
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
+        if (this.isGlobalScope
+            && declarationList.declarations.every(d => this.isAlreadyDeclaredInGlobalScope((<ts.Identifier>d.name).text))) {
+            // escape if already declared;
+            return;
+        }
+
         // write declaration
-        // Helpers.isConstOrLet(declarationList)
-        if (!(<any>declarationList).__ignore_type) {
+        const isLocal = Helpers.isConstOrLet(declarationList);
+        const declareType = this.isGlobalScope && !isLocal || !this.isGlobalScope && isLocal;
+        if (!(<any>declarationList).__ignore_type && declareType) {
             this.writer.writeString('any ');
         }
 
@@ -528,12 +568,10 @@ export class Emitter {
         }
 
         this.writer.writeString(name.text);
+        this.addToDeclaredInGlobalScope(name.text);
+
         if (initializer) {
-            if (this.isGlobalScope) {
-                this.writer.writeString('(');
-                this.processExpression(initializer);
-                this.writer.writeString(')');
-            } else {
+            if (!this.isGlobalScope) {
                 this.writer.writeString(' = ');
                 this.processExpression(initializer);
             }
@@ -545,7 +583,7 @@ export class Emitter {
     private processVariableStatement(node: ts.VariableStatement): void {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
         this.processVariableDeclarationList(node.declarationList, isExport);
-        this.writer.writeStringNewLine(';');
+        this.writer.EndOfStatement();
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
@@ -612,7 +650,7 @@ export class Emitter {
             this.processExpression(node.expression);
         }
 
-        this.writer.writeStringNewLine(';');
+        this.writer.EndOfStatement();
     }
 
     private processIfStatement(node: ts.IfStatement): void {
