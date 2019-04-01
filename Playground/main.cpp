@@ -21,24 +21,9 @@ auto functionTest2() -> std::function<void(void)>
     return r;
 }
 
-struct base {
-    void test() {
-        std::cout << "base" << std::endl;
-    }
-};
-
-struct derived1 : base {
-    void test() {
-        std::cout << "derived 1" << std::endl;
-    }
-};
-
 int main(int argc, char **argv)
 {
     std::cout << "'any' size = " << sizeof(any) << std::endl;
-
-    base bsd = (base) derived1();
-    bsd.test();
 
     // const
     any a;
