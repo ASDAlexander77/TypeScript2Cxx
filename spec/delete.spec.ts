@@ -4,13 +4,13 @@ import { describe, it } from 'mocha';
 
 describe('Delete', () => {
 
-    it('Local', () => expect('none\r\n').to.equals(new Run().test([
+    it('Local', () => expect(new Run().test([
         'let a = { obj: "asd" };                    \
         delete a.obj;                               \
-        console.log(a.obj || "none");               \
-    '])));
+        console.log(a.obj);                         \
+    '])).to.equals('undefined\r\n'));
 
-    it('Remove item', () => expect('obj2\r\nvalue\r\n').to.equals(new Run().test([
+    it('Remove item', () => expect(new Run().test([
         'let a = { obj: "asd", obj2: "value" };     \
         delete a.obj;                               \
         for (let i in a)                            \
@@ -18,6 +18,6 @@ describe('Delete', () => {
             console.log(i);                         \
             console.log(a[i]);                      \
         }                                           \
-    '])));
+    '])).to.equals('obj2\r\nvalue\r\n'));
 
 });

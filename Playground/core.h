@@ -1048,7 +1048,28 @@ struct any
     friend any operator+(const char *value, const any &rhs);
 
     friend std::ostream &operator<<(std::ostream &os, const any &other);
+
+    void Delete(const char* field)
+    {
+        switch (_type)
+        {
+        case anyTypeId::object:
+            _value.object->erase(field);
+            break;
+
+        default:
+            throw "wrong type";
+        }
+    }    
 };
+
+static struct Helper
+{
+    any Void(any value)
+    {
+        return any();
+    }
+} helper;
 
 static struct Console : any
 {

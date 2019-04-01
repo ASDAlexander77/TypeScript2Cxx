@@ -924,8 +924,7 @@ export class Emitter {
         if (node.expression.kind === ts.SyntaxKind.PropertyAccessExpression) {
             const propertyAccess = <ts.PropertyAccessExpression>node.expression;
             this.processExpression(propertyAccess.expression);
-            this.writer.writeString('.delete(');
-            this.writer.writeString('("');
+            this.writer.writeString('.Delete("');
             this.processExpression(propertyAccess.name);
             this.writer.writeString('")');
         } else {
@@ -962,7 +961,7 @@ export class Emitter {
     }
 
     private processVoidExpression(node: ts.VoidExpression): void {
-        this.writer.writeString('void(');
+        this.writer.writeString('helper.Void(');
         this.writer.writeString('(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
