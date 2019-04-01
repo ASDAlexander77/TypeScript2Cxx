@@ -68,6 +68,9 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';
+
+        this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '&&';
+        this.opsMap[ts.SyntaxKind.BarBarToken] = '||';
     }
 
     public get isGlobalScope() {
@@ -423,10 +426,10 @@ export class Emitter {
         if (node.catchClause) {
             this.writer.writeStringNewLine('catch (const any& ');
             if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
-            this.processVariableDeclarationOne(
-                <ts.Identifier>(node.catchClause.variableDeclaration.name),
-                node.catchClause.variableDeclaration.initializer,
-                false);
+                this.processVariableDeclarationOne(
+                    <ts.Identifier>(node.catchClause.variableDeclaration.name),
+                    node.catchClause.variableDeclaration.initializer,
+                    false);
             } else {
                 throw new Error('Method not implemented.');
             }
@@ -542,12 +545,12 @@ export class Emitter {
         return currentScope.declaredVars.push(name);
     }
 
-    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
+    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): boolean {
 
         if (this.isGlobalScope
             && declarationList.declarations.every(d => this.isAlreadyDeclaredInGlobalScope((<ts.Identifier>d.name).text))) {
             // escape if already declared;
-            return;
+            return false;
         }
 
         // write declaration
@@ -558,13 +561,21 @@ export class Emitter {
         }
 
         const next = false;
+        let result = false;
         declarationList.declarations.forEach(
-            d => this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, next, isExport, (<any>d).__declaration));
+            d => (result = this.processVariableDeclarationOne(
+                <ts.Identifier>d.name, d.initializer, next, isLocal, isExport, (<any>d).__declaration)) || result);
+
+        return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next: boolean, isExport?: boolean, isDeclaration?: boolean) {
+        name: ts.Identifier, initializer: ts.Expression, next: boolean, isLocal?: boolean, isExport?: boolean, isDeclaration?: boolean) {
+        if (!isLocal && !this.isGlobalScope && !initializer) {
+            // skip global declaration without initializer in local scope
+            return false;
+        }
+
         if (next) {
             this.writer.writeStringNewLine(',');
         }
@@ -573,13 +584,10 @@ export class Emitter {
         this.addToDeclaredInGlobalScope(name.text);
 
         if (initializer) {
-            if (!this.isGlobalScope)
-            {
+            if (!this.isGlobalScope) {
                 this.writer.writeString(' = ');
                 this.processExpression(initializer);
-            }
-            else if (isDeclaration)
-            {
+            } else if (isDeclaration) {
                 this.writer.writeString('(');
                 this.processExpression(initializer);
                 this.writer.writeString(')');
@@ -587,18 +595,21 @@ export class Emitter {
         }
 
         next = true;
+        return true;
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
         const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
-        this.processVariableDeclarationList(node.declarationList, isExport);
-        this.writer.EndOfStatement();
+        const anyVal = this.processVariableDeclarationList(node.declarationList, isExport);
+        if (anyVal) {
+            this.writer.EndOfStatement();
+        }
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
 
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
-                                 || node.kind === ts.SyntaxKind.ArrowFunction;
+            || node.kind === ts.SyntaxKind.ArrowFunction;
         if (isLambdaFunction) {
             // lambda
             this.writer.writeString('(functionType)[]');
