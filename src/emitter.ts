@@ -669,7 +669,7 @@ export class Emitter {
         this.processExpression(initVar);
         this.writer.writeString(' : ');
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine(')');
+        this.writer.writeStringNewLine('.in())');
         this.processStatement(node.statement);
     }
 

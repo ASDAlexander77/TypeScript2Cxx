@@ -5,5 +5,7 @@
             "when": "$(basename).ts"
         },
         "**/*.lua.map": true
-    }
+    },
+
+    "clang-format.executable": "clang-format.exe"
 }

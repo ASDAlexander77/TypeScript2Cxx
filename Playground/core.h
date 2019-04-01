@@ -49,10 +49,150 @@ union anyType {
     std::string *string;
 };
 
+template <class T>
+class index_const_iterator
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = index_const_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    index_const_iterator() : _indx()
+    {
+    }
+
+    index_const_iterator(T indx) : _indx(indx)
+    {
+    }    
+
+    const reference operator*() const
+    {
+        return (reference) _indx;
+    }
+
+    const pointer operator->() const
+    {
+        return &_indx;
+    }
+
+    self_type &operator++()
+    {
+        ++_indx;
+        return (*this);
+    }
+
+    self_type operator++(int)
+    {
+        index_const_iterator _Tmp = *this;
+        ++*this;
+        return (_Tmp);
+    }
+
+    bool operator==(const self_type &_right) const
+    {
+        return (_indx == _right._indx);
+    }
+
+    bool operator!=(const self_type &_right) const
+    {
+        return (!(*this == _right));
+    }
+
+    value_type _indx;
+};
+
+template <class T>
+class index_iterator
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = index_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    index_iterator() : _indx()
+    {
+    }
+
+    index_iterator(T indx) : _indx(indx)
+    {
+    }    
+
+    reference operator*() const
+    {
+        return (reference) _indx;
+    }
+
+    pointer operator->() const
+    {
+        return &_indx;
+    }
+
+    self_type &operator++()
+    {
+        ++_indx;
+        return (*this);
+    }
+
+    self_type operator++(int)
+    {
+        index_const_iterator _Tmp = *this;
+        ++*this;
+        return (_Tmp);
+    }
+
+    bool operator==(const self_type &_right) const
+    {
+        return (_indx == _right._indx);
+    }
+
+    bool operator!=(const self_type &_right) const
+    {
+        return (!(*this == _right));
+    }
+
+    value_type _indx;
+};
+
 struct any
 {
     anyTypeId _type;
     anyType _value;
+
+    struct iterator
+    {
+        iterator(int initial, int size) : _initial(initial), _size(size)
+        {            
+        }
+
+        index_const_iterator<any> cbegin()
+        {
+            return index_const_iterator<any>(_initial);
+        }
+
+        index_iterator<any> begin()
+        {
+            return index_iterator<any>(_initial);
+        }
+
+        index_const_iterator<any> cend()
+        {
+            return index_const_iterator<any>(_size);
+        }        
+
+        index_iterator<any> end()
+        {
+            return index_iterator<any>(_size);
+        }    
+
+        int _initial;
+        int _size;
+    };
 
     any()
     {
@@ -246,7 +386,7 @@ struct any
         }
 
         return true;
-    }    
+    }
 
     void operator()()
     {
@@ -267,7 +407,7 @@ struct any
         throw "not function or closure";
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     const any operator[](T index) const
     {
         try
@@ -306,7 +446,7 @@ struct any
         throw "not an array or an object";
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     any &operator[](T index)
     {
         int tries = 2;
@@ -334,14 +474,15 @@ struct any
                 switch (_type)
                 {
                 case anyTypeId::array:
+                {
+                    auto &arrayInst = (*(_value.array));
+                    while (arrayInst.size() <= index)
                     {
-                        auto &arrayInst = (*(_value.array));
-                        while (arrayInst.size() <= index) {
-                            arrayInst.push_back(newUndefined);
-                        }
+                        arrayInst.push_back(newUndefined);
                     }
+                }
 
-                    break;
+                break;
                 case anyTypeId::object:
                     (*(_value.object))[std::to_string(index)] = newUndefined;
                     break;
@@ -440,23 +581,25 @@ struct any
                     switch (index._type)
                     {
                     case anyTypeId::integer:
+                    {
+                        auto &arrayInst = (*(_value.array));
+                        while (arrayInst.size() <= index._value.integer)
                         {
-                            auto &arrayInst = (*(_value.array));
-                            while (arrayInst.size() <= index._value.integer) {
-                                arrayInst.push_back(newUndefined);
-                            }     
+                            arrayInst.push_back(newUndefined);
                         }
+                    }
 
-                        break;                        
+                    break;
                     case anyTypeId::integer64:
+                    {
+                        auto &arrayInst = (*(_value.array));
+                        while (arrayInst.size() <= index._value.integer64)
                         {
-                            auto &arrayInst = (*(_value.array));
-                            while (arrayInst.size() <= index._value.integer64) {
-                                arrayInst.push_back(newUndefined);
-                            }     
+                            arrayInst.push_back(newUndefined);
                         }
+                    }
 
-                        break;
+                    break;
                     default:
                         throw "not allowed index type";
                         break;
@@ -532,6 +675,16 @@ struct any
         throw "not an array or an object";
     }
 
+    iterator keys() 
+    {
+        if (_type == anyTypeId::array)
+        {
+            return iterator(0, _value.array->size());
+        }
+
+        throw "can't iterate";
+    }
+
     std::vector<js::any>::iterator begin()
     {
         if (_type == anyTypeId::array)
@@ -579,7 +732,7 @@ struct any
         return *this;
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     any operator+(T other)
     {
         switch (_type)
@@ -609,10 +762,9 @@ struct any
         }
 
         throw "not implemented";
-    }    
+    }
 
-
-    any operator+(const char* other)
+    any operator+(const char *other)
     {
         switch (_type)
         {
@@ -637,7 +789,7 @@ struct any
         }
 
         throw "not implemented";
-    }    
+    }
 
     any operator+(const any &other)
     {
@@ -671,7 +823,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     auto operator>(T other)
     {
         switch (_type)
@@ -695,9 +847,9 @@ struct any
         }
 
         throw "not implemented";
-    }       
+    }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     auto operator<(T other)
     {
         switch (_type)
@@ -721,9 +873,39 @@ struct any
         }
 
         throw "not implemented";
-    }        
+    }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    friend bool operator==(const any& lhs, const any& rhs)
+    {
+        if (lhs._type != rhs._type) 
+        {
+            return false;
+        }
+
+        switch (lhs._type)
+        {
+        case anyTypeId::integer:
+            return lhs._value.integer == rhs._value.integer;
+        case anyTypeId::integer64:
+            return lhs._value.integer64 == rhs._value.integer64;
+        case anyTypeId::real:
+            return lhs._value.real == rhs._value.real;
+
+        case anyTypeId::const_string:
+            return std::strcmp(lhs._value.const_string, rhs._value.const_string) == 0;
+        case anyTypeId::string:
+            return *(lhs._value.string) == *(rhs._value.string);            
+        }        
+
+        throw "not implemented";
+    }
+
+    bool operator==(const any& other)
+    {
+        return *this == other;
+    }    
+
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     auto operator==(T other)
     {
         switch (_type)
@@ -747,9 +929,9 @@ struct any
         }
 
         throw "not implemented";
-    } 
+    }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>> >
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
     any operator-(T other)
     {
         switch (_type)
@@ -768,9 +950,9 @@ struct any
         }
 
         throw "not implemented";
-    }  
+    }
 
-    any& operator++ ()
+    any &operator++()
     {
         switch (_type)
         {
@@ -793,14 +975,14 @@ struct any
         return *this;
     }
 
-    any  operator++ (int)
+    any operator++(int)
     {
         any res(*this);
         ++(*this);
         return res;
     }
 
-    any& operator-- ()
+    any &operator--()
     {
         switch (_type)
         {
@@ -823,12 +1005,12 @@ struct any
         return *this;
     }
 
-    any  operator-- (int)
+    any operator--(int)
     {
         any res(*this);
         --(*this);
         return res;
-    }    
+    }
 
     friend any operator+(int value, const any &rhs);
     friend any operator+(const char *value, const any &rhs);
