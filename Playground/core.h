@@ -64,10 +64,14 @@ struct index_const_iterator
     {
     }    
 
-    index_const_iterator(decltype(((objectType*)nullptr)->cbegin()) objIter) 
-        : _indx(0), _isObjIter(true), _objIter(objIter)
+    index_const_iterator(decltype(((objectType*)nullptr)->cbegin()) objIter, decltype(((objectType*)nullptr)->cend()) objIterEnd) 
+        : _indx(0), _isObjIter(true), _objIter(objIter), _objIterEnd(objIterEnd)
     {
-    } 
+        if (_objIter != _objIterEnd) 
+        {
+            _indx = _objIter->first;
+        }
+    }      
 
     const reference operator*() const
     {
@@ -79,7 +83,10 @@ struct index_const_iterator
         if (_isObjIter) 
         {
             ++_objIter;
-            _indx = _objIter->first;
+            if (_objIter != _objIterEnd) 
+            {
+                _indx = objIter->first;
+            }            
         } 
         else 
         {
@@ -102,6 +109,7 @@ struct index_const_iterator
     value_type _indx;
     bool _isObjIter;
     decltype(((objectType*)nullptr)->cbegin()) _objIter;
+    decltype(((objectType*)nullptr)->cend()) _objIterEnd;
 };
 
 template <class T>
@@ -119,9 +127,13 @@ class index_iterator
     {
     }    
 
-    index_iterator(decltype(((objectType*)nullptr)->begin()) objIter) 
-        : _indx(0), _isObjIter(true), _objIter(objIter)
+    index_iterator(decltype(((objectType*)nullptr)->begin()) objIter, decltype(((objectType*)nullptr)->end()) objIterEnd) 
+        : _indx(0), _isObjIter(true), _objIter(objIter), _objIterEnd(objIterEnd)
     {
+        if (_objIter != _objIterEnd) 
+        {
+            _indx = _objIter->first;
+        }
     }    
 
     reference operator*() const
@@ -134,7 +146,10 @@ class index_iterator
         if (_isObjIter) 
         {
             ++_objIter;
-            _indx = _objIter->first;
+            if (_objIter != _objIterEnd) 
+            {
+                _indx = _objIter->first;
+            }            
         }
         else 
         {
@@ -146,7 +161,7 @@ class index_iterator
 
     bool operator!=(const self_type &_right) const
     {
-        if (_isObjIter) 
+        if (_isObjIter)
         {
             return _objIter != _right._objIter;
         }
@@ -155,9 +170,9 @@ class index_iterator
     }
 
     value_type _indx;
-    // or
     bool _isObjIter;
     decltype(((objectType*)nullptr)->begin()) _objIter;    
+    decltype(((objectType*)nullptr)->end()) _objIterEnd;    
 };
 
 struct any
@@ -177,22 +192,22 @@ struct any
 
         index_const_iterator<any> cbegin()
         {            
-            return _obj ? index_const_iterator<any>(_obj->cbegin()) : index_const_iterator<any>(_initial);
+            return _obj ? index_const_iterator<any>(_obj->cbegin(), _obj->cend()) : index_const_iterator<any>(_initial);
         }
 
         index_iterator<any> begin()
         {
-            return _obj ? index_iterator<any>(_obj->begin()) : index_iterator<any>(_initial);
+            return _obj ? index_iterator<any>(_obj->begin(), _obj->end()) : index_iterator<any>(_initial);
         }
 
         index_const_iterator<any> cend()
         {
-            return _obj ? index_const_iterator<any>(_obj->cend()) : index_const_iterator<any>(_size);
+            return _obj ? index_const_iterator<any>(_obj->cend(), _obj->cend()) : index_const_iterator<any>(_size);
         }        
 
         index_iterator<any> end()
         {
-            return _obj ? index_iterator<any>(_obj->end()) : index_iterator<any>(_size);
+            return _obj ? index_iterator<any>(_obj->end(), _obj->end()) : index_iterator<any>(_size);
         }    
 
         int _initial;
