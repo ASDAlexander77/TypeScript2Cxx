@@ -1,8 +1,3 @@
-var x = true;
-console.log(x);
-var x = 1;
-console.log(x);
-var x = 1.5;
-console.log(x);
-var x = "Hello World!";
-console.log(x);
+enum Color { Red = 1, Green, Blue }
+let colorName: string = Color[2];
+console.log(colorName);

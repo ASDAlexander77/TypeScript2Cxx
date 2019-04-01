@@ -487,10 +487,10 @@ export class Emitter {
         }
 
         const enumLiteralObject = ts.createObjectLiteral(properties);
-        const enumDeclare =
-            ts.createVariableStatement(
-                [],
-                [ts.createVariableDeclaration(node.name, undefined, enumLiteralObject)]);
+        const varDecl = ts.createVariableDeclaration(node.name, undefined, enumLiteralObject);
+        const enumDeclare = ts.createVariableStatement([], [varDecl]);
+
+        (<any>varDecl).__declaration = true;
 
         this.processStatement(this.fixupParentReferences(enumDeclare, node));
     }
@@ -543,6 +543,7 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
+
         if (this.isGlobalScope
             && declarationList.declarations.every(d => this.isAlreadyDeclaredInGlobalScope((<ts.Identifier>d.name).text))) {
             // escape if already declared;
@@ -559,10 +560,11 @@ export class Emitter {
         const next = false;
         declarationList.declarations.forEach(
             d => this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, next, isExport));
+                <ts.Identifier>d.name, d.initializer, next, isExport, (<any>d).__declaration));
     }
 
-    private processVariableDeclarationOne(name: ts.Identifier, initializer: ts.Expression, next: boolean, isExport?: boolean) {
+    private processVariableDeclarationOne(
+        name: ts.Identifier, initializer: ts.Expression, next: boolean, isExport?: boolean, isDeclaration?: boolean) {
         if (next) {
             this.writer.writeStringNewLine(',');
         }
@@ -571,9 +573,16 @@ export class Emitter {
         this.addToDeclaredInGlobalScope(name.text);
 
         if (initializer) {
-            if (!this.isGlobalScope) {
+            if (!this.isGlobalScope)
+            {
                 this.writer.writeString(' = ');
                 this.processExpression(initializer);
+            }
+            else if (isDeclaration)
+            {
+                this.writer.writeString('(');
+                this.processExpression(initializer);
+                this.writer.writeString(')');
             }
         }
 
