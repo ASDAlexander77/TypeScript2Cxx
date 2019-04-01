@@ -512,7 +512,9 @@ export class Emitter {
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): void {
         // write declaration
         // Helpers.isConstOrLet(declarationList)
-        this.writer.writeString('any ');
+        if (!(<any>declarationList).__ignore_type) {
+            this.writer.writeString('any ');
+        }
 
         const next = false;
         declarationList.declarations.forEach(
@@ -645,11 +647,13 @@ export class Emitter {
 
     private processForStatement(node: ts.ForStatement): void {
         this.writer.writeString('for (');
-        this.processExpression(<any>node.initializer);
+        const initVar = <any>node.initializer;
+        initVar.__ignore_type = true;
+        this.processExpression(initVar);
         this.writer.writeString('; ');
-        this.processExpression(<any>node.condition);
+        this.processExpression(node.condition);
         this.writer.writeString('; ');
-        this.processExpression(<any>node.incrementor);
+        this.processExpression(node.incrementor);
         this.writer.writeStringNewLine(')');
         this.processStatement(node.statement);
     }
@@ -660,7 +664,9 @@ export class Emitter {
 
     private processForInStatementNoScope(node: ts.ForInStatement): void {
         this.writer.writeString('for (auto& ');
-        this.processExpression(<any>node.initializer);
+        const initVar = <any>node.initializer;
+        initVar.__ignore_type = true;
+        this.processExpression(initVar);
         this.writer.writeString(' : ');
         this.processExpression(node.expression);
         this.writer.writeStringNewLine(')');
@@ -669,7 +675,9 @@ export class Emitter {
 
     private processForOfStatement(node: ts.ForOfStatement): void {
         this.writer.writeString('for (auto& ');
-        this.processExpression(<any>node.initializer);
+        const initVar = <any>node.initializer;
+        initVar.__ignore_type = true;
+        this.processExpression(initVar);
         this.writer.writeString(' : ');
         this.processExpression(node.expression);
         this.writer.writeStringNewLine(')');
