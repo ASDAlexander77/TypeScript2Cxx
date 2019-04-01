@@ -21,140 +21,24 @@ auto functionTest2() -> std::function<void(void)>
     return r;
 }
 
-
-template <class T, class = std::enable_if<std::is_integral_v<T>>>
-class index_const_iterator
-{
-  public:
-    using iterator_category = std::forward_iterator_tag;
-
-    using self_type = index_const_iterator;
-    using value_type = T;
-    using pointer = value_type*;
-    using reference = value_type&;
-
-    index_const_iterator() : _indx()
-    {
+struct base {
+    void test() {
+        std::cout << "base" << std::endl;
     }
-
-    index_const_iterator(T indx) : _indx(indx)
-    {
-    }    
-
-    const reference operator*() const
-    {
-        return (reference) _indx;
-    }
-
-    const pointer operator->() const
-    {
-        return &_indx;
-    }
-
-    self_type &operator++()
-    {
-        ++_indx;
-        return (*this);
-    }
-
-    self_type operator++(int)
-    {
-        index_const_iterator _Tmp = *this;
-        ++*this;
-        return (_Tmp);
-    }
-
-    bool operator==(const self_type &_right) const
-    {
-        return (_indx == _right._indx);
-    }
-
-    bool operator!=(const self_type &_right) const
-    {
-        return (!(*this == _right));
-    }
-
-    value_type _indx;
 };
 
-template <class T, class = std::enable_if<std::is_integral_v<T>>>
-class index_iterator
-{
-  public:
-    using iterator_category = std::forward_iterator_tag;
-
-    using self_type = index_iterator;
-    using value_type = T;
-    using pointer = value_type*;
-    using reference = value_type&;
-
-    index_iterator() : _indx()
-    {
+struct derived1 : base {
+    void test() {
+        std::cout << "derived 1" << std::endl;
     }
-
-    index_iterator(T indx) : _indx(indx)
-    {
-    }    
-
-    reference operator*() const
-    {
-        return (reference) _indx;
-    }
-
-    pointer operator->() const
-    {
-        return &_indx;
-    }
-
-    self_type &operator++()
-    {
-        ++_indx;
-        return (*this);
-    }
-
-    self_type operator++(int)
-    {
-        index_const_iterator _Tmp = *this;
-        ++*this;
-        return (_Tmp);
-    }
-
-    bool operator==(const self_type &_right) const
-    {
-        return (_indx == _right._indx);
-    }
-
-    bool operator!=(const self_type &_right) const
-    {
-        return (!(*this == _right));
-    }
-
-    value_type _indx;
-};
-
-class coll 
-{
-public:    
-    index_const_iterator<int> begin()
-    {
-        return index_const_iterator<int>(0);
-    }
-
-    index_const_iterator<int> end()
-    {
-        return index_const_iterator<int>(9);
-    }    
 };
 
 int main(int argc, char **argv)
 {
     std::cout << "'any' size = " << sizeof(any) << std::endl;
 
-    coll c1;
-    for(auto& val : c1)
-    {
-        std::cout << val << " ";
-    }    
+    base bsd = (base) derived1();
+    bsd.test();
 
     // const
     any a;

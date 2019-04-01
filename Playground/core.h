@@ -50,7 +50,7 @@ union anyType {
 };
 
 template <class T>
-class index_const_iterator
+struct index_const_iterator
 {
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -60,48 +60,57 @@ class index_const_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_const_iterator() : _indx()
+    index_const_iterator() : _indx(), _isObjIter(false)
     {
     }
 
-    index_const_iterator(T indx) : _indx(indx)
+    index_const_iterator(T indx) : _indx(indx), _isObjIter(false)
     {
     }    
 
+    index_const_iterator(T indx, objectType* obj) 
+        : _indx(indx), _isObjIter(true), _objIter(obj->cbegin()), _objIterEnd(obj->cend())
+    {
+    } 
+
     const reference operator*() const
     {
-        return (reference) _indx;
-    }
+        if (_isObjIter) 
+        {
+            return any(_objIter->first);
+        }
 
-    const pointer operator->() const
-    {
-        return &_indx;
+        return (reference) _indx;
     }
 
     self_type &operator++()
     {
-        ++_indx;
+        if (_isObjIter) 
+        {
+            ++_objIter;
+        } 
+        else 
+        {
+            ++_indx;
+        }
+
         return (*this);
-    }
-
-    self_type operator++(int)
-    {
-        index_const_iterator _Tmp = *this;
-        ++*this;
-        return (_Tmp);
-    }
-
-    bool operator==(const self_type &_right) const
-    {
-        return (_indx == _right._indx);
     }
 
     bool operator!=(const self_type &_right) const
     {
-        return (!(*this == _right));
+        if (_isObjIter) 
+        {
+            return _objIter != _right._objIterEnd;
+        }
+
+        return (!(_indx == _right._indx));
     }
 
     value_type _indx;
+    bool _isObjIter;
+    decltype(((objectType*)nullptr)->cbegin()) _objIter;
+    decltype(((objectType*)nullptr)->cend()) _objIterEnd;    
 };
 
 template <class T>
@@ -115,48 +124,58 @@ class index_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_iterator() : _indx()
+    index_iterator() : _indx(), _isObjIter(false)
     {
     }
 
-    index_iterator(T indx) : _indx(indx)
+    index_iterator(T indx) : _indx(indx), _isObjIter(false)
+    {
+    }    
+
+    index_iterator(T indx, objectType* obj) 
+        : _indx(indx), _isObjIter(true), _objIter(obj->begin()), _objIterEnd(obj->end())
     {
     }    
 
     reference operator*() const
     {
-        return (reference) _indx;
-    }
+        if (_isObjIter) 
+        {
+            return any(_objIter->first);
+        }
 
-    pointer operator->() const
-    {
-        return &_indx;
+        return (reference) _indx;
     }
 
     self_type &operator++()
     {
-        ++_indx;
+        if (_isObjIter) 
+        {
+            ++_objIter;
+        }
+        else 
+        {
+            ++_indx;
+        }
+
         return (*this);
-    }
-
-    self_type operator++(int)
-    {
-        index_const_iterator _Tmp = *this;
-        ++*this;
-        return (_Tmp);
-    }
-
-    bool operator==(const self_type &_right) const
-    {
-        return (_indx == _right._indx);
     }
 
     bool operator!=(const self_type &_right) const
     {
-        return (!(*this == _right));
+        if (_isObjIter) 
+        {
+            return _objIter != _right._objIterEnd;
+        }
+
+        return (!(_indx == _right._indx));
     }
 
     value_type _indx;
+    // or
+    bool _isObjIter;
+    decltype(((objectType*)nullptr)->begin()) _objIter;    
+    decltype(((objectType*)nullptr)->end()) _objIterEnd;    
 };
 
 struct any
@@ -166,32 +185,37 @@ struct any
 
     struct iterator
     {
-        iterator(int initial, int size) : _initial(initial), _size(size)
+        iterator(int initial, int size) : _initial(initial), _size(size), _obj(nullptr)
+        {            
+        }
+
+        iterator(objectType *obj) : _initial(0), _size(0), _obj(obj)
         {            
         }
 
         index_const_iterator<any> cbegin()
         {
-            return index_const_iterator<any>(_initial);
+            return index_const_iterator<any>(_initial, _obj);
         }
 
         index_iterator<any> begin()
         {
-            return index_iterator<any>(_initial);
+            return index_iterator<any>(_initial, _obj);
         }
 
         index_const_iterator<any> cend()
         {
-            return index_const_iterator<any>(_size);
+            return index_const_iterator<any>(_size, _obj);
         }        
 
         index_iterator<any> end()
         {
-            return index_iterator<any>(_size);
+            return index_iterator<any>(_size, _obj);
         }    
 
         int _initial;
         int _size;
+        objectType* _obj;
     };
 
     any()
@@ -680,6 +704,11 @@ struct any
         if (_type == anyTypeId::array)
         {
             return iterator(0, _value.array->size());
+        }
+
+        if (_type == anyTypeId::object)
+        {
+            return iterator(_value.object);
         }
 
         throw "can't iterate";
