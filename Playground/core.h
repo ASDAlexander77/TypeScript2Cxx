@@ -60,16 +60,12 @@ struct index_const_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_const_iterator() : _indx(), _isObjIter(false)
-    {
-    }
-
     index_const_iterator(T indx) : _indx(indx), _isObjIter(false)
     {
     }    
 
-    index_const_iterator(T indx, objectType* obj) 
-        : _indx(indx), _isObjIter(true), _objIter(obj->cbegin()), _objIterEnd(obj->cend())
+    index_const_iterator(decltype(((objectType*)nullptr)->cbegin()) objIter) 
+        : _indx(0), _isObjIter(true), _objIter(objIter)
     {
     } 
 
@@ -101,7 +97,7 @@ struct index_const_iterator
     {
         if (_isObjIter) 
         {
-            return _objIter != _right._objIterEnd;
+            return _objIter != _right._objIter;
         }
 
         return (!(_indx == _right._indx));
@@ -110,7 +106,6 @@ struct index_const_iterator
     value_type _indx;
     bool _isObjIter;
     decltype(((objectType*)nullptr)->cbegin()) _objIter;
-    decltype(((objectType*)nullptr)->cend()) _objIterEnd;    
 };
 
 template <class T>
@@ -124,16 +119,12 @@ class index_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_iterator() : _indx(), _isObjIter(false)
-    {
-    }
-
     index_iterator(T indx) : _indx(indx), _isObjIter(false)
     {
     }    
 
-    index_iterator(T indx, objectType* obj) 
-        : _indx(indx), _isObjIter(true), _objIter(obj->begin()), _objIterEnd(obj->end())
+    index_iterator(decltype(((objectType*)nullptr)->begin()) objIter) 
+        : _indx(0), _isObjIter(true), _objIter(objIter)
     {
     }    
 
@@ -165,7 +156,7 @@ class index_iterator
     {
         if (_isObjIter) 
         {
-            return _objIter != _right._objIterEnd;
+            return _objIter != _right._objIter;
         }
 
         return (!(_indx == _right._indx));
@@ -175,7 +166,6 @@ class index_iterator
     // or
     bool _isObjIter;
     decltype(((objectType*)nullptr)->begin()) _objIter;    
-    decltype(((objectType*)nullptr)->end()) _objIterEnd;    
 };
 
 struct any
@@ -194,23 +184,23 @@ struct any
         }
 
         index_const_iterator<any> cbegin()
-        {
-            return index_const_iterator<any>(_initial, _obj);
+        {            
+            return _obj ? index_const_iterator<any>(_obj->cbegin()) : index_const_iterator<any>(_initial);
         }
 
         index_iterator<any> begin()
         {
-            return index_iterator<any>(_initial, _obj);
+            return _obj ? index_iterator<any>(_obj->begin()) : index_iterator<any>(_initial);
         }
 
         index_const_iterator<any> cend()
         {
-            return index_const_iterator<any>(_size, _obj);
+            return _obj ? index_const_iterator<any>(_obj->cend()) : index_const_iterator<any>(_size);
         }        
 
         index_iterator<any> end()
         {
-            return index_iterator<any>(_size, _obj);
+            return _obj ? index_iterator<any>(_obj->end()) : index_iterator<any>(_size);
         }    
 
         int _initial;
