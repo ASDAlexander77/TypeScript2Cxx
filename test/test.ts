@@ -1,4 +1,4 @@
-const someArray = [9, 2, 5];
-for (const item of someArray) {
-    console.log(item);
+var hello = "is";
+for (var _char of hello) {
+    console.log(<any>_char);
 }

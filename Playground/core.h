@@ -75,6 +75,9 @@ class index_iterator
     using beginArrayIterType = decltype(((arrayType*)nullptr)->begin());
     using endArrayIterType = decltype(((arrayType*)nullptr)->end());
 
+    using beginStringIterType = decltype(((std::string*)nullptr)->begin());
+    using endStringIterType = decltype(((std::string*)nullptr)->end());
+
     index_iterator(T indx) : _index(indx), _iteratorType(anyIteratorTypeId::iterator_array_key)
     {
     }    
@@ -110,6 +113,15 @@ class index_iterator
         }
     }        
 
+    index_iterator(beginStringIterType stringIteratorBegin, endStringIterType stringIteratorEnd) 
+        : _index(),  _iteratorType(anyIteratorTypeId::iterator_string), _stringIteratorBegin(stringIteratorBegin), _stringIteratorEnd(stringIteratorEnd)
+    {
+        if (_stringIteratorBegin != _stringIteratorEnd) 
+        {
+            _index = *_stringIteratorBegin;
+        }
+    }     
+
     reference operator*() const
     {
         return (reference) _index;
@@ -119,12 +131,21 @@ class index_iterator
     {
         switch (_iteratorType)
         {
+            case anyIteratorTypeId::iterator_string:
+                ++_stringIteratorBegin;
+                if (_stringIteratorBegin != _stringIteratorEnd) 
+                {
+                    _index = (char) *_stringIteratorBegin;
+                }                
+                
+                break;
             case anyIteratorTypeId::iterator_array:
                 ++_arrayIteratorBegin;
                 if (_arrayIteratorBegin != _arrayIteratorEnd) 
                 {
                     _index = *_arrayIteratorBegin;
                 }                
+                
                 break;
             case anyIteratorTypeId::iterator_object_key:
             case anyIteratorTypeId::iterator_object:
@@ -156,6 +177,9 @@ class index_iterator
     {
         switch (_iteratorType)
         {
+            case anyIteratorTypeId::iterator_string:
+                return _stringIteratorBegin != _right._stringIteratorEnd;
+
             case anyIteratorTypeId::iterator_array:
                 return _arrayIteratorBegin != _right._arrayIteratorEnd;
 
@@ -174,6 +198,8 @@ class index_iterator
     endObjectIterType _objectIteratorEnd;    
     beginArrayIterType _arrayIteratorBegin;    
     endArrayIterType _arrayIteratorEnd;    
+    beginStringIterType _stringIteratorBegin;    
+    endStringIterType _stringIteratorEnd;    
 };
 
 template <class T>
@@ -219,12 +245,17 @@ template <class T>
 struct values_iterator
 {
     values_iterator(arrayType *arr) 
-        : _arr(arr), _obj(nullptr)
+        : _arr(arr), _obj(nullptr), _str(nullptr)
     {            
     }
 
     values_iterator(objectType *obj) 
-        : _arr(nullptr), _obj(obj)
+        : _arr(nullptr), _obj(obj), _str(nullptr)
+    {            
+    }
+
+    values_iterator(std::string* str) 
+    : _arr(nullptr), _obj(nullptr), _str(str)
     {            
     }
 
@@ -236,6 +267,10 @@ struct values_iterator
 
         if (_obj) { 
             return index_iterator<T>(anyIteratorTypeId::iterator_object, _obj->begin(), _obj->end());
+        }
+
+        if (_str) {
+            return index_iterator<T>(_str->begin(), _str->end());
         }
 
         return index_iterator<T>(0);
@@ -251,11 +286,16 @@ struct values_iterator
             return index_iterator<T>(anyIteratorTypeId::iterator_object, _obj->end(), _obj->end());
         }
 
+        if (_str) {
+            return index_iterator<T>(_str->end(), _str->end());
+        }
+
         return index_iterator<T>(0);
     }    
 
     arrayType *_arr;
     objectType *_obj;
+    std::string *_str;
 };
 
 struct any
@@ -305,10 +345,16 @@ struct any
         _value.real = value;
     }
 
+    any(char value)
+    {
+        _type = anyTypeId::string;
+        _value.string = new std::string({value});
+    }    
+
     any(std::nullptr_t value)
     {
         _type = anyTypeId::null;
-        _value.string = value;
+        _value.const_string = value;
     }
 
     any(const char *value)
@@ -771,6 +817,17 @@ struct any
             return values_iterator<any>(_value.object).begin();
         }
 
+        if (_type == anyTypeId::const_string)
+        {
+            _type = anyTypeId::string;
+            _value.string = new std::string(_value.const_string);
+        }
+
+        if (_type == anyTypeId::string)
+        {
+            return values_iterator<any>(_value.string).begin();
+        }
+
         throw "not an array or anobject";
     }
 
@@ -784,6 +841,17 @@ struct any
         if (_type == anyTypeId::object)
         {
             return values_iterator<any>(_value.object).end();
+        }
+
+        if (_type == anyTypeId::const_string)
+        {
+            _type = anyTypeId::string;
+            _value.string = new std::string(_value.const_string);
+        }
+
+        if (_type == anyTypeId::string)
+        {
+            return values_iterator<any>(_value.string).end();
         }
 
         throw "not an array or anobject";
