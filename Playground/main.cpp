@@ -21,9 +21,24 @@ auto functionTest2() -> std::function<void(void)>
     return r;
 }
 
+struct Base {
+    virtual void test() {
+        std::cout << "Base." << std::endl;
+    }
+};
+
+struct Derived : Base {
+    virtual void test() {
+        std::cout << "Derived." << std::endl;
+    }
+};
+
 int main(int argc, char **argv)
 {
     std::cout << "'any' size = " << sizeof(any) << std::endl;
+
+    Derived d1;
+    d1.test();
 
     // const
     any a;

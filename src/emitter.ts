@@ -170,6 +170,15 @@ export class Emitter {
         this.writer.writeStringNewLine('');
 
         sourceFile.statements.filter(f => this.isDeclarationStatement(f) || this.isGlobalVarDeclaration(f)).forEach(s => {
+
+            if (s.kind === ts.SyntaxKind.VariableStatement) {
+                const variableStatement = <ts.VariableStatement>s;
+                const isLocal = Helpers.isConstOrLet(s);
+                if (!isLocal) {
+                    (<any>(variableStatement.declarationList)).__skip_initialize = true;
+                }
+            }
+
             this.processStatement(s);
         });
 
@@ -493,8 +502,6 @@ export class Emitter {
         const varDecl = ts.createVariableDeclaration(node.name, undefined, enumLiteralObject);
         const enumDeclare = ts.createVariableStatement([], [varDecl]);
 
-        (<any>varDecl).__declaration = true;
-
         this.processStatement(this.fixupParentReferences(enumDeclare, node));
     }
 
@@ -545,8 +552,7 @@ export class Emitter {
         return currentScope.declaredVars.push(name);
     }
 
-    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, isExport?: boolean): boolean {
-
+    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
         if (this.isGlobalScope
             && declarationList.declarations.every(d => this.isAlreadyDeclaredInGlobalScope((<ts.Identifier>d.name).text))) {
             // escape if already declared;
@@ -560,22 +566,18 @@ export class Emitter {
             this.writer.writeString('any ');
         }
 
+        const skipInit = (<any>declarationList).__skip_initialize;
         const next = false;
         let result = false;
         declarationList.declarations.forEach(
-            d => (result = this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, next, isLocal, isExport, (<any>d).__declaration)) || result);
+            d => result = this.processVariableDeclarationOne(
+                <ts.Identifier>d.name, d.initializer, next, skipInit) || result);
 
         return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next: boolean, isLocal?: boolean, isExport?: boolean, isDeclaration?: boolean) {
-        if (!isLocal && !this.isGlobalScope && !initializer) {
-            // skip global declaration without initializer in local scope
-            return false;
-        }
-
+        name: ts.Identifier, initializer: ts.Expression, next: boolean, skipInit?: boolean) {
         if (next) {
             this.writer.writeStringNewLine(',');
         }
@@ -587,10 +589,12 @@ export class Emitter {
             if (!this.isGlobalScope) {
                 this.writer.writeString(' = ');
                 this.processExpression(initializer);
-            } else if (isDeclaration) {
-                this.writer.writeString('(');
-                this.processExpression(initializer);
-                this.writer.writeString(')');
+            } else {
+                if (!skipInit) {
+                    this.writer.writeString('(');
+                    this.processExpression(initializer);
+                    this.writer.writeString(')');
+                }
             }
         }
 
@@ -599,8 +603,7 @@ export class Emitter {
     }
 
     private processVariableStatement(node: ts.VariableStatement): void {
-        const isExport = node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.ExportKeyword);
-        const anyVal = this.processVariableDeclarationList(node.declarationList, isExport);
+        const anyVal = this.processVariableDeclarationList(node.declarationList);
         if (anyVal) {
             this.writer.EndOfStatement();
         }

@@ -50,7 +50,43 @@ union anyType {
 };
 
 template <class T>
-struct index_const_iterator
+struct base_const_iterator
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = base_const_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    virtual const reference operator*() const {};
+
+    virtual self_type &operator++() {};
+
+    virtual bool operator!=(const self_type &_right) const {};
+};
+
+template <class T>
+struct base_iterator
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = base_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    virtual reference operator*() const {};
+
+    virtual self_type &operator++() {};
+
+    virtual bool operator!=(const self_type &_right) const {};
+};
+
+template <class T>
+struct index_const_iterator : public base_const_iterator<T>
 {
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -60,60 +96,33 @@ struct index_const_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_const_iterator(T indx) : _indx(indx), _isObjIter(false)
+    index_const_iterator(T indx, T end) : _indx(indx), _end(end)
     {
     }    
 
-    index_const_iterator(decltype(((objectType*)nullptr)->cbegin()) objIter, decltype(((objectType*)nullptr)->cend()) objIterEnd) 
-        : _indx(0), _isObjIter(true), _objIter(objIter), _objIterEnd(objIterEnd)
-    {
-        if (_objIter != _objIterEnd) 
-        {
-            _indx = _objIter->first;
-        }
-    }      
-
-    const reference operator*() const
+    virtual const reference operator*() const override
     {
         return (reference) _indx;
     }
 
-    self_type &operator++()
+    virtual self_type &operator++() override
     {
-        if (_isObjIter) 
-        {
-            ++_objIter;
-            if (_objIter != _objIterEnd) 
-            {
-                _indx = objIter->first;
-            }            
-        } 
-        else 
-        {
-            ++_indx;
-        }
-
+        ++_indx;
         return (*this);
     }
 
-    bool operator!=(const self_type &_right) const
+    virtual bool operator!=(const base_const_iterator<T> &right) const override
     {
-        if (_isObjIter) 
-        {
-            return _objIter != _right._objIter;
-        }
-
-        return (!(_indx == _right._indx));
+        // assume right contains end of iteration
+        return !(_indx == _end);
     }
 
     value_type _indx;
-    bool _isObjIter;
-    decltype(((objectType*)nullptr)->cbegin()) _objIter;
-    decltype(((objectType*)nullptr)->cend()) _objIterEnd;
+    value_type _end;
 };
 
 template <class T>
-class index_iterator
+class index_iterator : public base_iterator<T>
 {
   public:
     using iterator_category = std::forward_iterator_tag;
@@ -123,56 +132,129 @@ class index_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    index_iterator(T indx) : _indx(indx), _isObjIter(false)
+    index_iterator(T indx, T end) : _indx(indx), _end(end)
     {
     }    
 
-    index_iterator(decltype(((objectType*)nullptr)->begin()) objIter, decltype(((objectType*)nullptr)->end()) objIterEnd) 
-        : _indx(0), _isObjIter(true), _objIter(objIter), _objIterEnd(objIterEnd)
-    {
-        if (_objIter != _objIterEnd) 
-        {
-            _indx = _objIter->first;
-        }
-    }    
-
-    reference operator*() const
+    virtual reference operator*() const override
     {
         return (reference) _indx;
     }
 
-    self_type &operator++()
+    virtual self_type &operator++() override
     {
-        if (_isObjIter) 
+        ++_indx;
+        return (*this);
+    }
+
+    virtual bool operator!=(const base_iterator<T> &right) const override
+    {
+        // assume right contains end of iteration
+        return !(_indx == _end);
+    }
+
+    value_type _indx;
+    value_type _end;
+};
+
+template <class T>
+class object_keys_const_iterator : public base_const_iterator<T>
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = object_keys_const_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    using beginInstType = decltype(((objectType*)nullptr)->cbegin());
+    using endInstType = decltype(((objectType*)nullptr)->cend());
+
+    object_keys_const_iterator(beginInstType beginInst, endInstType endInst) 
+        : _indx(), _beginInst(beginInst), _endInst(endInst)
+    {
+        if (_beginInst != _endInst) 
         {
-            ++_objIter;
-            if (_objIter != _objIterEnd) 
-            {
-                _indx = _objIter->first;
-            }            
+            _indx = _beginInst->first;
         }
-        else 
+    }    
+
+    virtual const reference operator*() const override
+    {
+        return (reference) _indx;
+    }
+
+    virtual self_type &operator++() override
+    {
+        ++_beginInst;
+        if (_beginInst != _endInst) 
         {
-            ++_indx;
-        }
+            _indx = _beginInst->first;
+        }            
 
         return (*this);
     }
 
-    bool operator!=(const self_type &_right) const
+    virtual bool operator!=(const base_const_iterator<T> &right) const override
     {
-        if (_isObjIter)
-        {
-            return _objIter != _right._objIter;
-        }
-
-        return (!(_indx == _right._indx));
+        // assume right contains end of iteration
+        return _beginInst != _endInst;
     }
 
     value_type _indx;
-    bool _isObjIter;
-    decltype(((objectType*)nullptr)->begin()) _objIter;    
-    decltype(((objectType*)nullptr)->end()) _objIterEnd;    
+    beginInstType _beginInst;    
+    endInstType _endInst;    
+};
+
+template <class T>
+class object_keys_iterator : public base_iterator<T>
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = object_keys_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    using beginInstType = decltype(((objectType*)nullptr)->begin());
+    using endInstType = decltype(((objectType*)nullptr)->end());
+
+    object_keys_iterator(beginInstType beginInst, endInstType endInst) 
+        : _indx(), _beginInst(beginInst), _endInst(endInst)
+    {
+        if (_beginInst != _endInst) 
+        {
+            _indx = _beginInst->first;
+        }
+    }    
+
+    virtual reference operator*() const override
+    {
+        return (reference) _indx;
+    }
+
+    virtual self_type &operator++() override
+    {
+        ++_beginInst;
+        if (_beginInst != _endInst) 
+        {
+            _indx = _beginInst->first;
+        }            
+
+        return (*this);
+    }
+
+    virtual bool operator!=(const base_iterator<T> &right) const override
+    {
+        // assume right contains end of iteration
+        return _beginInst != _endInst;
+    }
+
+    value_type _indx;
+    beginInstType _beginInst;    
+    endInstType _endInst;    
 };
 
 struct any
@@ -190,24 +272,32 @@ struct any
         {            
         }
 
-        index_const_iterator<any> cbegin()
+        base_const_iterator<any> cbegin()
         {            
-            return _obj ? index_const_iterator<any>(_obj->cbegin(), _obj->cend()) : index_const_iterator<any>(_initial);
+            return _obj 
+                ? (base_const_iterator<any>)object_keys_const_iterator<any>(_obj->cbegin(), _obj->cend()) 
+                : (base_const_iterator<any>)index_const_iterator<any>(_initial, _size);
         }
 
-        index_iterator<any> begin()
+        base_iterator<any> begin()
         {
-            return _obj ? index_iterator<any>(_obj->begin(), _obj->end()) : index_iterator<any>(_initial);
+            return _obj 
+                ? (base_iterator<any>)object_keys_iterator<any>(_obj->begin(), _obj->end()) 
+                : (base_iterator<any>)index_iterator<any>(_initial, _size);
         }
 
-        index_const_iterator<any> cend()
+        base_const_iterator<any> cend()
         {
-            return _obj ? index_const_iterator<any>(_obj->cend(), _obj->cend()) : index_const_iterator<any>(_size);
+            return _obj 
+                ? (base_const_iterator<any>)object_keys_const_iterator<any>(_obj->cend(), _obj->cend()) 
+                : (base_const_iterator<any>)index_const_iterator<any>(_size, _size);
         }        
 
-        index_iterator<any> end()
+        base_iterator<any> end()
         {
-            return _obj ? index_iterator<any>(_obj->end(), _obj->end()) : index_iterator<any>(_size);
+            return _obj 
+                ? (base_iterator<any>)object_keys_iterator<any>(_obj->end(), _obj->end())
+                : (base_iterator<any>)index_iterator<any>(_size, _size);
         }    
 
         int _initial;
