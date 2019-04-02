@@ -106,10 +106,7 @@ class index_iterator
     {
         if (_arrayIteratorBegin != _arrayIteratorEnd) 
         {
-            switch (_iteratorType)
-            {
-                _index = *_arrayIteratorBegin;
-            }
+            _index = *_arrayIteratorBegin;
         }
     }        
 
@@ -179,90 +176,92 @@ class index_iterator
     endArrayIterType _arrayIteratorEnd;    
 };
 
+template <class T>
+struct keys_iterator
+{
+    keys_iterator(arrayType *arr) 
+        : _arr(arr), _obj(nullptr)
+    {            
+    }
+
+    keys_iterator(objectType *obj) 
+        : _arr(nullptr), _obj(obj)
+    {            
+    }
+
+    index_iterator<T> begin()
+    {
+        if (_obj) { 
+            return index_iterator<T>(_obj->begin(), _obj->end());
+        }
+
+        return index_iterator<T>(0);
+    }
+
+    index_iterator<T> end()
+    {
+        if (_obj) { 
+            return index_iterator<T>(_obj->end(), _obj->end());
+        }
+
+        if (_arr) { 
+            return index_iterator<T>((int)_arr->size());
+        }
+
+        return index_iterator<T>(0);
+    }    
+
+    arrayType *_arr;
+    objectType *_obj;
+};    
+
+template <class T>
+struct values_iterator
+{
+    values_iterator(arrayType *arr) 
+        : _arr(arr), _obj(nullptr)
+    {            
+    }
+
+    values_iterator(objectType *obj) 
+        : _arr(nullptr), _obj(obj)
+    {            
+    }
+
+    index_iterator<T> begin()
+    {
+        if (_arr) { 
+            return index_iterator<T>(_arr->begin(), _arr->end());
+        }
+
+        if (_obj) { 
+            return index_iterator<T>(anyIteratorTypeId::iterator_object, _obj->begin(), _obj->end());
+        }
+
+        return index_iterator<T>(0);
+    }
+
+    index_iterator<T> end()
+    {
+        if (_arr) { 
+            return index_iterator<T>(_arr->end(), _arr->end());
+        }
+
+        if (_obj) { 
+            return index_iterator<T>(anyIteratorTypeId::iterator_object, _obj->end(), _obj->end());
+        }
+
+        return index_iterator<T>(0);
+    }    
+
+    arrayType *_arr;
+    objectType *_obj;
+};
+
 struct any
 {
     anyTypeId _type;
     anyType _value;
-
-    struct keys_iterator
-    {
-        keys_iterator(arrayType *arr) 
-            : _arr(arr), _obj(nullptr)
-        {            
-        }
-
-        keys_iterator(objectType *obj) 
-            : _arr(nullptr), _obj(obj)
-        {            
-        }
-
-        index_iterator<any> begin()
-        {
-            if (_obj) { 
-                return index_iterator<any>(_obj->begin(), _obj->end());
-            }
-
-            return index_iterator<any>(0);
-        }
-
-        index_iterator<any> end()
-        {
-            if (_obj) { 
-                return index_iterator<any>(_obj->end(), _obj->end());
-            }
-
-            if (_arr) { 
-                return index_iterator<any>((int)_arr->size());
-            }
-
-            return index_iterator<any>(0);
-        }    
-
-        arrayType *_arr;
-        objectType *_obj;
-    };    
-
-    struct values_iterator
-    {
-        values_iterator(arrayType *arr) 
-            : _arr(arr), _obj(nullptr)
-        {            
-        }
-
-        values_iterator(objectType *obj) 
-            : _arr(nullptr), _obj(obj)
-        {            
-        }
-
-        index_iterator<any> begin()
-        {
-            if (_arr) { 
-                return index_iterator<any>(_arr->begin(), _arr->end());
-            }
-
-            if (_obj) { 
-                return index_iterator<any>(anyIteratorTypeId::iterator_object, _obj->begin(), _obj->end());
-            }
-
-            return index_iterator<any>(0);
-        }
-
-        index_iterator<any> end()
-        {
-            if (_arr) { 
-                return index_iterator<any>(_arr->end(), _arr->end());
-            }
-
-            if (_obj) { 
-                return index_iterator<any>(anyIteratorTypeId::iterator_object, _obj->end(), _obj->end());
-            }
-
-            return index_iterator<any>(0);
-        }    
-
-        arrayType *_arr;
-        objectType *_obj;
-    };
 
     any()
     {
@@ -745,16 +744,16 @@ struct any
         throw "not an array or an object";
     }
 
-    keys_iterator keys() 
+    keys_iterator<any> keys() 
     {
         if (_type == anyTypeId::array)
         {
-            return keys_iterator(_value.array);
+            return keys_iterator<any>(_value.array);
         }
 
         if (_type == anyTypeId::object)
         {
-            return keys_iterator(_value.object);
+            return keys_iterator<any>(_value.object);
         }
 
         throw "can't iterate";
@@ -764,12 +763,12 @@ struct any
     {
         if (_type == anyTypeId::array)
         {
-            return values_iterator(_value.array).begin();
+            return values_iterator<any>(_value.array).begin();
         }
 
         if (_type == anyTypeId::object)
         {
-            return values_iterator(_value.object).begin();
+            return values_iterator<any>(_value.object).begin();
         }
 
         throw "not an array or anobject";
@@ -779,12 +778,12 @@ struct any
     {
         if (_type == anyTypeId::array)
         {
-            return values_iterator(_value.array).end();
+            return values_iterator<any>(_value.array).end();
         }
 
         if (_type == anyTypeId::object)
         {
-            return values_iterator(_value.object).end();
+            return values_iterator<any>(_value.object).end();
         }
 
         throw "not an array or anobject";

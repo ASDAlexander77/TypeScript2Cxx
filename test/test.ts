@@ -1,5 +1,4 @@
-var person = { fname: "John", lname: "Doe", age: 25 };
-
-for (var x in person) {
-    console.log(person[x]);
+const someArray = [9, 2, 5];
+for (const item of someArray) {
+    console.log(item);
 }
