@@ -69,19 +69,22 @@ class index_iterator
     using pointer = value_type*;
     using reference = value_type&;
 
-    using beginIterType = decltype(((objectType*)nullptr)->begin());
-    using endIterType = decltype(((objectType*)nullptr)->end());
+    using beginObjectIterType = decltype(((objectType*)nullptr)->begin());
+    using endObjectIterType = decltype(((objectType*)nullptr)->end());
+
+    using beginArrayIterType = decltype(((arrayType*)nullptr)->begin());
+    using endArrayIterType = decltype(((arrayType*)nullptr)->end());
 
     index_iterator(T indx) : _index(indx), _iteratorType(anyIteratorTypeId::iterator_array_key)
     {
     }    
 
-    index_iterator(beginIterType objectIteratorBegin, endIterType objectIteratorEnd) 
+    index_iterator(beginObjectIterType objectIteratorBegin, endObjectIterType objectIteratorEnd) 
         : index_iterator(anyIteratorTypeId::iterator_object_key, objectIteratorBegin, objectIteratorEnd)
     {
     }    
 
-    index_iterator(anyIteratorTypeId anyIteratorType, beginIterType objectIteratorBegin, endIterType objectIteratorEnd) 
+    index_iterator(anyIteratorTypeId anyIteratorType, beginObjectIterType objectIteratorBegin, endObjectIterType objectIteratorEnd) 
         : _index(),  _iteratorType(anyIteratorType), _objectIteratorBegin(objectIteratorBegin), _objectIteratorEnd(objectIteratorEnd)
     {
         if (_objectIteratorBegin != _objectIteratorEnd) 
@@ -98,6 +101,18 @@ class index_iterator
         }
     }        
 
+    index_iterator(beginArrayIterType arrayIteratorBegin, endArrayIterType arrayIteratorEnd) 
+        : _index(),  _iteratorType(anyIteratorTypeId::iterator_array), _arrayIteratorBegin(arrayIteratorBegin), _arrayIteratorEnd(arrayIteratorEnd)
+    {
+        if (_arrayIteratorBegin != _arrayIteratorEnd) 
+        {
+            switch (_iteratorType)
+            {
+                _index = _arrayIteratorBegin;
+            }            
+        }
+    }        
+
     reference operator*() const
     {
         return (reference) _index;
@@ -107,6 +122,9 @@ class index_iterator
     {
         switch (_iteratorType)
         {
+            case anyIteratorTypeId::iterator_array:
+                ++_arrayIteratorBegin;
+                break;
             case anyIteratorTypeId::iterator_object_key:
             case anyIteratorTypeId::iterator_object:
                 ++_objectIteratorBegin;
@@ -137,6 +155,9 @@ class index_iterator
     {
         switch (_iteratorType)
         {
+            case anyIteratorTypeId::iterator_array:
+                return _arrayIteratorBegin != _right._arrayIteratorEnd;
+
             case anyIteratorTypeId::iterator_object_key:
             case anyIteratorTypeId::iterator_object:
                 return _objectIteratorBegin != _right._objectIteratorEnd;
@@ -148,8 +169,10 @@ class index_iterator
 
     value_type _index;
     anyIteratorTypeId _iteratorType;
-    beginIterType _objectIteratorBegin;    
-    endIterType _objectIteratorEnd;    
+    beginObjectIterType _objectIteratorBegin;    
+    endObjectIterType _objectIteratorEnd;    
+    beginArrayIterType _arrayIteratorBegin;    
+    endArrayIterType _arrayIteratorEnd;    
 };
 
 struct any

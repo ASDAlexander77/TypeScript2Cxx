@@ -21,34 +21,76 @@ auto functionTest2() -> std::function<void(void)>
     return r;
 }
 
-struct Base {
-    virtual void test() = 0;
+template <class T>
+class base_iterator
+{
+  public:
+    using iterator_category = std::forward_iterator_tag;
+
+    using self_type = base_iterator;
+    using value_type = T;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    base_iterator()
+    {
+    }    
+
+    reference operator*() const {
+        return const_cast<base_iterator<T>*>(this)->GetReference();
+    }
+
+    self_type &operator++() {
+        Increment();
+        return *this;
+    };
+
+    virtual bool operator!=(const self_type &_right) const = 0;
+
+    virtual reference GetReference() = 0;
+    virtual void Increment() = 0;
 };
 
-struct Derived : Base {
-    virtual void test() override {
-        std::cout << "Derived." << std::endl;
-    }
-};
-
-class Holder {
-public:
-    Holder(Base& b) : _b(b) {}
-    
-    void run() {
-        _b.test();
+template <class T>
+class index_iterator1 : public base_iterator<T>
+{
+public:    
+    index_iterator1(T idx, T end) : _index(idx), _end(end)
+    {
+        current = _index;
     }
 
-    Base& _b;
+    virtual base_iterator<T>::reference GetReference() override {
+        return current;
+    }
+
+    virtual void Increment() override {
+        _index++;
+        current = _index;
+    }
+
+    virtual bool operator!=(const base_iterator<T>::self_type &right) const {
+        auto d = dynamic_cast<index_iterator1<T>*>(const_cast<base_iterator<T>*>(&right));
+        if (d) {
+            return d->current != this->current;
+        }
+
+        return false;
+    }
+
+    T _index;
+    T _end;
+    base_iterator<T>::value_type current;
 };
 
 int main(int argc, char **argv)
 {
     std::cout << "'any' size = " << sizeof(any) << std::endl;
 
-    Holder h1(d1);
-    h1.run();
-
+    for (auto i = index_iterator1<int>(0, 10); i != index_iterator1<int>(10, 10); ++i) {
+        std::cout << *i << std::endl;
+    }
+ 
     // const
     any a;
     any b = nullptr;
