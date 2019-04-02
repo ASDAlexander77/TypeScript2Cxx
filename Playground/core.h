@@ -345,7 +345,7 @@ struct any
         _value.real = value;
     }
 
-    any(char value)
+    any(const char value)
     {
         _type = anyTypeId::string;
         _value.string = new std::string({value});
@@ -533,6 +533,10 @@ struct any
                 return (*(_value.array))[index];
             case anyTypeId::object:
                 return (*(_value.object))[std::to_string(index)];
+            case anyTypeId::const_string:
+                return any(_value.const_string[index]);
+            case anyTypeId::string:
+                return any(_value.string->operator[](index));                
             }
         }
         catch (const std::out_of_range &)
@@ -575,6 +579,10 @@ struct any
                     return (_value.array)->at(index);
                 case anyTypeId::object:
                     return (_value.object)->at(std::to_string(index));
+                case anyTypeId::const_string:
+                    return any(_value.const_string[index]);
+                case anyTypeId::string:
+                    return any(_value.string->operator[](index));
                 }
             }
             catch (const std::out_of_range &)
