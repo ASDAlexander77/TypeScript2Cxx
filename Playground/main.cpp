@@ -22,23 +22,32 @@ auto functionTest2() -> std::function<void(void)>
 }
 
 struct Base {
-    virtual void test() {
-        std::cout << "Base." << std::endl;
-    }
+    virtual void test() = 0;
 };
 
 struct Derived : Base {
-    virtual void test() {
+    virtual void test() override {
         std::cout << "Derived." << std::endl;
     }
+};
+
+class Holder {
+public:
+    Holder(Base& b) : _b(b) {}
+    
+    void run() {
+        _b.test();
+    }
+
+    Base& _b;
 };
 
 int main(int argc, char **argv)
 {
     std::cout << "'any' size = " << sizeof(any) << std::endl;
 
-    Derived d1;
-    d1.test();
+    Holder h1(d1);
+    h1.run();
 
     // const
     any a;
