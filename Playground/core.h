@@ -108,8 +108,8 @@ class index_iterator
         {
             switch (_iteratorType)
             {
-                _index = _arrayIteratorBegin;
-            }            
+                _index = *_arrayIteratorBegin;
+            }
         }
     }        
 
@@ -124,6 +124,10 @@ class index_iterator
         {
             case anyIteratorTypeId::iterator_array:
                 ++_arrayIteratorBegin;
+                if (_arrayIteratorBegin != _arrayIteratorEnd) 
+                {
+                    _index = *_arrayIteratorBegin;
+                }                
                 break;
             case anyIteratorTypeId::iterator_object_key:
             case anyIteratorTypeId::iterator_object:
@@ -209,6 +213,48 @@ struct any
 
             if (_arr) { 
                 return index_iterator<any>((int)_arr->size());
+            }
+
+            return index_iterator<any>(0);
+        }    
+
+        arrayType *_arr;
+        objectType *_obj;
+    };    
+
+    struct values_iterator
+    {
+        values_iterator(arrayType *arr) 
+            : _arr(arr), _obj(nullptr)
+        {            
+        }
+
+        values_iterator(objectType *obj) 
+            : _arr(nullptr), _obj(obj)
+        {            
+        }
+
+        index_iterator<any> begin()
+        {
+            if (_arr) { 
+                return index_iterator<any>(_arr->begin(), _arr->end());
+            }
+
+            if (_obj) { 
+                return index_iterator<any>(anyIteratorTypeId::iterator_object, _obj->begin(), _obj->end());
+            }
+
+            return index_iterator<any>(0);
+        }
+
+        index_iterator<any> end()
+        {
+            if (_arr) { 
+                return index_iterator<any>(_arr->end(), _arr->end());
+            }
+
+            if (_obj) { 
+                return index_iterator<any>(anyIteratorTypeId::iterator_object, _obj->end(), _obj->end());
             }
 
             return index_iterator<any>(0);
@@ -714,41 +760,31 @@ struct any
         throw "can't iterate";
     }
 
-    std::vector<js::any>::iterator begin()
+    index_iterator<any> begin()
     {
         if (_type == anyTypeId::array)
         {
-            return _value.array->begin();
+            return values_iterator(_value.array).begin();
+        }
+
+        if (_type == anyTypeId::object)
+        {
+            return values_iterator(_value.object).begin();
         }
 
         throw "not an array or anobject";
     }
 
-    std::vector<js::any>::const_iterator cbegin() const
+    index_iterator<any> end()
     {
         if (_type == anyTypeId::array)
         {
-            return _value.array->cbegin();
+            return values_iterator(_value.array).end();
         }
 
-        throw "not an array or anobject";
-    }
-
-    std::vector<js::any>::iterator end()
-    {
-        if (_type == anyTypeId::array)
+        if (_type == anyTypeId::object)
         {
-            return _value.array->end();
-        }
-
-        throw "not an array or anobject";
-    }
-
-    std::vector<js::any>::const_iterator cend() const
-    {
-        if (_type == anyTypeId::array)
-        {
-            return _value.array->cend();
+            return values_iterator(_value.object).end();
         }
 
         throw "not an array or anobject";
