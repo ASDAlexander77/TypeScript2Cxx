@@ -34,6 +34,8 @@ inline any __and(any left, any right) {
 #define __OR(x, y) ((bool)x ? x : y)
 #define __AND(x, y) ((bool)x ? y : x)
 
+typedef any (*func1)(any, ...);
+
 int main(int argc, char **argv)
 {
     std::function<any(any, any, any)> main1 = [] (any _this, auto ...args) ->any {
@@ -41,6 +43,12 @@ int main(int argc, char **argv)
     };
 
     auto r = main1(any(1), any(2), any(3));
+
+    func1 mx = [] (any _this, ...) ->any {
+        return any();
+    };
+
+    mx(any(1), any(2), any(3));
 
     any op1,
         op2,

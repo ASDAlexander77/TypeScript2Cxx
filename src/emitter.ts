@@ -593,7 +593,7 @@ export class Emitter {
             || node.kind === ts.SyntaxKind.ArrowFunction;
         if (isLambdaFunction) {
             // lambda
-            this.writer.writeString('(functionType)[]');
+            this.writer.writeString('(functionType) [] ');
         } else {
             // named function
             this.writer.writeString('auto ');
