@@ -17,8 +17,8 @@ namespace js
 
 struct any;
 
-typedef any (*functionPtr)(any, ...);
-typedef std::function<any(any)> functionType;
+typedef any (*functionPtr)(...);
+typedef std::function<any(void)> functionType;
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
@@ -375,10 +375,24 @@ struct any
     any(functionPtr value)
     {
         _type = anyTypeId::function;
-        _value.function = (functionPtr)value;
+        _value.function = value;
     }
 
     any(functionType func)
+    {
+        _type = anyTypeId::closure;
+        _value.closure = new functionType(func);
+    }    
+
+    template <class R, class... Args>
+    any(R (*value)(Args &&...))
+    {
+        _type = anyTypeId::function;
+        _value.function = (functionPtr)value;
+    }
+
+    template <class R, class... Args>
+    any(std::function<R(Args &&...)> func)
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
@@ -396,6 +410,10 @@ struct any
         }
 
         _value.array = new arrayType(vals);
+    }
+
+    any(const std::initializer_list<any> &values) : any(anyTypeId::array, values)
+    {
     }
 
     any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values)
@@ -427,6 +445,10 @@ struct any
         }
 
         _value.object = new objectType(obj);
+    }
+
+    any(const std::initializer_list<std::tuple<any, any>> &values) : any(anyTypeId::object, values)
+    {
     }
 
     any(anyTypeId initType)
@@ -625,7 +647,8 @@ struct any
             return _value.function(*this);
 
         case anyTypeId::closure:
-            return (*(_value.closure))(*this);
+            //return (*(_value.closure))(*this);
+            return (*(_value.closure))();
 
         default:
             break;

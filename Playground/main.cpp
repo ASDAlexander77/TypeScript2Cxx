@@ -5,7 +5,7 @@ using namespace js;
 
 void functionTest() { std::cout << "Hello - functionTest" << std::endl; }
 
-auto functionTest2() -> std::function<void(void)>
+auto functionTest2() -> std::function<any(void)>
 {
     std::cout << "Hello - functionTest2" << std::endl;
 
@@ -17,6 +17,8 @@ auto functionTest2() -> std::function<void(void)>
 
         std::cout << "Hello - functionTest2 - lambda" << std::endl;
         std::cout << b << std::endl;
+
+        return any();
     };
     return r;
 }
@@ -85,7 +87,7 @@ int main(int argc, char **argv)
     for (auto &item : l)
     {
         std::cout << "for l[" << index << "] = " << item << std::endl;
-        index = index + 1;
+        index = index + any(1);
     }
 
     any m = {std::make_tuple("field 1", 1), std::make_tuple("field 2", 2),
