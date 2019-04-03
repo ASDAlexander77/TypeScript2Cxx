@@ -1149,6 +1149,62 @@ struct any
         throw "not implemented";
     }
 
+    friend bool operator!=(const any& lhs, const any& rhs)
+    {
+        if (lhs._type == rhs._type) 
+        {
+            return false;
+        }
+
+        switch (lhs._type)
+        {
+        case anyTypeId::integer:
+            return lhs._value.integer != rhs._value.integer;
+        case anyTypeId::integer64:
+            return lhs._value.integer64 != rhs._value.integer64;
+        case anyTypeId::real:
+            return lhs._value.real != rhs._value.real;
+
+        case anyTypeId::const_string:
+            return std::strcmp(lhs._value.const_string, rhs._value.const_string) != 0;
+        case anyTypeId::string:
+            return *(lhs._value.string) != *(rhs._value.string);            
+        }        
+
+        throw "not implemented";
+    }
+
+    bool operator!=(const any& other)
+    {
+        return *this != other;
+    }    
+
+    template <class T, class = std::enable_if<std::is_integral_v<T>>>
+    auto operator!=(T other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer != other;
+
+        case anyTypeId::integer64:
+            return _value.integer64 != other;
+
+        case anyTypeId::real:
+            return _value.real != other;
+
+        case anyTypeId::const_string:
+            return std::stoi(_value.const_string) != other;
+        case anyTypeId::string:
+            return std::stoi(*(_value.string)) != other;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }
+
     template <class T, class = std::enable_if<std::is_integral_v<T>>>
     any operator-(T other)
     {

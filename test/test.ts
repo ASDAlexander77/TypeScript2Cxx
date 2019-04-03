@@ -1,2 +1,2 @@
-let a = 0, b = 1;
-console.log(a += b);
+let a;
+console.log((a = a || { name: "test" }).name;

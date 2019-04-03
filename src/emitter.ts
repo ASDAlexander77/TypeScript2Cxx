@@ -826,8 +826,9 @@ export class Emitter {
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         let next = false;
 
+        this.writer.writeString('any(');
         if (node.properties.length === 0) {
-            this.writer.writeString('any(anyTypeId::object)');
+            this.writer.writeString('anyTypeId::object');
         } else {
             this.writer.BeginBlock();
             node.properties.forEach(element => {
@@ -854,13 +855,16 @@ export class Emitter {
 
             this.writer.EndBlock(true);
         }
+
+        this.writer.writeString(')');
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
+        this.writer.writeString('any(');
         if (node.elements.length === 0) {
-            this.writer.writeString('any(anyTypeId::array)');
+            this.writer.writeString('anyTypeId::array');
         } else {
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
@@ -874,6 +878,8 @@ export class Emitter {
 
             this.writer.EndBlockNoIntent();
         }
+
+        this.writer.writeString(')');
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
@@ -906,9 +912,9 @@ export class Emitter {
     private processConditionalExpression(node: ts.ConditionalExpression): void {
         this.writer.writeString('(');
         this.processExpression(node.condition);
-        this.writer.writeString(') ');
+        this.writer.writeString(') ? ');
         this.processExpression(node.whenTrue);
-        this.writer.writeString(' ? ');
+        this.writer.writeString(' : ');
         this.processExpression(node.whenFalse);
     }
 
@@ -1002,8 +1008,9 @@ export class Emitter {
         this.writer.writeString(node.text);
     }
 
-    private isAnyLikeType(typeInfo: ts.Type) {
-        return ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
+    private isAnyLikeType(typeInfo: ts.Type): boolean {
+        const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
+        return isAnonymousObject || (<any>typeInfo).intrinsicName === 'any';
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
