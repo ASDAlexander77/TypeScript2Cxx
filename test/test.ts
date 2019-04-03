@@ -1,5 +1,2 @@
-let a = 10;
-do {
-    a = a - 1;
-    console.log(a);
-} while (a > 0);
+var s = "ABC";
+console.log(s[1]);
