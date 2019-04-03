@@ -113,28 +113,6 @@ export class Emitter {
         // TODO: ...
     }
 
-    private processFunction(
-        location: ts.Node,
-        statements: ts.NodeArray<ts.Statement>,
-        parameters: ts.NodeArray<ts.ParameterDeclaration>): void {
-
-        this.scope.push(location);
-
-        this.processFunctionWithinContext(location, statements, parameters);
-
-        this.scope.pop();
-    }
-
-    private processFunctionWithinContext(
-        location: ts.Node,
-        statements: ts.NodeArray<ts.Statement>,
-        parameters: ts.NodeArray<ts.ParameterDeclaration>) {
-
-        statements.forEach(s => {
-            this.processStatement(s);
-        });
-    }
-
     private isDeclarationStatement(f: ts.Statement): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
@@ -626,7 +604,7 @@ export class Emitter {
         let next = false;
         node.parameters.forEach(element => {
             if (next) {
-                this.writer.writeStringNewLine(',');
+                this.writer.writeString(', ');
             }
 
             this.writer.writeString('any ');
@@ -636,10 +614,19 @@ export class Emitter {
                 throw new Error('Not implemented');
             }
 
+            if (element.questionToken) {
+                this.writer.writeString(' = any()');
+            }
+
+            if (element.initializer) {
+                this.writer.writeString(' = ');
+                this.processExpression(element.initializer);
+            }
+
             next = true;
         });
 
-        this.writer.writeString(')');
+        this.writer.writeStringNewLine(')');
         this.processStatement(node.body);
 
         // formatting

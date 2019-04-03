@@ -17,8 +17,8 @@ namespace js
 
 struct any;
 
-typedef void (*functionPtr)(void);
-typedef std::function<void(void)> functionType;
+typedef any (*functionPtr)(void);
+typedef std::function<any(void)> functionType;
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
@@ -624,12 +624,10 @@ struct any
         switch (_type)
         {
         case anyTypeId::function:
-            _value.function();
-            return any();
+            return _value.function();
 
         case anyTypeId::closure:
-            (*(_value.closure))();
-            return any();
+            return (*(_value.closure))();
 
         default:
             break;
