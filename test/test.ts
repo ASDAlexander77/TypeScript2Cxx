@@ -1,6 +1,2 @@
-let a;
-let b;
-
-a = b || 1;
-
-console.log(a);
+let a = 0, b = 1;
+console.log(a += b);

@@ -567,7 +567,7 @@ export class Emitter {
         }
 
         const skipInit = (<any>declarationList).__skip_initialize;
-        const next = false;
+        const next = { next: false };
         let result = false;
         declarationList.declarations.forEach(
             d => result = this.processVariableDeclarationOne(
@@ -577,9 +577,9 @@ export class Emitter {
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next: boolean, skipInit?: boolean) {
-        if (next) {
-            this.writer.writeStringNewLine(',');
+        name: ts.Identifier, initializer: ts.Expression, next: any, skipInit?: boolean) {
+        if (next.next) {
+            this.writer.writeString(', ');
         }
 
         this.writer.writeString(name.text);
@@ -598,7 +598,7 @@ export class Emitter {
             }
         }
 
-        next = true;
+        next.next = true;
         return true;
     }
 

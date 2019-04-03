@@ -503,8 +503,68 @@ struct any
             return std::stoi(*_value.string);
         }
 
-        return true;
+        throw "cant convert to int";
     }
+
+    operator long()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return 0;
+
+        case anyTypeId::boolean:
+            return (long)_value.boolean;
+
+        case anyTypeId::integer:
+            return _value.integer;
+
+        case anyTypeId::integer64:
+            return (long)_value.integer64;
+
+        case anyTypeId::real:
+            return (long)_value.real;
+
+        case anyTypeId::const_string:
+            return std::stol(_value.const_string);
+
+        case anyTypeId::string:
+            return std::stol(*_value.string);
+        }
+
+        return true;
+    }    
+
+    operator double()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return 0;
+
+        case anyTypeId::boolean:
+            return (double)_value.boolean;
+
+        case anyTypeId::integer:
+            return _value.integer;
+
+        case anyTypeId::integer64:
+            return (double)_value.integer64;
+
+        case anyTypeId::real:
+            return (double)_value.real;
+
+        case anyTypeId::const_string:
+            return std::stof(_value.const_string);
+
+        case anyTypeId::string:
+            return std::stof(*_value.string);
+        }
+
+        return true;
+    }    
 
     any operator()()
     {
@@ -950,6 +1010,15 @@ struct any
 
         switch (_type)
         {
+        case anyTypeId::integer:
+            return any(_value.integer + (int)const_cast<any&>(other));
+
+        case anyTypeId::integer64:
+            return any(_value.integer64 + (long)const_cast<any&>(other));
+
+        case anyTypeId::real:
+            return any(_value.real + (double)const_cast<any&>(other));
+
         case anyTypeId::const_string:
         case anyTypeId::string:
         {
