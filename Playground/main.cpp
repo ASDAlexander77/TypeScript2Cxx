@@ -21,75 +21,29 @@ auto functionTest2() -> std::function<void(void)>
     return r;
 }
 
-template <class T>
-class base_iterator
-{
-  public:
-    using iterator_category = std::forward_iterator_tag;
+inline any __or(any left, any right) {
+    return ((bool)left) ? left : right;
+}
 
-    using self_type = base_iterator;
-    using value_type = T;
-    using pointer = value_type*;
-    using reference = value_type&;
+inline any __and(any left, any right) {
+    return ((bool)left) ? right : left;
+}
 
-    base_iterator()
-    {
-    }    
-
-    reference operator*() const {
-        return const_cast<base_iterator<T>*>(this)->GetReference();
-    }
-
-    self_type &operator++() {
-        Increment();
-        return *this;
-    };
-
-    virtual bool operator!=(const self_type &_right) const = 0;
-
-    virtual reference GetReference() = 0;
-    virtual void Increment() = 0;
-};
-
-template <class T>
-class index_iterator1 : public base_iterator<T>
-{
-public:    
-    index_iterator1(T idx, T end) : _index(idx), _end(end)
-    {
-        current = _index;
-    }
-
-    virtual base_iterator<T>::reference GetReference() override {
-        return current;
-    }
-
-    virtual void Increment() override {
-        _index++;
-        current = _index;
-    }
-
-    virtual bool operator!=(const base_iterator<T>::self_type &right) const {
-        auto d = dynamic_cast<index_iterator1<T>*>(const_cast<base_iterator<T>*>(&right));
-        if (d) {
-            return d->current != this->current;
-        }
-
-        return false;
-    }
-
-    T _index;
-    T _end;
-    base_iterator<T>::value_type current;
-};
+#define __OR(x, y) ((bool)x ? x : y)
+#define __AND(x, y) ((bool)x ? y : x)
 
 int main(int argc, char **argv)
 {
-    std::cout << "'any' size = " << sizeof(any) << std::endl;
+    any op1,
+        op2,
+        op3;
 
-    for (auto i = index_iterator1<int>(0, 10); i != index_iterator1<int>(10, 10); ++i) {
-        std::cout << *i << std::endl;
-    }
+    op2 = __or( op1, 1 );
+    op3 = __and( op1, 1 );
+    
+    op3 = __AND( op1, op1() );
+
+    std::cout << "'any' size = " << sizeof(any) << std::endl;
  
     // const
     any a;

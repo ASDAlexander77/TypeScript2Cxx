@@ -1,2 +1,6 @@
-var s = "ABC";
-console.log(s[1]);
+let a;
+let b;
+
+a = b || 1;
+
+console.log(a);

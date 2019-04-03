@@ -12,6 +12,9 @@
 namespace js
 {
 
+#define __OR(x, y) ((bool)x ? x : y)
+#define __AND(x, y) ((bool)x ? y : x)
+
 struct any;
 
 typedef void (*functionPtr)(void);
@@ -503,17 +506,17 @@ struct any
         return true;
     }
 
-    void operator()()
+    any operator()()
     {
         switch (_type)
         {
         case anyTypeId::function:
             _value.function();
-            return;
+            return any();
 
         case anyTypeId::closure:
             (*(_value.closure))();
-            return;
+            return any();
 
         default:
             break;
