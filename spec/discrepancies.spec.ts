@@ -17,7 +17,7 @@ describe('Discrepancies', () => {
          console.log(null || 1);                        \
          console.log(0 || 1);                           \
          console.log(1 || 1);                           \
-         '])).to.equals('nil\r\nnil\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'));
+         '])).to.equals('null\r\nnull\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'));
 
     it('0 as "any" is false in || expressions', () => expect(new Run().test([
         'var i:any;                                     \
@@ -32,7 +32,7 @@ describe('Discrepancies', () => {
         i = null; console.log(i || 1);                  \
         i = 0; console.log(i || 1);                     \
         i = 1; console.log(i || 1);                     \
-        '])).to.equals('nil\r\nnil\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'));
+        '])).to.equals('null\r\nnull\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'));
 
     it('0 is false in && expressions', () => expect(new Run().test([
         '                                              \
@@ -48,7 +48,7 @@ describe('Discrepancies', () => {
         console.log(0 && 1);                           \
         console.log(1 && 1);                           \
         console.log(1 && 2);                           \
-        '])).to.equals('nil\r\n0\r\nnil\r\nnil\r\n0\r\n0\r\nnil\r\n0\r\n1\r\n2\r\n'));
+        '])).to.equals('null\r\n0\r\nnull\r\nnull\r\n0\r\n0\r\nnull\r\n0\r\n1\r\n2\r\n'));
 
     it('0 as "any" is false in && expressions', () => expect(new Run().test([
         'var i:any;                                    \
@@ -64,7 +64,7 @@ describe('Discrepancies', () => {
         i = 0; console.log(i && 1);                           \
         i = 1; console.log(i && 1);                           \
         i = 1; console.log(i && 2);                           \
-        '])).to.equals('nil\r\n0\r\nnil\r\nnil\r\n0\r\n0\r\nnil\r\n0\r\n1\r\n2\r\n'));
+        '])).to.equals('null\r\n0\r\nnull\r\nnull\r\n0\r\n0\r\nnull\r\n0\r\n1\r\n2\r\n'));
 
     it('0 is false in !<xxx>', () => expect(new Run().test([
         '                                              \

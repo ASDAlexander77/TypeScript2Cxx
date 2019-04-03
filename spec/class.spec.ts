@@ -644,7 +644,7 @@ describe('Classes', () => {
         new Test(1, 2, 3);                                                  \
     '])));
 
-    it('Class - constructor with Optional Parameters - 2',  () => expect('1\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 2',  () => expect('1\r\nnull\r\nnull\r\n').to.equals(new Run().test([
         'export class Test {                                                \
             constructor(t1?: number, t2?: number, t3?: number) {            \
                 console.log(t1);                                            \
@@ -655,7 +655,7 @@ describe('Classes', () => {
         new Test(1);                                                        \
     '])));
 
-    it('Class - constructor with Optional Parameters - 2(2)',  () => expect('1\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 2(2)',  () => expect('1\r\nnull\r\nnull\r\n').to.equals(new Run().test([
         'export class Test {                                                \
             constructor(t1: number, t2?: number, t3?: number) {             \
                 console.log(t1);                                            \
@@ -666,7 +666,7 @@ describe('Classes', () => {
         new Test(1);                                                        \
     '])));
 
-    it('Class - constructor with Optional Parameters - 2(3)',  () => expect('11\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 2(3)',  () => expect('11\r\nnull\r\nnull\r\n').to.equals(new Run().test([
         'export class Test {                                                \
             constructor(t1: any, t2?: any, t3?: any) {                      \
                 console.log(t1);                                            \
@@ -683,7 +683,7 @@ describe('Classes', () => {
         run(10);                                                            \
     '])));
 
-    it('Class - constructor with Optional Parameters - 3',  () => expect('nil\r\nnil\r\nnil\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 3',  () => expect('null\r\nnull\r\nnull\r\n').to.equals(new Run().test([
         'export class Test {                                                \
             constructor(t1?: any, t2?: any, t3?: any) {                     \
                 console.log(t1);                                            \
