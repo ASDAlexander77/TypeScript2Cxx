@@ -36,6 +36,12 @@ inline any __and(any left, any right) {
 
 int main(int argc, char **argv)
 {
+    std::function<any(any, any, any)> main1 = [] (any _this, auto ...args) ->any {
+        return any();
+    };
+
+    auto r = main1(any(1), any(2), any(3));
+
     any op1,
         op2,
         op3;
