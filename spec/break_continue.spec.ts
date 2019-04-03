@@ -12,7 +12,7 @@ describe('Breaks', () => {
         }                                       \
     '])).to.equals('0\r\n1\r\n'));
 
-    it.skip('Break/continue for for/in', () => expect(new Run().test([
+    it('Break/continue for for/in', () => expect(new Run().test([
         'let a = [10, 20, 30, 40];              \
         for (let i in a) {                      \
             console.log(i);                     \

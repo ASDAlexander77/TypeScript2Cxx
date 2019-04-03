@@ -386,7 +386,7 @@ struct any
         _value.closure = new functionType(func);
     }
 
-    any(const std::initializer_list<any> &values)
+    any(anyTypeId type, const std::initializer_list<any> &values)
     {
         _type = anyTypeId::array;
 
@@ -400,7 +400,7 @@ struct any
         _value.array = new arrayType(vals);
     }
 
-    any(const std::initializer_list<std::tuple<any, any>> &values)
+    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values)
     {
         _type = anyTypeId::object;
 
@@ -935,65 +935,6 @@ struct any
         return *this;
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    any operator+(T other)
-    {
-        switch (_type)
-        {
-        case anyTypeId::integer:
-            return any(_value.integer + other);
-
-        case anyTypeId::integer64:
-            return any(_value.integer64 + other);
-            break;
-
-        case anyTypeId::real:
-            return any(_value.real + other);
-            break;
-
-        case anyTypeId::const_string:
-        case anyTypeId::string:
-        {
-            std::stringstream stream;
-            stream << *this;
-            stream << other;
-            return any(stream.str());
-        }
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }
-
-    any operator+(const char *other)
-    {
-        switch (_type)
-        {
-        case anyTypeId::integer:
-            return any(_value.integer + std::stoi(other));
-
-        case anyTypeId::integer64:
-            return any(_value.integer64 + std::stol(other));
-            break;
-
-        case anyTypeId::const_string:
-        case anyTypeId::string:
-        {
-            std::stringstream stream;
-            stream << *this;
-            stream << other;
-            return any(stream.str());
-        }
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }
-
     any operator+(const any &other)
     {
         switch (other._type)
@@ -1035,30 +976,44 @@ struct any
         throw "not implemented";
     }
 
+    any operator-(any other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return any(_value.integer - (int)other);
+
+        case anyTypeId::integer64:
+            return any(_value.integer64 - (long)other);
+
+        case anyTypeId::real:
+            return any(_value.real - (double)other);
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }
+
     any& operator+=(const any &other)
     {
         (*this) = (*this) + other;
         return *this;
     }    
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    auto operator>(T other)
+    auto operator>(any other)
     {
         switch (_type)
         {
         case anyTypeId::integer:
-            return _value.integer > other;
+            return _value.integer > (int)other;
 
         case anyTypeId::integer64:
-            return _value.integer64 > other;
+            return _value.integer64 > (long)other;
 
         case anyTypeId::real:
-            return _value.real > other;
-
-        case anyTypeId::const_string:
-            return std::stoi(_value.const_string) > other;
-        case anyTypeId::string:
-            return std::stoi(*(_value.string)) > other;
+            return _value.real > (double)other;
 
         default:
             throw "wrong type";
@@ -1067,24 +1022,18 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    auto operator<(T other)
+    auto operator<(any other)
     {
         switch (_type)
         {
         case anyTypeId::integer:
-            return _value.integer < other;
+            return _value.integer < (int)other;
 
         case anyTypeId::integer64:
-            return _value.integer64 < other;
+            return _value.integer64 < (long)other;
 
         case anyTypeId::real:
-            return _value.real < other;
-
-        case anyTypeId::const_string:
-            return std::stoi(_value.const_string) < other;
-        case anyTypeId::string:
-            return std::stoi(*(_value.string)) < other;
+            return _value.real < (double)other;
 
         default:
             throw "wrong type";
@@ -1093,26 +1042,26 @@ struct any
         throw "not implemented";
     }
 
-    friend bool operator==(const any& lhs, const any& rhs)
+    bool operator==(const any& other) const
     {
-        if (lhs._type != rhs._type) 
+        if (_type != other._type) 
         {
             return false;
         }
 
-        switch (lhs._type)
+        switch (_type)
         {
         case anyTypeId::integer:
-            return lhs._value.integer == rhs._value.integer;
+            return _value.integer == other._value.integer;
         case anyTypeId::integer64:
-            return lhs._value.integer64 == rhs._value.integer64;
+            return _value.integer64 == other._value.integer64;
         case anyTypeId::real:
-            return lhs._value.real == rhs._value.real;
+            return _value.real == other._value.real;
 
         case anyTypeId::const_string:
-            return std::strcmp(lhs._value.const_string, rhs._value.const_string) == 0;
+            return std::strcmp(_value.const_string, other._value.const_string) == 0;
         case anyTypeId::string:
-            return *(lhs._value.string) == *(rhs._value.string);            
+            return *(_value.string) == *(other._value.string);            
         }        
 
         throw "not implemented";
@@ -1120,31 +1069,25 @@ struct any
 
     bool operator==(const any& other)
     {
-        return *this == other;
-    }    
+        if (_type != other._type) 
+        {
+            return false;
+        }
 
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    auto operator==(T other)
-    {
         switch (_type)
         {
         case anyTypeId::integer:
-            return _value.integer == other;
-
+            return _value.integer == other._value.integer;
         case anyTypeId::integer64:
-            return _value.integer64 == other;
-
+            return _value.integer64 == other._value.integer64;
         case anyTypeId::real:
-            return _value.real == other;
+            return _value.real == other._value.real;
 
         case anyTypeId::const_string:
-            return std::stoi(_value.const_string) == other;
+            return std::strcmp(_value.const_string, other._value.const_string) == 0;
         case anyTypeId::string:
-            return std::stoi(*(_value.string)) == other;
-
-        default:
-            throw "wrong type";
-        }
+            return *(_value.string) == *(other._value.string);            
+        }        
 
         throw "not implemented";
     }
@@ -1178,53 +1121,6 @@ struct any
     {
         return *this != other;
     }    
-
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    auto operator!=(T other)
-    {
-        switch (_type)
-        {
-        case anyTypeId::integer:
-            return _value.integer != other;
-
-        case anyTypeId::integer64:
-            return _value.integer64 != other;
-
-        case anyTypeId::real:
-            return _value.real != other;
-
-        case anyTypeId::const_string:
-            return std::stoi(_value.const_string) != other;
-        case anyTypeId::string:
-            return std::stoi(*(_value.string)) != other;
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if<std::is_integral_v<T>>>
-    any operator-(T other)
-    {
-        switch (_type)
-        {
-        case anyTypeId::integer:
-            return any(_value.integer - other);
-
-        case anyTypeId::integer64:
-            return any(_value.integer64 - other);
-
-        case anyTypeId::real:
-            return any(_value.real - other);
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }
 
     any &operator++()
     {
@@ -1285,9 +1181,6 @@ struct any
         --(*this);
         return res;
     }
-
-    friend any operator+(int value, const any &rhs);
-    friend any operator+(const char *value, const any &rhs);
 
     friend std::ostream &operator<<(std::ostream &os, const any &other);
 

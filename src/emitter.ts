@@ -796,19 +796,19 @@ export class Emitter {
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
-        this.writer.writeString(node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false');
+        this.writer.writeString(`any(${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'})`);
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.writer.writeString('nullptr');
+        this.writer.writeString('any(nullptr)');
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        this.writer.writeString(node.text);
+        this.writer.writeString(`any(${node.text})`);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.writer.writeString(`"${node.text}"`);
+        this.writer.writeString(`any("${node.text}")`);
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
@@ -826,10 +826,9 @@ export class Emitter {
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         let next = false;
 
-        this.writer.writeString('any(');
-        if (node.properties.length === 0) {
-            this.writer.writeString('anyTypeId::object');
-        } else {
+        this.writer.writeString('any(anyTypeId::object');
+        if (node.properties.length !== 0) {
+            this.writer.writeString(', ');
             this.writer.BeginBlock();
             node.properties.forEach(element => {
                 if (next) {
@@ -862,10 +861,9 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
-        this.writer.writeString('any(');
-        if (node.elements.length === 0) {
-            this.writer.writeString('anyTypeId::array');
-        } else {
+        this.writer.writeString('any(anyTypeId::array');
+        if (node.elements.length !== 0) {
+            this.writer.writeString(', ');
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
                 if (next) {
@@ -873,6 +871,7 @@ export class Emitter {
                 }
 
                 this.processExpression(element);
+
                 next = true;
             });
 

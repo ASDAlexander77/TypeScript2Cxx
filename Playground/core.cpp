@@ -1,42 +1,6 @@
 #include "core.h"
 
 namespace js {
-    any operator+(int value, const any& rhs)
-    {
-        switch (rhs._type)
-        {
-        case anyTypeId::integer:
-            break;
-
-        case anyTypeId::integer64:
-            break;
-
-        case anyTypeId::real:
-            break;
-
-        case anyTypeId::const_string:
-        case anyTypeId::string:
-        {
-            std::stringstream stream;
-            stream << value;
-            stream << rhs;
-            return any(stream.str());
-        }
-
-        default:
-            throw "wrong type";
-        }
-
-        throw "not implemented";
-    }    
-
-    any operator+(const char* value, const any& rhs)
-    {
-        std::stringstream stream;
-        stream << value;
-        stream << rhs;
-        return any(stream.str());
-    }    
 
     std::ostream& operator<<(std::ostream& os, const any& other)
     {
