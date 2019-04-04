@@ -18,7 +18,7 @@ namespace js
 struct any;
 
 typedef any (*functionPtr)(...);
-typedef std::function<any(void)> functionType;
+typedef std::function<any(const std::initializer_list<any> &)> functionType;
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
@@ -385,7 +385,7 @@ struct any
     }    
 
     template <class R, class... Args>
-    any(R (*value)(Args &&...))
+    any(R (*value)(Args...))
     {
         _type = anyTypeId::function;
         _value.function = (functionPtr)value;
@@ -639,16 +639,16 @@ struct any
         throw "can't convert to string";
     }
 
-    any operator()()
+    template <class... Args>
+    any operator()(Args... args)
     {
         switch (_type)
         {
         case anyTypeId::function:
-            return _value.function(*this);
+            return _value.function(args...);
 
         case anyTypeId::closure:
-            //return (*(_value.closure))(*this);
-            return (*(_value.closure))();
+            return (*(_value.closure))({args...});
 
         default:
             break;
