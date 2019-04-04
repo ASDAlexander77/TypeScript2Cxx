@@ -38,13 +38,17 @@ typedef any (*func1)(any, ...);
 
 int main(int argc, char **argv)
 {
-    std::function<any(any, any, any)> main1 = [] (any _this, auto ...args) ->any {
+    auto rr1 = 10;
+
+    std::function<any(any, const std::initializer_list<any> &)> main1 = [&] (any _this, const std::initializer_list<any> &params) ->any {
+        std::cout << rr1 << std::endl;
         return any();
     };
 
-    auto r = main1(any(1), any(2), any(3));
+    auto r = main1(any(1), { any(2), any(3) });
 
     func1 mx = [] (any _this, ...) ->any {
+        //std::cout << rr1 << std::endl;
         return any();
     };
 
