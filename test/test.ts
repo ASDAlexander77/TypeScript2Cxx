@@ -1,8 +1,9 @@
-var o = {
-    prop: 37,
-    f: function () {
-        return this.prop;
-    }
-};
+let test = false;
 
-console.log(o.f());
+function inner() {
+    test = true;
+}
+
+inner();
+
+console.log(test);
