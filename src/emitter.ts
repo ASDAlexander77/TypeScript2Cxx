@@ -123,19 +123,6 @@ export class Emitter {
         return false;
     }
 
-    private isGlobalVarDeclaration(f: ts.Statement): boolean {
-        if (f.kind === ts.SyntaxKind.VariableStatement) {
-            const variableStatement = <ts.VariableStatement>f;
-            if (Helpers.isConstOrLet(variableStatement.declarationList)) {
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
     private processFile(sourceFile: ts.SourceFile): void {
         this.sourceFileName = sourceFile.fileName;
 
@@ -147,17 +134,22 @@ export class Emitter {
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
-        sourceFile.statements.filter(f => this.isDeclarationStatement(f) || this.isGlobalVarDeclaration(f)).forEach(s => {
-
-            if (s.kind === ts.SyntaxKind.VariableStatement) {
-                const variableStatement = <ts.VariableStatement>s;
-                const isLocal = Helpers.isConstOrLet(s);
-                if (!isLocal) {
+        sourceFile.statements
+            .filter(f => this.isDeclarationStatement(f) || f.kind === ts.SyntaxKind.VariableStatement)
+            .forEach(s => {
+                if (s.kind === ts.SyntaxKind.VariableStatement) {
+                    const variableStatement = <ts.VariableStatement>s;
                     (<any>(variableStatement.declarationList)).__skip_initialize = true;
                 }
-            }
 
-            this.processStatement(s);
+                this.processStatement(s);
+
+                // clean up
+                if (s.kind === ts.SyntaxKind.VariableStatement) {
+                    const variableStatement = <ts.VariableStatement>s;
+                    delete (<any>(variableStatement.declarationList)).__skip_initialize;
+                    (<any>(variableStatement.declarationList)).__ignore_type = true;
+                }
         });
 
         this.scope.pop();
@@ -539,7 +531,7 @@ export class Emitter {
 
         // write declaration
         const isLocal = Helpers.isConstOrLet(declarationList);
-        const declareType = this.isGlobalScope && !isLocal || !this.isGlobalScope && isLocal;
+        const declareType = this.isGlobalScope || !this.isGlobalScope && isLocal;
         if (!(<any>declarationList).__ignore_type && declareType) {
             this.writer.writeString('any ');
         }
@@ -587,13 +579,50 @@ export class Emitter {
         }
     }
 
+    private hasReturn(location: ts.Node): boolean {
+        let hasReturnResult = false;
+        let root = true;
+        function checkReturn(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                const returnStatement = <ts.ReturnStatement> node;
+                if (returnStatement.expression) {
+                    hasReturnResult = true;
+                    return true;
+                }
+            }
+
+            if (!hasReturnResult) {
+                ts.forEachChild(node, checkReturn);
+            }
+        }
+
+        ts.forEachChild(location, checkReturn);
+        return hasReturnResult;
+    }
+
     private processFunctionExpression(node: ts.FunctionExpression): void {
 
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
             || node.kind === ts.SyntaxKind.ArrowFunction;
         if (isLambdaFunction) {
             // lambda
-            this.writer.writeString('(functionType) [] ');
+            const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
+            const noParams = node.parameters.length === 0 ? 'NoParams' : '';
+            this.writer.writeString(`(functionType${noReturn}${noParams}) [] `);
         } else {
             // named function
             this.writer.writeString('auto ');

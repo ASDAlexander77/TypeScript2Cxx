@@ -17,8 +17,18 @@ namespace js
 
 struct any;
 
+typedef void (*functionPtrNoReturnNoParams)(void);
+typedef std::function<void()> functionTypeNoReturnNoParams;
+
+typedef void (*functionPtrNoReturn)(...);
+typedef std::function<void(const std::initializer_list<any> &)> functionTypeNoReturn;
+
+typedef any (*functionPtrNoParams)();
+typedef std::function<any()> functionTypeNoParams;
+
 typedef any (*functionPtr)(...);
 typedef std::function<any(const std::initializer_list<any> &)> functionType;
+
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
@@ -31,11 +41,17 @@ enum anyTypeId
     integer64,
     real,
     const_string,
-    function,
-    closure,
+    string,
     array,
     object,
-    string,
+    function,
+    functionNoReturn,
+    functionNoParams,
+    functionNoReturnNoParams,
+    closure,
+    closureNoReturn,
+    closureNoParams,
+    closureNoReturnNoParams
 };
 
 union anyType {
@@ -44,12 +60,17 @@ union anyType {
     long integer64; // i think we can use pointer to data to reduce size of anyType
     double real;    // i think we can use pointer to data to reduce size of anyType
     const char *const_string;
-    functionPtr function;
-
-    functionType *closure;
-    objectType *object;
-    arrayType *array;
     std::string *string;
+    arrayType *array;
+    objectType *object;
+    functionPtr function;
+    functionPtrNoReturn functionNoReturn;
+    functionPtrNoParams functionNoParams;
+    functionPtrNoReturnNoParams functionNoReturnNoParams;
+    functionType *closure;
+    functionTypeNoReturn *closureNoReturn;
+    functionTypeNoParams *closureNoParams;
+    functionTypeNoReturnNoParams *closureNoReturnNoParams;
 };
 
 enum anyIteratorTypeId
@@ -378,11 +399,47 @@ struct any
         _value.function = value;
     }
 
+    any(functionPtrNoReturn value)
+    {
+        _type = anyTypeId::functionNoReturn;
+        _value.functionNoReturn = value;
+    }
+
+    any(functionPtrNoParams value)
+    {
+        _type = anyTypeId::functionNoParams;
+        _value.functionNoParams = value;
+    }    
+
+    any(functionPtrNoReturnNoParams value)
+    {
+        _type = anyTypeId::functionNoReturnNoParams;
+        _value.functionNoReturnNoParams = value;
+    }    
+
     any(functionType func)
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
     }    
+
+    any(functionTypeNoReturn func)
+    {
+        _type = anyTypeId::closureNoReturn;
+        _value.closureNoReturn = new functionTypeNoReturn(func);
+    }          
+
+    any(functionTypeNoParams func)
+    {
+        _type = anyTypeId::closureNoParams;
+        _value.closureNoParams = new functionTypeNoParams(func);
+    }          
+
+    any(functionTypeNoReturnNoParams func)
+    {
+        _type = anyTypeId::closureNoReturnNoParams;
+        _value.closureNoReturnNoParams = new functionTypeNoReturnNoParams(func);
+    }      
 
     template <class R, class... Args>
     any(R (*value)(Args...))
@@ -391,11 +448,39 @@ struct any
         _value.function = (functionPtr)value;
     }
 
+    template <class... Args>
+    any(void (*value)(Args...))
+    {
+        _type = anyTypeId::functionNoReturn;
+        _value.functionNoReturn = (functionPtrNoReturn)value;
+    }    
+
+    template <class R>
+    any(R (*value)())
+    {
+        _type = anyTypeId::functionNoParams;
+        _value.functionNoParams = (functionPtrNoParams)value;
+    }    
+
     template <class R, class... Args>
     any(std::function<R(Args &&...)> func)
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
+    }    
+
+    template <class... Args>
+    any(std::function<void(Args &&...)> func)
+    {
+        _type = anyTypeId::closureNoReturn;
+        _value.closureNoReturn = new functionTypeNoReturn(func);
+    }    
+
+    template <class R>
+    any(std::function<R(void)> func)
+    {
+        _type = anyTypeId::closureNoParams;
+        _value.closureNoParams = new functionTypeNoParams(func);
     }    
 
     any(anyTypeId type, const std::initializer_list<any> &values)
@@ -647,8 +732,30 @@ struct any
         case anyTypeId::function:
             return _value.function(args...);
 
+        case anyTypeId::functionNoReturn:
+            _value.functionNoReturn(args...);
+            return any();
+
+        case anyTypeId::functionNoParams:
+            return _value.functionNoParams();
+
+        case anyTypeId::functionNoReturnNoParams:
+            _value.functionNoReturnNoParams();
+            return any();
+
         case anyTypeId::closure:
             return (*(_value.closure))({args...});
+
+        case anyTypeId::closureNoReturn:
+            (*(_value.closureNoReturn))({args...});
+            return any();
+
+        case anyTypeId::closureNoParams:
+            return (*(_value.closureNoParams))();
+
+        case anyTypeId::closureNoReturnNoParams:
+            (*(_value.closureNoReturnNoParams))();
+            return any();
 
         default:
             break;

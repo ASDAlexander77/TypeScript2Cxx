@@ -1,9 +1,7 @@
-let test = false;
+const attached = {
+    type: function () { console.log("works"); }
+};
 
-function inner() {
-    test = true;
+for (var cam in attached) {
+    attached[cam]();
 }
-
-inner();
-
-console.log(test);
