@@ -34,9 +34,9 @@ describe('Functions', () => {
             createCardPicker: function() {                                      \
                 return function() {                                             \
                     return {suit: "spades"};                                    \
-                }                                                               \
+                };                                                              \
             }                                                                   \
-        }                                                                       \
+        };                                                                      \
                                                                                 \
         let cardPicker = deck.createCardPicker();                               \
         let pickedCard = cardPicker();                                          \

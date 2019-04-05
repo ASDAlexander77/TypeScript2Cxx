@@ -1223,33 +1223,8 @@ struct any
 
     friend bool operator!=(const any& lhs, const any& rhs)
     {
-        if (lhs._type == rhs._type) 
-        {
-            return false;
-        }
-
-        switch (lhs._type)
-        {
-        case anyTypeId::integer:
-            return lhs._value.integer != rhs._value.integer;
-        case anyTypeId::integer64:
-            return lhs._value.integer64 != rhs._value.integer64;
-        case anyTypeId::real:
-            return lhs._value.real != rhs._value.real;
-
-        case anyTypeId::const_string:
-            return std::strcmp(lhs._value.const_string, rhs._value.const_string) != 0;
-        case anyTypeId::string:
-            return *(lhs._value.string) != *(rhs._value.string);            
-        }        
-
-        throw "not implemented";
+        return !(lhs == rhs);
     }
-
-    bool operator!=(const any& other)
-    {
-        return *this != other;
-    }    
 
     any &operator++()
     {
@@ -1441,61 +1416,10 @@ static struct Console : any
         //(*this)["log"] = static_cast<std::function<void(void)>>(std::bind(&Console::__log, this));
     }
 
-    void log(any value)
+    void log(const std::initializer_list<any> &params)
     {
-        switch (value._type)
-        {
-        case anyTypeId::undefined:
-            std::cout << "undefined";
-            break;
-
-        case anyTypeId::null:
-            std::cout << "null";
-            break;
-
-        case anyTypeId::boolean:
-            std::cout << (value._value.boolean ? "true" : "false");
-            break;
-
-        case anyTypeId::integer:
-            std::cout << value._value.integer;
-            break;
-
-        case anyTypeId::integer64:
-            std::cout << value._value.integer64;
-            break;
-
-        case anyTypeId::real:
-            std::cout << value._value.real;
-            break;
-
-        case anyTypeId::const_string:
-            std::cout << value._value.const_string;
-            break;
-
-        case anyTypeId::string:
-            std::cout << *value._value.string;
-            break;
-
-        case anyTypeId::function:
-        case anyTypeId::functionNoReturn:
-        case anyTypeId::functionNoParams:
-        case anyTypeId::functionNoReturnNoParams:
-            std::cout << "[function]";
-            break;
-
-        case anyTypeId::closure:
-        case anyTypeId::closureNoReturn:
-        case anyTypeId::closureNoParams:
-        case anyTypeId::closureNoReturnNoParams:
-            std::cout << "[closure]";
-            break;
-
-        default:
-            std::cout << "<error>";
-        }
-
-        std::cout << std::endl;
+        any value = *params.begin();
+        std::cout << value << std::endl;
     }
 
     /*

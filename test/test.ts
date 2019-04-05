@@ -1,15 +1,12 @@
-function padLeft(value: string, padding: number)
-function padLeft(value: string, padding: string)
-function padLeft(value: string, padding: any) {
-    if (typeof padding == "number") {
-        return String(padding) + value;
+let deck = {
+    createCardPicker: function () {
+        return function () {
+            return { suit: 'spades' };
+        };
     }
+};
 
-    if (typeof padding == "string") {
-        return padding + value;
-    }
+let cardPicker = deck.createCardPicker();
+let pickedCard = cardPicker();
 
-    return null;
-}
-
-console.log(padLeft("Hello world", 4));
+console.log(pickedCard.suit);
