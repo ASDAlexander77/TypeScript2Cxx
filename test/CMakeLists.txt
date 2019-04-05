@@ -29,10 +29,6 @@ file(GLOB test_SRC
     "*.cpp"
 )
 
-set(core_SRC
-    "../Playground/core.cpp"
-)
-
 include_directories("./")
 include_directories("../Playground")
 link_directories("./")
@@ -46,15 +42,15 @@ endif()
 if (MSVC)
     SET(BUILD_ARCH "win32")
 
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /Zi /EHsc /DDEBUG /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox /EHsc /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /std:c++latest /Od /Zi /EHsc /DDEBUG /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /std:c++latest /Ox /EHsc /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4049 /ignore:4217")
 else()
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb -DDEBUG ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++2a -O0 -ggdb -DDEBUG ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++2a -O2 ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
 endif()
 
-add_executable (${PROJECT_NAME} "${core_SRC}" "${test_SRC}")
+add_executable (${PROJECT_NAME} "${test_SRC}")
 
 if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})

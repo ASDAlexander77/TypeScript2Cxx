@@ -1,9 +1,15 @@
-function sum(x, y, z) {
-    console.log(x);
-    console.log(y);
-    console.log(z);
+function padLeft(value: string, padding: number)
+function padLeft(value: string, padding: string)
+function padLeft(value: string, padding: any) {
+    if (typeof padding == "number") {
+        return String(padding) + value;
+    }
+
+    if (typeof padding == "string") {
+        return padding + value;
+    }
+
+    return null;
 }
 
-const numbers = [1, 2, 3];
-
-sum(...numbers);
+console.log(padLeft("Hello world", 4));

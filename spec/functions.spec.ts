@@ -167,7 +167,7 @@ describe('Functions', () => {
                 return padding + value;                                         \
             }                                                                   \
                                                                                 \
-            throw new Error(`Expected string or number, got \'${padding}\'.`);  \
+            return null;                                                        \
         }                                                                       \
                                                                                 \
         console.log(padLeft("Hello world", 4));                                 \

@@ -431,7 +431,7 @@ export class Emitter {
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        this.writer.writeString('typeof(');
+        this.writer.writeString('TypeOf(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
     }
@@ -615,6 +615,10 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
+        if (!node.body) {
+            // function without body;
+            return;
+        }
 
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
             || node.kind === ts.SyntaxKind.ArrowFunction;
@@ -1010,7 +1014,7 @@ export class Emitter {
     }
 
     private processVoidExpression(node: ts.VoidExpression): void {
-        this.writer.writeString('helper.Void(');
+        this.writer.writeString('Void(');
         this.writer.writeString('(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
