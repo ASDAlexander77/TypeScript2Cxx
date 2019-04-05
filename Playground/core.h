@@ -17,17 +17,19 @@ namespace js
 
     struct any;
 
+    typedef std::initializer_list<any> paramsType;
+
     typedef void (*functionPtrNoReturnNoParams)(void);
     typedef std::function<void()> functionTypeNoReturnNoParams;
 
-    typedef void (*functionPtrNoReturn)(const std::initializer_list<any> &);
-    typedef std::function<void(const std::initializer_list<any> &)> functionTypeNoReturn;
+    typedef void (*functionPtrNoReturn)(const paramsType &);
+    typedef std::function<void(const paramsType &)> functionTypeNoReturn;
 
     typedef any (*functionPtrNoParams)();
     typedef std::function<any()> functionTypeNoParams;
 
-    typedef any (*functionPtr)(const std::initializer_list<any> &);
-    typedef std::function<any(const std::initializer_list<any> &)> functionType;
+    typedef any (*functionPtr)(const paramsType &);
+    typedef std::function<any(const paramsType &)> functionType;
 
     typedef std::unordered_map<std::string, any> objectType;
     typedef std::vector<any> arrayType;
@@ -333,7 +335,7 @@ struct any
     any()
     {
         _type = anyTypeId::undefined;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate(default): " << *this << std::endl;
 #endif
     }
@@ -342,7 +344,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate(const&): " << *this << std::endl;
 #endif
     }
@@ -352,7 +354,7 @@ struct any
         _type = other._type;
         _value = other._value;
         other._type = undefined;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate(move): " << *this << std::endl;
 #endif
     }
@@ -361,7 +363,7 @@ struct any
     {
         _type = anyTypeId::boolean;
         _value.boolean = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -370,7 +372,7 @@ struct any
     {
         _type = anyTypeId::integer;
         _value.integer = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -379,7 +381,7 @@ struct any
     {
         _type = anyTypeId::integer64;
         _value.integer64 = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -388,7 +390,7 @@ struct any
     {
         _type = anyTypeId::real;
         _value.real = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -397,7 +399,7 @@ struct any
     {
         _type = anyTypeId::string;
         _value.string = new std::string({value});
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
@@ -406,7 +408,7 @@ struct any
     {
         _type = anyTypeId::null;
         _value.const_string = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -415,7 +417,7 @@ struct any
     {
         _type = anyTypeId::const_string;
         _value.const_string = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -424,7 +426,7 @@ struct any
     {
         _type = anyTypeId::string;
         _value.string = new std::string(value);
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -433,7 +435,7 @@ struct any
     {
         _type = anyTypeId::function;
         _value.function = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -442,7 +444,7 @@ struct any
     {
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -451,7 +453,7 @@ struct any
     {
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
@@ -460,7 +462,7 @@ struct any
     {
         _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = value;
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
@@ -469,7 +471,7 @@ struct any
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
@@ -478,7 +480,7 @@ struct any
     {
         _type = anyTypeId::closureNoReturn;
         _value.closureNoReturn = new functionTypeNoReturn(func);
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }          
@@ -487,7 +489,7 @@ struct any
     {
         _type = anyTypeId::closureNoParams;
         _value.closureNoParams = new functionTypeNoParams(func);
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }          
@@ -496,14 +498,14 @@ struct any
     {
         _type = anyTypeId::closureNoReturnNoParams;
         _value.closureNoReturnNoParams = new functionTypeNoReturnNoParams(func);
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }      
 
     ~any()
     {
-#if _DEBUG        
+#if __DEBUG        
         std::cout << "~delete: " << *this << std::endl;
 #endif
     }
@@ -550,7 +552,7 @@ struct any
         _value.closureNoParams = new functionTypeNoParams(func);
     }    
 
-    any(std::initializer_list<any>::iterator begin, std::initializer_list<any>::iterator end)
+    any(paramsType::iterator begin, paramsType::iterator end)
     {
         _type = anyTypeId::array;
 
@@ -570,14 +572,14 @@ struct any
         _value.array = new arrayType(vals);
     }
 
-    any(anyTypeId type, const std::initializer_list<any> &values)
+    any(anyTypeId type, const paramsType &values)
     {
         _type = anyTypeId::array;
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
     }
 
-    any(const std::initializer_list<any> &values) : any(anyTypeId::array, values)
+    any(const paramsType &values) : any(anyTypeId::array, values)
     {
     }
 
@@ -804,9 +806,9 @@ struct any
         throw "can't convert to string";
     }
 
-    constexpr operator std::initializer_list<any>() 
+    constexpr operator paramsType() 
     {
-        return std::initializer_list<any>( &_value.array->front(), (&_value.array->back() + 1) );
+        return paramsType( &_value.array->front(), (&_value.array->back() + 1) );
     }
 
     template <class... Args>
@@ -1480,7 +1482,7 @@ static struct Console : any
         //(*this)["log"] = static_cast<std::function<void(void)>>(std::bind(&Console::__log, this));
     }
 
-    void log(const std::initializer_list<any> &params)
+    void log(const paramsType &params)
     {
         any value = *params.begin();
         std::cout << value << std::endl;

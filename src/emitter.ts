@@ -632,7 +632,7 @@ export class Emitter {
             this.processExpression(node.name);
         }
 
-        this.writer.writeStringNewLine(noRarams ? '()' : '(const std::initializer_list<any> &params)');
+        this.writer.writeStringNewLine(noRarams ? '()' : '(const paramsType &params)');
 
         this.writer.BeginBlock();
 
@@ -996,7 +996,14 @@ export class Emitter {
         this.writer.writeString('(');
 
         if (node.arguments.length) {
-            this.writer.writeString(' { ');
+
+            if (node.arguments.length === 1) {
+                this.writer.writeString(' paramsType');
+            } else {
+                this.writer.writeString(' ');
+            }
+
+            this.writer.writeString('{ ');
             let next = false;
             node.arguments.forEach(element => {
                 if (next) {
@@ -1037,7 +1044,7 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        this.writer.writeString('(std::initializer_list<any>) ');
+        this.writer.writeString('(paramsType) ');
         this.processExpression(node.expression);
     }
 

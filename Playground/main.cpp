@@ -16,7 +16,7 @@ any testCall1(any p0, any p1, any p2, any p3, any p4, any p5, any p6, any p7, an
     return p0 + p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9;
 }
 
-any testCall2(const std::initializer_list<any> &params) {
+any testCall2(const paramsType &params) {
     auto iter = params.begin();
     auto end = params.end();
     any p0 = end != iter ? *iter++ : any();
@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     std::cout << "Second run (via initializer_list): " << double( clock () - begin_time2 ) /  CLOCKS_PER_SEC << std::endl;
 
     any outer = 12;
-    std::function<any(const std::initializer_list<any> &)> main1 = [&] (const std::initializer_list<any> &params) -> any {
+    std::function<any(const paramsType &)> main1 = [&] (const paramsType &params) -> any {
         auto iter = params.begin();
         auto end = params.end();
         any p0 = end != iter ? *iter++ : any();
