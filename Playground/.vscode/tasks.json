@@ -10,7 +10,7 @@
             "windows": {
                 "command": ".\\scripts\\build_mingw32_debug.cmd"
             },
-            "group": "build",                
+            "group": "build",
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
@@ -42,7 +42,7 @@
             "group": {
                 "kind": "build",
                 "isDefault": true
-            },           
+            },
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
@@ -62,16 +62,19 @@
             "presentation": {
                 "reveal": "always",
                 "panel": "new"
-            }
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
         },
         {
             "label": "Build (shell) Debug",
             "type": "shell",
             "command": "C:\\WINDOWS\\System32\\bash.exe",
             "args": [
-                "-c", 
+                "-c",
                 "/mnt/d/Developing/Guard/scripts/build_debug.sh"
-            ],            
+            ],
             "group": "build",
             "presentation": {
                 "reveal": "always",
@@ -80,13 +83,13 @@
             "problemMatcher": [
                 "$gcc"
             ]
-        },       
+        },
         {
             "label": "Build (shell) Release",
             "type": "shell",
             "command": "C:\\WINDOWS\\System32\\bash.exe",
             "args": [
-                "-c", 
+                "-c",
                 "/mnt/d/Developing/Guard/scripts/build_release.sh"
             ],
             "group": "build",
