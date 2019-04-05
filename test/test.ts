@@ -1,8 +1,9 @@
-function buildName(firstName: string, ...restOfName: string[]) {
-    console.log(firstName);
-    console.log(restOfName[0]);
-    console.log(restOfName[1]);
-    console.log(restOfName[2]);
+function sum(x, y, z) {
+    console.log(x);
+    console.log(y);
+    console.log(z);
 }
 
-buildName("Joseph", "Samuel", "Lucas", "MacKinzie");
+const numbers = [1, 2, 3];
+
+sum(...numbers);

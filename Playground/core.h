@@ -20,13 +20,13 @@ struct any;
 typedef void (*functionPtrNoReturnNoParams)(void);
 typedef std::function<void()> functionTypeNoReturnNoParams;
 
-typedef void (*functionPtrNoReturn)(...);
+typedef void (*functionPtrNoReturn)(const std::initializer_list<any> &);
 typedef std::function<void(const std::initializer_list<any> &)> functionTypeNoReturn;
 
 typedef any (*functionPtrNoParams)();
 typedef std::function<any()> functionTypeNoParams;
 
-typedef any (*functionPtr)(...);
+typedef any (*functionPtr)(const std::initializer_list<any> &);
 typedef std::function<any(const std::initializer_list<any> &)> functionType;
 
 typedef std::unordered_map<std::string, any> objectType;
@@ -483,17 +483,30 @@ struct any
         _value.closureNoParams = new functionTypeNoParams(func);
     }    
 
-    any(anyTypeId type, const std::initializer_list<any> &values)
+    any(std::initializer_list<any>::iterator begin, std::initializer_list<any>::iterator end)
     {
         _type = anyTypeId::array;
 
-        std::vector<any> vals;
-        vals.reserve(values.size());
-        for (auto &item : values)
-        {
-            vals.push_back(item);
+        // count size;
+        auto count = 0;
+        auto beginCount = begin;
+        for (auto it = beginCount; it != end; it++) {
+            count;
         }
 
+        std::vector<any> vals;
+        vals.reserve(count);
+        for (auto it = begin; it != end; it++) {
+            vals.push_back(*it);
+        }        
+
+        _value.array = new arrayType(vals);
+    }
+
+    any(anyTypeId type, const std::initializer_list<any> &values)
+    {
+        _type = anyTypeId::array;
+        std::vector<any> vals(values);
         _value.array = new arrayType(vals);
     }
 
@@ -724,16 +737,21 @@ struct any
         throw "can't convert to string";
     }
 
+    constexpr operator std::initializer_list<any>() 
+    {
+        return std::initializer_list<any>( &_value.array->front(), (&_value.array->back() + 1) );
+    }
+
     template <class... Args>
     any operator()(Args... args)
     {
         switch (_type)
         {
         case anyTypeId::function:
-            return _value.function(args...);
+            return _value.function( { args... } );
 
         case anyTypeId::functionNoReturn:
-            _value.functionNoReturn(args...);
+            _value.functionNoReturn( { args... } );
             return any();
 
         case anyTypeId::functionNoParams:
@@ -744,10 +762,10 @@ struct any
             return any();
 
         case anyTypeId::closure:
-            return (*(_value.closure))({args...});
+            return (*(_value.closure))( { args... } );
 
         case anyTypeId::closureNoReturn:
-            (*(_value.closureNoReturn))({args...});
+            (*(_value.closureNoReturn))( { args... } );
             return any();
 
         case anyTypeId::closureNoParams:

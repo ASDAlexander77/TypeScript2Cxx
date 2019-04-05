@@ -629,13 +629,19 @@ export class Emitter {
             this.processExpression(node.name);
         }
 
-        this.writer.writeString('(');
-        let next = false;
-        node.parameters.forEach(element => {
-            if (next) {
-                this.writer.writeString(', ');
-            }
+        this.writer.writeStringNewLine('(const std::initializer_list<any> &params)');
 
+        this.writer.BeginBlock();
+
+        // read params
+
+        this.writer.writeStringNewLine('// parameters');
+        this.writer.writeString('auto param = params.begin()');
+        this.writer.EndOfStatement();
+        this.writer.writeString('auto end = params.end()');
+        this.writer.EndOfStatement();
+
+        node.parameters.forEach(element => {
             this.writer.writeString('any ');
             if (element.name.kind === ts.SyntaxKind.Identifier) {
                 this.processExpression(element.name);
@@ -643,20 +649,28 @@ export class Emitter {
                 throw new Error('Not implemented');
             }
 
-            if (element.questionToken) {
-                this.writer.writeString(' = any()');
+            if (element.dotDotDotToken) {
+                this.writer.writeString('(param, end)');
+            } else {
+                this.writer.writeString(' = end != param ? *param++ : ');
+
+                if (element.initializer) {
+                    this.processExpression(element.initializer);
+                } else {
+                    this.writer.writeString('any()');
+                }
             }
 
-            if (element.initializer) {
-                this.writer.writeString(' = ');
-                this.processExpression(element.initializer);
-            }
+            this.writer.EndOfStatement();
 
-            next = true;
         });
 
-        this.writer.writeStringNewLine(')');
-        this.processStatement(node.body);
+        this.writer.writeStringNewLine('// body');
+        node.body.statements.forEach(element => {
+            this.processStatement(element);
+        });
+
+        this.writer.EndBlock();
 
         // formatting
         if (isLambdaFunction) {
@@ -973,7 +987,7 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression): void {
         this.processExpression(node.expression);
-        this.writer.writeString('(');
+        this.writer.writeString('( { ');
 
         let next = false;
         node.arguments.forEach(element => {
@@ -984,7 +998,7 @@ export class Emitter {
             this.processExpression(element);
             next = true;
         });
-        this.writer.writeString(')');
+        this.writer.writeString(' } )');
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
@@ -1011,7 +1025,7 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        this.writer.writeString('...');
+        this.writer.writeString('(std::initializer_list<any>) ');
         this.processExpression(node.expression);
     }
 
