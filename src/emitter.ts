@@ -620,30 +620,32 @@ export class Emitter {
             return;
         }
 
+        const noRarams = node.parameters.length === 0;
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
             || node.kind === ts.SyntaxKind.ArrowFunction;
         if (isLambdaFunction) {
             // lambda
             const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
-            const noParams = node.parameters.length === 0 ? 'NoParams' : '';
-            this.writer.writeString(`(functionType${noReturn}${noParams}) [] `);
+            const noParamsPart = noRarams ? 'NoParams' : '';
+            this.writer.writeString(`(functionType${noReturn}${noParamsPart}) [] `);
         } else {
             // named function
             this.writer.writeString('auto ');
             this.processExpression(node.name);
         }
 
-        this.writer.writeStringNewLine('(const std::initializer_list<any> &params)');
+        this.writer.writeStringNewLine(noRarams ? '()' : '(const std::initializer_list<any> &params)');
 
         this.writer.BeginBlock();
 
         // read params
-
-        this.writer.writeStringNewLine('// parameters');
-        this.writer.writeString('auto param = params.begin()');
-        this.writer.EndOfStatement();
-        this.writer.writeString('auto end = params.end()');
-        this.writer.EndOfStatement();
+        if (!noRarams) {
+            this.writer.writeStringNewLine('// parameters');
+            this.writer.writeString('auto param = params.begin()');
+            this.writer.EndOfStatement();
+            this.writer.writeString('auto end = params.end()');
+            this.writer.EndOfStatement();
+        }
 
         node.parameters.forEach(element => {
             this.writer.writeString('any ');
@@ -991,18 +993,24 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression): void {
         this.processExpression(node.expression);
-        this.writer.writeString('( { ');
+        this.writer.writeString('(');
 
-        let next = false;
-        node.arguments.forEach(element => {
-            if (next) {
-                this.writer.writeString(', ');
-            }
+        if (node.arguments.length) {
+            this.writer.writeString(' { ');
+            let next = false;
+            node.arguments.forEach(element => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
 
-            this.processExpression(element);
-            next = true;
-        });
-        this.writer.writeString(' } )');
+                this.processExpression(element);
+                next = true;
+            });
+
+            this.writer.writeString(' } ');
+        }
+
+        this.writer.writeString(')');
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
