@@ -1,12 +1,10 @@
-let deck = {
-    createCardPicker: function () {
-        return function () {
-            return { suit: 'spades' };
-        };
+function f() {
+    var a = 10;
+    return function g() {
+        var b = a + 1;
+        return b;
     }
-};
+}
 
-let cardPicker = deck.createCardPicker();
-let pickedCard = cardPicker();
-
-console.log(pickedCard.suit);
+var g = f();
+console.log(g());

@@ -333,12 +333,18 @@ struct any
     any()
     {
         _type = anyTypeId::undefined;
+#if _DEBUG        
+        std::cout << "allocate(default): " << *this << std::endl;
+#endif
     }
 
     any(const any &other)
     {
         _type = other._type;
         _value = other._value;
+#if _DEBUG        
+        std::cout << "allocate(const&): " << *this << std::endl;
+#endif
     }
 
     any(any &&other)
@@ -346,103 +352,161 @@ struct any
         _type = other._type;
         _value = other._value;
         other._type = undefined;
+#if _DEBUG        
+        std::cout << "allocate(move): " << *this << std::endl;
+#endif
     }
 
     any(bool value)
     {
         _type = anyTypeId::boolean;
         _value.boolean = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(int value)
     {
         _type = anyTypeId::integer;
         _value.integer = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(long value)
     {
         _type = anyTypeId::integer64;
         _value.integer64 = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(double value)
     {
         _type = anyTypeId::real;
         _value.real = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(const char value)
     {
         _type = anyTypeId::string;
         _value.string = new std::string({value});
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     any(std::nullptr_t value)
     {
         _type = anyTypeId::null;
         _value.const_string = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(const char *value)
     {
         _type = anyTypeId::const_string;
         _value.const_string = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(const std::string &value)
     {
         _type = anyTypeId::string;
         _value.string = new std::string(value);
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(functionPtr value)
     {
         _type = anyTypeId::function;
         _value.function = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(functionPtrNoReturn value)
     {
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     any(functionPtrNoParams value)
     {
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     any(functionPtrNoReturnNoParams value)
     {
         _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = value;
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     any(functionType func)
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     any(functionTypeNoReturn func)
     {
         _type = anyTypeId::closureNoReturn;
         _value.closureNoReturn = new functionTypeNoReturn(func);
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }          
 
     any(functionTypeNoParams func)
     {
         _type = anyTypeId::closureNoParams;
         _value.closureNoParams = new functionTypeNoParams(func);
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }          
 
     any(functionTypeNoReturnNoParams func)
     {
         _type = anyTypeId::closureNoReturnNoParams;
         _value.closureNoReturnNoParams = new functionTypeNoReturnNoParams(func);
+#if _DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }      
+
+    ~any()
+    {
+#if _DEBUG        
+        std::cout << "~delete" << std::endl;
+#endif
+    }
 
     template <class R, class... Args>
     any(R (*value)(Args...))
