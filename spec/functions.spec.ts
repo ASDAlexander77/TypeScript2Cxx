@@ -34,9 +34,9 @@ describe('Functions', () => {
             createCardPicker: function() {                                      \
                 return function() {                                             \
                     return {suit: "spades"};                                    \
-                }                                                               \
+                };                                                              \
             }                                                                   \
-        }                                                                       \
+        };                                                                      \
                                                                                 \
         let cardPicker = deck.createCardPicker();                               \
         let pickedCard = cardPicker();                                          \
@@ -160,14 +160,14 @@ describe('Functions', () => {
          function padLeft(value: string, padding: string)                       \
          function padLeft(value: string, padding: any) {                        \
             if (typeof padding === "number") {                                  \
-                return String(padding) + value;                                 \
+                return padding + value;                                         \
             }                                                                   \
                                                                                 \
             if (typeof padding === "string") {                                  \
                 return padding + value;                                         \
             }                                                                   \
                                                                                 \
-            throw new Error(`Expected string or number, got \'${padding}\'.`);  \
+            return null;                                                        \
         }                                                                       \
                                                                                 \
         console.log(padLeft("Hello world", 4));                                 \

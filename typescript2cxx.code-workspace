@@ -61,7 +61,9 @@
             "xtr1common": "cpp",
             "xutility": "cpp",
             "sstream": "cpp",
-            "cctype": "cpp"
+            "cctype": "cpp",
+            "cstdarg": "cpp",
+            "ctime": "cpp"
         }
     }
 }
