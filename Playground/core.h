@@ -504,7 +504,7 @@ struct any
     ~any()
     {
 #if _DEBUG        
-        std::cout << "~delete" << std::endl;
+        std::cout << "~delete: " << *this << std::endl;
 #endif
     }
 
