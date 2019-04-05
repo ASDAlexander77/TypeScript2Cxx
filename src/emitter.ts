@@ -530,9 +530,7 @@ export class Emitter {
         }
 
         // write declaration
-        const isLocal = Helpers.isConstOrLet(declarationList);
-        const declareType = this.isGlobalScope || !this.isGlobalScope && isLocal;
-        if (!(<any>declarationList).__ignore_type && declareType) {
+        if (!(<any>declarationList).__ignore_type) {
             this.writer.writeString('any ');
         }
 
@@ -699,7 +697,9 @@ export class Emitter {
             return;
         }
 
+        this.scope.push(node);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
+        this.scope.pop();
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
