@@ -1,2 +1,11 @@
-const padStr = (i: number) => (i < 10) ? "0" + i : "" + i;
-console.log("[" + padStr(1) + "]:");
+var a = 1;
+function f() {
+    var b = 2;
+    console.log(a);
+    console.log(b);
+}
+
+f();
+
+console.log(a);
+console.log(b);
