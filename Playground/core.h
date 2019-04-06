@@ -1475,6 +1475,8 @@ static any Void(any value)
     return any();
 }
 
+static any _ROOT(anyTypeId::object);
+
 static struct Console : any
 {
     Console() : any(anyTypeId::object)

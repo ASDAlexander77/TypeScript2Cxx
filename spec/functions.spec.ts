@@ -190,6 +190,6 @@ describe('Functions', () => {
                                                                                 \
         console.log(a);                                                         \
         console.log(b);                                                         \
-    '])).to.equals('1\r\n2\r\n1\r\nnull\r\n'));
+    '])).to.equals('1\r\n2\r\n1\r\nundefined\r\n'));
 
 });

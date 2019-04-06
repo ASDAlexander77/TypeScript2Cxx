@@ -1053,12 +1053,24 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        this.writer.writeString(node.text);
+
+        const typeInfo = this.resolver.getTypeOf(node);
+        if (this.isNotDetected(typeInfo)) {
+            this.writer.writeString(`_ROOT["`);
+            this.writer.writeString(node.text);
+            this.writer.writeString(`"]`);
+        } else {
+            this.writer.writeString(node.text);
+        }
     }
 
     private isAnyLikeType(typeInfo: ts.Type): boolean {
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
         return isAnonymousObject || (<any>typeInfo).intrinsicName === 'any';
+    }
+
+    private isNotDetected(typeInfo: ts.Type): boolean {
+        return (<any>typeInfo).intrinsicName === 'error';
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
