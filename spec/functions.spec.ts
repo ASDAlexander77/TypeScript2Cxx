@@ -155,7 +155,7 @@ describe('Functions', () => {
         sum(...numbers);                                                        \
     '])));
 
-    it('test function - union types', () => expect('4Hello world\r\n').to.equals(new Run().test([
+    it('test function - union types', () => expect(new Run().test([
         'function padLeft(value: string, padding: number)                       \
          function padLeft(value: string, padding: string)                       \
          function padLeft(value: string, padding: any) {                        \
@@ -171,7 +171,7 @@ describe('Functions', () => {
         }                                                                       \
                                                                                 \
         console.log(padLeft("Hello world", 4));                                 \
-    '])));
+    '])).to.equals('4Hello world\r\n'));
 
     it('test function - method call by reference',  () => expect(new Run().test([
         'const padStr = (i: number) => (i < 10) ? "0" + i : "" + i;             \

@@ -613,7 +613,7 @@ export class Emitter {
     }
 
     private processFunctionExpression(node: ts.FunctionExpression): void {
-        if (!node.body) {
+        if (!node.body || (node.body.statements && node.body.statements.length === 0 && (<any>node.body.statements).isMissingList)) {
             // function without body;
             return;
         }
@@ -1054,8 +1054,8 @@ export class Emitter {
 
     private processIndentifier(node: ts.Identifier): void {
 
-        const typeInfo = this.resolver.getTypeOf(node);
-        if (this.isNotDetected(typeInfo)) {
+        const typeInfo = this.resolver.getOrResolveTypeOf(node);
+        if (this.resolver.isNotDetected(typeInfo)) {
             this.writer.writeString(`_ROOT["`);
             this.writer.writeString(node.text);
             this.writer.writeString(`"]`);
@@ -1064,22 +1064,13 @@ export class Emitter {
         }
     }
 
-    private isAnyLikeType(typeInfo: ts.Type): boolean {
-        const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
-        return isAnonymousObject || (<any>typeInfo).intrinsicName === 'any';
-    }
-
-    private isNotDetected(typeInfo: ts.Type): boolean {
-        return (<any>typeInfo).intrinsicName === 'error';
-    }
-
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
 
         const typeInfo = this.resolver.getTypeOf(node.expression);
 
         this.processExpression(node.expression);
 
-        if (this.isAnyLikeType(typeInfo)) {
+        if (this.resolver.isAnyLikeType(typeInfo)) {
             this.writer.writeString('["');
             this.processExpression(node.name);
             this.writer.writeString('"]');
