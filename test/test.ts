@@ -1,8 +1,6 @@
-var o = {
-    prop: 37,
-    f: function () {
-        return this.prop;
-    }
-};
+function f(events: { name: string; handler: any; }[]) {
+    console.log(events[0].name);
+    if (events[1]) console.log("failed");
+}
 
-console.log(o.f());
+f([{ name: "blur", handler: 1 }]);
