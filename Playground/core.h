@@ -331,10 +331,12 @@ struct any
 {
     anyTypeId _type;
     anyType _value;
+    any* _owner;
 
     any()
     {
         _type = anyTypeId::undefined;
+        _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate(default): " << *this << std::endl;
 #endif
@@ -344,6 +346,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;
+        _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate(const&): " << *this << std::endl;
 #endif
@@ -353,6 +356,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;
+        _owner = other._owner;
         other._type = undefined;
 #if __DEBUG        
         std::cout << "allocate(move): " << *this << std::endl;
@@ -363,6 +367,7 @@ struct any
     {
         _type = anyTypeId::boolean;
         _value.boolean = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -372,6 +377,7 @@ struct any
     {
         _type = anyTypeId::integer;
         _value.integer = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -381,6 +387,7 @@ struct any
     {
         _type = anyTypeId::integer64;
         _value.integer64 = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -390,6 +397,7 @@ struct any
     {
         _type = anyTypeId::real;
         _value.real = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -399,6 +407,7 @@ struct any
     {
         _type = anyTypeId::string;
         _value.string = new std::string({value});
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -408,6 +417,7 @@ struct any
     {
         _type = anyTypeId::null;
         _value.const_string = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -417,6 +427,7 @@ struct any
     {
         _type = anyTypeId::const_string;
         _value.const_string = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -426,6 +437,7 @@ struct any
     {
         _type = anyTypeId::string;
         _value.string = new std::string(value);
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -435,6 +447,7 @@ struct any
     {
         _type = anyTypeId::function;
         _value.function = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -444,6 +457,7 @@ struct any
     {
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -453,6 +467,7 @@ struct any
     {
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -462,6 +477,7 @@ struct any
     {
         _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = value;
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -471,6 +487,7 @@ struct any
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -480,6 +497,7 @@ struct any
     {
         _type = anyTypeId::closureNoReturn;
         _value.closureNoReturn = new functionTypeNoReturn(func);
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -489,6 +507,7 @@ struct any
     {
         _type = anyTypeId::closureNoParams;
         _value.closureNoParams = new functionTypeNoParams(func);
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -498,23 +517,21 @@ struct any
     {
         _type = anyTypeId::closureNoReturnNoParams;
         _value.closureNoReturnNoParams = new functionTypeNoReturnNoParams(func);
+         _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }      
-
-    ~any()
-    {
-#if __DEBUG        
-        std::cout << "~delete: " << *this << std::endl;
-#endif
-    }
 
     template <class R, class... Args>
     any(R (*value)(Args...))
     {
         _type = anyTypeId::function;
         _value.function = (functionPtr)value;
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }
 
     template <class... Args>
@@ -522,6 +539,10 @@ struct any
     {
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = (functionPtrNoReturn)value;
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     template <class R>
@@ -529,6 +550,10 @@ struct any
     {
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = (functionPtrNoParams)value;
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     template <class R, class... Args>
@@ -536,6 +561,10 @@ struct any
     {
         _type = anyTypeId::closure;
         _value.closure = new functionType(func);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     template <class... Args>
@@ -543,6 +572,10 @@ struct any
     {
         _type = anyTypeId::closureNoReturn;
         _value.closureNoReturn = new functionTypeNoReturn(func);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     template <class R>
@@ -550,6 +583,10 @@ struct any
     {
         _type = anyTypeId::closureNoParams;
         _value.closureNoParams = new functionTypeNoParams(func);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
     }    
 
     any(paramsType::iterator begin, paramsType::iterator end)
@@ -570,6 +607,10 @@ struct any
         }        
 
         _value.array = new arrayType(vals);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate (params): " << *this << std::endl;
+#endif
     }
 
     any(anyTypeId type, const paramsType &values)
@@ -577,6 +618,10 @@ struct any
         _type = anyTypeId::array;
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate (copy params): " << *this << std::endl;
+#endif
     }
 
     any(const paramsType &values) : any(anyTypeId::array, values)
@@ -612,6 +657,11 @@ struct any
         }
 
         _value.object = new objectType(obj);
+         _owner = nullptr;
+
+#if __DEBUG        
+        std::cout << "allocate object: " << *this << std::endl;
+#endif
     }
 
     any(const std::initializer_list<std::tuple<any, any>> &values) : any(anyTypeId::object, values)
@@ -621,19 +671,32 @@ struct any
     any(anyTypeId initType)
     {
         _type = initType;
-
+         _owner = nullptr;
         switch (_type)
         {
         case anyTypeId::array:
             _value.array = new arrayType();
+#if __DEBUG        
+        std::cout << "allocate array: " << *this << std::endl;
+#endif
             return;
 
         case anyTypeId::object:
             _value.object = new objectType();
+#if __DEBUG        
+        std::cout << "allocate object: " << *this << std::endl;
+#endif
             return;
         }
 
         throw "wrong type";
+    }
+
+    ~any()
+    {
+#if __DEBUG        
+        std::cout << "~delete: " << *this << std::endl;
+#endif
     }
 
     operator bool()

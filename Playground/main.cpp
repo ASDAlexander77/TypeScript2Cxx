@@ -35,6 +35,9 @@ any testCall2(const paramsType &params) {
 
 int main(int argc, char **argv)
 {
+    std::cout << "size of any: " << sizeof(any) << std::endl;
+
+
     any val1 = 1;
 
     const clock_t begin_time0 = clock();

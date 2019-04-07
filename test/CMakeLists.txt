@@ -1,6 +1,3 @@
-set(CMAKE_CONFIGURATION_TYPES Release RelWithDebInfo Debug)
-set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type on single-configuration generators")
-
 project(test CXX)
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 set(PROJECT_VERSION 0.0.0.dev0)
