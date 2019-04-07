@@ -19,17 +19,17 @@ namespace js
 
     typedef std::initializer_list<any> paramsType;
 
-    typedef void (*functionPtrNoReturnNoParams)(void);
-    typedef std::function<void()> functionTypeNoReturnNoParams;
+    typedef void (*functionPtrNoReturnNoParams)(any *_this);
+    typedef std::function<void(any *_this)> functionTypeNoReturnNoParams;
 
-    typedef void (*functionPtrNoReturn)(const paramsType &);
-    typedef std::function<void(const paramsType &)> functionTypeNoReturn;
+    typedef void (*functionPtrNoReturn)(any *_this, const paramsType &);
+    typedef std::function<void(any *_this, const paramsType &)> functionTypeNoReturn;
 
-    typedef any (*functionPtrNoParams)();
-    typedef std::function<any()> functionTypeNoParams;
+    typedef any (*functionPtrNoParams)(any *_this);
+    typedef std::function<any(any *_this)> functionTypeNoParams;
 
-    typedef any (*functionPtr)(const paramsType &);
-    typedef std::function<any(const paramsType &)> functionType;
+    typedef any (*functionPtr)(any *_this, const paramsType &);
+    typedef std::function<any(any *_this, const paramsType &)> functionType;
 
     typedef std::unordered_map<std::string, any> objectType;
     typedef std::vector<any> arrayType;
@@ -346,7 +346,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;
-        _owner = nullptr;
+        _owner = other._owner;
 #if __DEBUG        
         std::cout << "allocate(const&): " << *this << std::endl;
 #endif
@@ -653,7 +653,9 @@ struct any
                 break;
             }
 
-            obj[stringIndex] = std::get<1>(item);
+            auto value = std::get<1>(item);
+            value._owner = this;
+            obj[stringIndex] = value;
         }
 
         _value.object = new objectType(obj);
@@ -880,31 +882,31 @@ struct any
         switch (_type)
         {
         case anyTypeId::function:
-            return _value.function( { args... } );
+            return _value.function( _owner, { args... } );
 
         case anyTypeId::functionNoReturn:
-            _value.functionNoReturn( { args... } );
+            _value.functionNoReturn( _owner, { args... } );
             return any();
 
         case anyTypeId::functionNoParams:
-            return _value.functionNoParams();
+            return _value.functionNoParams( _owner );
 
         case anyTypeId::functionNoReturnNoParams:
-            _value.functionNoReturnNoParams();
+            _value.functionNoReturnNoParams( _owner );
             return any();
 
         case anyTypeId::closure:
-            return (*(_value.closure))( { args... } );
+            return (*(_value.closure))( _owner, { args... } );
 
         case anyTypeId::closureNoReturn:
-            (*(_value.closureNoReturn))( { args... } );
+            (*(_value.closureNoReturn))( _owner, { args... } );
             return any();
 
         case anyTypeId::closureNoParams:
-            return (*(_value.closureNoParams))();
+            return (*(_value.closureNoParams))( _owner );
 
         case anyTypeId::closureNoReturnNoParams:
-            (*(_value.closureNoReturnNoParams))();
+            (*(_value.closureNoReturnNoParams))( _owner );
             return any();
 
         default:
@@ -1190,6 +1192,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;
+        _owner = other._owner;
         return *this;
     }
 

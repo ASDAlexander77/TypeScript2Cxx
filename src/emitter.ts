@@ -632,7 +632,7 @@ export class Emitter {
             this.processExpression(node.name);
         }
 
-        this.writer.writeStringNewLine(noRarams ? '()' : '(const paramsType &params)');
+        this.writer.writeStringNewLine(noRarams ? '(any *_this)' : '(any *_this, const paramsType &params)');
 
         this.writer.BeginBlock();
 
@@ -1021,7 +1021,7 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        this.writer.writeString('this');
+        this.writer.writeString('(*_this)');
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
