@@ -1,11 +1,8 @@
-var a = 1;
-function f() {
-    var b = 2;
-    console.log(a);
-    console.log(b);
-}
+var o = {
+    prop: 37,
+    f: function () {
+        return this.prop;
+    }
+};
 
-f();
-
-console.log(a);
-console.log(b);
+console.log(o.f());
