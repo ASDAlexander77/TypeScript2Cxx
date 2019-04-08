@@ -2071,11 +2071,11 @@ struct any
             break;
 
         case anyTypeId::const_string:
-            h2 = std::hash<const char*>{} (_value.const_string);
+            h2 = std::hash<std::string>{} (_value.const_string);
             break;
 
         case anyTypeId::string:
-            h2 = std::hash<const char*>{} (_value.string->c_str());
+            h2 = std::hash<std::string>{} (*(_value.string));
             break;
 
         case anyTypeId::object:
