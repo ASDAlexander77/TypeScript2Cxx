@@ -2,7 +2,7 @@
 #include <string>
 #include <functional>
 #include <type_traits>
-#include <vector >
+#include <vector>
 #include <tuple>
 #include <unordered_map>
 #include <sstream>
@@ -95,6 +95,11 @@ enum anyIteratorTypeId
     iterator_object,
     iterator_string,
 };
+
+inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
+{
+    return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
+}
 
 template <class T>
 class index_iterator
@@ -355,7 +360,7 @@ struct any
     {
         _type = anyTypeId::undefined;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate(default): " << *this << std::endl;
 #endif
     }
@@ -365,7 +370,7 @@ struct any
         _type = other._type;
         _value = other._value;
         _owner = other._owner;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate(const&): " << *this << std::endl;
 #endif
     }
@@ -376,7 +381,7 @@ struct any
         _value = other._value;
         _owner = other._owner;
         other._type = undefined;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate(move): " << *this << std::endl;
 #endif
     }
@@ -386,7 +391,7 @@ struct any
         _type = anyTypeId::boolean;
         _value.boolean = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -396,7 +401,7 @@ struct any
         _type = anyTypeId::integer;
         _value.integer = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -406,7 +411,7 @@ struct any
         _type = anyTypeId::integer64;
         _value.integer64 = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -416,7 +421,7 @@ struct any
         _type = anyTypeId::real;
         _value.real = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -426,7 +431,7 @@ struct any
         _type = anyTypeId::string;
         _value.string = new std::string({value});
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -436,7 +441,7 @@ struct any
         _type = anyTypeId::null;
         _value.const_string = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -446,7 +451,7 @@ struct any
         _type = anyTypeId::const_string;
         _value.const_string = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -456,7 +461,7 @@ struct any
         _type = anyTypeId::string;
         _value.string = new std::string(value);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -466,7 +471,7 @@ struct any
         _type = anyTypeId::functionPtr;
         _value.functionPtr = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -476,7 +481,7 @@ struct any
         _type = anyTypeId::functionNoReturnPtr;
         _value.functionNoReturnPtr = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -486,7 +491,7 @@ struct any
         _type = anyTypeId::functionNoParamsPtr;
         _value.functionNoParamsPtr = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -496,7 +501,7 @@ struct any
         _type = anyTypeId::functionNoReturnNoParamsPtr;
         _value.functionNoReturnNoParamsPtr = value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -506,7 +511,7 @@ struct any
         _type = anyTypeId::function;
         _value.function = new functionType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -516,7 +521,7 @@ struct any
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = new functionNoReturnType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -526,7 +531,7 @@ struct any
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = new functionNoParamsType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -536,7 +541,7 @@ struct any
         _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -546,7 +551,7 @@ struct any
         _type = anyTypeId::lambda;
         _value.lambda = new lambdaType(lambda);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -556,7 +561,7 @@ struct any
         _type = anyTypeId::functionNoReturn;
         _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -566,7 +571,7 @@ struct any
         _type = anyTypeId::lambdaNoParams;
         _value.lambdaNoParams = new lambdaNoParamsType(lambda);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -576,7 +581,7 @@ struct any
         _type = anyTypeId::lambdaNoReturnNoParams;
         _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -587,7 +592,7 @@ struct any
         _type = anyTypeId::functionPtr;
         _value.functionPtr = (functionPtrType)value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -598,7 +603,7 @@ struct any
         _type = anyTypeId::functionNoReturnPtr;
         _value.functionNoReturnPtr = (functionNoReturnPtrType)value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -609,7 +614,7 @@ struct any
         _type = anyTypeId::functionNoParamsPtr;
         _value.functionNoParamsPtr = (functionNoParamsPtrType)value;
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -620,7 +625,7 @@ struct any
         _type = anyTypeId::lambda;
         _value.lambda = new lambdaType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -631,7 +636,7 @@ struct any
         _type = anyTypeId::lambdaNoReturn;
         _value.lambdaNoReturn = new lambdaNoReturnType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -642,7 +647,7 @@ struct any
         _type = anyTypeId::lambdaNoParams;
         _value.lambdaNoParams = new lambdaNoParamsType(func);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
@@ -668,7 +673,7 @@ struct any
 
         _value.array = new arrayType(vals);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate (params): " << *this << std::endl;
 #endif
     }
@@ -679,7 +684,7 @@ struct any
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
         _owner = nullptr;
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate (copy params): " << *this << std::endl;
 #endif
     }
@@ -721,7 +726,7 @@ struct any
         _value.object = new objectType(obj);
         _owner = nullptr;
 
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "allocate object: " << *this << std::endl;
 #endif
     }
@@ -738,14 +743,14 @@ struct any
         {
         case anyTypeId::array:
             _value.array = new arrayType();
-#if __DEBUG
+#ifdef EXTRA_DEBUG
             std::cout << "allocate array: " << *this << std::endl;
 #endif
             return;
 
         case anyTypeId::object:
             _value.object = new objectType();
-#if __DEBUG
+#ifdef EXTRA_DEBUG
             std::cout << "allocate object: " << *this << std::endl;
 #endif
             return;
@@ -756,7 +761,7 @@ struct any
 
     ~any()
     {
-#if __DEBUG
+#ifdef EXTRA_DEBUG
         std::cout << "~delete: " << *this << std::endl;
 #endif
     }
@@ -2034,6 +2039,77 @@ struct any
         return res;
     }
 
+    int hash(void) const noexcept
+    {
+        size_t const h1 ( std::hash<int>{}((int)_type) );
+        size_t h2;
+
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+            h2 = 0;
+            break;
+
+        case anyTypeId::null:
+            h2 = 0;
+            break;
+
+        case anyTypeId::boolean:
+            h2 = std::hash<bool>{} (_value.boolean);
+            break;
+
+        case anyTypeId::integer:
+            h2 = std::hash<int>{} (_value.integer);
+            break;
+
+        case anyTypeId::integer64:
+            h2 = std::hash<long>{} (_value.integer64);
+            break;
+
+        case anyTypeId::real:
+            h2 = std::hash<double>{} (_value.real);
+            break;
+
+        case anyTypeId::const_string:
+            h2 = std::hash<const char*>{} (_value.const_string);
+            break;
+
+        case anyTypeId::string:
+            h2 = std::hash<const char*>{} (_value.string->c_str());
+            break;
+
+        case anyTypeId::object:
+            h2 = std::hash<void*>{} (_value.object);
+            break;            
+
+        case anyTypeId::functionPtr:
+        case anyTypeId::functionNoReturnPtr:
+        case anyTypeId::functionNoParamsPtr:
+        case anyTypeId::functionNoReturnNoParamsPtr:
+            h2 = std::hash<void*>{} (_value.object);
+            break;
+
+        case anyTypeId::function:
+        case anyTypeId::functionNoReturn:
+        case anyTypeId::functionNoParams:
+        case anyTypeId::functionNoReturnNoParams:
+            h2 = std::hash<void*>{} (_value.object);
+            break;
+
+        case anyTypeId::lambda:
+        case anyTypeId::lambdaNoReturn:
+        case anyTypeId::lambdaNoParams:
+        case anyTypeId::lambdaNoReturnNoParams:
+            h2 = std::hash<void*>{} (_value.object);
+            break;
+
+        default:
+            h2 = 0;
+        }
+
+        return hash_combine(h1, h2);
+    }
+
     any TypeOf()
     {
         switch (_type)
@@ -2124,6 +2200,10 @@ struct any
             os << *other._value.string;
             break;
 
+        case anyTypeId::object:
+            os << "[object]";
+            break;            
+
         case anyTypeId::functionPtr:
         case anyTypeId::functionNoReturnPtr:
         case anyTypeId::functionNoParamsPtr:
@@ -2213,3 +2293,16 @@ static struct Console : any
 } console;
 
 } // namespace js
+
+namespace std
+{
+    template<> struct hash<js::any>
+    {
+        typedef js::any argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& value) const
+        {
+            return value.hash();
+        }
+    };
+}
