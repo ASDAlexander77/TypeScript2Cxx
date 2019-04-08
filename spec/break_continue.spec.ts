@@ -14,7 +14,6 @@ describe('Breaks', () => {
 
     it('Break/continue for for/in', () => expect(new Run().test([
         'let a = [10, 20, 30, 40];              \
-        let count = 0;                          \
         for (let i in a) {                      \
             console.log(i);                     \
             if (i == 0) continue;               \
