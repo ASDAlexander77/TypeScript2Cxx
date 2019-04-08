@@ -1,7 +1,5 @@
-let a = [10, 20, 30, 40];
-let count = 0;
-for (let i in a) {
-    console.log(i);
-    if (count == 0) continue;
-    break;
-}
+let r, x = 6, y = 3;
+r = x < 10 && y > 1;
+console.log(r);
+r = x === 5 || y === 5;
+console.log(r);

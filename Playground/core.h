@@ -13,9 +13,8 @@
 namespace js
 {
 
-#define __OR(x, y) ((bool)x ? x : y)
-#define __AND(x, y) ((bool)x ? y : x)
-#define __POW(x, y) (x.pow(y))
+#define __OR(x, y) ((bool)(x) ? (x) : (y))
+#define __AND(x, y) ((bool)(x) ? (y) : (x))
 
 struct any;
 
@@ -1417,22 +1416,22 @@ struct any
 
         if (_type == anyTypeId::integer64)
         {
-            return any(_value.integer64 / (long)const_cast<any &>(other));
+            return any(_value.integer64 / (double)const_cast<any &>(other));
         }
 
         if (other._type == anyTypeId::integer64)
         {
-            return any(this->operator long() / other._value.integer64);
+            return any(this->operator long() / (double)other._value.integer64);
         }
 
         if (_type == anyTypeId::integer)
         {
-            return any(_value.integer / (int)const_cast<any &>(other));
+            return any(_value.integer / (double)const_cast<any &>(other));
         }
 
         if (other._type == anyTypeId::integer)
         {
-            return any(this->operator int() / other._value.integer);
+            return any(this->operator int() / (double)other._value.integer);
         }
 
         throw "not implemented";
@@ -1684,7 +1683,32 @@ struct any
         throw "not implemented";
     }     
 
-    any Pow(any other)
+    any operator~()
+    {
+        if ((_type == anyTypeId::const_string || _type == anyTypeId::string))
+        {
+            return any(~this->operator long());
+        }
+
+        if (_type == anyTypeId::real)
+        {
+            return any(~this->operator long());
+        }
+
+        if (_type == anyTypeId::integer64)
+        {
+            return any(~_value.integer64);
+        }
+
+        if (_type == anyTypeId::integer)
+        {
+            return any(~_value.integer);
+        }
+
+        throw "not implemented";
+    }     
+
+    any Pow(const any &other)
     {
         if ((_type == anyTypeId::const_string || _type == anyTypeId::string)
             && (other._type == anyTypeId::const_string || other._type == anyTypeId::string))
@@ -1825,6 +1849,36 @@ struct any
     {
         return !(lhs == rhs);
     }
+
+    bool StrictEquals(const any &other) 
+    {
+        if (_type != other._type)
+        {
+            return false;
+        }
+
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer == other._value.integer;
+        case anyTypeId::integer64:
+            return _value.integer64 == other._value.integer64;
+        case anyTypeId::real:
+            return _value.real == other._value.real;
+
+        case anyTypeId::const_string:
+            return std::strcmp(_value.const_string, other._value.const_string) == 0;
+        case anyTypeId::string:
+            return *(_value.string) == *(other._value.string);
+        }
+
+        throw "not implemented";
+    }
+
+    inline bool StrictNotEquals(const any &other) 
+    {
+        return !StrictEquals(other);
+    }    
 
     any &operator++()
     {
@@ -2018,6 +2072,27 @@ template<>
 static any Void(any value)
 {
     return any();
+}
+
+template< class T > static T __POW(T left, T right);
+template<> 
+inline static any __POW(any left, any right)
+{
+    return left.Pow(right);
+}
+
+template< class T > static bool __strictEquals(T left, T right);
+template<> 
+inline static bool __strictEquals(any left, any right)
+{
+    return left.StrictEquals(right);
+}
+
+template< class T > static bool __strictNotEquals(T left, T right);
+template<> 
+inline static bool __strictNotEquals(any left, any right)
+{
+    return left.StrictNotEquals(right);
 }
 
 static any _ROOT(anyTypeId::object);
