@@ -1,3 +1,11 @@
-let c = [1, 2, 3];
-let b = 2 in c;
-console.log(b);
+let a = 1;
+switch (a) {
+    case 1:
+    case 2:
+        console.log("Hello!");
+        break;
+    case 3:
+        break;
+    default:
+        break;
+}

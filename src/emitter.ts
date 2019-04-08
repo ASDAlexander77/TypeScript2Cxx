@@ -819,17 +819,50 @@ export class Emitter {
     }
 
     private processSwitchStatement(node: ts.SwitchStatement) {
-        this.writer.writeString('switch ((int)');
+
+        const switchName = `__switch${node.getFullStart()}_${node.getEnd()}`;
+        const isAllStatic = node.caseBlock.clauses
+            .filter(c => c.kind === ts.SyntaxKind.CaseClause)
+            .every(element => (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.NumericLiteral
+                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.StringLiteral
+                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.TrueKeyword
+                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.FalseKeyword);
+
+        if (isAllStatic) {
+            this.writer.writeString('static ');
+        }
+
+        this.writer.writeString(`std::unordered_map<any, int> ${switchName} = `);
+        this.writer.BeginBlock();
+
+        let caseNumber = 0;
+        node.caseBlock.clauses.filter(c => c.kind === ts.SyntaxKind.CaseClause).forEach(element => {
+            if (caseNumber > 0) {
+                this.writer.writeStringNewLine(',');
+            }
+
+            this.writer.BeginBlockNoIntent();
+            this.processExpression((<ts.CaseClause>element).expression);
+            this.writer.writeString(', ');
+            this.writer.writeString((++caseNumber).toString());
+            this.writer.EndBlockNoIntent();
+        });
+
+        this.writer.EndBlock();
+        this.writer.EndOfStatement();
+
+
+        this.writer.writeString(`switch (${switchName}[`);
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine(')');
+        this.writer.writeStringNewLine('])');
 
         this.writer.BeginBlock();
 
+        caseNumber = 0;
         node.caseBlock.clauses.forEach(element => {
             this.writer.DecreaseIntent();
             if (element.kind === ts.SyntaxKind.CaseClause) {
-                this.writer.writeString('case ');
-                this.processExpression(element.expression);
+                this.writer.writeString(`case ${++caseNumber}`);
             } else {
                 this.writer.writeString('default');
             }
