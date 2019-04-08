@@ -618,13 +618,13 @@ export class Emitter {
             return;
         }
 
-        const noRarams = node.parameters.length === 0;
+        const noParams = node.parameters.length === 0;
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
             || node.kind === ts.SyntaxKind.ArrowFunction;
         const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
         if (isLambdaFunction) {
             // lambda
-            const noParamsPart = noRarams ? 'NoParams' : '';
+            const noParamsPart = noParams ? 'NoParams' : '';
             this.writer.writeString(`(functionType${noReturn}${noParamsPart}) [] `);
         } else {
             // named function
@@ -632,12 +632,12 @@ export class Emitter {
             this.processExpression(node.name);
         }
 
-        this.writer.writeStringNewLine(noRarams ? '(any *_this)' : '(any *_this, const paramsType &params)');
+        this.writer.writeStringNewLine(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
 
         this.writer.BeginBlock();
 
         // read params
-        if (!noRarams) {
+        if (!noParams) {
             this.writer.writeStringNewLine('// parameters');
             this.writer.writeString('auto param = params.begin()');
             this.writer.EndOfStatement();
@@ -684,14 +684,14 @@ export class Emitter {
             // write variant
             this.writer.writeString('inline auto ');
             this.processExpression(node.name);
-            this.writer.writeStringNewLine(noRarams ? '()' : '(const paramsType &params)');
+            this.writer.writeStringNewLine(noParams ? '()' : '(const paramsType &params)');
             this.writer.BeginBlock();
             if (!noReturn) {
                 this.writer.writeString('return ');
             }
 
             this.processExpression(node.name);
-            this.writer.writeString('(nullptr, params)');
+            this.writer.writeString(noParams ? '(nullptr)' : '(nullptr, params)');
             this.writer.EndOfStatement();
 
             this.writer.EndBlock();

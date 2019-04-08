@@ -1,6 +1,11 @@
-function f(events: { name: string; handler: any; }[]) {
-    console.log(events[0].name);
-    if (events[1]) console.log("failed");
+var a = 1;
+function f() {
+    var b = 2;
+    console.log(a);
+    console.log(b);
 }
 
-f([{ name: "blur", handler: 1 }]);
+f();
+
+console.log(a);
+console.log(b);
