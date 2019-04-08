@@ -35,7 +35,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.MinusToken] = '-';
         this.opsMap[ts.SyntaxKind.AsteriskToken] = '*';
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '**';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
         this.opsMap[ts.SyntaxKind.AmpersandToken] = '&';
         this.opsMap[ts.SyntaxKind.BarToken] = '|';
