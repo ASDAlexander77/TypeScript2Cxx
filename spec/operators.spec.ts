@@ -80,7 +80,7 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
-    it.skip('Logical = not on boolean', () => expect('true\r\n').to.equals(new Run().test([
+    it('Logical = not on boolean', () => expect('true\r\n').to.equals(new Run().test([
         'let r;                                     \
         r = ~ false;                                \
         console.log(r);                             \

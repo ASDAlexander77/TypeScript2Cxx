@@ -35,20 +35,20 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.MinusToken] = '-';
         this.opsMap[ts.SyntaxKind.AsteriskToken] = '*';
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__Pow';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
         this.opsMap[ts.SyntaxKind.AmpersandToken] = '&';
         this.opsMap[ts.SyntaxKind.BarToken] = '|';
         this.opsMap[ts.SyntaxKind.CaretToken] = '^';
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '<<';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '>>';
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__shiftRightInt';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
         this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '==';
-        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '__strictEquals';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '__StrictEquals';
         this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
         this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = '<=';
         this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '!=';
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '__strictNotEquals';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '__StrictNotEquals';
         this.opsMap[ts.SyntaxKind.GreaterThanToken] = '>';
         this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';
 
@@ -63,12 +63,13 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.CaretEqualsToken] = '^=';
         this.opsMap[ts.SyntaxKind.LessThanLessThanEqualsToken] = '<<=';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>=';
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__strictNotEqualsAssign';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__StrictNotEqualsAssign';
 
         this.opsMap[ts.SyntaxKind.TildeToken] = '~';
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';
+        this.opsMap[ts.SyntaxKind.InKeyword] = '__In';
 
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';

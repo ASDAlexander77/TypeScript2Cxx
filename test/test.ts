@@ -1,5 +1,3 @@
-let r, x = 6, y = 3;
-r = x < 10 && y > 1;
-console.log(r);
-r = x === 5 || y === 5;
-console.log(r);
+let c = [1, 2, 3];
+let b = 2 in c;
+console.log(b);

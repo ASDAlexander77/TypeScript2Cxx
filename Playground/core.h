@@ -1685,6 +1685,10 @@ struct any
 
     any operator~()
     {
+        if (_type == anyTypeId::boolean) {
+            return !_value.boolean;
+        }
+
         if ((_type == anyTypeId::const_string || _type == anyTypeId::string))
         {
             return any(~this->operator long());
@@ -1768,12 +1772,44 @@ struct any
         case anyTypeId::real:
             return _value.real > (double)other;
 
+        case anyTypeId::const_string:
+            return std::strcmp(_value.const_string, std::string(other).c_str()) > 0;
+
+        case anyTypeId::string:
+            return _value.string->compare((std::string)other) > 0;
+
         default:
             throw "wrong type";
         }
 
         throw "not implemented";
     }
+
+    auto operator>=(any other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer >= (int)other;
+
+        case anyTypeId::integer64:
+            return _value.integer64 <= (long)other;
+
+        case anyTypeId::real:
+            return _value.real <= (double)other;
+
+        case anyTypeId::const_string:
+            return std::strcmp(_value.const_string, std::string(other).c_str()) <= 0;
+
+        case anyTypeId::string:
+            return _value.string->compare(std::string(other)) <= 0;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }    
 
     auto operator<(any other)
     {
@@ -1787,6 +1823,38 @@ struct any
 
         case anyTypeId::real:
             return _value.real < (double)other;
+
+        case anyTypeId::const_string:
+            return std::strcmp(_value.const_string, std::string(other).c_str()) < 0;
+
+        case anyTypeId::string:
+            return _value.string->compare(std::string(other)) < 0;
+
+        default:
+            throw "wrong type";
+        }
+
+        throw "not implemented";
+    }
+
+    auto operator<=(any other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::integer:
+            return _value.integer <= (int)other;
+
+        case anyTypeId::integer64:
+            return _value.integer64 <= (long)other;
+
+        case anyTypeId::real:
+            return _value.real <= (double)other;
+
+        case anyTypeId::const_string:
+            return std::strcmp(_value.const_string, std::string(other).c_str()) <= 0;
+
+        case anyTypeId::string:
+            return _value.string->compare(std::string(other)) <= 0;
 
         default:
             throw "wrong type";
@@ -1878,6 +1946,32 @@ struct any
     inline bool StrictNotEquals(const any &other) 
     {
         return !StrictEquals(other);
+    }    
+
+    bool In(const any &index) 
+    {
+        try
+        {
+            switch (_type)
+            {
+            case anyTypeId::array:
+            {
+                auto& value1 = (*(_value.array))[(size_t)const_cast<any &>(index)];
+                return true;
+            }
+            case anyTypeId::object:
+            {
+                auto& value2 = (*(_value.object))[(std::string)const_cast<any &>(index)];
+                return true;
+            }
+            }
+        }
+        catch (const std::out_of_range &)
+        {
+            return false;
+        }
+
+        throw "not implemented";
     }    
 
     any &operator++()
@@ -2074,25 +2168,32 @@ static any Void(any value)
     return any();
 }
 
-template< class T > static T __POW(T left, T right);
+template< class T > static T __Pow(T left, T right);
 template<> 
-inline static any __POW(any left, any right)
+inline static any __Pow(any left, any right)
 {
     return left.Pow(right);
 }
 
-template< class T > static bool __strictEquals(T left, T right);
+template< class T > static bool __StrictEquals(T left, T right);
 template<> 
-inline static bool __strictEquals(any left, any right)
+inline static bool __StrictEquals(any left, any right)
 {
     return left.StrictEquals(right);
 }
 
-template< class T > static bool __strictNotEquals(T left, T right);
+template< class T > static bool __StrictNotEquals(T left, T right);
 template<> 
-inline static bool __strictNotEquals(any left, any right)
+inline static bool __StrictNotEquals(any left, any right)
 {
     return left.StrictNotEquals(right);
+}
+
+template< class T > static bool __In(T left, T right);
+template<> 
+inline static bool __In(any left, any right)
+{
+    return right.In(left);
 }
 
 static any _ROOT(anyTypeId::object);
