@@ -612,17 +612,21 @@ export class Emitter {
         return hasReturnResult;
     }
 
-    private processFunctionExpression(node: ts.FunctionExpression): void {
-        if (!node.body || (node.body.statements && node.body.statements.length === 0 && (<any>node.body.statements).isMissingList)) {
+    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction): void {
+        if (!node.body
+            || ((<any>node).body.statements
+                && (<any>node).body.statements.length === 0
+                && ((<any>node).body.statements).isMissingList)) {
             // function without body;
             return;
         }
 
         const noParams = node.parameters.length === 0;
-        const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
-            || node.kind === ts.SyntaxKind.ArrowFunction;
+        const isFunctionWithoutName =  node.kind === ts.SyntaxKind.FunctionExpression;
+        const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
+        const writeAsLambdaCFunction = isArrowFunction || isFunctionWithoutName;
         const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
-        if (isLambdaFunction) {
+        if (writeAsLambdaCFunction) {
             // lambda
             const noParamsPart = noParams ? 'NoParams' : '';
             this.writer.writeString(`(functionType${noReturn}${noParamsPart}) [] `);
@@ -670,17 +674,14 @@ export class Emitter {
         });
 
         this.writer.writeStringNewLine('// body');
-        node.body.statements.forEach(element => {
+        (<any>node.body).statements.forEach(element => {
             this.processStatement(element);
         });
 
         this.writer.EndBlock();
-        this.writer.writeStringNewLine('');
 
         // formatting
-        if (isLambdaFunction) {
-            this.writer.cancelNewLine();
-        } else {
+        if (!writeAsLambdaCFunction) {
             // write variant
             this.writer.writeString('inline auto ');
             this.processExpression(node.name);
@@ -695,7 +696,6 @@ export class Emitter {
             this.writer.EndOfStatement();
 
             this.writer.EndBlock();
-            this.writer.writeStringNewLine('');
         }
     }
 

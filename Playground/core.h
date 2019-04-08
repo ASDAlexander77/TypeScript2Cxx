@@ -19,17 +19,20 @@ namespace js
 
     typedef std::initializer_list<any> paramsType;
 
-    typedef void (*functionPtrNoReturnNoParams)(any *_this);
-    typedef std::function<void(any *_this)> functionTypeNoReturnNoParams;
+    typedef void (*functionNoReturnNoParamsPtrType)(any *_this);
+    typedef void (*functionNoReturnPtrType)(any *_this, const paramsType &);
+    typedef any (*functionNoParamsPtrType)(any *_this);
+    typedef any (*functionPtrType)(any *_this, const paramsType &);
 
-    typedef void (*functionPtrNoReturn)(any *_this, const paramsType &);
-    typedef std::function<void(any *_this, const paramsType &)> functionTypeNoReturn;
-
-    typedef any (*functionPtrNoParams)(any *_this);
-    typedef std::function<any(any *_this)> functionTypeNoParams;
-
-    typedef any (*functionPtr)(any *_this, const paramsType &);
+    typedef std::function<void(any *_this)> functionNoReturnNoParamsType;
+    typedef std::function<void(any *_this, const paramsType &)> functionNoReturnType;
+    typedef std::function<any(any *_this)> functionNoParamsType;
     typedef std::function<any(any *_this, const paramsType &)> functionType;
+
+    typedef std::function<void(void)> lambdaNoReturnNoParamsType;
+    typedef std::function<void(const paramsType &)> lambdaNoReturnType;
+    typedef std::function<any(void)> lambdaNoParamsType;
+    typedef std::function<any(const paramsType &)> lambdaType;    
 
     typedef std::unordered_map<std::string, any> objectType;
     typedef std::vector<any> arrayType;
@@ -46,14 +49,18 @@ namespace js
         string,
         array,
         object,
+        functionPtr,
+        functionNoReturnPtr,
+        functionNoParamsPtr,
+        functionNoReturnNoParamsPtr,
         function,
         functionNoReturn,
         functionNoParams,
         functionNoReturnNoParams,
-        closure,
-        closureNoReturn,
-        closureNoParams,
-        closureNoReturnNoParams
+        lambda,
+        lambdaNoReturn,
+        lambdaNoParams,
+        lambdaNoReturnNoParams
     };
 
     union anyType {
@@ -65,14 +72,18 @@ namespace js
         std::string *string;
         arrayType *array;
         objectType *object;
-        functionPtr function;
-        functionPtrNoReturn functionNoReturn;
-        functionPtrNoParams functionNoParams;
-        functionPtrNoReturnNoParams functionNoReturnNoParams;
-        functionType *closure;
-        functionTypeNoReturn *closureNoReturn;
-        functionTypeNoParams *closureNoParams;
-        functionTypeNoReturnNoParams *closureNoReturnNoParams;
+        functionPtrType functionPtr;
+        functionNoReturnPtrType functionNoReturnPtr;
+        functionNoParamsPtrType functionNoParamsPtr;
+        functionNoReturnNoParamsPtrType functionNoReturnNoParamsPtr;
+        functionType *function;
+        functionNoReturnType *functionNoReturn;
+        functionNoParamsType *functionNoParams;
+        functionNoReturnNoParamsType *functionNoReturnNoParams;
+        lambdaType *lambda;
+        lambdaNoReturnType *lambdaNoReturn;
+        lambdaNoParamsType *lambdaNoParams;
+        lambdaNoReturnNoParamsType *lambdaNoReturnNoParams;
     };
 
     enum anyIteratorTypeId
@@ -443,40 +454,40 @@ struct any
 #endif
     }
 
-    any(functionPtr value)
+    any(functionPtrType value)
     {
-        _type = anyTypeId::function;
-        _value.function = value;
+        _type = anyTypeId::functionPtr;
+        _value.functionPtr = value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionPtrNoReturn value)
+    any(functionNoReturnPtrType value)
     {
-        _type = anyTypeId::functionNoReturn;
-        _value.functionNoReturn = value;
+        _type = anyTypeId::functionNoReturnPtr;
+        _value.functionNoReturnPtr = value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionPtrNoParams value)
+    any(functionNoParamsPtrType value)
     {
-        _type = anyTypeId::functionNoParams;
-        _value.functionNoParams = value;
+        _type = anyTypeId::functionNoParamsPtr;
+        _value.functionNoParamsPtr = value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
 
-    any(functionPtrNoReturnNoParams value)
+    any(functionNoReturnNoParamsPtrType value)
     {
-        _type = anyTypeId::functionNoReturnNoParams;
-        _value.functionNoReturnNoParams = value;
+        _type = anyTypeId::functionNoReturnNoParamsPtr;
+        _value.functionNoReturnNoParamsPtr = value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -485,38 +496,78 @@ struct any
 
     any(functionType func)
     {
-        _type = anyTypeId::closure;
-        _value.closure = new functionType(func);
+        _type = anyTypeId::function;
+        _value.function = new functionType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }    
 
-    any(functionTypeNoReturn func)
+    any(functionNoReturnType func)
     {
-        _type = anyTypeId::closureNoReturn;
-        _value.closureNoReturn = new functionTypeNoReturn(func);
+        _type = anyTypeId::functionNoReturn;
+        _value.functionNoReturn = new functionNoReturnType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }          
 
-    any(functionTypeNoParams func)
+    any(functionNoParamsType func)
     {
-        _type = anyTypeId::closureNoParams;
-        _value.closureNoParams = new functionTypeNoParams(func);
+        _type = anyTypeId::functionNoParams;
+        _value.functionNoParams = new functionNoParamsType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }          
 
-    any(functionTypeNoReturnNoParams func)
+    any(functionNoReturnNoParamsType func)
     {
-        _type = anyTypeId::closureNoReturnNoParams;
-        _value.closureNoReturnNoParams = new functionTypeNoReturnNoParams(func);
+        _type = anyTypeId::functionNoReturnNoParams;
+        _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
+    }      
+
+    any(lambdaType lambda)
+    {
+        _type = anyTypeId::lambda;
+        _value.lambda = new lambdaType(lambda);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
+    }    
+
+    any(lambdaNoReturnType lambda)
+    {
+        _type = anyTypeId::functionNoReturn;
+        _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
+    }          
+
+    any(lambdaNoParamsType lambda)
+    {
+        _type = anyTypeId::lambdaNoParams;
+        _value.lambdaNoParams = new lambdaNoParamsType(lambda);
+         _owner = nullptr;
+#if __DEBUG        
+        std::cout << "allocate: " << *this << std::endl;
+#endif
+    }          
+
+    any(lambdaNoReturnNoParamsType lambda)
+    {
+        _type = anyTypeId::lambdaNoReturnNoParams;
+        _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -526,8 +577,8 @@ struct any
     template <class R, class... Args>
     any(R (*value)(Args...))
     {
-        _type = anyTypeId::function;
-        _value.function = (functionPtr)value;
+        _type = anyTypeId::functionPtr;
+        _value.functionPtr = (functionPtrType)value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -537,8 +588,8 @@ struct any
     template <class... Args>
     any(void (*value)(Args...))
     {
-        _type = anyTypeId::functionNoReturn;
-        _value.functionNoReturn = (functionPtrNoReturn)value;
+        _type = anyTypeId::functionNoReturnPtr;
+        _value.functionNoReturnPtr = (functionNoReturnPtrType)value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -548,8 +599,8 @@ struct any
     template <class R>
     any(R (*value)())
     {
-        _type = anyTypeId::functionNoParams;
-        _value.functionNoParams = (functionPtrNoParams)value;
+        _type = anyTypeId::functionNoParamsPtr;
+        _value.functionNoParamsPtr = (functionNoParamsPtrType)value;
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -559,8 +610,8 @@ struct any
     template <class R, class... Args>
     any(std::function<R(Args &&...)> func)
     {
-        _type = anyTypeId::closure;
-        _value.closure = new functionType(func);
+        _type = anyTypeId::lambda;
+        _value.lambda = new lambdaType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -570,8 +621,8 @@ struct any
     template <class... Args>
     any(std::function<void(Args &&...)> func)
     {
-        _type = anyTypeId::closureNoReturn;
-        _value.closureNoReturn = new functionTypeNoReturn(func);
+        _type = anyTypeId::lambdaNoReturn;
+        _value.lambdaNoReturn = new lambdaNoReturnType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -581,8 +632,8 @@ struct any
     template <class R>
     any(std::function<R(void)> func)
     {
-        _type = anyTypeId::closureNoParams;
-        _value.closureNoParams = new functionTypeNoParams(func);
+        _type = anyTypeId::lambdaNoParams;
+        _value.lambdaNoParams = new lambdaNoParamsType(func);
          _owner = nullptr;
 #if __DEBUG        
         std::cout << "allocate: " << *this << std::endl;
@@ -881,32 +932,46 @@ struct any
     {
         switch (_type)
         {
+        case anyTypeId::functionPtr:
+            return _value.functionPtr( _owner, { args... } );
+
+        case anyTypeId::functionNoReturnPtr:
+            _value.functionNoReturnPtr( _owner, { args... } );
+            return any();
+
+        case anyTypeId::functionNoParamsPtr:
+            return _value.functionNoParamsPtr( _owner );
+
+        case anyTypeId::functionNoReturnNoParamsPtr:
+            _value.functionNoReturnNoParamsPtr( _owner );
+            return any();
+
         case anyTypeId::function:
-            return _value.function( _owner, { args... } );
+            return (*_value.function)( _owner, { args... } );
 
         case anyTypeId::functionNoReturn:
-            _value.functionNoReturn( _owner, { args... } );
+            (*_value.functionNoReturn)( _owner, { args... } );
             return any();
 
         case anyTypeId::functionNoParams:
-            return _value.functionNoParams( _owner );
+            return (*_value.functionNoParams)( _owner );
 
         case anyTypeId::functionNoReturnNoParams:
-            _value.functionNoReturnNoParams( _owner );
+            (*_value.functionNoReturnNoParams)( _owner );
             return any();
 
-        case anyTypeId::closure:
-            return (*(_value.closure))( _owner, { args... } );
+        case anyTypeId::lambda:
+            return (*(_value.lambda))( { args... } );
 
-        case anyTypeId::closureNoReturn:
-            (*(_value.closureNoReturn))( _owner, { args... } );
+        case anyTypeId::lambdaNoReturn:
+            (*(_value.lambdaNoReturn))( { args... } );
             return any();
 
-        case anyTypeId::closureNoParams:
-            return (*(_value.closureNoParams))( _owner );
+        case anyTypeId::lambdaNoParams:
+            return (*(_value.lambdaNoParams))();
 
-        case anyTypeId::closureNoReturnNoParams:
-            (*(_value.closureNoReturnNoParams))( _owner );
+        case anyTypeId::lambdaNoReturnNoParams:
+            (*(_value.lambdaNoReturnNoParams))();
             return any();
 
         default:
@@ -1440,14 +1505,18 @@ struct any
         case anyTypeId::string:
             return "string";
 
+        case anyTypeId::functionPtr:
+        case anyTypeId::functionNoReturnPtr:
+        case anyTypeId::functionNoParamsPtr:
+        case anyTypeId::functionNoReturnNoParamsPtr:
         case anyTypeId::function:
         case anyTypeId::functionNoReturn:
         case anyTypeId::functionNoParams:
         case anyTypeId::functionNoReturnNoParams:
-        case anyTypeId::closure:
-        case anyTypeId::closureNoReturn:
-        case anyTypeId::closureNoParams:
-        case anyTypeId::closureNoReturnNoParams:
+        case anyTypeId::lambda:
+        case anyTypeId::lambdaNoReturn:
+        case anyTypeId::lambdaNoParams:
+        case anyTypeId::lambdaNoReturnNoParams:
             return "function";
 
         default:
@@ -1504,6 +1573,13 @@ struct any
             os << *other._value.string;
             break;
 
+        case anyTypeId::functionPtr:
+        case anyTypeId::functionNoReturnPtr:
+        case anyTypeId::functionNoParamsPtr:
+        case anyTypeId::functionNoReturnNoParamsPtr:
+            os << "[function](pointer)";
+            break;
+
         case anyTypeId::function:
         case anyTypeId::functionNoReturn:
         case anyTypeId::functionNoParams:
@@ -1511,11 +1587,11 @@ struct any
             os << "[function]";
             break;
 
-        case anyTypeId::closure:
-        case anyTypeId::closureNoReturn:
-        case anyTypeId::closureNoParams:
-        case anyTypeId::closureNoReturnNoParams:
-            os << "[closure]";
+        case anyTypeId::lambda:
+        case anyTypeId::lambdaNoReturn:
+        case anyTypeId::lambdaNoParams:
+        case anyTypeId::lambdaNoReturnNoParams:
+            os << "[function](arrow)";
             break;
 
         default:

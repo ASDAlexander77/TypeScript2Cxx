@@ -46,6 +46,8 @@ export class CodeWriter {
             return;
         }
 
+        this.cancelNewLine();
+
         this.writeStringNewLine(';');
         this.endOfStatement = true;
     }
