@@ -621,9 +621,9 @@ export class Emitter {
         const noRarams = node.parameters.length === 0;
         const isLambdaFunction = node.kind === ts.SyntaxKind.FunctionExpression
             || node.kind === ts.SyntaxKind.ArrowFunction;
+        const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
         if (isLambdaFunction) {
             // lambda
-            const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
             const noParamsPart = noRarams ? 'NoParams' : '';
             this.writer.writeString(`(functionType${noReturn}${noParamsPart}) [] `);
         } else {
@@ -675,10 +675,27 @@ export class Emitter {
         });
 
         this.writer.EndBlock();
+        this.writer.writeStringNewLine('');
 
         // formatting
         if (isLambdaFunction) {
             this.writer.cancelNewLine();
+        } else {
+            // write variant
+            this.writer.writeString('inline auto ');
+            this.processExpression(node.name);
+            this.writer.writeStringNewLine(noRarams ? '()' : '(const paramsType &params)');
+            this.writer.BeginBlock();
+            if (!noReturn) {
+                this.writer.writeString('return ');
+            }
+
+            this.processExpression(node.name);
+            this.writer.writeString('(nullptr, params)');
+            this.writer.EndOfStatement();
+
+            this.writer.EndBlock();
+            this.writer.writeStringNewLine('');
         }
     }
 
