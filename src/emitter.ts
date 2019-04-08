@@ -629,14 +629,22 @@ export class Emitter {
         if (writeAsLambdaCFunction) {
             // lambda
             const noParamsPart = noParams ? 'NoParams' : '';
-            this.writer.writeString(`(functionType${noReturn}${noParamsPart}) [] `);
+            if (isArrowFunction) {
+                this.writer.writeString(`(lambda${noReturn}${noParamsPart}Type) [=] `);
+            } else {
+                this.writer.writeString(`(function${noReturn}${noParamsPart}Type) [] `);
+            }
         } else {
             // named function
             this.writer.writeString('auto ');
             this.processExpression(node.name);
         }
 
-        this.writer.writeStringNewLine(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
+        if (isArrowFunction) {
+            this.writer.writeStringNewLine(noParams ? '()' : '(const paramsType &params)');
+        } else {
+            this.writer.writeStringNewLine(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
+        }
 
         this.writer.BeginBlock();
 
@@ -682,6 +690,8 @@ export class Emitter {
 
         // formatting
         if (!writeAsLambdaCFunction) {
+            this.writer.writeStringNewLine();
+
             // write variant
             this.writer.writeString('inline auto ');
             this.processExpression(node.name);
@@ -696,6 +706,7 @@ export class Emitter {
             this.writer.EndOfStatement();
 
             this.writer.EndBlock();
+            this.writer.writeStringNewLine();
         }
     }
 

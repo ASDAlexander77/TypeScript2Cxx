@@ -4,6 +4,41 @@ import { describe, it } from 'mocha';
 
 describe('Functions', () => {
 
+    it('Function, Noname function, Arrow function', () => expect(new Run().test([
+        'function funcNoParamNoReturn() {               \
+        }                                               \
+                                                        \
+        function funcNoParam() {                        \
+            return 1;                                   \
+        }                                               \
+                                                        \
+        function func(val: number) {                    \
+            return 2;                                   \
+        }                                               \
+                                                        \
+        var funcNoParamNoReturn1 = function () {        \
+        }                                               \
+                                                        \
+        var funcNoParam1 = function () {                \
+            return 1;                                   \
+        }                                               \
+                                                        \
+        var func1 =  function(val: number) {            \
+            return 2;                                   \
+        }                                               \
+                                                        \
+        var funcNoParamNoReturn2 = () => {              \
+        }                                               \
+                                                        \
+        var funcNoParam2 = () => {                      \
+            return 1;                                   \
+        }                                               \
+                                                        \
+        var func2 =  (val: number) => {                 \
+            return 2;                                   \
+        }                                               \
+    '])).to.equals(''));
+
     it('Optional Parameters', () => expect('Bob Adams\r\nBob\r\n').to.equals(new Run().test([
         'function buildName(firstName: string, lastName?: string) {             \
             if (lastName)                                                       \

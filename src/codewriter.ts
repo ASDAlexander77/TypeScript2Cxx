@@ -65,8 +65,11 @@ export class CodeWriter {
         }
     }
 
-    public writeStringNewLine(data: string): void {
-        this.writeString(data);
+    public writeStringNewLine(data?: string): void {
+        if (data) {
+            this.writeString(data);
+        }
+
         this.parts.push('\n');
         this.newLine = true;
         if (this.intent > 0) {
