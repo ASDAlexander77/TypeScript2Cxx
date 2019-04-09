@@ -466,121 +466,121 @@ struct any
 #endif
     }
 
-    any(functionPtrType value)
+    any(functionPtrType value, any *owner = nullptr)
     {
         _type = anyTypeId::functionPtr;
         _value.functionPtr = value;
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnPtrType value)
+    any(functionNoReturnPtrType value, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoReturnPtr;
         _value.functionNoReturnPtr = value;
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoParamsPtrType value)
+    any(functionNoParamsPtrType value, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoParamsPtr;
         _value.functionNoParamsPtr = value;
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnNoParamsPtrType value)
+    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoReturnNoParamsPtr;
         _value.functionNoReturnNoParamsPtr = value;
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionType func)
+    any(functionType func, any *owner = nullptr)
     {
         _type = anyTypeId::function;
         _value.function = new functionType(func);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnType func)
+    any(functionNoReturnType func, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = new functionNoReturnType(func);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoParamsType func)
+    any(functionNoParamsType func, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoParams;
         _value.functionNoParams = new functionNoParamsType(func);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnNoParamsType func)
+    any(functionNoReturnNoParamsType func, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaType lambda)
+    any(lambdaType lambda, any *owner = nullptr)
     {
         _type = anyTypeId::lambda;
         _value.lambda = new lambdaType(lambda);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoReturnType lambda)
+    any(lambdaNoReturnType lambda, any *owner = nullptr)
     {
         _type = anyTypeId::functionNoReturn;
         _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoParamsType lambda)
+    any(lambdaNoParamsType lambda, any *owner = nullptr)
     {
         _type = anyTypeId::lambdaNoParams;
         _value.lambdaNoParams = new lambdaNoParamsType(lambda);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoReturnNoParamsType lambda)
+    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr)
     {
         _type = anyTypeId::lambdaNoReturnNoParams;
         _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
-        _owner = nullptr;
+        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
@@ -2318,7 +2318,7 @@ static struct Console : any
 
     Console() 
         : any(anyTypeId::object), 
-          log(&Console_log)
+          log(&Console_log, this)
     {
     }
 
