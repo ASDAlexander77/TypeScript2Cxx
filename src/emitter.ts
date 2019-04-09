@@ -956,7 +956,7 @@ export class Emitter {
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.writer.writeString(`any("${node.text}")`);
+        this.writer.writeString(`"${node.text}"_a`);
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {

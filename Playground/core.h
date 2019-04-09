@@ -363,14 +363,7 @@ struct any
     anyType _value;
     any *_owner;
 
-    any()
-    {
-        _type = anyTypeId::undefined;
-        _owner = nullptr;
-#ifdef EXTRA_DEBUG
-        std::cout << "allocate(default): " << *this << std::endl;
-#endif
-    }
+    constexpr any() : _type(anyTypeId::undefined), _owner(nullptr) {}
 
     any(const any &other)
     {
@@ -393,44 +386,24 @@ struct any
 #endif
     }
 
-    any(bool value)
+    any(bool value) : _type(anyTypeId::boolean), _owner(nullptr)
     {
-        _type = anyTypeId::boolean;
         _value.boolean = value;
-        _owner = nullptr;
-#ifdef EXTRA_DEBUG
-        std::cout << "allocate: " << *this << std::endl;
-#endif
     }
 
-    any(int value)
+    any(int value) : _type(anyTypeId::integer), _owner(nullptr)
     {
-        _type = anyTypeId::integer;
         _value.integer = value;
-        _owner = nullptr;
-#ifdef EXTRA_DEBUG
-        std::cout << "allocate: " << *this << std::endl;
-#endif
     }
 
-    any(long value)
+    any(long value) : _type(anyTypeId::integer64), _owner(nullptr)
     {
-        _type = anyTypeId::integer64;
         _value.integer64 = value;
-        _owner = nullptr;
-#ifdef EXTRA_DEBUG
-        std::cout << "allocate: " << *this << std::endl;
-#endif
     }
 
-    any(double value)
+    any(double value) : _type(anyTypeId::real), _owner(nullptr)
     {
-        _type = anyTypeId::real;
         _value.real = value;
-        _owner = nullptr;
-#ifdef EXTRA_DEBUG
-        std::cout << "allocate: " << *this << std::endl;
-#endif
     }
 
     any(const char value)
@@ -766,12 +739,14 @@ struct any
         throw "wrong type";
     }
 
+/*
     ~any()
     {
 #ifdef EXTRA_DEBUG
         std::cout << "~delete: " << *this << std::endl;
 #endif
     }
+*/
 
     operator bool()
     {
@@ -2255,6 +2230,11 @@ struct any
         return os;
     }
 };
+
+inline any operator"" _a ( const char* val, std::size_t len )
+{
+    return any(val);
+}
 
 template <class T>
 static any TypeOf(T value);
