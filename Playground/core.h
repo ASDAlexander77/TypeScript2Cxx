@@ -16,6 +16,12 @@ namespace js
 #define __OR(x, y) ((bool)(x) ? (x) : (y))
 #define __AND(x, y) ((bool)(x) ? (y) : (x))
 
+#define PARAMS                      \
+    auto param = params.begin();    \
+    auto end = params.end();        
+
+#define PARAM(x) any x = end != param ? *param++ : any();
+
 struct any;
 
 typedef std::initializer_list<any> paramsType;
