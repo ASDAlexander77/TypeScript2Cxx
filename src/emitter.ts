@@ -1074,23 +1074,21 @@ export class Emitter {
     }
 
     private processNewExpression(node: ts.NewExpression): void {
-        throw new Error('Method not implemented.');
+        this.processCallExpression(node);
     }
 
-    private processCallExpression(node: ts.CallExpression): void {
+    private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
         this.processExpression(node.expression);
         this.writer.writeString('(');
 
+        let next = false;
+        if (node.kind === ts.SyntaxKind.NewExpression) {
+            // convert operator() -> operator(anyTypeId, ...)
+            this.writer.writeString('anyTypeId::object');
+            next = true;
+        }
+
         if (node.arguments.length) {
-
-            if (node.arguments.length > 0) {
-                this.writer.writeString(' paramsType');
-            } else {
-                this.writer.writeString(' ');
-            }
-
-            this.writer.writeString('{ ');
-            let next = false;
             node.arguments.forEach(element => {
                 if (next) {
                     this.writer.writeString(', ');
@@ -1099,8 +1097,6 @@ export class Emitter {
                 this.processExpression(element);
                 next = true;
             });
-
-            this.writer.writeString(' } ');
         }
 
         this.writer.writeString(')');

@@ -62,7 +62,7 @@
                 "--colors",
                 "-r",
                 "ts-node/register",
-                "${workspaceFolder}/../spec/**/functions.spec.ts"
+                "${workspaceFolder}/../spec/**/object.spec.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"

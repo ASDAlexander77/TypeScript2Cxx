@@ -938,7 +938,23 @@ struct any
 
     constexpr operator paramsType()
     {
+        if (_type != anyTypeId::array) {
+            throw "is not array type (params cast)";
+        }
+
         return paramsType(&_value.array->front(), (&_value.array->back() + 1));
+    }
+
+    template <class... Args>
+    any operator()(anyTypeId newObjectType, Args... args)
+    {
+        // New operator
+        any newObject(newObjectType);
+        auto storeOwner = _owner;
+        _owner = &newObject;
+        operator()(args...);
+        _owner = storeOwner;
+        return newObject;
     }
 
     template <class... Args>
@@ -2287,19 +2303,23 @@ public:
 
 static any _ROOT(anyTypeId::object);
 
-static struct Console : any
+static void Console_log(any* _this, const paramsType &params)
 {
-    Console() : any(anyTypeId::object)
-    {
+    for (auto &item : params) {
+        std::cout << item;
     }
 
-    void log(const paramsType &params)
-    {
-        for (auto &item : params) {
-            std::cout << item;
-        }
+    std::cout << std::endl;
+}
 
-        std::cout << std::endl;
+static struct Console : any
+{
+    any log;
+
+    Console() 
+        : any(anyTypeId::object), 
+          log(&Console_log)
+    {
     }
 
 } console;
