@@ -1,23 +1,13 @@
-var grade: string = "A";
-switch (grade) {
-    case "A": {
-        console.log("Excellent");
-        break;
+let i = 1;
+try {
+    try {
+        console.log(i);
+        throw i;
+        i = 2;
     }
-    case "B": {
-        console.log("Good");
-        break;
+    finally {
+        console.log(i);
     }
-    case "C": {
-        console.log("Fair");
-        break;
-    }
-    case "D": {
-        console.log("Poor");
-        break;
-    }
-    default: {
-        console.log("Invalid choice");
-        break;
-    }
+}
+catch (e) {
 }

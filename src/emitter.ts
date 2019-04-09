@@ -402,25 +402,59 @@ export class Emitter {
     }
 
     private processTryStatement(node: ts.TryStatement): void {
+        let anyCase = false;
+
         this.writer.writeStringNewLine('try');
-        this.processStatement(node.tryBlock);
+        this.writer.BeginBlock();
+
+        if (node.finallyBlock) {
+            const finallyName = `__finally${node.finallyBlock.getFullStart()}_${node.finallyBlock.getEnd()}`;
+            this.writer.writeString(`Finally ${finallyName}(`);
+
+            const newArrowFunctions =
+                ts.createArrowFunction(
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    node.finallyBlock);
+
+            (<any>newArrowFunctions).__lambda_by_reference = true;
+
+            this.processFunctionExpression(newArrowFunctions);
+
+            this.writer.cancelNewLine();
+            this.writer.writeString(')');
+            this.writer.EndOfStatement();
+        }
+
+        node.tryBlock.statements.forEach(element => this.processStatement(element));
+
+        this.writer.EndBlock();
+
         if (node.catchClause) {
             this.writer.writeStringNewLine('catch (const any& ');
             if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
                 this.processVariableDeclarationOne(
                     <ts.Identifier>(node.catchClause.variableDeclaration.name),
-                    node.catchClause.variableDeclaration.initializer,
-                    false);
+                    node.catchClause.variableDeclaration.initializer);
             } else {
                 throw new Error('Method not implemented.');
             }
 
             this.writer.writeStringNewLine(')');
             this.processStatement(node.catchClause.block);
+
+            anyCase = true;
         }
 
-        if (node.finallyBlock) {
-            throw new Error('Method not implemented.');
+        if (!anyCase) {
+            this.writer.writeStringNewLine('catch (...)');
+            this.writer.BeginBlock();
+            this.writer.writeString('throw');
+            this.writer.EndOfStatement();
+            this.writer.EndBlock();
         }
     }
 
@@ -430,6 +464,8 @@ export class Emitter {
             this.writer.writeString(' ');
             this.processExpression(node.expression);
         }
+
+        this.writer.EndOfStatement();
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
@@ -547,8 +583,8 @@ export class Emitter {
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next: any, skipInit?: boolean) {
-        if (next.next) {
+        name: ts.Identifier, initializer: ts.Expression, next?: { next: boolean }, skipInit?: boolean) {
+        if (next && next.next) {
             this.writer.writeString(', ');
         }
 
@@ -568,7 +604,10 @@ export class Emitter {
             }
         }
 
-        next.next = true;
+        if (next) {
+            next.next = true;
+        }
+
         return true;
     }
 
@@ -632,7 +671,8 @@ export class Emitter {
             // lambda
             const noParamsPart = noParams ? 'NoParams' : '';
             if (isArrowFunction) {
-                this.writer.writeString(`(lambda${noReturn}${noParamsPart}Type) [=] `);
+                const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
+                this.writer.writeString(`(lambda${noReturn}${noParamsPart}Type) [${byReference}] `);
             } else {
                 this.writer.writeString(`(function${noReturn}${noParamsPart}Type) [] `);
             }

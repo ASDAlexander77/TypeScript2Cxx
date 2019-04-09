@@ -2276,6 +2276,15 @@ inline static bool __In(any left, any right)
     return right.In(left);
 }
 
+struct Finally
+{
+private:    
+	std::function<void()> _dtor;
+public:
+	Finally(std::function<void()> dtor) : _dtor(dtor) {};
+	~Finally() { _dtor(); }
+};
+
 static any _ROOT(anyTypeId::object);
 
 static struct Console : any
@@ -2286,8 +2295,11 @@ static struct Console : any
 
     void log(const paramsType &params)
     {
-        any value = *params.begin();
-        std::cout << value << std::endl;
+        for (auto &item : params) {
+            std::cout << item;
+        }
+
+        std::cout << std::endl;
     }
 
 } console;

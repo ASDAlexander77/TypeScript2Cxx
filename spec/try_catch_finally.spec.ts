@@ -5,16 +5,18 @@ import { describe, it } from 'mocha';
 describe('Try/Finally', () => {
 
     it('Simple Try/Finally', () => expect('1\r\n1\r\n').to.equals(new Run().test([
-        'let i = 1;                             \
-        try                                     \
-        {                                       \
-            console.log(i);                     \
-            throw i;                            \
-            i = 2;                              \
-        }                                       \
-        finally {                               \
-            console.log(i);                     \
-        }                                       \
+        'let i = 1;                                 \
+        try {                                       \
+            try                                     \
+            {                                       \
+                console.log(i);                     \
+                throw i;                            \
+                i = 2;                              \
+            }                                       \
+            finally {                               \
+                console.log(i);                     \
+            }                                       \
+        } catch (e) {}                              \
     '])));
 
     it('Simple Try/Catch/Finally', () => expect('1\r\n1\r\nerror\r\n10\r\n1\r\n').to.equals(new Run().test([
