@@ -1,11 +1,32 @@
-function buildName(firstName: string, lastName?: string) {
-    if (lastName)
-        return firstName + " " + lastName;
-    else
-        return firstName;
+function funcNoParamNoReturn() {
 }
 
-let result1 = buildName("Bob", "Adams");
-let result2 = buildName("Bob");
-console.log(result1);
-console.log(result2);
+function funcNoParam() {
+    return 1;
+}
+
+function func(val: number) {
+    return 2;
+}
+
+var funcNoParamNoReturn1 = function () {
+}
+
+var funcNoParam1 = function () {
+    return 1;
+}
+
+var func1 = function (val: number) {
+    return 2;
+}
+
+var funcNoParamNoReturn2 = () => {
+}
+
+var funcNoParam2 = () => {
+    return 1;
+}
+
+var func2 = (val: number) => {
+    return 2;
+}

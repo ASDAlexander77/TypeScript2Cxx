@@ -653,7 +653,7 @@ export class Emitter {
         return hasReturnResult;
     }
 
-    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction): void {
+    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
         if (!node.body
             || ((<any>node).body.statements
                 && (<any>node).body.statements.length === 0
@@ -663,23 +663,27 @@ export class Emitter {
         }
 
         const noParams = node.parameters.length === 0;
-        const isFunctionWithoutName =  node.kind === ts.SyntaxKind.FunctionExpression;
+        const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
+        const isFunction =  isFunctionDeclaration || node.kind === ts.SyntaxKind.FunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
-        const writeAsLambdaCFunction = isArrowFunction || isFunctionWithoutName;
+        const writeAsLambdaCFunction = isArrowFunction || isFunction;
         const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
         if (writeAsLambdaCFunction) {
+            if (isFunctionDeclaration) {
+                // named function
+                this.writer.writeString('any ');
+                this.processExpression(node.name);
+                this.writer.writeString(' = ');
+            }
+
             // lambda
             const noParamsPart = noParams ? 'NoParams' : '';
             if (isArrowFunction) {
                 const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
                 this.writer.writeString(`(lambda${noReturn}${noParamsPart}Type) [${byReference}] `);
             } else {
-                this.writer.writeString(`(function${noReturn}${noParamsPart}Type) [] `);
+                this.writer.writeString(`(function${noReturn}${noParamsPart}PtrType) [] `);
             }
-        } else {
-            // named function
-            this.writer.writeString('auto ');
-            this.processExpression(node.name);
         }
 
         if (isArrowFunction) {
@@ -729,27 +733,6 @@ export class Emitter {
         });
 
         this.writer.EndBlock();
-
-        // formatting
-        if (!writeAsLambdaCFunction) {
-            this.writer.writeStringNewLine();
-
-            // write variant
-            this.writer.writeString('inline auto ');
-            this.processExpression(node.name);
-            this.writer.writeStringNewLine(noParams ? '()' : '(const paramsType &params)');
-            this.writer.BeginBlock();
-            if (!noReturn) {
-                this.writer.writeString('return ');
-            }
-
-            this.processExpression(node.name);
-            this.writer.writeString(noParams ? '(nullptr)' : '(nullptr, params)');
-            this.writer.EndOfStatement();
-
-            this.writer.EndBlock();
-            this.writer.writeStringNewLine();
-        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -770,6 +753,9 @@ export class Emitter {
         this.scope.push(node);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
         this.scope.pop();
+
+        this.writer.EndOfStatement();
+        this.writer.writeStringNewLine();
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
@@ -1100,7 +1086,7 @@ export class Emitter {
 
         if (node.arguments.length) {
 
-            if (node.arguments.length === 1) {
+            if (node.arguments.length > 0) {
                 this.writer.writeString(' paramsType');
             } else {
                 this.writer.writeString(' ');
