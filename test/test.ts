@@ -1,13 +1,11 @@
-let i = 1;
-try {
-    try {
-        console.log(i);
-        throw i;
-        i = 2;
-    }
-    finally {
-        console.log(i);
-    }
+function buildName(firstName: string, lastName?: string) {
+    if (lastName)
+        return firstName + " " + lastName;
+    else
+        return firstName;
 }
-catch (e) {
-}
+
+let result1 = buildName("Bob", "Adams");
+let result2 = buildName("Bob");
+console.log(result1);
+console.log(result2);

@@ -5,18 +5,70 @@
 
 using namespace js;
 
-int main(int argc, char **argv)
+struct buildNameClass : any
 {
-    std::cout << "size of any: " << sizeof(any) << std::endl;
+    typedef any (buildNameClass::* operType)(any *_this, const paramsType &params);
 
-    static std::unordered_map<any, int> u = {
-        {any("RED"), 1},
-        {any("GREEN"), 2},
-        {any("BLUE"), 3}
-    };
+    buildNameClass() : any(
+        static_cast<functionType>(std::bind((operType)&buildNameClass::operator(), this, std::placeholders::_1, std::placeholders::_2))
+    ) { 
+    }
 
-    auto case1 = u[any("NONE")];
-    auto case2 = u[any("GREEN")];
+    any operator()(any *_this, const paramsType &params)
+    {
+        // parameters
+        auto param = params.begin();
+        auto end = params.end();
+        any firstName = end != param ? *param++ : any();
+        any lastName = end != param ? *param++ : any();
+        
+        // body
+        if (_this) {
+            if (lastName) {
+                (*_this)["Result"] = firstName + any(" ") + lastName;
+            } else {
+                (*_this)["Result"] = firstName;
+            }
+
+            return *_this;
+        } else {
+            if (lastName) {
+                return firstName + any(" ") + lastName;
+            } else {
+                return firstName;
+            }
+        }
+    }
+
+    inline any operator()(const paramsType &params)
+    {
+        return (*this)(nullptr, params);
+    }
+} buildName;
+
+any result1;
+any result2;
+
+template < class T > any New(const paramsType &params) {
+    any result(anyTypeId::object);
+    T t;
+    t(&result, params);
+    return result;
+};
+
+int main(int argc, char** argv)
+{
+    result1 = buildName( paramsType{ any("Bob"), any("Adams") } );
+    result2 = buildName( paramsType{ any("Bob") } );
+    console.log( paramsType{ result1 } );
+    console.log( paramsType{ result2 } );
+
+    any val = New<decltype(buildName)>( paramsType{ any("Bob"), any("Adams") } );
+
+    any val2 = buildName;
+    any res = val2( paramsType{ any("Bob"), any("Adams") } );
     
+    console.log( paramsType{ res } );
+
     return 0;
 }
