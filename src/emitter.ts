@@ -21,15 +21,6 @@ export class Emitter {
         this.resolver = new IdentifierResolver(typeChecker);
         this.preprocessor = new Preprocessor(this.resolver);
 
-        this.jsLib = (
-            options
-            && options.lib
-            && options.lib.some(l => /lib.es\d+.d.ts/.test(l))
-            && !options.lib.some(l => /lib.es5.d.ts/.test(l))
-            || cmdLineOptions.jslib)
-            ? true
-            : false;
-
         this.opsMap[ts.SyntaxKind.EqualsToken] = '=';
         this.opsMap[ts.SyntaxKind.PlusToken] = '+';
         this.opsMap[ts.SyntaxKind.MinusToken] = '-';
@@ -971,7 +962,7 @@ export class Emitter {
                 this.writer.writeString('std::make_tuple(');
 
                 if (property.name.kind === ts.SyntaxKind.Identifier) {
-                    this.writer.writeString(`${property.name.text}`);
+                    this.processExpression(ts.createStringLiteral(property.name.text));
                 } else {
                     this.processExpression(<ts.Expression>property.name);
                 }

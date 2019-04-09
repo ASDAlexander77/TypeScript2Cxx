@@ -1,12 +1,3 @@
-let deck = {
-    createCardPicker: function () {
-        return function () {
-            return { suit: "spades" };
-        };
-    }
-};
-
-let cardPicker = deck.createCardPicker();
-let pickedCard = cardPicker();
-
-console.log(pickedCard.suit);
+enum Color { Red = 1, Green, Blue }
+let colorName: string = Color[2];
+console.log(colorName);
