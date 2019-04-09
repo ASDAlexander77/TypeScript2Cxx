@@ -1,32 +1,12 @@
-function funcNoParamNoReturn() {
-}
+let deck = {
+    createCardPicker: function () {
+        return function () {
+            return { suit: "spades" };
+        };
+    }
+};
 
-function funcNoParam() {
-    return 1;
-}
+let cardPicker = deck.createCardPicker();
+let pickedCard = cardPicker();
 
-function func(val: number) {
-    return 2;
-}
-
-var funcNoParamNoReturn1 = function () {
-}
-
-var funcNoParam1 = function () {
-    return 1;
-}
-
-var func1 = function (val: number) {
-    return 2;
-}
-
-var funcNoParamNoReturn2 = () => {
-}
-
-var funcNoParam2 = () => {
-    return 1;
-}
-
-var func2 = (val: number) => {
-    return 2;
-}
+console.log(pickedCard.suit);

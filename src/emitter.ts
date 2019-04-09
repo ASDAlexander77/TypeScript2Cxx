@@ -687,9 +687,15 @@ export class Emitter {
         }
 
         if (isArrowFunction) {
-            this.writer.writeStringNewLine(noParams ? '()' : '(const paramsType &params)');
+            this.writer.writeString(noParams ? '()' : '(const paramsType &params)');
         } else {
-            this.writer.writeStringNewLine(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
+            this.writer.writeString(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
+        }
+
+        if (writeAsLambdaCFunction && !noReturn) {
+            this.writer.writeStringNewLine(" -> any");
+        } else {
+            this.writer.writeStringNewLine();
         }
 
         this.writer.BeginBlock();
@@ -965,7 +971,7 @@ export class Emitter {
                 this.writer.writeString('std::make_tuple(');
 
                 if (property.name.kind === ts.SyntaxKind.Identifier) {
-                    this.processExpression(ts.createStringLiteral(property.name.text));
+                    this.writer.writeString(`${property.name.text}`);
                 } else {
                     this.processExpression(<ts.Expression>property.name);
                 }
