@@ -1,4 +1,4 @@
-#define EXTRA_DEBUG
+//#define EXTRA_DEBUG
 #include "core.h"
 #include <iostream>
 #include <ctime>
@@ -44,7 +44,21 @@ any buildName2 = (functionPtrType) [] (any *_this, const paramsType &params) -> 
 
 int main(int argc, char** argv)
 {
-    
+    const clock_t begin_time0 = clock();
+
+    for (int i = 0; i < 100000; i++) {
+        buildName(any("First"), any("Second"));
+    }
+
+    std::cout << "First run (direct): " << double( clock () - begin_time0 ) /  CLOCKS_PER_SEC << std::endl;
+
+    const clock_t begin_time1 = clock();
+
+    for (int i = 0; i < 100000; i++) {
+        buildName2(any("First"), any("Second"));
+    }
+
+    std::cout << "Second run: " << double( clock () - begin_time1 ) /  CLOCKS_PER_SEC << std::endl;
 
     return 0;
 }
