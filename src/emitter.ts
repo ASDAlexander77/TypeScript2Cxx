@@ -684,7 +684,7 @@ export class Emitter {
         }
 
         if (writeAsLambdaCFunction && !noReturn) {
-            this.writer.writeStringNewLine(" -> any");
+            this.writer.writeStringNewLine(' -> any');
         } else {
             this.writer.writeStringNewLine();
         }
@@ -693,14 +693,40 @@ export class Emitter {
 
         // read params
         if (!noParams) {
+            /*
             this.writer.writeStringNewLine('// parameters');
             this.writer.writeString('auto param = params.begin()');
             this.writer.EndOfStatement();
             this.writer.writeString('auto end = params.end()');
             this.writer.EndOfStatement();
+            */
+           this.writer.writeStringNewLine('PARAMS');
         }
 
         node.parameters.forEach(element => {
+            if (element.name.kind !== ts.SyntaxKind.Identifier) {
+                throw new Error('Not implemented');
+            }
+
+            if (element.dotDotDotToken) {
+                this.writer.writeString('any ');
+                this.processExpression(element.name);
+                this.writer.writeString('(param, end)');
+            } else {
+
+                this.writer.writeString(`PARAM${((element.initializer) ? '_DEFAULT' : '')}(`);
+                this.processExpression(element.name);
+                if (element.initializer) {
+                    this.writer.writeString(', ');
+                    this.processExpression(element.initializer);
+                }
+
+                this.writer.writeString(')');
+            }
+
+            this.writer.EndOfStatement();
+
+            /*
             this.writer.writeString('any ');
             if (element.name.kind === ts.SyntaxKind.Identifier) {
                 this.processExpression(element.name);
@@ -721,7 +747,7 @@ export class Emitter {
             }
 
             this.writer.EndOfStatement();
-
+            */
         });
 
         this.writer.writeStringNewLine('// body');

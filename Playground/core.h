@@ -21,6 +21,7 @@ namespace js
     auto end = params.end();        
 
 #define PARAM(x) any x = end != param ? *param++ : any();
+#define PARAM_DEFAULT(x, y) any x = end != param ? *param++ : (y);
 
 struct any;
 
