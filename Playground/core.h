@@ -367,7 +367,7 @@ struct any
     anySubTypeId _subType;
     anyType _value;
     any *_owner;
-    objectType *_associate;
+    any *_associate;
 
     any() : _type(anyTypeId::undefined), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
@@ -899,6 +899,13 @@ struct any
     {
         // New operator
         any newObject(newObjectType);
+        if (_associate) {
+            auto& proto = (*_associate)["prototype"];
+            if (proto && proto._type == anyTypeId::object) {
+                newObject._associate = &proto;
+            }
+        }
+
         auto storeOwner = _owner;
         _owner = &newObject;
         operator()(args...);
@@ -1028,19 +1035,14 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
-                return (*(_associate))[std::to_string(index)];
+                return (*_associate)[index];
             }
         }
         catch (const std::out_of_range &)
         {
-            if (tries < 1)
-            {
-                throw;
-            }
-
             // create new element
             any newUndefined;
             switch (_type)
@@ -1061,11 +1063,11 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
-                (*(_associate))[std::to_string(index)] = newUndefined;   
-                return (*(_associate))[std::to_string(index)];             
+                (*_associate)[index] = newUndefined;   
+                return (*_associate)[index];             
             }
         }
 
@@ -1083,10 +1085,10 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
-                return (_associate)->at(field);
+                return (*_associate)[field];
             }
         }
         catch (const std::out_of_range &)
@@ -1101,7 +1103,7 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
                 if (std::strcmp(field, "prototype") == 0) {
@@ -1109,8 +1111,8 @@ struct any
                     newUndefined = any(anyTypeId::object);
                 }
 
-                (*(_associate))[field] = newUndefined;
-                return (_associate)->at(field);
+                (*_associate)[field] = newUndefined;
+                return (*_associate)[field];
             }
         }
 
@@ -1134,10 +1136,10 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
-                return _associate->at((std::string)index);                   
+                return (*_associate)[index];
             }
         }
         catch (const std::out_of_range &)
@@ -1160,11 +1162,11 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    _associate = new objectType();
+                    _associate = new any(anyTypeId::object);
                 }                    
 
-                (*(_associate))[std::string(index)] = newUndefined;
-                return (_associate)->at((std::string)index);
+                (*_associate)[index] = newUndefined;
+                return (*_associate)[index];
             }
         }
 
@@ -1185,10 +1187,10 @@ struct any
 
             case anyTypeId::closure:
                 if (!_associate) {
-                    const_cast<any*>(this)->_associate = new objectType();
+                    const_cast<any*>(this)->_associate = new any(anyTypeId::object);
                 }                    
 
-                return (*(_associate))[(std::string)index];                
+                return (*_associate)[index];                
             }
 
             throw "not allowed index type";
