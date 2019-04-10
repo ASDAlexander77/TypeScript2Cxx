@@ -362,8 +362,9 @@ struct any
     anyTypeId _type;
     anyType _value;
     any *_owner;
+    objectType *_associate;
 
-    any() : _type(anyTypeId::undefined), _owner(nullptr) 
+    any() : _type(anyTypeId::undefined), _owner(nullptr), _associate(nullptr)
     {
     }
 
@@ -372,6 +373,7 @@ struct any
         _type = other._type;
         _value = other._value;
         _owner = other._owner;
+        _associate = other._associate;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate(const&): " << *this << std::endl;
 #endif
@@ -382,13 +384,14 @@ struct any
         _type = other._type;
         _value = other._value;
         _owner = other._owner;
+        _associate = other._associate;
         other._type = undefined;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate(move): " << *this << std::endl;
 #endif
     }
 
-    any(bool value) : _type(anyTypeId::boolean), _owner(nullptr)
+    any(bool value) : _type(anyTypeId::boolean), _owner(nullptr), _associate(nullptr)
     {
         _value.boolean = value;
 #ifdef EXTRA_DEBUG
@@ -396,7 +399,7 @@ struct any
 #endif        
     }
 
-    any(int value) : _type(anyTypeId::integer), _owner(nullptr)
+    any(int value) : _type(anyTypeId::integer), _owner(nullptr), _associate(nullptr)
     {
         _value.integer = value;
 #ifdef EXTRA_DEBUG
@@ -404,7 +407,7 @@ struct any
 #endif        
     }
 
-    any(long value) : _type(anyTypeId::integer64), _owner(nullptr)
+    any(long value) : _type(anyTypeId::integer64), _owner(nullptr), _associate(nullptr)
     {
         _value.integer64 = value;
 #ifdef EXTRA_DEBUG
@@ -412,7 +415,7 @@ struct any
 #endif        
     }
 
-    any(double value) : _type(anyTypeId::real), _owner(nullptr)
+    any(double value) : _type(anyTypeId::real), _owner(nullptr), _associate(nullptr)
     {
         _value.real = value;
 #ifdef EXTRA_DEBUG
@@ -420,7 +423,7 @@ struct any
 #endif        
     }
 
-    any(const char value) : _type(anyTypeId::string), _owner(nullptr)
+    any(const char value) : _type(anyTypeId::string), _owner(nullptr), _associate(nullptr)
     {
         _value.string = new std::string({value});
 #ifdef EXTRA_DEBUG
@@ -428,7 +431,7 @@ struct any
 #endif
     }
 
-    any(std::nullptr_t value) : _type(anyTypeId::null), _owner(nullptr)
+    any(std::nullptr_t value) : _type(anyTypeId::null), _owner(nullptr), _associate(nullptr)
     {
         _value.const_string = value;
 #ifdef EXTRA_DEBUG
@@ -436,7 +439,7 @@ struct any
 #endif
     }
 
-    any(const char *value) : _type(anyTypeId::const_string), _owner(nullptr)
+    any(const char *value) : _type(anyTypeId::const_string), _owner(nullptr), _associate(nullptr)
     {
         _value.const_string = value;
 #ifdef EXTRA_DEBUG
@@ -444,7 +447,7 @@ struct any
 #endif
     }
 
-    any(const std::string &value) : _type(anyTypeId::string), _owner(nullptr)
+    any(const std::string &value) : _type(anyTypeId::string), _owner(nullptr), _associate(nullptr)
     {
         _value.string = new std::string(value);
 #ifdef EXTRA_DEBUG
@@ -452,7 +455,7 @@ struct any
 #endif
     }
 
-    any(functionPtrType value, any *owner = nullptr) : _type(anyTypeId::functionPtr), _owner(owner)
+    any(functionPtrType value, any *owner = nullptr) : _type(anyTypeId::functionPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionPtr = value;
 #ifdef EXTRA_DEBUG
@@ -460,7 +463,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnPtr), _owner(owner)
+    any(functionNoReturnPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnPtr = value;
 #ifdef EXTRA_DEBUG
@@ -468,7 +471,7 @@ struct any
 #endif
     }
 
-    any(functionNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoParamsPtr), _owner(owner)
+    any(functionNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoParamsPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoParamsPtr = value;
 #ifdef EXTRA_DEBUG
@@ -476,7 +479,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParamsPtr), _owner(owner)
+    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParamsPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnNoParamsPtr = value;
 #ifdef EXTRA_DEBUG
@@ -484,7 +487,7 @@ struct any
 #endif
     }
 
-    any(functionType func, any *owner = nullptr) : _type(anyTypeId::function), _owner(owner)
+    any(functionType func, any *owner = nullptr) : _type(anyTypeId::function), _owner(owner), _associate(nullptr)
     {
         _value.function = new functionType(func);
 #ifdef EXTRA_DEBUG
@@ -492,7 +495,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturn), _owner(owner)
+    any(functionNoReturnType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturn), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturn = new functionNoReturnType(func);
 #ifdef EXTRA_DEBUG
@@ -500,7 +503,7 @@ struct any
 #endif
     }
 
-    any(functionNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoParams), _owner(owner)
+    any(functionNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoParams), _owner(owner), _associate(nullptr)
     {
         _value.functionNoParams = new functionNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -508,7 +511,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParams), _owner(owner)
+    any(functionNoReturnNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParams), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -516,7 +519,7 @@ struct any
 #endif
     }
 
-    any(lambdaType lambda, any *owner = nullptr) : _type(anyTypeId::lambda), _owner(owner)
+    any(lambdaType lambda, any *owner = nullptr) : _type(anyTypeId::lambda), _owner(owner), _associate(nullptr)
     {
         _value.lambda = new lambdaType(lambda);
 #ifdef EXTRA_DEBUG
@@ -524,7 +527,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoReturnType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturn), _owner(owner)
+    any(lambdaNoReturnType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturn), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
 #ifdef EXTRA_DEBUG
@@ -532,7 +535,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoParams), _owner(owner)
+    any(lambdaNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoParams), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoParams = new lambdaNoParamsType(lambda);
 #ifdef EXTRA_DEBUG
@@ -540,7 +543,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturnNoParams), _owner(owner)
+    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturnNoParams), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
 #ifdef EXTRA_DEBUG
@@ -549,7 +552,7 @@ struct any
     }
 
     template <class R, class... Args>
-    any(R (*value)(Args...)) : _type(anyTypeId::functionPtr), _owner(nullptr)
+    any(R (*value)(Args...)) : _type(anyTypeId::functionPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionPtr = (functionPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -558,7 +561,7 @@ struct any
     }
 
     template <class... Args>
-    any(void (*value)(Args...)) : _type(anyTypeId::functionNoReturnPtr), _owner(nullptr)
+    any(void (*value)(Args...)) : _type(anyTypeId::functionNoReturnPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionNoReturnPtr = (functionNoReturnPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -567,7 +570,7 @@ struct any
     }
 
     template <class R>
-    any(R (*value)()) : _type(anyTypeId::functionNoParamsPtr), _owner(nullptr)
+    any(R (*value)()) : _type(anyTypeId::functionNoParamsPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionNoParamsPtr = (functionNoParamsPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -576,7 +579,7 @@ struct any
     }
 
     template <class R, class... Args>
-    any(std::function<R(Args &&...)> func) : _type(anyTypeId::lambda), _owner(nullptr)
+    any(std::function<R(Args &&...)> func) : _type(anyTypeId::lambda), _owner(nullptr), _associate(nullptr)
     {
         _value.lambda = new lambdaType(func);
 #ifdef EXTRA_DEBUG
@@ -585,7 +588,7 @@ struct any
     }
 
     template <class... Args>
-    any(std::function<void(Args &&...)> func) : _type(anyTypeId::lambdaNoReturn), _owner(nullptr)
+    any(std::function<void(Args &&...)> func) : _type(anyTypeId::lambdaNoReturn), _owner(nullptr), _associate(nullptr)
     {
         _value.lambdaNoReturn = new lambdaNoReturnType(func);
 #ifdef EXTRA_DEBUG
@@ -594,7 +597,7 @@ struct any
     }
 
     template <class R>
-    any(std::function<R(void)> func) : _type(anyTypeId::lambdaNoParams), _owner(nullptr)
+    any(std::function<R(void)> func) : _type(anyTypeId::lambdaNoParams), _owner(nullptr), _associate(nullptr)
     {
         _value.lambdaNoParams = new lambdaNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -602,7 +605,7 @@ struct any
 #endif
     }
 
-    any(paramsType::iterator begin, paramsType::iterator end) : _type(anyTypeId::array), _owner(nullptr)
+    any(paramsType::iterator begin, paramsType::iterator end) : _type(anyTypeId::array), _owner(nullptr), _associate(nullptr)
     {
         // count size;
         auto count = 0;
@@ -625,7 +628,7 @@ struct any
 #endif
     }
 
-    any(anyTypeId type, const paramsType &values) : _type(anyTypeId::array), _owner(nullptr)
+    any(anyTypeId type, const paramsType &values) : _type(anyTypeId::array), _owner(nullptr), _associate(nullptr)
     {
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
@@ -638,7 +641,7 @@ struct any
     {
     }
 
-    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values) : _type(anyTypeId::object), _owner(nullptr)
+    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values) : _type(anyTypeId::object), _owner(nullptr), _associate(nullptr)
     {
         objectType obj;
         for (auto &item : values)
@@ -676,7 +679,7 @@ struct any
     {
     }
 
-    any(anyTypeId initType) : _type(initType), _owner(nullptr)
+    any(anyTypeId initType) : _type(initType), _owner(nullptr), _associate(nullptr)
     {
         switch (initType)
         {
@@ -965,6 +968,24 @@ struct any
                 return any(_value.const_string[index]);
             case anyTypeId::string:
                 return any(_value.string->operator[](index));
+
+            case anyTypeId::functionPtr:
+            case anyTypeId::functionNoReturnPtr:
+            case anyTypeId::functionNoParamsPtr:
+            case anyTypeId::functionNoReturnNoParamsPtr:
+            case anyTypeId::function:
+            case anyTypeId::functionNoReturn:
+            case anyTypeId::functionNoParams:
+            case anyTypeId::functionNoReturnNoParams:
+            case anyTypeId::lambda:
+            case anyTypeId::lambdaNoReturn:
+            case anyTypeId::lambdaNoParams:
+            case anyTypeId::lambdaNoReturnNoParams:                
+                if (_associate) {
+                    return (*(_associate))[std::to_string(index)];
+                }
+
+                break;
             }
         }
         catch (const std::out_of_range &)
@@ -1011,6 +1032,24 @@ struct any
                     return any(_value.const_string[index]);
                 case anyTypeId::string:
                     return any(_value.string->operator[](index));
+
+                case anyTypeId::functionPtr:
+                case anyTypeId::functionNoReturnPtr:
+                case anyTypeId::functionNoParamsPtr:
+                case anyTypeId::functionNoReturnNoParamsPtr:
+                case anyTypeId::function:
+                case anyTypeId::functionNoReturn:
+                case anyTypeId::functionNoParams:
+                case anyTypeId::functionNoReturnNoParams:
+                case anyTypeId::lambda:
+                case anyTypeId::lambdaNoReturn:
+                case anyTypeId::lambdaNoParams:
+                case anyTypeId::lambdaNoReturnNoParams:                
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    return (*(_associate))[std::to_string(index)];
                 }
             }
             catch (const std::out_of_range &)
@@ -1033,9 +1072,28 @@ struct any
                     }
                 }
 
-                break;
+                    break;
                 case anyTypeId::object:
                     (*(_value.object))[std::to_string(index)] = newUndefined;
+                    break;
+
+                case anyTypeId::functionPtr:
+                case anyTypeId::functionNoReturnPtr:
+                case anyTypeId::functionNoParamsPtr:
+                case anyTypeId::functionNoReturnNoParamsPtr:
+                case anyTypeId::function:
+                case anyTypeId::functionNoReturn:
+                case anyTypeId::functionNoParams:
+                case anyTypeId::functionNoReturnNoParams:
+                case anyTypeId::lambda:
+                case anyTypeId::lambdaNoReturn:
+                case anyTypeId::lambdaNoParams:
+                case anyTypeId::lambdaNoReturnNoParams:                
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    (*(_associate))[std::to_string(index)] = newUndefined;                
                     break;
                 }
 
@@ -1073,6 +1131,25 @@ struct any
                 case anyTypeId::object:
                     (*(_value.object))[field] = newUndefined;
                     break;
+
+                case anyTypeId::functionPtr:
+                case anyTypeId::functionNoReturnPtr:
+                case anyTypeId::functionNoParamsPtr:
+                case anyTypeId::functionNoReturnNoParamsPtr:
+                case anyTypeId::function:
+                case anyTypeId::functionNoReturn:
+                case anyTypeId::functionNoParams:
+                case anyTypeId::functionNoReturnNoParams:
+                case anyTypeId::lambda:
+                case anyTypeId::lambdaNoReturn:
+                case anyTypeId::lambdaNoParams:
+                case anyTypeId::lambdaNoReturnNoParams:                
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    (*(_associate))[field] = newUndefined;
+                    break;                    
                 }
 
                 continue;
@@ -1099,6 +1176,24 @@ struct any
                     return any(_value.const_string[(size_t)index]);
                 case anyTypeId::string:
                     return any(_value.string->at((size_t)index));
+
+                case anyTypeId::functionPtr:
+                case anyTypeId::functionNoReturnPtr:
+                case anyTypeId::functionNoParamsPtr:
+                case anyTypeId::functionNoReturnNoParamsPtr:
+                case anyTypeId::function:
+                case anyTypeId::functionNoReturn:
+                case anyTypeId::functionNoParams:
+                case anyTypeId::functionNoReturnNoParams:
+                case anyTypeId::lambda:
+                case anyTypeId::lambdaNoReturn:
+                case anyTypeId::lambdaNoParams:
+                case anyTypeId::lambdaNoReturnNoParams:                
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    return _associate->at((std::string)index);                   
                 }
             }
             catch (const std::out_of_range &)
@@ -1123,6 +1218,25 @@ struct any
                 case anyTypeId::object:
                     (*(_value.object))[std::string(index)] = newUndefined;
                     break;
+
+                case anyTypeId::functionPtr:
+                case anyTypeId::functionNoReturnPtr:
+                case anyTypeId::functionNoParamsPtr:
+                case anyTypeId::functionNoReturnNoParamsPtr:
+                case anyTypeId::function:
+                case anyTypeId::functionNoReturn:
+                case anyTypeId::functionNoParams:
+                case anyTypeId::functionNoReturnNoParams:
+                case anyTypeId::lambda:
+                case anyTypeId::lambdaNoReturn:
+                case anyTypeId::lambdaNoParams:
+                case anyTypeId::lambdaNoReturnNoParams:                
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    (*(_associate))[std::string(index)] = newUndefined;
+                    break;
                 }
 
                 continue;
@@ -1144,8 +1258,26 @@ struct any
             case anyTypeId::object:
                 return (*(_value.object))[(std::string)index];
 
-                throw "not allowed index type";
+            case anyTypeId::functionPtr:
+            case anyTypeId::functionNoReturnPtr:
+            case anyTypeId::functionNoParamsPtr:
+            case anyTypeId::functionNoReturnNoParamsPtr:
+            case anyTypeId::function:
+            case anyTypeId::functionNoReturn:
+            case anyTypeId::functionNoParams:
+            case anyTypeId::functionNoReturnNoParams:
+            case anyTypeId::lambda:
+            case anyTypeId::lambdaNoReturn:
+            case anyTypeId::lambdaNoParams:
+            case anyTypeId::lambdaNoReturnNoParams:                
+                if (!_associate) {
+                    const_cast<any*>(this)->_associate = new objectType();
+                }                    
+
+                return (*(_associate))[(std::string)index];                
             }
+
+            throw "not allowed index type";
         }
         catch (const std::out_of_range &)
         {
