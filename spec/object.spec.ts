@@ -16,7 +16,7 @@ describe('Objects', () => {
         console.log(myFather.lastName)                                      \
     '])));
 
-    it.skip('new class', () => expect('const\r\nHi\r\n').to.equals(new Run().test([
+    it('new class', () => expect('const\r\nHi\r\n').to.equals(new Run().test([
         'function Class1() {                                                \
             console.log("const");                                           \
         }                                                                   \

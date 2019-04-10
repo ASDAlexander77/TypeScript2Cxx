@@ -16,7 +16,7 @@ namespace js
 #define __OR(x, y) ((bool)(x) ? (x) : (y))
 #define __AND(x, y) ((bool)(x) ? (y) : (x))
 
-#define PARAMS                      \
+#define HEADER                      \
     auto param = params.begin();    \
     auto end = params.end();        
 
@@ -44,6 +44,15 @@ typedef std::function<any(const paramsType &)> lambdaType;
 
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
+
+#define FN_R_PARAMS(x) (functionPtrType) [x] (any *_this, const paramsType &params)
+#define FN_R(x) (functionNoParamsPtrType) [x] (any *_this)
+#define FN_PARAMS(x) (functionNoReturnPtrType) [x] (any *_this, const paramsType &params)
+#define FN(x) (functionNoReturnNoParamsPtrType) [x] (any *_this)
+#define LMB_R_PARAMS(x) (lambdaType) [x] (const paramsType &params)
+#define LMB_R(x) (lambdaNoParamsType) [x] ()
+#define LMB_PARAMS(x) (lambdaNoReturnType) [x] (const paramsType &params)
+#define LMB(x) (lambdaNoReturnNoParamsType) [x] ()
 
 enum anyTypeId
 {

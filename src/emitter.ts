@@ -661,7 +661,7 @@ export class Emitter {
         const isFunction =  isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
-        const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
+        const noReturn = !this.hasReturn(node);
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
                 // named function
@@ -673,19 +673,14 @@ export class Emitter {
             }
 
             // lambda
-            const noParamsPart = noParams ? 'NoParams' : '';
+            const noReturnPart = noReturn ? '' : '_R';
+            const noParamsPart = noParams ? '' : '_PARAMS';
             if (isArrowFunction) {
                 const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString(`(lambda${noReturn}${noParamsPart}Type) [${byReference}] `);
+                this.writer.writeString(`LMB${noReturnPart}${noParamsPart}(${byReference}) `);
             } else {
-                this.writer.writeString(`(function${noReturn}${noParamsPart}PtrType) [] `);
+                this.writer.writeString(`FN${noReturnPart}${noParamsPart}() `);
             }
-        }
-
-        if (isArrowFunction) {
-            this.writer.writeString(noParams ? '()' : '(const paramsType &params)');
-        } else {
-            this.writer.writeString(noParams ? '(any *_this)' : '(any *_this, const paramsType &params)');
         }
 
         if (writeAsLambdaCFunction && !noReturn) {
@@ -698,14 +693,7 @@ export class Emitter {
 
         // read params
         if (!noParams) {
-            /*
-            this.writer.writeStringNewLine('// parameters');
-            this.writer.writeString('auto param = params.begin()');
-            this.writer.EndOfStatement();
-            this.writer.writeString('auto end = params.end()');
-            this.writer.EndOfStatement();
-            */
-           this.writer.writeStringNewLine('PARAMS');
+           this.writer.writeStringNewLine('HEADER');
         }
 
         node.parameters.forEach(element => {

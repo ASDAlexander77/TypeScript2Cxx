@@ -1,12 +1,10 @@
-let deck = {
-    createCardPicker: function () {
-        return function () {
-            return { suit: "spades" };
-        };
-    }
+function Class1() {
+    console.log("const");
+}
+
+Class1.prototype.sayHi = function () {
+    console.log("Hi");
 };
 
-let cardPicker = deck.createCardPicker();
-let pickedCard = cardPicker();
-
-console.log(pickedCard.suit);
+let c = new Class1();
+c.sayHi();
