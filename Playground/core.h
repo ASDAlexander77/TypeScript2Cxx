@@ -1104,6 +1104,11 @@ struct any
                     _associate = new objectType();
                 }                    
 
+                if (std::strcmp(field, "prototype") == 0) {
+                    // create new object to hold "prototype"
+                    newUndefined = any(anyTypeId::object);
+                }
+
                 (*(_associate))[field] = newUndefined;
                 return (_associate)->at(field);
             }
