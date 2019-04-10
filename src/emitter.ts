@@ -668,7 +668,7 @@ export class Emitter {
                 this.writer.writeString('any ');
                 this.processExpression(node.name);
                 this.writer.writeString(' = ');
-            } else if (isFunctionExpression) {
+            } else if (isFunctionExpression && node.parent.kind === ts.SyntaxKind.CallExpression) {
                 this.writer.writeString('any(');
             }
 
@@ -750,7 +750,7 @@ export class Emitter {
 
         this.writer.EndBlock();
 
-        if (writeAsLambdaCFunction && isFunctionExpression) {
+        if (writeAsLambdaCFunction && isFunctionExpression && node.parent.kind === ts.SyntaxKind.CallExpression) {
             this.writer.cancelNewLine();
             this.writer.writeString(')');
         }
