@@ -1915,6 +1915,11 @@ struct any
 
         switch (_type)
         {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return true;
+        case anyTypeId::boolean:
+            return _value.boolean == other._value.boolean;            
         case anyTypeId::integer:
             return _value.integer == other._value.integer;
         case anyTypeId::integer64:
@@ -1945,6 +1950,11 @@ struct any
 
         switch (_type)
         {
+        case anyTypeId::undefined:
+        case anyTypeId::null:
+            return true;
+        case anyTypeId::boolean:
+            return _value.boolean == other._value.boolean;
         case anyTypeId::integer:
             return _value.integer == other._value.integer;
         case anyTypeId::integer64:
