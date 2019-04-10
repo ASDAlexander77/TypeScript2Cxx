@@ -360,6 +360,7 @@ export class Emitter {
         };
 
         const sourceFile = ts.createSourceFile('partial', jsText, ts.ScriptTarget.ES5, /*setParentNodes */ true);
+        this.fixupParentReferences(sourceFile);
         // nneded to make typeChecker to work properly
         (<any>ts).bindSourceFile(sourceFile, opts);
         return sourceFile.statements;
@@ -505,7 +506,8 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
-        throw new Error('Method not implemented.');
+        //throw new Error('Method not implemented.');
+        this.processTSNode(node);
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {

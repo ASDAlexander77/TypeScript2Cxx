@@ -363,7 +363,9 @@ struct any
     anyType _value;
     any *_owner;
 
-    constexpr any() : _type(anyTypeId::undefined), _owner(nullptr) {}
+    any() : _type(anyTypeId::undefined), _owner(nullptr) 
+    {
+    }
 
     any(const any &other)
     {
@@ -389,253 +391,219 @@ struct any
     any(bool value) : _type(anyTypeId::boolean), _owner(nullptr)
     {
         _value.boolean = value;
+#ifdef EXTRA_DEBUG
+        std::cout << "allocate: " << *this << std::endl;
+#endif        
     }
 
     any(int value) : _type(anyTypeId::integer), _owner(nullptr)
     {
         _value.integer = value;
+#ifdef EXTRA_DEBUG
+        std::cout << "allocate: " << *this << std::endl;
+#endif        
     }
 
     any(long value) : _type(anyTypeId::integer64), _owner(nullptr)
     {
         _value.integer64 = value;
+#ifdef EXTRA_DEBUG
+        std::cout << "allocate: " << *this << std::endl;
+#endif        
     }
 
     any(double value) : _type(anyTypeId::real), _owner(nullptr)
     {
         _value.real = value;
+#ifdef EXTRA_DEBUG
+        std::cout << "allocate: " << *this << std::endl;
+#endif        
     }
 
-    any(const char value)
+    any(const char value) : _type(anyTypeId::string), _owner(nullptr)
     {
-        _type = anyTypeId::string;
         _value.string = new std::string({value});
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(std::nullptr_t value)
+    any(std::nullptr_t value) : _type(anyTypeId::null), _owner(nullptr)
     {
-        _type = anyTypeId::null;
         _value.const_string = value;
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(const char *value)
+    any(const char *value) : _type(anyTypeId::const_string), _owner(nullptr)
     {
-        _type = anyTypeId::const_string;
         _value.const_string = value;
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(const std::string &value)
+    any(const std::string &value) : _type(anyTypeId::string), _owner(nullptr)
     {
-        _type = anyTypeId::string;
         _value.string = new std::string(value);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionPtrType value, any *owner = nullptr)
+    any(functionPtrType value, any *owner = nullptr) : _type(anyTypeId::functionPtr), _owner(owner)
     {
-        _type = anyTypeId::functionPtr;
         _value.functionPtr = value;
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnPtrType value, any *owner = nullptr)
+    any(functionNoReturnPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnPtr), _owner(owner)
     {
-        _type = anyTypeId::functionNoReturnPtr;
         _value.functionNoReturnPtr = value;
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoParamsPtrType value, any *owner = nullptr)
+    any(functionNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoParamsPtr), _owner(owner)
     {
-        _type = anyTypeId::functionNoParamsPtr;
         _value.functionNoParamsPtr = value;
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr)
+    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParamsPtr), _owner(owner)
     {
-        _type = anyTypeId::functionNoReturnNoParamsPtr;
         _value.functionNoReturnNoParamsPtr = value;
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionType func, any *owner = nullptr)
+    any(functionType func, any *owner = nullptr) : _type(anyTypeId::function), _owner(owner)
     {
-        _type = anyTypeId::function;
         _value.function = new functionType(func);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnType func, any *owner = nullptr)
+    any(functionNoReturnType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturn), _owner(owner)
     {
-        _type = anyTypeId::functionNoReturn;
         _value.functionNoReturn = new functionNoReturnType(func);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoParamsType func, any *owner = nullptr)
+    any(functionNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoParams), _owner(owner)
     {
-        _type = anyTypeId::functionNoParams;
         _value.functionNoParams = new functionNoParamsType(func);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(functionNoReturnNoParamsType func, any *owner = nullptr)
+    any(functionNoReturnNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParams), _owner(owner)
     {
-        _type = anyTypeId::functionNoReturnNoParams;
         _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaType lambda, any *owner = nullptr)
+    any(lambdaType lambda, any *owner = nullptr) : _type(anyTypeId::lambda), _owner(owner)
     {
-        _type = anyTypeId::lambda;
         _value.lambda = new lambdaType(lambda);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoReturnType lambda, any *owner = nullptr)
+    any(lambdaNoReturnType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturn), _owner(owner)
     {
-        _type = anyTypeId::functionNoReturn;
         _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoParamsType lambda, any *owner = nullptr)
+    any(lambdaNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoParams), _owner(owner)
     {
-        _type = anyTypeId::lambdaNoParams;
         _value.lambdaNoParams = new lambdaNoParamsType(lambda);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr)
+    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturnNoParams), _owner(owner)
     {
-        _type = anyTypeId::lambdaNoReturnNoParams;
         _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
-        _owner = owner;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class R, class... Args>
-    any(R (*value)(Args...))
+    any(R (*value)(Args...)) : _type(anyTypeId::functionPtr), _owner(nullptr)
     {
-        _type = anyTypeId::functionPtr;
         _value.functionPtr = (functionPtrType)value;
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class... Args>
-    any(void (*value)(Args...))
+    any(void (*value)(Args...)) : _type(anyTypeId::functionNoReturnPtr), _owner(nullptr)
     {
-        _type = anyTypeId::functionNoReturnPtr;
         _value.functionNoReturnPtr = (functionNoReturnPtrType)value;
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class R>
-    any(R (*value)())
+    any(R (*value)()) : _type(anyTypeId::functionNoParamsPtr), _owner(nullptr)
     {
-        _type = anyTypeId::functionNoParamsPtr;
         _value.functionNoParamsPtr = (functionNoParamsPtrType)value;
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class R, class... Args>
-    any(std::function<R(Args &&...)> func)
+    any(std::function<R(Args &&...)> func) : _type(anyTypeId::lambda), _owner(nullptr)
     {
-        _type = anyTypeId::lambda;
         _value.lambda = new lambdaType(func);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class... Args>
-    any(std::function<void(Args &&...)> func)
+    any(std::function<void(Args &&...)> func) : _type(anyTypeId::lambdaNoReturn), _owner(nullptr)
     {
-        _type = anyTypeId::lambdaNoReturn;
         _value.lambdaNoReturn = new lambdaNoReturnType(func);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
     template <class R>
-    any(std::function<R(void)> func)
+    any(std::function<R(void)> func) : _type(anyTypeId::lambdaNoParams), _owner(nullptr)
     {
-        _type = anyTypeId::lambdaNoParams;
         _value.lambdaNoParams = new lambdaNoParamsType(func);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate: " << *this << std::endl;
 #endif
     }
 
-    any(paramsType::iterator begin, paramsType::iterator end)
+    any(paramsType::iterator begin, paramsType::iterator end) : _type(anyTypeId::array), _owner(nullptr)
     {
-        _type = anyTypeId::array;
-
         // count size;
         auto count = 0;
         auto beginCount = begin;
@@ -652,18 +620,15 @@ struct any
         }
 
         _value.array = new arrayType(vals);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate (params): " << *this << std::endl;
 #endif
     }
 
-    any(anyTypeId type, const paramsType &values)
+    any(anyTypeId type, const paramsType &values) : _type(anyTypeId::array), _owner(nullptr)
     {
-        _type = anyTypeId::array;
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
-        _owner = nullptr;
 #ifdef EXTRA_DEBUG
         std::cout << "allocate (copy params): " << *this << std::endl;
 #endif
@@ -673,10 +638,8 @@ struct any
     {
     }
 
-    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values)
+    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values) : _type(anyTypeId::object), _owner(nullptr)
     {
-        _type = anyTypeId::object;
-
         objectType obj;
         for (auto &item : values)
         {
@@ -704,8 +667,6 @@ struct any
         }
 
         _value.object = new objectType(obj);
-        _owner = nullptr;
-
 #ifdef EXTRA_DEBUG
         std::cout << "allocate object: " << *this << std::endl;
 #endif
@@ -715,11 +676,9 @@ struct any
     {
     }
 
-    any(anyTypeId initType)
+    any(anyTypeId initType) : _type(initType), _owner(nullptr)
     {
-        _type = initType;
-        _owner = nullptr;
-        switch (_type)
+        switch (initType)
         {
         case anyTypeId::array:
             _value.array = new arrayType();
@@ -739,14 +698,12 @@ struct any
         throw "wrong type";
     }
 
-/*
+#ifdef EXTRA_DEBUG
     ~any()
     {
-#ifdef EXTRA_DEBUG
         std::cout << "~delete: " << *this << std::endl;
-#endif
     }
-*/
+#endif
 
     operator bool()
     {

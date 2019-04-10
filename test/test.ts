@@ -1,7 +1,7 @@
-var cls1 = /** @class */ (function () {
-    function cls1() {
+class Class1 {
+    public static show() {
+        console.log("Hello");
     }
-    return cls1;
-}());
+}
 
-var c = new cls1();
+Class1.show();
