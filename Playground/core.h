@@ -1297,8 +1297,10 @@ struct any
     any &operator=(const any &other)
     {
         _type = other._type;
+        _subType = other._subType;
         _value = other._value;
         _owner = other._owner;
+        _associate = other._associate;
         return *this;
     }
 
