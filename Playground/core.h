@@ -57,6 +57,12 @@ enum anyTypeId
     string,
     array,
     object,
+    closure
+};
+
+enum anySubTypeId
+{
+    none,
     functionPtr,
     functionNoReturnPtr,
     functionNoParamsPtr,
@@ -360,17 +366,19 @@ struct values_iterator
 struct any
 {
     anyTypeId _type;
+    anySubTypeId _subType;
     anyType _value;
     any *_owner;
     objectType *_associate;
 
-    any() : _type(anyTypeId::undefined), _owner(nullptr), _associate(nullptr)
+    any() : _type(anyTypeId::undefined), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
     }
 
     any(const any &other)
     {
         _type = other._type;
+        _subType = other._subType;
         _value = other._value;
         _owner = other._owner;
         _associate = other._associate;
@@ -382,6 +390,7 @@ struct any
     any(any &&other)
     {
         _type = other._type;
+        _subType = other._subType;
         _value = other._value;
         _owner = other._owner;
         _associate = other._associate;
@@ -391,7 +400,7 @@ struct any
 #endif
     }
 
-    any(bool value) : _type(anyTypeId::boolean), _owner(nullptr), _associate(nullptr)
+    any(bool value) : _type(anyTypeId::boolean), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.boolean = value;
 #ifdef EXTRA_DEBUG
@@ -399,7 +408,7 @@ struct any
 #endif        
     }
 
-    any(int value) : _type(anyTypeId::integer), _owner(nullptr), _associate(nullptr)
+    any(int value) : _type(anyTypeId::integer), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.integer = value;
 #ifdef EXTRA_DEBUG
@@ -407,7 +416,7 @@ struct any
 #endif        
     }
 
-    any(long value) : _type(anyTypeId::integer64), _owner(nullptr), _associate(nullptr)
+    any(long value) : _type(anyTypeId::integer64), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.integer64 = value;
 #ifdef EXTRA_DEBUG
@@ -415,7 +424,7 @@ struct any
 #endif        
     }
 
-    any(double value) : _type(anyTypeId::real), _owner(nullptr), _associate(nullptr)
+    any(double value) : _type(anyTypeId::real), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.real = value;
 #ifdef EXTRA_DEBUG
@@ -423,7 +432,7 @@ struct any
 #endif        
     }
 
-    any(const char value) : _type(anyTypeId::string), _owner(nullptr), _associate(nullptr)
+    any(const char value) : _type(anyTypeId::string), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.string = new std::string({value});
 #ifdef EXTRA_DEBUG
@@ -431,7 +440,7 @@ struct any
 #endif
     }
 
-    any(std::nullptr_t value) : _type(anyTypeId::null), _owner(nullptr), _associate(nullptr)
+    any(std::nullptr_t value) : _type(anyTypeId::null), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.const_string = value;
 #ifdef EXTRA_DEBUG
@@ -439,7 +448,7 @@ struct any
 #endif
     }
 
-    any(const char *value) : _type(anyTypeId::const_string), _owner(nullptr), _associate(nullptr)
+    any(const char *value) : _type(anyTypeId::const_string), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.const_string = value;
 #ifdef EXTRA_DEBUG
@@ -447,7 +456,7 @@ struct any
 #endif
     }
 
-    any(const std::string &value) : _type(anyTypeId::string), _owner(nullptr), _associate(nullptr)
+    any(const std::string &value) : _type(anyTypeId::string), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         _value.string = new std::string(value);
 #ifdef EXTRA_DEBUG
@@ -455,7 +464,7 @@ struct any
 #endif
     }
 
-    any(functionPtrType value, any *owner = nullptr) : _type(anyTypeId::functionPtr), _owner(owner), _associate(nullptr)
+    any(functionPtrType value, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionPtr = value;
 #ifdef EXTRA_DEBUG
@@ -463,7 +472,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnPtr), _owner(owner), _associate(nullptr)
+    any(functionNoReturnPtrType value, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoReturnPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnPtr = value;
 #ifdef EXTRA_DEBUG
@@ -471,7 +480,7 @@ struct any
 #endif
     }
 
-    any(functionNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoParamsPtr), _owner(owner), _associate(nullptr)
+    any(functionNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoParamsPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoParamsPtr = value;
 #ifdef EXTRA_DEBUG
@@ -479,7 +488,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParamsPtr), _owner(owner), _associate(nullptr)
+    any(functionNoReturnNoParamsPtrType value, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoReturnNoParamsPtr), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnNoParamsPtr = value;
 #ifdef EXTRA_DEBUG
@@ -487,7 +496,7 @@ struct any
 #endif
     }
 
-    any(functionType func, any *owner = nullptr) : _type(anyTypeId::function), _owner(owner), _associate(nullptr)
+    any(functionType func, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::function), _owner(owner), _associate(nullptr)
     {
         _value.function = new functionType(func);
 #ifdef EXTRA_DEBUG
@@ -495,7 +504,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturn), _owner(owner), _associate(nullptr)
+    any(functionNoReturnType func, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoReturn), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturn = new functionNoReturnType(func);
 #ifdef EXTRA_DEBUG
@@ -503,7 +512,7 @@ struct any
 #endif
     }
 
-    any(functionNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoParams), _owner(owner), _associate(nullptr)
+    any(functionNoParamsType func, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoParams), _owner(owner), _associate(nullptr)
     {
         _value.functionNoParams = new functionNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -511,7 +520,7 @@ struct any
 #endif
     }
 
-    any(functionNoReturnNoParamsType func, any *owner = nullptr) : _type(anyTypeId::functionNoReturnNoParams), _owner(owner), _associate(nullptr)
+    any(functionNoReturnNoParamsType func, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoReturnNoParams), _owner(owner), _associate(nullptr)
     {
         _value.functionNoReturnNoParams = new functionNoReturnNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -519,7 +528,7 @@ struct any
 #endif
     }
 
-    any(lambdaType lambda, any *owner = nullptr) : _type(anyTypeId::lambda), _owner(owner), _associate(nullptr)
+    any(lambdaType lambda, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::lambda), _owner(owner), _associate(nullptr)
     {
         _value.lambda = new lambdaType(lambda);
 #ifdef EXTRA_DEBUG
@@ -527,7 +536,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoReturnType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturn), _owner(owner), _associate(nullptr)
+    any(lambdaNoReturnType lambda, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::lambdaNoReturn), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoReturn = new lambdaNoReturnType(lambda);
 #ifdef EXTRA_DEBUG
@@ -535,7 +544,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoParams), _owner(owner), _associate(nullptr)
+    any(lambdaNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::lambdaNoParams), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoParams = new lambdaNoParamsType(lambda);
 #ifdef EXTRA_DEBUG
@@ -543,7 +552,7 @@ struct any
 #endif
     }
 
-    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::lambdaNoReturnNoParams), _owner(owner), _associate(nullptr)
+    any(lambdaNoReturnNoParamsType lambda, any *owner = nullptr) : _type(anyTypeId::closure), _subType(anySubTypeId::lambdaNoReturnNoParams), _owner(owner), _associate(nullptr)
     {
         _value.lambdaNoReturnNoParams = new lambdaNoReturnNoParamsType(lambda);
 #ifdef EXTRA_DEBUG
@@ -552,7 +561,7 @@ struct any
     }
 
     template <class R, class... Args>
-    any(R (*value)(Args...)) : _type(anyTypeId::functionPtr), _owner(nullptr), _associate(nullptr)
+    any(R (*value)(Args...)) : _type(anyTypeId::closure), _subType(anySubTypeId::functionPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionPtr = (functionPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -561,7 +570,7 @@ struct any
     }
 
     template <class... Args>
-    any(void (*value)(Args...)) : _type(anyTypeId::functionNoReturnPtr), _owner(nullptr), _associate(nullptr)
+    any(void (*value)(Args...)) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoReturnPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionNoReturnPtr = (functionNoReturnPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -570,7 +579,7 @@ struct any
     }
 
     template <class R>
-    any(R (*value)()) : _type(anyTypeId::functionNoParamsPtr), _owner(nullptr), _associate(nullptr)
+    any(R (*value)()) : _type(anyTypeId::closure), _subType(anySubTypeId::functionNoParamsPtr), _owner(nullptr), _associate(nullptr)
     {
         _value.functionNoParamsPtr = (functionNoParamsPtrType)value;
 #ifdef EXTRA_DEBUG
@@ -579,7 +588,7 @@ struct any
     }
 
     template <class R, class... Args>
-    any(std::function<R(Args &&...)> func) : _type(anyTypeId::lambda), _owner(nullptr), _associate(nullptr)
+    any(std::function<R(Args &&...)> func) : _type(anyTypeId::closure), _subType(anySubTypeId::lambda), _owner(nullptr), _associate(nullptr)
     {
         _value.lambda = new lambdaType(func);
 #ifdef EXTRA_DEBUG
@@ -588,7 +597,7 @@ struct any
     }
 
     template <class... Args>
-    any(std::function<void(Args &&...)> func) : _type(anyTypeId::lambdaNoReturn), _owner(nullptr), _associate(nullptr)
+    any(std::function<void(Args &&...)> func) : _type(anyTypeId::closure), _subType(anySubTypeId::lambdaNoReturn), _owner(nullptr), _associate(nullptr)
     {
         _value.lambdaNoReturn = new lambdaNoReturnType(func);
 #ifdef EXTRA_DEBUG
@@ -597,7 +606,7 @@ struct any
     }
 
     template <class R>
-    any(std::function<R(void)> func) : _type(anyTypeId::lambdaNoParams), _owner(nullptr), _associate(nullptr)
+    any(std::function<R(void)> func) : _type(anyTypeId::closure), _subType(anySubTypeId::lambdaNoParams), _owner(nullptr), _associate(nullptr)
     {
         _value.lambdaNoParams = new lambdaNoParamsType(func);
 #ifdef EXTRA_DEBUG
@@ -605,7 +614,7 @@ struct any
 #endif
     }
 
-    any(paramsType::iterator begin, paramsType::iterator end) : _type(anyTypeId::array), _owner(nullptr), _associate(nullptr)
+    any(paramsType::iterator begin, paramsType::iterator end) : _type(anyTypeId::array), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         // count size;
         auto count = 0;
@@ -628,7 +637,7 @@ struct any
 #endif
     }
 
-    any(anyTypeId type, const paramsType &values) : _type(anyTypeId::array), _owner(nullptr), _associate(nullptr)
+    any(anyTypeId type, const paramsType &values) : _type(anyTypeId::array), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         std::vector<any> vals(values);
         _value.array = new arrayType(vals);
@@ -641,7 +650,7 @@ struct any
     {
     }
 
-    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values) : _type(anyTypeId::object), _owner(nullptr), _associate(nullptr)
+    any(anyTypeId type, const std::initializer_list<std::tuple<any, any>> &values) : _type(anyTypeId::object), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         objectType obj;
         for (auto &item : values)
@@ -679,7 +688,7 @@ struct any
     {
     }
 
-    any(anyTypeId initType) : _type(initType), _owner(nullptr), _associate(nullptr)
+    any(anyTypeId initType) : _type(initType), _subType(anySubTypeId::none), _owner(nullptr), _associate(nullptr)
     {
         switch (initType)
         {
@@ -902,47 +911,47 @@ struct any
     template <class... Args>
     any operator()(Args... args)
     {
-        switch (_type)
+        switch (_subType)
         {
-        case anyTypeId::functionPtr:
+        case anySubTypeId::functionPtr:
             return _value.functionPtr(_owner, {args...});
 
-        case anyTypeId::functionNoReturnPtr:
+        case anySubTypeId::functionNoReturnPtr:
             _value.functionNoReturnPtr(_owner, {args...});
             return any();
 
-        case anyTypeId::functionNoParamsPtr:
+        case anySubTypeId::functionNoParamsPtr:
             return _value.functionNoParamsPtr(_owner);
 
-        case anyTypeId::functionNoReturnNoParamsPtr:
+        case anySubTypeId::functionNoReturnNoParamsPtr:
             _value.functionNoReturnNoParamsPtr(_owner);
             return any();
 
-        case anyTypeId::function:
+        case anySubTypeId::function:
             return (*_value.function)(_owner, {args...});
 
-        case anyTypeId::functionNoReturn:
+        case anySubTypeId::functionNoReturn:
             (*_value.functionNoReturn)(_owner, {args...});
             return any();
 
-        case anyTypeId::functionNoParams:
+        case anySubTypeId::functionNoParams:
             return (*_value.functionNoParams)(_owner);
 
-        case anyTypeId::functionNoReturnNoParams:
+        case anySubTypeId::functionNoReturnNoParams:
             (*_value.functionNoReturnNoParams)(_owner);
             return any();
 
-        case anyTypeId::lambda:
+        case anySubTypeId::lambda:
             return (*(_value.lambda))({args...});
 
-        case anyTypeId::lambdaNoReturn:
+        case anySubTypeId::lambdaNoReturn:
             (*(_value.lambdaNoReturn))({args...});
             return any();
 
-        case anyTypeId::lambdaNoParams:
+        case anySubTypeId::lambdaNoParams:
             return (*(_value.lambdaNoParams))();
 
-        case anyTypeId::lambdaNoReturnNoParams:
+        case anySubTypeId::lambdaNoReturnNoParams:
             (*(_value.lambdaNoReturnNoParams))();
             return any();
 
@@ -969,18 +978,7 @@ struct any
             case anyTypeId::string:
                 return any(_value.string->operator[](index));
 
-            case anyTypeId::functionPtr:
-            case anyTypeId::functionNoReturnPtr:
-            case anyTypeId::functionNoParamsPtr:
-            case anyTypeId::functionNoReturnNoParamsPtr:
-            case anyTypeId::function:
-            case anyTypeId::functionNoReturn:
-            case anyTypeId::functionNoParams:
-            case anyTypeId::functionNoReturnNoParams:
-            case anyTypeId::lambda:
-            case anyTypeId::lambdaNoReturn:
-            case anyTypeId::lambdaNoParams:
-            case anyTypeId::lambdaNoReturnNoParams:                
+            case anyTypeId::closure:
                 if (_associate) {
                     return (*(_associate))[std::to_string(index)];
                 }
@@ -1033,18 +1031,7 @@ struct any
                 case anyTypeId::string:
                     return any(_value.string->operator[](index));
 
-                case anyTypeId::functionPtr:
-                case anyTypeId::functionNoReturnPtr:
-                case anyTypeId::functionNoParamsPtr:
-                case anyTypeId::functionNoReturnNoParamsPtr:
-                case anyTypeId::function:
-                case anyTypeId::functionNoReturn:
-                case anyTypeId::functionNoParams:
-                case anyTypeId::functionNoReturnNoParams:
-                case anyTypeId::lambda:
-                case anyTypeId::lambdaNoReturn:
-                case anyTypeId::lambdaNoParams:
-                case anyTypeId::lambdaNoReturnNoParams:                
+                case anyTypeId::closure:
                     if (!_associate) {
                         _associate = new objectType();
                     }                    
@@ -1077,18 +1064,7 @@ struct any
                     (*(_value.object))[std::to_string(index)] = newUndefined;
                     break;
 
-                case anyTypeId::functionPtr:
-                case anyTypeId::functionNoReturnPtr:
-                case anyTypeId::functionNoParamsPtr:
-                case anyTypeId::functionNoReturnNoParamsPtr:
-                case anyTypeId::function:
-                case anyTypeId::functionNoReturn:
-                case anyTypeId::functionNoParams:
-                case anyTypeId::functionNoReturnNoParams:
-                case anyTypeId::lambda:
-                case anyTypeId::lambdaNoReturn:
-                case anyTypeId::lambdaNoParams:
-                case anyTypeId::lambdaNoReturnNoParams:                
+                case anyTypeId::closure:
                     if (!_associate) {
                         _associate = new objectType();
                     }                    
@@ -1115,6 +1091,14 @@ struct any
                 {
                 case anyTypeId::object:
                     return (_value.object)->at(field);
+
+                case anyTypeId::closure:
+                    if (!_associate) {
+                        _associate = new objectType();
+                    }                    
+
+                    return (_associate)->at(field);
+                    break;                     
                 }
             }
             catch (const std::out_of_range &)
@@ -1132,18 +1116,7 @@ struct any
                     (*(_value.object))[field] = newUndefined;
                     break;
 
-                case anyTypeId::functionPtr:
-                case anyTypeId::functionNoReturnPtr:
-                case anyTypeId::functionNoParamsPtr:
-                case anyTypeId::functionNoReturnNoParamsPtr:
-                case anyTypeId::function:
-                case anyTypeId::functionNoReturn:
-                case anyTypeId::functionNoParams:
-                case anyTypeId::functionNoReturnNoParams:
-                case anyTypeId::lambda:
-                case anyTypeId::lambdaNoReturn:
-                case anyTypeId::lambdaNoParams:
-                case anyTypeId::lambdaNoReturnNoParams:                
+                case anyTypeId::closure:
                     if (!_associate) {
                         _associate = new objectType();
                     }                    
@@ -1177,18 +1150,7 @@ struct any
                 case anyTypeId::string:
                     return any(_value.string->at((size_t)index));
 
-                case anyTypeId::functionPtr:
-                case anyTypeId::functionNoReturnPtr:
-                case anyTypeId::functionNoParamsPtr:
-                case anyTypeId::functionNoReturnNoParamsPtr:
-                case anyTypeId::function:
-                case anyTypeId::functionNoReturn:
-                case anyTypeId::functionNoParams:
-                case anyTypeId::functionNoReturnNoParams:
-                case anyTypeId::lambda:
-                case anyTypeId::lambdaNoReturn:
-                case anyTypeId::lambdaNoParams:
-                case anyTypeId::lambdaNoReturnNoParams:                
+                case anyTypeId::closure:
                     if (!_associate) {
                         _associate = new objectType();
                     }                    
@@ -1219,18 +1181,7 @@ struct any
                     (*(_value.object))[std::string(index)] = newUndefined;
                     break;
 
-                case anyTypeId::functionPtr:
-                case anyTypeId::functionNoReturnPtr:
-                case anyTypeId::functionNoParamsPtr:
-                case anyTypeId::functionNoReturnNoParamsPtr:
-                case anyTypeId::function:
-                case anyTypeId::functionNoReturn:
-                case anyTypeId::functionNoParams:
-                case anyTypeId::functionNoReturnNoParams:
-                case anyTypeId::lambda:
-                case anyTypeId::lambdaNoReturn:
-                case anyTypeId::lambdaNoParams:
-                case anyTypeId::lambdaNoReturnNoParams:                
+                case anyTypeId::closure:
                     if (!_associate) {
                         _associate = new objectType();
                     }                    
@@ -1258,18 +1209,7 @@ struct any
             case anyTypeId::object:
                 return (*(_value.object))[(std::string)index];
 
-            case anyTypeId::functionPtr:
-            case anyTypeId::functionNoReturnPtr:
-            case anyTypeId::functionNoParamsPtr:
-            case anyTypeId::functionNoReturnNoParamsPtr:
-            case anyTypeId::function:
-            case anyTypeId::functionNoReturn:
-            case anyTypeId::functionNoParams:
-            case anyTypeId::functionNoReturnNoParams:
-            case anyTypeId::lambda:
-            case anyTypeId::lambdaNoReturn:
-            case anyTypeId::lambdaNoParams:
-            case anyTypeId::lambdaNoReturnNoParams:                
+            case anyTypeId::closure:
                 if (!_associate) {
                     const_cast<any*>(this)->_associate = new objectType();
                 }                    
@@ -2169,24 +2109,7 @@ struct any
             h2 = std::hash<void*>{} (_value.object);
             break;            
 
-        case anyTypeId::functionPtr:
-        case anyTypeId::functionNoReturnPtr:
-        case anyTypeId::functionNoParamsPtr:
-        case anyTypeId::functionNoReturnNoParamsPtr:
-            h2 = std::hash<void*>{} (_value.object);
-            break;
-
-        case anyTypeId::function:
-        case anyTypeId::functionNoReturn:
-        case anyTypeId::functionNoParams:
-        case anyTypeId::functionNoReturnNoParams:
-            h2 = std::hash<void*>{} (_value.object);
-            break;
-
-        case anyTypeId::lambda:
-        case anyTypeId::lambdaNoReturn:
-        case anyTypeId::lambdaNoParams:
-        case anyTypeId::lambdaNoReturnNoParams:
+        case anyTypeId::closure:
             h2 = std::hash<void*>{} (_value.object);
             break;
 
@@ -2219,18 +2142,7 @@ struct any
         case anyTypeId::string:
             return "string";
 
-        case anyTypeId::functionPtr:
-        case anyTypeId::functionNoReturnPtr:
-        case anyTypeId::functionNoParamsPtr:
-        case anyTypeId::functionNoReturnNoParamsPtr:
-        case anyTypeId::function:
-        case anyTypeId::functionNoReturn:
-        case anyTypeId::functionNoParams:
-        case anyTypeId::functionNoReturnNoParams:
-        case anyTypeId::lambda:
-        case anyTypeId::lambdaNoReturn:
-        case anyTypeId::lambdaNoParams:
-        case anyTypeId::lambdaNoReturnNoParams:
+        case anyTypeId::closure:
             return "function";
 
         default:
@@ -2291,25 +2203,32 @@ struct any
             os << "[object]";
             break;            
 
-        case anyTypeId::functionPtr:
-        case anyTypeId::functionNoReturnPtr:
-        case anyTypeId::functionNoParamsPtr:
-        case anyTypeId::functionNoReturnNoParamsPtr:
-            os << "[function](pointer)";
-            break;
-
-        case anyTypeId::function:
-        case anyTypeId::functionNoReturn:
-        case anyTypeId::functionNoParams:
-        case anyTypeId::functionNoReturnNoParams:
+        case anyTypeId::closure:
             os << "[function]";
-            break;
 
-        case anyTypeId::lambda:
-        case anyTypeId::lambdaNoReturn:
-        case anyTypeId::lambdaNoParams:
-        case anyTypeId::lambdaNoReturnNoParams:
-            os << "[function](arrow)";
+            switch (other._subType)
+            {
+            case anySubTypeId::functionPtr:
+            case anySubTypeId::functionNoReturnPtr:
+            case anySubTypeId::functionNoParamsPtr:
+            case anySubTypeId::functionNoReturnNoParamsPtr:
+                os << "(pointer)";
+                break;
+
+            case anySubTypeId::function:
+            case anySubTypeId::functionNoReturn:
+            case anySubTypeId::functionNoParams:
+            case anySubTypeId::functionNoReturnNoParams:
+                break;
+
+            case anySubTypeId::lambda:
+            case anySubTypeId::lambdaNoReturn:
+            case anySubTypeId::lambdaNoParams:
+            case anySubTypeId::lambdaNoReturnNoParams:
+                os << "(arrow)";
+                break;
+            }
+
             break;
 
         default:
