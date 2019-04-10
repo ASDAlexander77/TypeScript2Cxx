@@ -1088,7 +1088,14 @@ struct any
                     _associate = new any(anyTypeId::object);
                 }                    
 
-                return (*_associate)[field];
+                auto& value = (*_associate)[field];
+                if (value._type == anyTypeId::undefined
+                    && std::strcmp(field, "prototype") == 0) {
+                    // create new object to hold "prototype"
+                    value = any(anyTypeId::object);
+                }
+
+                return value;
             }
         }
         catch (const std::out_of_range &)
@@ -1100,19 +1107,6 @@ struct any
             case anyTypeId::object:
                 (*(_value.object))[field] = newUndefined;
                 return (_value.object)->at(field);
-
-            case anyTypeId::closure:
-                if (!_associate) {
-                    _associate = new any(anyTypeId::object);
-                }                    
-
-                if (std::strcmp(field, "prototype") == 0) {
-                    // create new object to hold "prototype"
-                    newUndefined = any(anyTypeId::object);
-                }
-
-                (*_associate)[field] = newUndefined;
-                return (*_associate)[field];
             }
         }
 
