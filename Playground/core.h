@@ -45,10 +45,10 @@ typedef std::function<any(const paramsType &)> lambdaType;
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
-#define FN_R_PARAMS(x) (functionPtrType) [x] (any *_this, const paramsType &params)
-#define FN_R(x) (functionNoParamsPtrType) [x] (any *_this)
-#define FN_PARAMS(x) (functionNoReturnPtrType) [x] (any *_this, const paramsType &params)
-#define FN(x) (functionNoReturnNoParamsPtrType) [x] (any *_this)
+#define FN_R_PARAMS() (functionPtrType) [] (any *_this, const paramsType &params)
+#define FN_R() (functionNoParamsPtrType) [] (any *_this)
+#define FN_PARAMS() (functionNoReturnPtrType) [] (any *_this, const paramsType &params)
+#define FN() (functionNoReturnNoParamsPtrType) [] (any *_this)
 #define LMB_R_PARAMS(x) (lambdaType) [x] (const paramsType &params)
 #define LMB_R(x) (lambdaNoParamsType) [x] ()
 #define LMB_PARAMS(x) (lambdaNoReturnType) [x] (const paramsType &params)
@@ -1013,65 +1013,59 @@ struct any
     template <class T, class = std::enable_if<std::is_integral_v<T>>>
     any &operator[](T index)
     {
-        int tries = 2;
-        while (tries-- > 0)
+        try
         {
-            try
+            switch (_type)
             {
-                switch (_type)
-                {
-                case anyTypeId::array:
-                    return (_value.array)->at(index);
-                case anyTypeId::object:
-                    return (_value.object)->at(std::to_string(index));
-                case anyTypeId::const_string:
-                    return any(_value.const_string[index]);
-                case anyTypeId::string:
-                    return any(_value.string->operator[](index));
+            case anyTypeId::array:
+                return (_value.array)->at(index);
+            case anyTypeId::object:
+                return (_value.object)->at(std::to_string(index));
+            case anyTypeId::const_string:
+                return any(_value.const_string[index]);
+            case anyTypeId::string:
+                return any(_value.string->operator[](index));
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                    return (*(_associate))[std::to_string(index)];
-                }
+                return (*(_associate))[std::to_string(index)];
             }
-            catch (const std::out_of_range &)
+        }
+        catch (const std::out_of_range &)
+        {
+            if (tries < 1)
             {
-                if (tries < 1)
+                throw;
+            }
+
+            // create new element
+            any newUndefined;
+            switch (_type)
+            {
+            case anyTypeId::array:
+            {
+                auto &arrayInst = (*(_value.array));
+                while (arrayInst.size() <= index)
                 {
-                    throw;
+                    arrayInst.push_back(newUndefined);
                 }
 
-                // create new element
-                any newUndefined;
-                switch (_type)
-                {
-                case anyTypeId::array:
-                {
-                    auto &arrayInst = (*(_value.array));
-                    while (arrayInst.size() <= index)
-                    {
-                        arrayInst.push_back(newUndefined);
-                    }
-                }
+                return (_value.array)->at(index);
+            }
+            case anyTypeId::object:
+                (*(_value.object))[std::to_string(index)] = newUndefined;
+                return (_value.object)->at(std::to_string(index));
 
-                    break;
-                case anyTypeId::object:
-                    (*(_value.object))[std::to_string(index)] = newUndefined;
-                    break;
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
-
-                    (*(_associate))[std::to_string(index)] = newUndefined;                
-                    break;
-                }
-
-                continue;
+                (*(_associate))[std::to_string(index)] = newUndefined;   
+                return (*(_associate))[std::to_string(index)];             
             }
         }
 
@@ -1080,50 +1074,38 @@ struct any
 
     any &operator[](const char *field)
     {
-        int tries = 2;
-        while (tries-- > 0)
+        try
         {
-            try
+            switch (_type)
             {
-                switch (_type)
-                {
-                case anyTypeId::object:
-                    return (_value.object)->at(field);
+            case anyTypeId::object:
+                return (_value.object)->at(field);
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                    return (_associate)->at(field);
-                    break;                     
-                }
+                return (_associate)->at(field);
             }
-            catch (const std::out_of_range &)
+        }
+        catch (const std::out_of_range &)
+        {
+            // create new element
+            any newUndefined;
+            switch (_type)
             {
-                if (tries < 1)
-                {
-                    throw;
-                }
+            case anyTypeId::object:
+                (*(_value.object))[field] = newUndefined;
+                return (_value.object)->at(field);
 
-                // create new element
-                any newUndefined;
-                switch (_type)
-                {
-                case anyTypeId::object:
-                    (*(_value.object))[field] = newUndefined;
-                    break;
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
-
-                    (*(_associate))[field] = newUndefined;
-                    break;                    
-                }
-
-                continue;
+                (*(_associate))[field] = newUndefined;
+                return (_associate)->at(field);
             }
         }
 
@@ -1132,63 +1114,52 @@ struct any
 
     any &operator[](any index)
     {
-        int tries = 2;
-        while (tries-- > 0)
+        try
         {
-            try
+            switch (_type)
             {
-                switch (_type)
-                {
-                case anyTypeId::array:
-                    return (_value.array)->at((size_t)index);
-                case anyTypeId::object:
-                    return (_value.object)->at((std::string)index);
-                case anyTypeId::const_string:
-                    return any(_value.const_string[(size_t)index]);
-                case anyTypeId::string:
-                    return any(_value.string->at((size_t)index));
+            case anyTypeId::array:
+                return (_value.array)->at((size_t)index);
+            case anyTypeId::object:
+                return (_value.object)->at((std::string)index);
+            case anyTypeId::const_string:
+                return any(_value.const_string[(size_t)index]);
+            case anyTypeId::string:
+                return any(_value.string->at((size_t)index));
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                    return _associate->at((std::string)index);                   
-                }
+                return _associate->at((std::string)index);                   
             }
-            catch (const std::out_of_range &)
+        }
+        catch (const std::out_of_range &)
+        {
+            // create new element
+            any newUndefined;
+            switch (_type)
             {
-                if (tries < 1)
+            case anyTypeId::array:
+                while (_value.array->size() <= (size_t)index)
                 {
-                    throw;
+                    _value.array->push_back(newUndefined);
                 }
 
-                // create new element
-                any newUndefined;
-                switch (_type)
-                {
-                case anyTypeId::array:
-                    while (_value.array->size() <= (size_t)index)
-                    {
-                        _value.array->push_back(newUndefined);
-                    }
+                return (_value.array)->at((size_t)index);
 
-                    break;
+            case anyTypeId::object:
+                (*(_value.object))[std::string(index)] = newUndefined;
+                return (_value.object)->at((std::string)index);
 
-                case anyTypeId::object:
-                    (*(_value.object))[std::string(index)] = newUndefined;
-                    break;
+            case anyTypeId::closure:
+                if (!_associate) {
+                    _associate = new objectType();
+                }                    
 
-                case anyTypeId::closure:
-                    if (!_associate) {
-                        _associate = new objectType();
-                    }                    
-
-                    (*(_associate))[std::string(index)] = newUndefined;
-                    break;
-                }
-
-                continue;
+                (*(_associate))[std::string(index)] = newUndefined;
+                return (_associate)->at((std::string)index);
             }
         }
 
