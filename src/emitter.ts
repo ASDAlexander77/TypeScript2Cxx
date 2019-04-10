@@ -655,7 +655,8 @@ export class Emitter {
 
         const noParams = node.parameters.length === 0;
         const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
-        const isFunction =  isFunctionDeclaration || node.kind === ts.SyntaxKind.FunctionExpression;
+        const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
+        const isFunction =  isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
         const noReturn = !this.hasReturn(node) ? 'NoReturn' : '';
@@ -665,6 +666,8 @@ export class Emitter {
                 this.writer.writeString('any ');
                 this.processExpression(node.name);
                 this.writer.writeString(' = ');
+            } else if (isFunctionExpression) {
+                this.writer.writeString('any(');
             }
 
             // lambda
@@ -756,6 +759,11 @@ export class Emitter {
         });
 
         this.writer.EndBlock();
+
+        if (writeAsLambdaCFunction && isFunctionExpression) {
+            this.writer.cancelNewLine();
+            this.writer.writeString(')');
+        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -983,19 +991,24 @@ export class Emitter {
                     this.writer.writeStringNewLine(', ');
                 }
 
-                const property = <ts.PropertyAssignment>element;
+                if (element.kind === ts.SyntaxKind.SpreadAssignment) {
+                    const spreadAssignment = <ts.SpreadAssignment>element;
+                    this.processExpression(spreadAssignment.expression);
+                } else if (element.kind === ts.SyntaxKind.PropertyAssignment) {
+                    const property = <ts.PropertyAssignment>element;
 
-                this.writer.writeString('std::make_tuple(');
+                    this.writer.writeString('std::make_tuple(');
 
-                if (property.name.kind === ts.SyntaxKind.Identifier) {
-                    this.processExpression(ts.createStringLiteral(property.name.text));
-                } else {
-                    this.processExpression(<ts.Expression>property.name);
+                    if (property.name && property.name.kind === ts.SyntaxKind.Identifier) {
+                        this.processExpression(ts.createStringLiteral(property.name.text));
+                    } else {
+                        this.processExpression(<ts.Expression>property.name);
+                    }
+
+                    this.writer.writeString(', ');
+                    this.processExpression(property.initializer);
+                    this.writer.writeString(')');
                 }
-
-                this.writer.writeString(', ');
-                this.processExpression(property.initializer);
-                this.writer.writeString(')');
 
                 next = true;
             });

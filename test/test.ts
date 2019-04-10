@@ -1,8 +1,7 @@
-function buildName(firstName: string, lastName: string = "Smith") {
-    return firstName + " " + lastName;
-}
+var cls1 = /** @class */ (function () {
+    function cls1() {
+    }
+    return cls1;
+}());
 
-let result1 = buildName("Bob", "Adams");
-let result2 = buildName("Bob");
-console.log(result1);
-console.log(result2);
+var c = new cls1();
