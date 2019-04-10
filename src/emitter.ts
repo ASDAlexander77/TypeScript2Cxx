@@ -1141,7 +1141,6 @@ export class Emitter {
 
     private processVoidExpression(node: ts.VoidExpression): void {
         this.writer.writeString('Void(');
-        this.writer.writeString('(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
     }
