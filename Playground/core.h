@@ -1007,6 +1007,12 @@ struct any
             {
             case anyTypeId::object:
                 return (*(_value.object))[field];
+            case anyTypeId::closure:
+                if (!_associate) {
+                    return (*_associate)[field];
+                }                    
+
+                return any();
             }
         }
         catch (const std::out_of_range &)
@@ -1105,6 +1111,14 @@ struct any
             switch (_type)
             {
             case anyTypeId::object:
+
+                if (_associate) {
+                    auto& superValue = (*_associate)[field];
+                    if (superValue._type != anyTypeId::undefined) {
+                        return superValue;
+                    }
+                }
+
                 (*(_value.object))[field] = newUndefined;
                 return (_value.object)->at(field);
             }
