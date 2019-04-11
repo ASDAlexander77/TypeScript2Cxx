@@ -173,30 +173,25 @@ export class Emitter {
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
-        // TODO: temp solution
-        this.writer.writeStringNewLine('any __extends;');
-
-        sourceFile.statements
-            .forEach(s => {
-                this.declare(s);
-            });
-
-        this.scope.pop();
-
         this.writer.writeStringNewLine('');
-        this.writer.writeStringNewLine('int main(int argc, char** argv)');
+        this.writer.writeStringNewLine('void Main(void)');
         this.writer.BeginBlock();
-
-        // TODO: temp solution
-        this.writer.writeStringNewLine('any *_this = &ROOT;');
 
         sourceFile.statements.forEach(s => {
             this.processStatement(s);
         });
 
         this.writer.writeStringNewLine('');
+        this.writer.EndBlock();
+
+        this.writer.writeStringNewLine('');
+        this.writer.writeStringNewLine('int main(int argc, char** argv)');
+        this.writer.BeginBlock();
+        this.writer.writeStringNewLine('Main();');
         this.writer.writeStringNewLine('return 0;');
         this.writer.EndBlock();
+
+        this.scope.pop();
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -593,8 +588,12 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
-        if (declarationList.parent.kind !== ts.SyntaxKind.VariableStatement && !((<any>declarationList).__ignore_type)) {
-            this.writer.writeString('any ');
+        if (!((<any>declarationList).__ignore_type)) {
+            if (Helpers.isConst(declarationList)) {
+                this.writer.writeString('const ');
+            }
+
+            this.writer.writeString('auto ');
         }
 
         const next = { next: false };
@@ -998,19 +997,19 @@ export class Emitter {
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
-        this.writer.writeString(`any(${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'})`);
+        this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'}`);
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.writer.writeString('any(nullptr)');
+        this.writer.writeString('nullptr');
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        this.writer.writeString(`any(${node.text})`);
+        this.writer.writeString(`${node.text}`);
     }
 
     private processStringLiteral(node: ts.StringLiteral): void {
-        this.writer.writeString(`"${node.text}"_a`);
+        this.writer.writeString(`"${node.text}"`);
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
@@ -1219,16 +1218,6 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-        if (node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
-            const typeInfo = this.resolver.getOrResolveTypeOf(node);
-            if (this.resolver.isNotDetected(typeInfo)) {
-                this.writer.writeString(`ROOT["`);
-                this.writer.writeString(node.text);
-                this.writer.writeString(`"]`);
-                return;
-            }
-        }
-
         this.writer.writeString(node.text);
     }
 
@@ -1251,9 +1240,8 @@ export class Emitter {
         */
 
         this.processExpression(node.expression);
-        this.writer.writeString('["');
+        this.writer.writeString('.');
         this.processExpression(node.name);
-        this.writer.writeString('"]');
     }
 }
 
