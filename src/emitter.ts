@@ -60,7 +60,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';
-        this.opsMap[ts.SyntaxKind.InKeyword] = '__In';
+        this.opsMap[ts.SyntaxKind.InKeyword] = '__IN';
 
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
