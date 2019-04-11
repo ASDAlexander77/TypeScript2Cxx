@@ -693,6 +693,27 @@ export class Emitter {
         return hasArgumentsResult;
     }
 
+    private requireCapture(location: ts.Node): boolean {
+        let requireCaptureResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier
+                && node.parent.kind !== ts.SyntaxKind.FunctionDeclaration
+                && node.parent.kind !== ts.SyntaxKind.ClassDeclaration
+                && node.parent.kind !== ts.SyntaxKind.MethodDeclaration
+                && node.parent.kind !== ts.SyntaxKind.EnumDeclaration) {
+                const isLocal = this.resolver.isLocal(node);
+                if (isLocal !== undefined && !isLocal) {
+                    requireCaptureResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return requireCaptureResult;
+    }
+
     private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
         if (!node.body
             || ((<any>node).body.statements
@@ -702,14 +723,17 @@ export class Emitter {
             return;
         }
 
+        const noReturn = !this.hasReturn(node);
         const noParams = node.parameters.length === 0 && !this.hasArguments(node);
+        const noCapture = !this.requireCapture(node);
+
         const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
-        const noReturn = !this.hasReturn(node);
         const isAnyCastRequired = node.parent.kind === ts.SyntaxKind.CallExpression || node.parent.kind === ts.SyntaxKind.ParenthesizedExpression;
+
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
                 // named function
@@ -722,11 +746,12 @@ export class Emitter {
             // lambda
             const noReturnPart = noReturn ? '' : '_R';
             const noParamsPart = noParams ? '' : '_PARAMS';
+            const noCapturePart = noCapture ? '' : 'C';
             if (isArrowFunction) {
                 const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
                 this.writer.writeString(`LMB${noReturnPart}${noParamsPart}(${byReference})`);
             } else {
-                this.writer.writeString(`FN${noReturnPart}${noParamsPart}()`);
+                this.writer.writeString(`FN${noCapturePart}${noReturnPart}${noParamsPart}()`);
             }
         }
 

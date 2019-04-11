@@ -1,5 +1,4 @@
 import * as ts from 'typescript';
-import { Test } from 'mocha';
 
 export class IdentifierResolver {
 
@@ -43,29 +42,79 @@ export class IdentifierResolver {
             return undefined;
         }
 
+        const name = (<ts.Identifier>location).text;
+        let resolvedSymbol;
+
         // find first node with 'locals'
         let locationWithLocals = location;
-        while (locationWithLocals) {
-            if ((<any>locationWithLocals).locals) {
-                break;
+        while (true) {
+            while (locationWithLocals) {
+                if ((<any>locationWithLocals).locals) {
+                    break;
+                }
+
+                locationWithLocals = locationWithLocals.parent;
             }
 
-            locationWithLocals = locationWithLocals.parent;
-        }
+            if (!locationWithLocals) {
+                // todo function, method etc can't be found
+                return null;
+            }
 
-        if (!locationWithLocals) {
-            // todo function, method etc can't be found
-            return null;
-        }
+            resolvedSymbol = (<any>this.typeChecker).resolveName(
+                name, locationWithLocals, ((1 << 27) - 1));
+            if (!resolvedSymbol) {
+                locationWithLocals = locationWithLocals.parent;
+                continue;
+            }
 
-        const resolvedSymbol =
-            (<any>this.typeChecker).resolveName((<ts.Identifier>location).text, locationWithLocals, ((1 << 27) - 1));
-        if (!resolvedSymbol) {
-            return null;
+            break;
         }
 
         const typeNode = this.typeChecker.getTypeOfSymbolAtLocation(resolvedSymbol, location);
         return typeNode;
     }
 
+    public isLocal(location: ts.Node): boolean {
+        if (location.kind !== ts.SyntaxKind.Identifier
+            && location.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            // only identifier is accepted
+            return undefined;
+        }
+
+        const name = (<ts.Identifier>location).text;
+        let resolvedSymbol;
+
+        // find first node with 'locals'
+        let locationWithLocals = location;
+        let level = 0;
+        while (true) {
+            while (locationWithLocals) {
+                if ((<any>locationWithLocals).locals) {
+                    if (locationWithLocals.kind === ts.SyntaxKind.FunctionDeclaration
+                        || locationWithLocals.kind === ts.SyntaxKind.FunctionExpression
+                        || locationWithLocals.kind === ts.SyntaxKind.ArrowFunction
+                        || locationWithLocals.kind === ts.SyntaxKind.MethodDeclaration
+                        || locationWithLocals.kind === ts.SyntaxKind.ClassDeclaration) {
+                        level++;
+                    }
+                    break;
+                }
+
+                locationWithLocals = locationWithLocals.parent;
+            }
+
+            if (!locationWithLocals) {
+                // todo function, method etc can't be found
+                return undefined;
+            }
+
+            resolvedSymbol = (<any>locationWithLocals).locals.get(name);
+            if (resolvedSymbol) {
+                return level <= 1;
+            }
+
+            locationWithLocals = locationWithLocals.parent;
+        }
+    }
 }
