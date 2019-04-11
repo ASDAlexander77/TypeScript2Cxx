@@ -593,7 +593,7 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
-        if (declarationList.parent.kind !== ts.SyntaxKind.VariableStatement) {
+        if (declarationList.parent.kind !== ts.SyntaxKind.VariableStatement && !((<any>declarationList).__ignore_type)) {
             this.writer.writeString('any ');
         }
 
