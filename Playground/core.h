@@ -2317,6 +2317,14 @@ static void Console_log(any* _this, const paramsType &params)
     std::cout << std::endl;
 }
 
+static struct __ObjectType : any
+{
+} Object;
+
+static struct __ArrayType : any
+{
+} Array;
+
 static struct Console : any
 {
     any log;

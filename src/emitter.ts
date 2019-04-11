@@ -110,14 +110,56 @@ export class Emitter {
         // TODO: ...
     }
 
-    private isDeclarationStatement(f: ts.Statement): boolean {
-        if (f.kind === ts.SyntaxKind.FunctionDeclaration
-            || f.kind === ts.SyntaxKind.EnumDeclaration
-            || f.kind === ts.SyntaxKind.ClassDeclaration) {
-            return true;
-        }
+    private declare(node: ts.Statement) {
+        switch (node.kind) {
+            case ts.SyntaxKind.EmptyStatement: return;
+            case ts.SyntaxKind.VariableStatement:
+                const declarationList = (<ts.VariableStatement>node).declarationList;
+                this.writer.writeString('any');
+                let next = false;
+                declarationList.declarations.forEach(
+                    d => {
+                        if (d.name.kind === ts.SyntaxKind.Identifier) {
+                            if (next) {
+                                this.writer.writeString(',');
+                            }
 
-        return false;
+                            this.writer.writeString(' ');
+                            this.processIndentifier(d.name);
+                            next = true;
+                        }
+                    });
+
+                this.writer.EndOfStatement();
+
+                return;
+            case ts.SyntaxKind.FunctionDeclaration:
+                const functionDeclaration = <ts.FunctionDeclaration>node;
+                this.writer.writeString('any ');
+                this.processIndentifier(functionDeclaration.name);
+                this.writer.EndOfStatement();
+                return;
+            case ts.SyntaxKind.ModuleBlock: /*implement*/ return;
+            case ts.SyntaxKind.EnumDeclaration:
+                const enumDeclaration = <ts.EnumDeclaration>node;
+                this.writer.writeString('any ');
+                this.processIndentifier(enumDeclaration.name);
+                this.writer.EndOfStatement();
+                return;
+            case ts.SyntaxKind.ClassDeclaration:
+                const classDeclaration = <ts.ClassDeclaration>node;
+                this.writer.writeString('any ');
+                this.processIndentifier(classDeclaration.name);
+                this.writer.EndOfStatement();
+                return;
+            case ts.SyntaxKind.ExportDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.ImportDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.ModuleDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.NamespaceExportDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.InterfaceDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.TypeAliasDeclaration: /*implement*/ return;
+            case ts.SyntaxKind.ExportAssignment: /*implement*/ return;
+        }
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
@@ -131,22 +173,12 @@ export class Emitter {
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
+        // TODO: temp solution
+        this.writer.writeStringNewLine('any __extends;');
+
         sourceFile.statements
-            .filter(f => this.isDeclarationStatement(f) || f.kind === ts.SyntaxKind.VariableStatement)
             .forEach(s => {
-                if (s.kind === ts.SyntaxKind.VariableStatement) {
-                    const variableStatement = <ts.VariableStatement>s;
-                    (<any>(variableStatement.declarationList)).__skip_initialize = true;
-                }
-
-                this.processStatement(s);
-
-                // clean up
-                if (s.kind === ts.SyntaxKind.VariableStatement) {
-                    const variableStatement = <ts.VariableStatement>s;
-                    delete (<any>(variableStatement.declarationList)).__skip_initialize;
-                    (<any>(variableStatement.declarationList)).__ignore_type = true;
-                }
+                this.declare(s);
             });
 
         this.scope.pop();
@@ -155,7 +187,10 @@ export class Emitter {
         this.writer.writeStringNewLine('int main(int argc, char** argv)');
         this.writer.BeginBlock();
 
-        sourceFile.statements.filter(f => !this.isDeclarationStatement(f)).forEach(s => {
+        // TODO: temp solution
+        this.writer.writeStringNewLine('any *_this = &ROOT;');
+
+        sourceFile.statements.forEach(s => {
             this.processStatement(s);
         });
 
@@ -558,17 +593,6 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
-        if (this.isGlobalScope
-            && declarationList.declarations.every(d => this.isAlreadyDeclaredInGlobalScope((<ts.Identifier>d.name).text))) {
-            // escape if already declared;
-            return false;
-        }
-
-        // write declaration
-        if (!(<any>declarationList).__ignore_type) {
-            this.writer.writeString('any ');
-        }
-
         const skipInit = (<any>declarationList).__skip_initialize;
         const next = { next: false };
         let result = false;
@@ -666,13 +690,14 @@ export class Emitter {
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
         const noReturn = !this.hasReturn(node);
+        const isAnyCastRequired = node.parent.kind === ts.SyntaxKind.CallExpression || node.parent.kind === ts.SyntaxKind.ParenthesizedExpression;
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
                 // named function
                 this.writer.writeString('any ');
                 this.processExpression(node.name);
                 this.writer.writeString(' = ');
-            } else if (isFunctionExpression && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            } else if (isFunctionExpression && isAnyCastRequired) {
                 this.writer.writeString('any(');
             }
 
@@ -722,29 +747,11 @@ export class Emitter {
             }
 
             this.writer.EndOfStatement();
+        });
 
-            /*
-            this.writer.writeString('any ');
-            if (element.name.kind === ts.SyntaxKind.Identifier) {
-                this.processExpression(element.name);
-            } else {
-                throw new Error('Not implemented');
-            }
-
-            if (element.dotDotDotToken) {
-                this.writer.writeString('(param, end)');
-            } else {
-                this.writer.writeString(' = end != param ? *param++ : ');
-
-                if (element.initializer) {
-                    this.processExpression(element.initializer);
-                } else {
-                    this.writer.writeString('any()');
-                }
-            }
-
-            this.writer.EndOfStatement();
-            */
+        this.writer.writeStringNewLine('// declare');
+        (<any>node.body).statements.forEach(element => {
+            this.declare(element);
         });
 
         this.writer.writeStringNewLine('// body');
@@ -754,7 +761,7 @@ export class Emitter {
 
         this.writer.EndBlock();
 
-        if (writeAsLambdaCFunction && isFunctionExpression && node.parent.kind === ts.SyntaxKind.CallExpression) {
+        if (writeAsLambdaCFunction && isFunctionExpression && isAnyCastRequired) {
             this.writer.cancelNewLine();
             this.writer.writeString(')');
         }
@@ -1138,11 +1145,7 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        if (this.isGlobalScope) {
-            this.writer.writeString('ROOT');
-        } else {
-            this.writer.writeString('(*_this)');
-        }
+        this.writer.writeString('(*_this)');
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
