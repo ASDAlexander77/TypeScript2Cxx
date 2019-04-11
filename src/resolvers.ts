@@ -36,6 +36,10 @@ export class IdentifierResolver {
         return this.typeChecker.getTypeAtLocation(location);
     }
 
+    public getTypeOfSymbolAtLocation(symbol: ts.Symbol, location: ts.Node): ts.Type {
+        return this.typeChecker.getTypeOfSymbolAtLocation(symbol, location);
+    }
+
     public resolveTypeOf(location: ts.Node): ts.Type {
         if (location.kind !== ts.SyntaxKind.Identifier) {
             // only identifier is accepted

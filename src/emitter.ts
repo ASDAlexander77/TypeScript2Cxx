@@ -162,6 +162,26 @@ export class Emitter {
         }
     }
 
+    private isDeclarationStatement(f: ts.Statement): boolean {
+        if (f.kind === ts.SyntaxKind.FunctionDeclaration
+            || f.kind === ts.SyntaxKind.EnumDeclaration
+            || f.kind === ts.SyntaxKind.ClassDeclaration
+            || f.kind === ts.SyntaxKind.VariableStatement) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isLocalVarDeclaration(f: ts.Statement): boolean {
+        if (f.kind === ts.SyntaxKind.VariableStatement) {
+            const variableStatement = <ts.VariableStatement>f;
+            return Helpers.isConstOrLet(variableStatement.declarationList);
+        }
+
+        return false;
+    }
+
     private processFile(sourceFile: ts.SourceFile): void {
         this.sourceFileName = sourceFile.fileName;
 
@@ -173,11 +193,15 @@ export class Emitter {
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
+        sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+            this.processStatement(s);
+        });
+
         this.writer.writeStringNewLine('');
         this.writer.writeStringNewLine('void Main(void)');
         this.writer.BeginBlock();
 
-        sourceFile.statements.forEach(s => {
+        sourceFile.statements.filter(s => !this.isDeclarationStatement(s)).forEach(s => {
             this.processStatement(s);
         });
 
@@ -713,6 +737,14 @@ export class Emitter {
         return requireCaptureResult;
     }
 
+    private processType(type: ts.TypeNode): void {
+        switch (type.kind) {
+            case ts.SyntaxKind.NumberKeyword:
+                this.writer.writeString('number');
+                break;
+        }
+    }
+
     private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
         if (!node.body
             || ((<any>node).body.statements
@@ -731,41 +763,29 @@ export class Emitter {
         const isFunction = isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
-        const isAnyCastRequired = node.parent.kind === ts.SyntaxKind.CallExpression || node.parent.kind === ts.SyntaxKind.ParenthesizedExpression;
+        const isAnyCastRequired =
+            node.parent.kind === ts.SyntaxKind.CallExpression
+            || node.parent.kind === ts.SyntaxKind.ParenthesizedExpression;
 
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
+                this.writer.writeString('auto ');
                 // named function
                 this.processExpression(node.name);
-                this.writer.writeString(' = ');
             } else if (isFunctionExpression && isAnyCastRequired) {
-                this.writer.writeString('any(');
+                // ...
             }
 
             // lambda
-            const noReturnPart = noReturn ? '' : '_R';
-            const noParamsPart = noParams ? '' : '_PARAMS';
-            const noCapturePart = noCapture ? '' : 'C';
             if (isArrowFunction) {
                 const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString(`LMB${noReturnPart}${noParamsPart}(${byReference})`);
+                // ...
             } else {
-                this.writer.writeString(`FN${noCapturePart}${noReturnPart}${noParamsPart}()`);
+                // ...
             }
         }
 
-        if (writeAsLambdaCFunction && !noReturn) {
-            this.writer.writeStringNewLine(' -> any');
-        } else {
-            this.writer.writeStringNewLine();
-        }
-
-        this.writer.BeginBlock();
-
-        // read params
-        if (!noParams) {
-            this.writer.writeStringNewLine('HEADER');
-        }
+        this.writer.writeString('(');
 
         node.parameters.forEach(element => {
             if (element.name.kind !== ts.SyntaxKind.Identifier) {
@@ -773,30 +793,28 @@ export class Emitter {
             }
 
             if (element.dotDotDotToken) {
-                this.writer.writeString('any ');
-                this.processExpression(element.name);
-                this.writer.writeString('(param, end)');
+                // ...
             } else {
-
-                this.writer.writeString(`PARAM${((element.initializer) ? '_DEFAULT' : '')}(`);
+                this.processType(element.type);
+                this.writer.writeString(' ');
                 this.processExpression(element.name);
                 if (element.initializer) {
-                    this.writer.writeString(', ');
+                    this.writer.writeString(' = ');
                     this.processExpression(element.initializer);
                 }
-
-                this.writer.writeString(')');
             }
-
-            this.writer.EndOfStatement();
         });
 
-        this.writer.writeStringNewLine('// declare');
-        (<any>node.body).statements.forEach(element => {
-            this.declare(element);
-        });
+        this.writer.writeString(')');
 
-        this.writer.writeStringNewLine('// body');
+        if (writeAsLambdaCFunction && !noReturn) {
+            this.writer.writeStringNewLine(' -> auto');
+        } else {
+            this.writer.writeStringNewLine();
+        }
+
+        this.writer.BeginBlock();
+
         (<any>node.body).statements.forEach(element => {
             this.processStatement(element);
         });
