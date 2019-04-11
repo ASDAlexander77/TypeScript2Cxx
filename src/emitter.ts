@@ -677,9 +677,9 @@ export class Emitter {
             const noParamsPart = noParams ? '' : '_PARAMS';
             if (isArrowFunction) {
                 const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString(`LMB${noReturnPart}${noParamsPart}(${byReference}) `);
+                this.writer.writeString(`LMB${noReturnPart}${noParamsPart}(${byReference})`);
             } else {
-                this.writer.writeString(`FN${noReturnPart}${noParamsPart}() `);
+                this.writer.writeString(`FN${noReturnPart}${noParamsPart}()`);
             }
         }
 
@@ -802,6 +802,8 @@ export class Emitter {
             this.writer.writeString('else ');
             this.processStatement(node.elseStatement);
         }
+
+        this.writer.writeStringNewLine();
     }
 
     private processDoStatement(node: ts.DoStatement): void {
@@ -1176,6 +1178,7 @@ export class Emitter {
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
 
+        /*
         const typeInfo = this.resolver.getTypeOf(node.expression);
 
         this.processExpression(node.expression);
@@ -1189,6 +1192,12 @@ export class Emitter {
             this.writer.writeString('.');
             this.processExpression(node.name);
         }
+        */
+
+       this.processExpression(node.expression);
+       this.writer.writeString('["');
+       this.processExpression(node.name);
+       this.writer.writeString('"]');
     }
 }
 

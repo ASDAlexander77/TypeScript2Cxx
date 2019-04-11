@@ -1115,6 +1115,7 @@ struct any
                 if (_associate) {
                     auto& superValue = (*_associate)[field];
                     if (superValue._type != anyTypeId::undefined) {
+                        superValue._owner = this;
                         return superValue;
                     }
                 }
@@ -2311,6 +2312,7 @@ static struct Console : any
         : any(anyTypeId::object), 
           log(&Console_log, this)
     {
+        (*this)["log"] = &Console_log;
     }
 
 } console;
