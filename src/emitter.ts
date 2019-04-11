@@ -742,7 +742,10 @@ export class Emitter {
             case ts.SyntaxKind.NumberKeyword:
                 this.writer.writeString('number');
                 break;
-        }
+            default:
+                this.writer.writeString('any');
+                break;
+    }
     }
 
     private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
