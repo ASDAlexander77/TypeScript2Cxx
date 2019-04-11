@@ -17,8 +17,8 @@ namespace js
 #define AND(x, y) ((bool)(x) ? (y) : (x))
 
 #define HEADER                      \
-    auto param = params.begin();    \
-    auto end = params.end();        
+    auto param = arguments.begin();    \
+    auto end = arguments.end();        
 
 #define PARAM(x) any x = end != param ? *param++ : any();
 #define PARAM_DEFAULT(x, y) any x = end != param ? *param++ : (y);
@@ -46,13 +46,17 @@ typedef std::function<any(const paramsType &)> lambdaType;
 typedef std::unordered_map<std::string, any> objectType;
 typedef std::vector<any> arrayType;
 
-#define FN_R_PARAMS() (functionPtrType) [] (any *_this, const paramsType &params)
+#define FN_R_PARAMS() (functionPtrType) [] (any *_this, const paramsType &arguments)
 #define FN_R() (functionNoParamsPtrType) [] (any *_this)
-#define FN_PARAMS() (functionNoReturnPtrType) [] (any *_this, const paramsType &params)
+#define FN_PARAMS() (functionNoReturnPtrType) [] (any *_this, const paramsType &arguments)
 #define FN() (functionNoReturnNoParamsPtrType) [] (any *_this)
-#define LMB_R_PARAMS(x) (lambdaType) [x] (const paramsType &params)
+#define FNC_R_PARAMS() (functionType) [&] (any *_this, const paramsType &arguments)
+#define FNC_R() (functionNoParamsType) [&] (any *_this)
+#define FNC_PARAMS() (functionNoReturnType) [&] (any *_this, const paramsType &arguments)
+#define FNC() (functionNoReturnNoParamsType) [&] (any *_this)
+#define LMB_R_PARAMS(x) (lambdaType) [x] (const paramsType &arguments)
 #define LMB_R(x) (lambdaNoParamsType) [x] ()
-#define LMB_PARAMS(x) (lambdaNoReturnType) [x] (const paramsType &params)
+#define LMB_PARAMS(x) (lambdaNoReturnType) [x] (const paramsType &arguments)
 #define LMB(x) (lambdaNoReturnNoParamsType) [x] ()
 
 enum anyTypeId
