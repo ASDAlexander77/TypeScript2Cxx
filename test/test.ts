@@ -1,12 +1,15 @@
-let isDone1: boolean = false;
-const isDone2: boolean = false;
-var isDone3: boolean = false;
-let val1: any = null;
-const val2: any = null;
-var val3: any = null;
-console.log(isDone1);
-console.log(isDone2);
-console.log(isDone3);
-console.log(val1);
-console.log(val2);
-console.log(val3);
+class Class1 {
+    public method1(): boolean {
+        return false;
+    }
+}
+class Class2 extends Class1 {
+    public method2(): boolean {
+        return true;
+    }
+}
+const c1 = new Class1();
+console.log(c1.method1());
+const c2 = new Class2();
+console.log(c2.method1());
+console.log(c2.method2());
