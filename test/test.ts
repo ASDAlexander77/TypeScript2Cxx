@@ -1,8 +1,5 @@
-class Class1 {
-    public method1(): boolean {
-        return false;
-    }
+for (let i = 0; i < 3; i++) {
+    console.log(i);
+    if (i == 0) continue;
+    break;
 }
-
-const c1 = new Class1();
-console.log(c1.method1());

@@ -593,18 +593,21 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
-        const skipInit = (<any>declarationList).__skip_initialize;
+        if (declarationList.parent.kind !== ts.SyntaxKind.VariableStatement) {
+            this.writer.writeString('any ');
+        }
+
         const next = { next: false };
         let result = false;
         declarationList.declarations.forEach(
             d => result = this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, next, skipInit) || result);
+                <ts.Identifier>d.name, d.initializer, next) || result);
 
         return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next?: { next: boolean }, skipInit?: boolean) {
+        name: ts.Identifier, initializer: ts.Expression, next?: { next: boolean }) {
         if (next && next.next) {
             this.writer.writeString(', ');
         }
@@ -613,16 +616,8 @@ export class Emitter {
         this.addToDeclaredInGlobalScope(name.text);
 
         if (initializer) {
-            if (!this.isGlobalScope) {
-                this.writer.writeString(' = ');
-                this.processExpression(initializer);
-            } else {
-                if (!skipInit) {
-                    this.writer.writeString('(');
-                    this.processExpression(initializer);
-                    this.writer.writeString(')');
-                }
-            }
+            this.writer.writeString(' = ');
+            this.processExpression(initializer);
         }
 
         if (next) {
@@ -639,10 +634,9 @@ export class Emitter {
         }
     }
 
-    private hasReturn(location: ts.Node): boolean {
-        let hasReturnResult = false;
+    private childrenVisitor(location: ts.Node, visit: (node: ts.Node) => boolean) {
         let root = true;
-        function checkReturn(node: ts.Node): any {
+        function checkChild(node: ts.Node): any {
             if (root) {
                 root = false;
             } else {
@@ -657,6 +651,17 @@ export class Emitter {
                 }
             }
 
+            if (!visit(node)) {
+                ts.forEachChild(node, checkChild);
+            }
+        }
+
+        ts.forEachChild(location, checkChild);
+    }
+
+    private hasReturn(location: ts.Node): boolean {
+        let hasReturnResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
             if (node.kind === ts.SyntaxKind.ReturnStatement) {
                 const returnStatement = <ts.ReturnStatement>node;
                 if (returnStatement.expression) {
@@ -665,13 +670,27 @@ export class Emitter {
                 }
             }
 
-            if (!hasReturnResult) {
-                ts.forEachChild(node, checkReturn);
-            }
-        }
+            return false;
+        });
 
-        ts.forEachChild(location, checkReturn);
         return hasReturnResult;
+    }
+
+    private hasArguments(location: ts.Node): boolean {
+        let hasArgumentsResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+                const identifier = <ts.Identifier>node;
+                if (identifier.text === 'arguments') {
+                    hasArgumentsResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return hasArgumentsResult;
     }
 
     private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
@@ -683,7 +702,7 @@ export class Emitter {
             return;
         }
 
-        const noParams = node.parameters.length === 0;
+        const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionDeclaration || isFunctionExpression;
