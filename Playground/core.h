@@ -13,8 +13,8 @@
 namespace js
 {
 
-#define __OR(x, y) ((bool)(x) ? (x) : (y))
-#define __AND(x, y) ((bool)(x) ? (y) : (x))
+#define OR(x, y) ((bool)(x) ? (x) : (y))
+#define AND(x, y) ((bool)(x) ? (y) : (x))
 
 #define HEADER                      \
     auto param = params.begin();    \
@@ -1910,6 +1910,7 @@ struct any
 
     bool operator==(const any &other)
     {
+        // Strict Equals
         if (_type != other._type)
         {
             return false;
@@ -1940,10 +1941,11 @@ struct any
 
     friend bool operator!=(const any &lhs, const any &rhs)
     {
+        // Strict Not Equals
         return !(lhs == rhs);
     }
 
-    bool StrictEquals(const any &other) 
+    bool Equals(const any &other) 
     {
         if (_type != other._type)
         {
@@ -1973,9 +1975,9 @@ struct any
         throw "not implemented";
     }
 
-    inline bool StrictNotEquals(const any &other) 
+    inline bool NotEquals(const any &other) 
     {
-        return !StrictEquals(other);
+        return !Equals(other);
     }    
 
     bool In(const any &index) 
@@ -2257,32 +2259,38 @@ static any Void(any value)
     return any();
 }
 
-template< class T > static T __Pow(T left, T right);
+template< class T > static T POW(T left, T right);
 template<> 
-inline static any __Pow(any left, any right)
+inline static any POW(any left, any right)
 {
     return left.Pow(right);
 }
 
-template< class T > static bool __StrictEquals(T left, T right);
+template< class T > static bool EQUALS(T left, T right);
 template<> 
-inline static bool __StrictEquals(any left, any right)
+inline static bool EQUALS(any left, any right)
 {
-    return left.StrictEquals(right);
+    return left.Equals(right);
 }
 
-template< class T > static bool __StrictNotEquals(T left, T right);
+template< class T > static bool NOT_EQUALS(T left, T right);
 template<> 
-inline static bool __StrictNotEquals(any left, any right)
+inline static bool NOT_EQUALS(any left, any right)
 {
-    return left.StrictNotEquals(right);
+    return left.NotEquals(right);
 }
 
-template< class T > static bool __In(T left, T right);
+template< class T > static bool IN(T left, T right);
 template<> 
-inline static bool __In(any left, any right)
+inline static bool IN(any left, any right)
 {
     return right.In(left);
+}
+
+inline static bool InstanceOf(any object, any typeRef)
+{
+    // TODO: finish it
+    return false;
 }
 
 struct Finally
@@ -2294,7 +2302,7 @@ public:
 	~Finally() { _dtor(); }
 };
 
-static any _ROOT(anyTypeId::object);
+static any ROOT(anyTypeId::object);
 
 static void Console_log(any* _this, const paramsType &params)
 {

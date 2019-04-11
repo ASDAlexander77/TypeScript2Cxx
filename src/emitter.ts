@@ -26,7 +26,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.MinusToken] = '-';
         this.opsMap[ts.SyntaxKind.AsteriskToken] = '*';
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__Pow';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
         this.opsMap[ts.SyntaxKind.AmpersandToken] = '&';
         this.opsMap[ts.SyntaxKind.BarToken] = '|';
@@ -34,12 +34,12 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '<<';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '>>';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
-        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '==';
-        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '__StrictEquals';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__EQUALS';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
         this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
         this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = '<=';
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '!=';
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '__StrictNotEquals';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '__NOT_EQUALS';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '!=';
         this.opsMap[ts.SyntaxKind.GreaterThanToken] = '>';
         this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';
 
@@ -1078,7 +1078,7 @@ export class Emitter {
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
-            this.writer.writeString(op + '(');
+            this.writer.writeString(op.substr(2) + '(');
         }
 
         this.processExpression(node.left);
@@ -1139,7 +1139,7 @@ export class Emitter {
 
     private processThisExpression(node: ts.ThisExpression): void {
         if (this.isGlobalScope) {
-            this.writer.writeString('_ROOT');
+            this.writer.writeString('ROOT');
         } else {
             this.writer.writeString('(*_this)');
         }
@@ -1176,7 +1176,7 @@ export class Emitter {
         if (node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
             const typeInfo = this.resolver.getOrResolveTypeOf(node);
             if (this.resolver.isNotDetected(typeInfo)) {
-                this.writer.writeString(`_ROOT["`);
+                this.writer.writeString(`ROOT["`);
                 this.writer.writeString(node.text);
                 this.writer.writeString(`"]`);
                 return;
