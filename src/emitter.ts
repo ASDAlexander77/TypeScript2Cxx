@@ -694,7 +694,6 @@ export class Emitter {
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
                 // named function
-                this.writer.writeString('any ');
                 this.processExpression(node.name);
                 this.writer.writeString(' = ');
             } else if (isFunctionExpression && isAnyCastRequired) {
