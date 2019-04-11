@@ -22,6 +22,7 @@ namespace js
 
 #define PARAM(x) any x = end != param ? *param++ : any();
 #define PARAM_DEFAULT(x, y) any x = end != param ? *param++ : (y);
+#define PAIR std::make_tuple
 
 struct any;
 

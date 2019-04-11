@@ -64,6 +64,10 @@ export class Emitter {
 
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
+
+        this.opsMap[ts.SyntaxKind.InstanceOfKeyword] = '__InstanceOf';
+
+        this.opsMap[ts.SyntaxKind.CommaToken] = ',';
     }
 
     public get isGlobalScope() {
@@ -143,7 +147,7 @@ export class Emitter {
                     delete (<any>(variableStatement.declarationList)).__skip_initialize;
                     (<any>(variableStatement.declarationList)).__ignore_type = true;
                 }
-        });
+            });
 
         this.scope.pop();
 
@@ -630,7 +634,7 @@ export class Emitter {
             }
 
             if (node.kind === ts.SyntaxKind.ReturnStatement) {
-                const returnStatement = <ts.ReturnStatement> node;
+                const returnStatement = <ts.ReturnStatement>node;
                 if (returnStatement.expression) {
                     hasReturnResult = true;
                     return true;
@@ -658,7 +662,7 @@ export class Emitter {
         const noParams = node.parameters.length === 0;
         const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
-        const isFunction =  isFunctionDeclaration || isFunctionExpression;
+        const isFunction = isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
         const noReturn = !this.hasReturn(node);
@@ -693,7 +697,7 @@ export class Emitter {
 
         // read params
         if (!noParams) {
-           this.writer.writeStringNewLine('HEADER');
+            this.writer.writeStringNewLine('HEADER');
         }
 
         node.parameters.forEach(element => {
@@ -989,7 +993,7 @@ export class Emitter {
                 } else if (element.kind === ts.SyntaxKind.PropertyAssignment) {
                     const property = <ts.PropertyAssignment>element;
 
-                    this.writer.writeString('std::make_tuple(');
+                    this.writer.writeString('PAIR(');
 
                     if (property.name && property.name.kind === ts.SyntaxKind.Identifier) {
                         this.processExpression(ts.createStringLiteral(property.name.text));
@@ -1134,7 +1138,11 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        this.writer.writeString('(*_this)');
+        if (this.isGlobalScope) {
+            this.writer.writeString('_ROOT');
+        } else {
+            this.writer.writeString('(*_this)');
+        }
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
@@ -1165,15 +1173,17 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
-
-        const typeInfo = this.resolver.getOrResolveTypeOf(node);
-        if (this.resolver.isNotDetected(typeInfo)) {
-            this.writer.writeString(`_ROOT["`);
-            this.writer.writeString(node.text);
-            this.writer.writeString(`"]`);
-        } else {
-            this.writer.writeString(node.text);
+        if (node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+            const typeInfo = this.resolver.getOrResolveTypeOf(node);
+            if (this.resolver.isNotDetected(typeInfo)) {
+                this.writer.writeString(`_ROOT["`);
+                this.writer.writeString(node.text);
+                this.writer.writeString(`"]`);
+                return;
+            }
         }
+
+        this.writer.writeString(node.text);
     }
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
@@ -1194,10 +1204,10 @@ export class Emitter {
         }
         */
 
-       this.processExpression(node.expression);
-       this.writer.writeString('["');
-       this.processExpression(node.name);
-       this.writer.writeString('"]');
+        this.processExpression(node.expression);
+        this.writer.writeString('["');
+        this.processExpression(node.name);
+        this.writer.writeString('"]');
     }
 }
 
