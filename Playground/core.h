@@ -190,6 +190,7 @@ struct any {
     } 
 };
 
+// Object
 object::object() : _values() {
 }
 
@@ -207,6 +208,8 @@ any& object::operator[] (T t) {
 any& object::operator[] (std::string s) {
     return _values[s];
 }
+
+// End of Object
 
 template < typename T >
 struct ReadOnlyArray {
