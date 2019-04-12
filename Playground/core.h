@@ -166,7 +166,7 @@ struct any {
     any(js::number value) : _type(anyTypeId::number), _value(value) {
     }
 
-    any(js::string value) : _type(anyTypeId::string), _value(nullptr) {
+    any(const js::string& value) : _type(anyTypeId::string), _value((void*)new js::string(value)) {
     }
 
     any(const js::object& value) : _type(anyTypeId::object), _value((void*)new js::object(value)) {
@@ -200,7 +200,7 @@ object::object (std::initializer_list<pair> values) {
     }
 }
 
-template<class T, class = std::enable_if<std::is_integral_v<T>>>
+template<class T, class>
 any& object::operator[] (T t) {
     return _values[std::to_string(t)];
 }
