@@ -24,17 +24,45 @@ struct boolean {
         _value = initValue;
     }
 
+    inline operator bool() {
+        return _value;
+    }
+
+    friend std::ostream& operator << (std::ostream& os, boolean val)
+    {
+        return os << ((bool)val ? "true" : "false");
+    }       
 };
 
 struct number {
 
     double _value;
 
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
-    number (T initValue) {
-        _value = (T)initValue;
+    constexpr number() : _value(0) {
     }
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    number (T initValue) {
+        _value = static_cast<T>(initValue);
+    }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    inline operator T() const {
+        return static_cast<T>(_value);
+    }
+
+    operator std::string() const {
+        return std::to_string(_value);
+    }    
+
+    operator size_t() const {
+        return (size_t)_value;
+    }    
+
+    friend std::ostream& operator << (std::ostream& os, number val)
+    {
+        return os << val._value;
+    }       
 };
 
 struct string {
@@ -45,9 +73,12 @@ struct string {
         _value = initValue;
     }
 
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
-    string& operator+ (T value) {
-        _value.append(std::to_string(value));
+    inline operator const char*() {
+        return _value.c_str();
+    }
+
+    string& operator+ (number value) {
+        _value.append(value.operator std::string());
         return *this;
     }
 
@@ -60,6 +91,38 @@ struct string {
     {
         return os << val._value;
     }    
+};
+
+template < typename T >
+struct ReadOnlyArray {
+    number length;
+    std::initializer_list<T> _values;
+
+    ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
+        length = values.size();
+    }
+
+    T operator[] (number n) const {
+        return *(_values.begin() + n);
+    }
+};
+
+template < typename T >
+struct Array {
+    number length;
+    std::vector<T> _values;
+
+    Array(std::initializer_list<T> values) {
+        //_values = values;
+    }
+
+    T operator[] (number n) const {
+        return _values[(size_t)n];
+    }
+
+    T& operator[] (number n) {
+        return _values[(size_t)n];
+    }
 };
 
 struct any {

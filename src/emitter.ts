@@ -617,7 +617,8 @@ export class Emitter {
                 this.writer.writeString('const ');
             }
 
-            this.writer.writeString('auto ');
+            this.processType(declarationList.declarations[0].type, true);
+            this.writer.writeString(' ');
         }
 
         const next = { next: false };
@@ -737,15 +738,43 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode): void {
+    private processType(type: ts.TypeNode, auto: boolean = false): void {
         switch (type.kind) {
             case ts.SyntaxKind.NumberKeyword:
                 this.writer.writeString('number');
                 break;
-            default:
-                this.writer.writeString('any');
+            case ts.SyntaxKind.ArrayType:
+                const arrayType = <ts.ArrayTypeNode>type;
+                this.writer.writeString('ReadOnlyArray<');
+                this.processType(arrayType.elementType, false);
+                this.writer.writeString('>');
                 break;
-    }
+            case ts.SyntaxKind.TypeReference:
+                const typeReference = <ts.TypeReferenceNode>type;
+                if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
+                    this.writer.writeString(typeReference.typeName.text);
+                } else {
+                    throw 'Not Implemented';
+                }
+
+                this.writer.writeString('<');
+
+                let next = false;
+                typeReference.typeArguments.forEach(element => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.processType(element, false);
+                    next = true;
+                });
+
+                this.writer.writeString('>');
+                break;
+            default:
+                this.writer.writeString(auto ? 'auto' : 'any');
+                break;
+        }
     }
 
     private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
@@ -1088,9 +1117,7 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
-        this.writer.writeString('any(anyTypeId::array');
         if (node.elements.length !== 0) {
-            this.writer.writeString(', ');
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
                 if (next) {
@@ -1104,8 +1131,6 @@ export class Emitter {
 
             this.writer.EndBlockNoIntent();
         }
-
-        this.writer.writeString(')');
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
