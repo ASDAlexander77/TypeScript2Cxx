@@ -77,6 +77,12 @@ struct string {
         return _value.c_str();
     }
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    string& operator+ (T t) {
+        _value.append(std::to_string(t));
+        return *this;
+    }
+
     string& operator+ (number value) {
         _value.append(value.operator std::string());
         return *this;
@@ -96,28 +102,19 @@ struct string {
 template < typename T >
 struct ReadOnlyArray {
     number length;
-    std::initializer_list<T> _values;
-
-    ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
-        length = values.size();
-    }
-
-    T operator[] (number n) const {
-        return *(_values.begin() + n);
-    }
-};
-
-template < typename T >
-struct Array {
-    number length;
     std::vector<T> _values;
 
-    Array(std::initializer_list<T> values) {
-        //_values = values;
+    ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
     T operator[] (number n) const {
         return _values[(size_t)n];
+    }
+};
+
+template < typename T >
+struct Array : public ReadOnlyArray<T> {
+    Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
     }
 
     T& operator[] (number n) {
