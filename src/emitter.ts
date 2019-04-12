@@ -205,7 +205,6 @@ export class Emitter {
             this.processStatement(s);
         });
 
-        this.writer.writeStringNewLine('');
         this.writer.EndBlock();
 
         this.writer.writeStringNewLine('');
@@ -1203,7 +1202,7 @@ export class Emitter {
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
 
         const type = this.resolver.getOrResolveTypeOf(node.expression);
-        if ((<any>type).typeArguments) {
+        if ((<any>type).typeArguments && !(<any>type).symbol) {
             // tuple
             if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
                 throw 'Not implemented';
