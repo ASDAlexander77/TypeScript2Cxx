@@ -16,6 +16,16 @@ namespace js
 #define OR(x, y) ((bool)(x) ? (x) : (y))
 #define AND(x, y) ((bool)(x) ? (y) : (x))
 
+struct boolean {
+
+    bool _value;
+
+    boolean (bool initValue) {
+        _value = initValue;
+    }
+
+};
+
 struct number {
 
     double _value;
@@ -25,6 +35,31 @@ struct number {
         _value = (T)initValue;
     }
 
+};
+
+struct string {
+
+    std::string _value;
+
+    string (std::string initValue) {
+        _value = initValue;
+    }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    string& operator+ (T value) {
+        _value.append(std::to_string(value));
+        return *this;
+    }
+
+    string& operator+ (string value) {
+        _value.append(value._value);
+        return *this;
+    }
+
+    friend std::ostream& operator << (std::ostream& os, string val)
+    {
+        return os << val._value;
+    }    
 };
 
 struct any {
@@ -48,8 +83,22 @@ struct any {
 
 };
 
+string operator ""_S(const char* s, std::size_t size) {
+    return string(s);
+}
+
+
+std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
+{
+    return os << "null";
+}    
+
 static struct Console
 {
+    Console() {
+        std::cout << std::boolalpha;
+    }
+
     template<class ... Args>
     void log(Args ... args) 
     {
