@@ -16,6 +16,9 @@ namespace js
 #define OR(x, y) ((bool)(x) ? (x) : (y))
 #define AND(x, y) ((bool)(x) ? (y) : (x))
 
+struct any;
+struct object;
+
 struct boolean {
 
     bool _value;
@@ -38,7 +41,7 @@ struct number {
 
     double _value;
 
-    constexpr number() : _value(0) {
+    number() : _value(0) {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -69,8 +72,10 @@ struct string {
 
     std::string _value;
 
-    string (std::string initValue) {
-        _value = initValue;
+    string () : _value(nullptr) {
+    }    
+
+    string (std::string value) : _value(value) {
     }
 
     inline operator const char*() {
@@ -99,6 +104,110 @@ struct string {
     }    
 };
 
+struct object {
+
+    using pair = std::pair<std::string, any>;
+
+    std::unordered_map<std::string, any> _values;
+
+    object ();
+
+    object (std::initializer_list<pair> values);
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any& operator[] (T t);
+
+    any& operator[] (std::string s);
+
+    friend std::ostream& operator << (std::ostream& os, object val)
+    {
+        return os << "[object]";
+    }
+};
+
+struct any {
+
+    enum anyTypeId {
+        undefined,
+        number,
+        string,
+        array,
+        object
+    };
+
+    union anyType  {
+        js::number _number;
+        void* _data;
+
+        constexpr anyType(): _data(nullptr) {
+        }
+
+        template<class T, class = std::enable_if<std::is_integral_v<T>>>
+        constexpr anyType(T t): _number(t) {
+        }     
+
+        constexpr anyType(std::nullptr_t): _data(nullptr) {
+        }
+
+        constexpr anyType(void* ptr): _data(ptr) {
+        }        
+    };
+
+    anyTypeId _type;
+    anyType _value;
+
+    any() : _type(anyTypeId::undefined) {
+    }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any(T initValue) : _type(anyTypeId::number), _value((T)initValue) {
+    }
+
+    any(js::number value) : _type(anyTypeId::number), _value(value) {
+    }
+
+    any(js::string value) : _type(anyTypeId::string), _value(nullptr) {
+    }
+
+    any(const js::object& value) : _type(anyTypeId::object), _value((void*)new js::object(value)) {
+    }   
+
+    template<class T>
+    any& operator[] (T t) {
+        if (_type == anyTypeId::object) {
+            return ((object*)_value._data)[t];
+        }
+
+        throw "wrong type";
+    }    
+
+    operator string() {
+        if (_type == anyTypeId::string) {
+            return *((js::string*)_value._data);
+        }
+
+        throw "wrong type";        
+    } 
+};
+
+object::object() : _values() {
+}
+
+object::object (std::initializer_list<pair> values) {
+    for (auto& item : values) {
+        _values[item.first] = item.second;
+    }
+}
+
+template<class T, class = std::enable_if<std::is_integral_v<T>>>
+any& object::operator[] (T t) {
+    return _values[std::to_string(t)];
+}
+
+any& object::operator[] (std::string s) {
+    return _values[s];
+}
+
 template < typename T >
 struct ReadOnlyArray {
     number length;
@@ -120,27 +229,6 @@ struct Array : public ReadOnlyArray<T> {
     T& operator[] (number n) {
         return _values[(size_t)n];
     }
-};
-
-struct any {
-
-    enum anyType {
-        number,
-        array,
-        object
-    };
-
-    anyType _type;
-    union u {
-        js::number _number;
-    };
-
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
-    any(T initValue) {
-        _type = anyType::number;
-        _value.u._number = (T)initValue;
-    }
-
 };
 
 string operator ""_S(const char* s, std::size_t size) {

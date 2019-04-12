@@ -488,7 +488,8 @@ export class Emitter {
             if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
                 this.processVariableDeclarationOne(
                     <ts.Identifier>(node.catchClause.variableDeclaration.name),
-                    node.catchClause.variableDeclaration.initializer);
+                    node.catchClause.variableDeclaration.initializer,
+                    node.catchClause.variableDeclaration.type);
             } else {
                 throw new Error('Method not implemented.');
             }
@@ -625,13 +626,13 @@ export class Emitter {
         let result = false;
         declarationList.declarations.forEach(
             d => result = this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, next) || result);
+                <ts.Identifier>d.name, d.initializer, d.type, next) || result);
 
         return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, next?: { next: boolean }) {
+        name: ts.Identifier, initializer: ts.Expression, type: ts.TypeNode, next?: { next: boolean }) {
         if (next && next.next) {
             this.writer.writeString(', ');
         }
@@ -642,6 +643,10 @@ export class Emitter {
         if (initializer) {
             this.writer.writeString(' = ');
             this.processExpression(initializer);
+        } else {
+            if (type.kind === ts.SyntaxKind.TupleType) {
+                this.processDefaultValue(type);
+            }
         }
 
         if (next) {
@@ -739,14 +744,37 @@ export class Emitter {
     }
 
     private processType(type: ts.TypeNode, auto: boolean = false): void {
-        switch (type.kind) {
+        switch (type && type.kind) {
+            case ts.SyntaxKind.BooleanKeyword:
+                this.writer.writeString('boolean');
+                break;
             case ts.SyntaxKind.NumberKeyword:
                 this.writer.writeString('number');
+                break;
+            case ts.SyntaxKind.StringKeyword:
+                this.writer.writeString('string');
                 break;
             case ts.SyntaxKind.ArrayType:
                 const arrayType = <ts.ArrayTypeNode>type;
                 this.writer.writeString('ReadOnlyArray<');
                 this.processType(arrayType.elementType, false);
+                this.writer.writeString('>');
+                break;
+            case ts.SyntaxKind.TupleType:
+                const tupleType = <ts.TupleTypeNode>type;
+
+                this.writer.writeString('std::tuple<');
+
+                let next = false;
+                tupleType.elementTypes.forEach(element => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.processType(element, false);
+                    next = true;
+                });
+
                 this.writer.writeString('>');
                 break;
             case ts.SyntaxKind.TypeReference:
@@ -759,7 +787,7 @@ export class Emitter {
 
                 this.writer.writeString('<');
 
-                let next = false;
+                next = false;
                 typeReference.typeArguments.forEach(element => {
                     if (next) {
                         this.writer.writeString(', ');
@@ -773,6 +801,46 @@ export class Emitter {
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
+                break;
+        }
+    }
+
+    private processDefaultValue(type: ts.TypeNode): void {
+        switch (type.kind) {
+            case ts.SyntaxKind.BooleanKeyword:
+                this.writer.writeString('false');
+                break;
+            case ts.SyntaxKind.NumberKeyword:
+                this.writer.writeString('0');
+                break;
+            case ts.SyntaxKind.StringKeyword:
+                this.writer.writeString('""_S');
+                break;
+            case ts.SyntaxKind.ArrayType:
+                this.writer.writeString('{}');
+                break;
+            case ts.SyntaxKind.TupleType:
+                const tupleType = <ts.TupleTypeNode>type;
+
+                this.writer.writeString('{');
+
+                let next = false;
+                tupleType.elementTypes.forEach(element => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.processDefaultValue(element);
+                    next = true;
+                });
+
+                this.writer.writeString('}');
+                break;
+            case ts.SyntaxKind.TypeReference:
+                this.writer.writeString('{}');
+                break;
+            default:
+                this.writer.writeString('any');
                 break;
         }
     }
@@ -1077,9 +1145,8 @@ export class Emitter {
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         let next = false;
 
-        this.writer.writeString('any(anyTypeId::object');
+        this.writer.writeString('object');
         if (node.properties.length !== 0) {
-            this.writer.writeString(', ');
             this.writer.BeginBlock();
             node.properties.forEach(element => {
                 if (next) {
@@ -1092,9 +1159,11 @@ export class Emitter {
                 } else if (element.kind === ts.SyntaxKind.PropertyAssignment) {
                     const property = <ts.PropertyAssignment>element;
 
-                    this.writer.writeString('PAIR(');
+                    this.writer.writeString('object::pair{');
 
-                    if (property.name && property.name.kind === ts.SyntaxKind.Identifier) {
+                    if (property.name
+                        && (property.name.kind === ts.SyntaxKind.Identifier
+                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
                         this.processExpression(ts.createStringLiteral(property.name.text));
                     } else {
                         this.processExpression(<ts.Expression>property.name);
@@ -1102,7 +1171,7 @@ export class Emitter {
 
                     this.writer.writeString(', ');
                     this.processExpression(property.initializer);
-                    this.writer.writeString(')');
+                    this.writer.writeString('}');
                 }
 
                 next = true;
@@ -1110,8 +1179,6 @@ export class Emitter {
 
             this.writer.EndBlock(true);
         }
-
-        this.writer.writeString(')');
     }
 
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
@@ -1134,10 +1201,25 @@ export class Emitter {
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
-        this.processExpression(node.expression);
-        this.writer.writeString('[');
-        this.processExpression(node.argumentExpression);
-        this.writer.writeString(']');
+
+        const type = this.resolver.getOrResolveTypeOf(node.expression);
+        if ((<any>type).typeArguments) {
+            // tuple
+            if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
+                throw 'Not implemented';
+            }
+
+            this.writer.writeString('std::get<');
+            this.processExpression(node.argumentExpression);
+            this.writer.writeString('>(');
+            this.processExpression(node.expression);
+            this.writer.writeString(')');
+        } else {
+            this.processExpression(node.expression);
+            this.writer.writeString('[');
+            this.processExpression(node.argumentExpression);
+            this.writer.writeString(']');
+        }
     }
 
     private processParenthesizedExpression(node: ts.ParenthesizedExpression) {

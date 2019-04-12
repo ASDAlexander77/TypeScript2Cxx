@@ -5,16 +5,6 @@
 
 using namespace js;
 
-auto func(int = 10) -> int;
-
-const auto val1 = true;
-
-auto val2 = func();
-
-auto func(int param) -> int {
-    return 1;
-}
-
 int main(int argc, char** argv)
 {
 }
