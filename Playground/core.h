@@ -197,6 +197,10 @@ struct any {
 
     friend std::ostream& operator << (std::ostream& os, any val)
     {
+        if (val._type == anyTypeId::string) {
+            return os << *(js::string*)val._value._data;
+        }
+
         return os << "[any]";
     }    
 };

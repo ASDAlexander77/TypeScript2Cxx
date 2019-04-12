@@ -1348,8 +1348,7 @@ export class Emitter {
 
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
 
-        /*
-        const typeInfo = this.resolver.getTypeOf(node.expression);
+        const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
 
         this.processExpression(node.expression);
 
@@ -1362,11 +1361,6 @@ export class Emitter {
             this.writer.writeString('.');
             this.processExpression(node.name);
         }
-        */
-
-        this.processExpression(node.expression);
-        this.writer.writeString('.');
-        this.processExpression(node.name);
     }
 }
 
