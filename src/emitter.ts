@@ -972,8 +972,6 @@ export class Emitter {
             this.writer.writeString('else ');
             this.processStatement(node.elseStatement);
         }
-
-        this.writer.writeStringNewLine();
     }
 
     private processDoStatement(node: ts.DoStatement): void {

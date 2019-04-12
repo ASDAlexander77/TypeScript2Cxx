@@ -117,6 +117,8 @@ struct object {
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     any& operator[] (T t);
 
+    any& operator[] (const char* s);
+
     any& operator[] (std::string s);
 
     friend std::ostream& operator << (std::ostream& os, object val)
@@ -175,7 +177,7 @@ struct any {
     template<class T>
     any& operator[] (T t) {
         if (_type == anyTypeId::object) {
-            return ((object*)_value._data)[t];
+            return (*(js::object*)_value._data)[t];
         }
 
         throw "wrong type";
@@ -183,11 +185,20 @@ struct any {
 
     operator string() {
         if (_type == anyTypeId::string) {
-            return *((js::string*)_value._data);
+            return *(js::string*)_value._data;
         }
 
         throw "wrong type";        
     } 
+
+    operator bool() {
+        return _type != anyTypeId::undefined;
+    }
+
+    friend std::ostream& operator << (std::ostream& os, any val)
+    {
+        return os << "[any]";
+    }    
 };
 
 // Object
@@ -203,6 +214,10 @@ object::object (std::initializer_list<pair> values) {
 template<class T, class>
 any& object::operator[] (T t) {
     return _values[std::to_string(t)];
+}
+
+any& object::operator[] (const char* s) {
+    return _values[std::string(s)];
 }
 
 any& object::operator[] (std::string s) {
