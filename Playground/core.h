@@ -229,6 +229,37 @@ any& object::operator[] (std::string s) {
 }
 
 // End of Object
+template < typename T >
+struct Element {
+    bool _undefined;
+    T _t;
+    Element() : _undefined(true), _t(T())  {}
+    Element(const T t) : _undefined(false), _t(t)  {}
+
+    inline operator bool() {
+        return !_undefined;
+    }
+
+    inline operator T() {
+        return _t;
+    }
+};
+
+template < typename T >
+struct ElementReference {
+    bool _undefined;
+    T& _t;
+    ElementReference() : _undefined(true), _t(T())  {}
+    ElementReference(T& t) : _undefined(false), _t(t)  {}
+
+    inline operator bool() {
+        return !_undefined;
+    }
+
+    inline operator T&() {
+        return _t;
+    }
+};
 
 template < typename T >
 struct ReadOnlyArray {
@@ -238,8 +269,12 @@ struct ReadOnlyArray {
     ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
-    T operator[] (number n) const {
-        return _values[(size_t)n];
+    Element<T> operator[] (number n) const {
+        if ((size_t)n >= _values.size()) {
+            return Element<T>();
+        }
+
+        return Element<T>(_values[(size_t)n]);
     }
 };
 
@@ -248,8 +283,12 @@ struct Array : public ReadOnlyArray<T> {
     Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
     }
 
-    T& operator[] (number n) {
-        return _values[(size_t)n];
+    ElementReference<T&> operator[] (number n) {
+        if ((size_t)n >= _values.size()) {
+            return ElementReference<T&>();
+        }
+
+        return ElementReference<T&>(_values[(size_t)n]);
     }
 };
 
