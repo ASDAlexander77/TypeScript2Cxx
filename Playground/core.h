@@ -19,6 +19,21 @@ namespace js
 struct any;
 struct object;
 
+struct undefined {
+
+    undefined () {
+    }
+
+    inline operator bool() {
+        return false;
+    }
+
+    friend std::ostream& operator << (std::ostream& os, undefined val)
+    {
+        return os << "undefined";
+    }       
+};
+
 struct boolean {
 
     bool _value;
@@ -104,6 +119,23 @@ struct string {
     }    
 };
 
+struct array {
+
+    std::vector<any> _values;
+
+    array ();
+
+    array (std::initializer_list<any> values);
+
+    template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
+    any& operator[] (T t);
+
+    friend std::ostream& operator << (std::ostream& os, array val)
+    {
+        return os << "[array]";
+    }
+};
+
 struct object {
 
     using pair = std::pair<std::string, any>;
@@ -114,7 +146,7 @@ struct object {
 
     object (std::initializer_list<pair> values);
 
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
     any& operator[] (T t);
 
     any& operator[] (const char* s);
@@ -131,6 +163,7 @@ struct any {
 
     enum anyTypeId {
         undefined,
+        boolean,
         number,
         string,
         array,
@@ -138,6 +171,7 @@ struct any {
     };
 
     union anyType  {
+        js::boolean _boolean;
         js::number _number;
         void* _data;
 
@@ -165,17 +199,30 @@ struct any {
     any(T initValue) : _type(anyTypeId::number), _value((T)initValue) {
     }
 
+    any(bool value) : _type(anyTypeId::boolean), _value(value) {
+    }
+
+    any(js::boolean value) : _type(anyTypeId::boolean), _value(value) {
+    }
+
     any(js::number value) : _type(anyTypeId::number), _value(value) {
     }
 
     any(const js::string& value) : _type(anyTypeId::string), _value((void*)new js::string(value)) {
     }
 
+    any(const js::array& value) : _type(anyTypeId::array), _value((void*)new js::array(value)) {
+    }   
+
     any(const js::object& value) : _type(anyTypeId::object), _value((void*)new js::object(value)) {
     }   
 
     template<class T>
     any& operator[] (T t) {
+        if (_type == anyTypeId::array) {
+            return (*(js::array*)_value._data)[t];
+        }
+
         if (_type == anyTypeId::object) {
             return (*(js::object*)_value._data)[t];
         }
@@ -197,6 +244,18 @@ struct any {
 
     friend std::ostream& operator << (std::ostream& os, any val)
     {
+        if (val._type == anyTypeId::undefined) {
+            return os << "undefined";
+        }
+
+        if (val._type == anyTypeId::boolean) {
+            return os << val._value._boolean;
+        }
+
+        if (val._type == anyTypeId::number) {
+            return os << val._value._number;
+        }
+
         if (val._type == anyTypeId::string) {
             return os << *(js::string*)val._value._data;
         }
@@ -204,6 +263,20 @@ struct any {
         return os << "[any]";
     }    
 };
+
+// Array
+array::array() : _values() {
+}
+
+array::array (std::initializer_list<any> values) : _values(values) {
+}
+
+template<class T, class>
+any& array::operator[] (T t) {
+    return _values[(size_t)t];
+}
+
+// End of Array
 
 // Object
 object::object() : _values() {
@@ -240,9 +313,20 @@ struct Element {
         return !_undefined;
     }
 
-    inline operator T() {
-        return _t;
-    }
+    template<class I>
+    inline decltype(_t[I()]) operator[] (I i) {
+        return _t[i];
+    }     
+
+    friend std::ostream& operator << (std::ostream& os, Element<T> val)
+    {
+        os << "item:"; 
+        if (_undefined) {
+            return os << "undefined";    
+        }
+
+        return os << val._t;
+    }        
 };
 
 template < typename T >
@@ -250,7 +334,7 @@ struct ElementReference {
     bool _undefined;
     T& _t;
     ElementReference() : _undefined(true), _t(T())  {}
-    ElementReference(T& t) : _undefined(false), _t(t)  {}
+    ElementReference(const T& t) : _undefined(false), _t(t)  {}
 
     inline operator bool() {
         return !_undefined;
@@ -259,6 +343,21 @@ struct ElementReference {
     inline operator T&() {
         return _t;
     }
+
+    template<class I>
+    inline decltype(_t[I()])& operator[] (I i) {
+        return _t[i];
+    }     
+
+    friend std::ostream& operator << (std::ostream& os, ElementReference<T> val)
+    {
+        os << "ref:"; 
+        if (_undefined) {
+            return os << "undefined";    
+        }
+
+        return os << val._t;
+    }    
 };
 
 template < typename T >
@@ -269,12 +368,13 @@ struct ReadOnlyArray {
     ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
-    Element<T> operator[] (number n) const {
-        if ((size_t)n >= _values.size()) {
+    template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    Element<T> operator[] (I i) const {
+        if ((size_t)i >= _values.size()) {
             return Element<T>();
         }
 
-        return Element<T>(_values[(size_t)n]);
+        return Element<T>(_values[(size_t)i]);
     }
 };
 
@@ -283,12 +383,13 @@ struct Array : public ReadOnlyArray<T> {
     Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
     }
 
-    ElementReference<T&> operator[] (number n) {
-        if ((size_t)n >= _values.size()) {
+    template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    ElementReference<T&> operator[] (I i) {
+        if ((size_t)i >= _values.size()) {
             return ElementReference<T&>();
         }
 
-        return ElementReference<T&>(_values[(size_t)n]);
+        return ElementReference<T&>(_values[(size_t)i]);
     }
 };
 
