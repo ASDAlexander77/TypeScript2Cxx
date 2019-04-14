@@ -862,17 +862,14 @@ export class Emitter {
         const isFunction = isFunctionDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
-        const isAnyCastRequired =
-            node.parent.kind === ts.SyntaxKind.CallExpression
-            || node.parent.kind === ts.SyntaxKind.ParenthesizedExpression;
 
         if (writeAsLambdaCFunction) {
             if (isFunctionDeclaration) {
                 this.writer.writeString('auto ');
                 // named function
                 this.processExpression(node.name);
-            } else if (isFunctionExpression && isAnyCastRequired) {
-                // ...
+            } else if (isArrowFunction || isFunctionExpression) {
+                this.writer.writeString('[]');
             }
 
             // lambda
@@ -886,9 +883,14 @@ export class Emitter {
 
         this.writer.writeString('(');
 
+        let next = false;
         node.parameters.forEach(element => {
             if (element.name.kind !== ts.SyntaxKind.Identifier) {
                 throw new Error('Not implemented');
+            }
+
+            if (next) {
+                this.writer.writeString(', ');
             }
 
             if (element.dotDotDotToken) {
@@ -900,8 +902,12 @@ export class Emitter {
                 if (element.initializer) {
                     this.writer.writeString(' = ');
                     this.processExpression(element.initializer);
+                } else if (element.questionToken) {
+                    this.writer.writeString(' = undefined');
                 }
             }
+
+            next = true;
         });
 
         this.writer.writeString(')');
@@ -919,11 +925,6 @@ export class Emitter {
         });
 
         this.writer.EndBlock();
-
-        if (writeAsLambdaCFunction && isFunctionExpression && isAnyCastRequired) {
-            this.writer.cancelNewLine();
-            this.writer.writeString(')');
-        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {

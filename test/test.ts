@@ -1,9 +1,11 @@
-var x;
-x = true;
-console.log(x);
-x = 1;
-console.log(x);
-x = 1.5;
-console.log(x);
-x = "Hello World!";
-console.log(x);
+function buildName(firstName: string, lastName?: string) {
+    if (lastName)
+        return firstName + " " + lastName;
+    else
+        return firstName;
+}
+
+let result1 = buildName("Bob", "Adams");
+let result2 = buildName("Bob");
+console.log(result1);
+console.log(result2);
