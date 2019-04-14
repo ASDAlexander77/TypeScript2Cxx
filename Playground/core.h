@@ -178,6 +178,9 @@ struct any {
         constexpr anyType(): _data(nullptr) {
         }
 
+        inline anyType(bool value): _boolean(value) {
+        }
+
         template<class T, class = std::enable_if<std::is_integral_v<T>>>
         constexpr anyType(T t): _number(t) {
         }     

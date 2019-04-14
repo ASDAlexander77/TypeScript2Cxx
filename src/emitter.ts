@@ -617,7 +617,7 @@ export class Emitter {
                 this.writer.writeString('const ');
             }
 
-            this.processType(declarationList.declarations[0].type, true);
+            this.processType(declarationList.declarations[0].type, (declarationList.declarations[0].initializer) ? true : false);
             this.writer.writeString(' ');
         }
 
@@ -643,7 +643,7 @@ export class Emitter {
             this.writer.writeString(' = ');
             this.processExpression(initializer);
         } else {
-            if (type.kind === ts.SyntaxKind.TupleType) {
+            if (type && type.kind === ts.SyntaxKind.TupleType) {
                 this.processDefaultValue(type);
             }
         }
