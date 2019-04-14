@@ -786,14 +786,14 @@ export class Emitter {
 
                 this.writer.writeString('<');
 
-                next = false;
+                let next1 = false;
                 typeReference.typeArguments.forEach(element => {
-                    if (next) {
+                    if (next1) {
                         this.writer.writeString(', ');
                     }
 
                     this.processType(element, false);
-                    next = true;
+                    next1 = true;
                 });
 
                 this.writer.writeString('>');
