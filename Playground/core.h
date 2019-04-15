@@ -152,15 +152,8 @@ struct function {
 
     std::function<void(void)> func;
 
-    template< typename Ret, typename ...Args >
-    function (std::function<Ret(Args...)> f) : func((std::function<void(void)>)f) {
-    } 
-
-    template< typename Ret >
-    function (std::function<Ret(void)> f) : func((std::function<void(void)>)f) {
-    } 
-
-    function (std::function<void(void)> f) : func((std::function<void(void)>)f) {
+    template< class F >
+    function (F f) : func(f) {
     } 
 };
 
