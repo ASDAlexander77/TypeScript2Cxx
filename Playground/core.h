@@ -19,27 +19,37 @@ namespace js
 struct any;
 struct object;
 
-struct undefined {
+struct undefined_c {
 
-    undefined () {
+    bool isDefined;
+
+    undefined_c () {
+        isDefined = false;
+    }
+
+    undefined_c (bool value) : isDefined(value) {
+        isDefined = false;
     }
 
     inline operator bool() {
         return false;
     }
 
-    friend std::ostream& operator << (std::ostream& os, undefined val)
+    friend std::ostream& operator << (std::ostream& os, undefined_c val)
     {
         return os << "undefined";
     }       
-};
+} undefined;
 
-struct boolean {
+struct boolean : public undefined_c {
 
     bool _value;
 
     boolean (bool initValue) {
         _value = initValue;
+    }
+
+    boolean (const undefined_c& undef) : undefined_c(true) {
     }
 
     inline operator bool() {
@@ -52,7 +62,7 @@ struct boolean {
     }       
 };
 
-struct number {
+struct number : public undefined_c {
 
     double _value;
 
@@ -62,6 +72,9 @@ struct number {
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     number (T initValue) {
         _value = static_cast<T>(initValue);
+    }
+
+    number (const undefined_c& undef) : undefined_c(true) {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -83,7 +96,7 @@ struct number {
     }       
 };
 
-struct string {
+struct string : public undefined_c {
 
     std::string _value;
 
@@ -91,6 +104,12 @@ struct string {
     }    
 
     string (std::string value) : _value(value) {
+    }
+
+    string (const char* value) : _value(value) {
+    }    
+
+    string (const undefined_c& undef) : undefined_c(true) {
     }
 
     inline operator const char*() {
@@ -119,13 +138,16 @@ struct string {
     }    
 };
 
-struct array {
+struct array : public undefined_c {
 
     std::vector<any> _values;
 
     array ();
 
     array (std::initializer_list<any> values);
+
+    array (const undefined_c& undef) : undefined_c(true) {
+    }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
     any& operator[] (T t);
@@ -136,7 +158,7 @@ struct array {
     }
 };
 
-struct object {
+struct object : public undefined_c {
 
     using pair = std::pair<std::string, any>;
 
@@ -145,6 +167,9 @@ struct object {
     object ();
 
     object (std::initializer_list<pair> values);
+
+    object (const undefined_c& undef) : undefined_c(true) {
+    }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
     any& operator[] (T t);
@@ -197,6 +222,9 @@ struct any {
 
     any() : _type(anyTypeId::undefined) {
     }
+
+    any (const undefined_c& undef) : _type(anyTypeId::undefined) {
+    }        
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     any(T initValue) : _type(anyTypeId::number), _value((T)initValue) {
