@@ -142,19 +142,31 @@ struct string : public undefined_c {
 };
 
 struct function {
+    virtual void invoke(std::initializer_list<int> args) = 0;
 
-    enum anyTypeId {
-        undefined,
-        returnAndArguments,
-        returnWithoutArguments,
-        noReturnNoArguments
-    };
+    void operator()(void) {
+        invoke({});
+    }
 
-    std::function<void(void)> func;
+    template < typename ... Args > void operator()(Args... args) {
+        invoke({args...});
+    }
 
-    template< class F >
-    function (F f) : func(f) {
+    template < typename R, typename ... Args > R operator()(Args... args) {
+        invoke({args...});
+    }
+};
+
+template< class F >
+struct function_t : public function {
+    F _f;
+
+    function_t (const F& f) : _f(f) {
     } 
+
+    virtual void invoke(std::initializer_list<int> args) override {
+        auto _result = std::invoke(_f, 1);
+    }
 };
 
 struct array : public undefined_c {
@@ -262,8 +274,10 @@ struct any {
     any(const js::string& value) : _type(anyTypeId::string), _value((void*)new js::string(value)) {
     }
 
+/*
     any(const js::function& value) : _type(anyTypeId::function), _value((void*)new js::function(value)) {
     }
+*/
 
     any(const js::array& value) : _type(anyTypeId::array), _value((void*)new js::array(value)) {
     }   
