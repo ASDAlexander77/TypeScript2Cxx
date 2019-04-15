@@ -141,6 +141,29 @@ struct string : public undefined_c {
     }    
 };
 
+struct function {
+
+    enum anyTypeId {
+        undefined,
+        returnAndArguments,
+        returnWithoutArguments,
+        noReturnNoArguments
+    };
+
+    std::function<void(void)> func;
+
+    template< typename Ret, typename ...Args >
+    function (std::function<Ret(Args...)> f) : func((std::function<void(void)>)f) {
+    } 
+
+    template< typename Ret >
+    function (std::function<Ret(void)> f) : func((std::function<void(void)>)f) {
+    } 
+
+    function (std::function<void(void)> f) : func((std::function<void(void)>)f) {
+    } 
+};
+
 struct array : public undefined_c {
 
     std::vector<any> _values;
@@ -194,6 +217,7 @@ struct any {
         boolean,
         number,
         string,
+        function,
         array,
         object
     };
@@ -245,6 +269,9 @@ struct any {
     any(const js::string& value) : _type(anyTypeId::string), _value((void*)new js::string(value)) {
     }
 
+    any(const js::function& value) : _type(anyTypeId::function), _value((void*)new js::function(value)) {
+    }
+
     any(const js::array& value) : _type(anyTypeId::array), _value((void*)new js::array(value)) {
     }   
 
@@ -292,6 +319,18 @@ struct any {
 
         if (val._type == anyTypeId::string) {
             return os << *(js::string*)val._value._data;
+        }
+
+        if (val._type == anyTypeId::function) {
+            return os << "[function]";
+        }
+
+        if (val._type == anyTypeId::array) {
+            return os << "[array]";
+        }
+
+        if (val._type == anyTypeId::object) {
+            return os << "[object]";
         }
 
         return os << "[any]";
