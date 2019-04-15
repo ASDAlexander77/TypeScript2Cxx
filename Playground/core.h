@@ -21,25 +21,24 @@ struct object;
 
 struct undefined_c {
 
-    bool isDefined;
+    bool isUndefined;
 
     undefined_c () {
-        isDefined = false;
+        isUndefined = false;
     }
 
-    undefined_c (bool value) : isDefined(value) {
-        isDefined = false;
+    undefined_c (bool value) : isUndefined(value) {
     }
 
     inline operator bool() {
-        return false;
+        return !isUndefined;
     }
 
     friend std::ostream& operator << (std::ostream& os, undefined_c val)
     {
         return os << "undefined";
     }       
-} undefined;
+} undefined(true);
 
 struct boolean : public undefined_c {
 
@@ -53,6 +52,10 @@ struct boolean : public undefined_c {
     }
 
     inline operator bool() {
+        if (isUndefined) {
+            return undefined_c::operator bool();
+        }
+
         return _value;
     }
 

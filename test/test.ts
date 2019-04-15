@@ -1,11 +1,12 @@
-function buildName(firstName: string, lastName?: string) {
-    if (lastName)
-        return firstName + " " + lastName;
-    else
-        return firstName;
-}
+let deck = {
+    createCardPicker: function () {
+        return function () {
+            return { suit: "spades" };
+        };
+    }
+};
 
-let result1 = buildName("Bob", "Adams");
-let result2 = buildName("Bob");
-console.log(result1);
-console.log(result2);
+let cardPicker = deck.createCardPicker();
+let pickedCard = cardPicker();
+
+console.log(pickedCard.suit);
