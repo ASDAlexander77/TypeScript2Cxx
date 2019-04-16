@@ -529,6 +529,7 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
+        /*
         const properties = [];
         let value = 0;
         for (const member of node.members) {
@@ -561,6 +562,26 @@ export class Emitter {
         const enumDeclare = ts.createVariableStatement([], [varDecl]);
 
         this.processStatement(this.fixupParentReferences(enumDeclare, node));
+        */
+
+        this.writer.writeString('enum ');
+        this.processIndentifier(node.name);
+        this.writer.BeginBlock();
+        for (const member of node.members) {
+            if (member.initializer) {
+                switch (member.initializer.kind) {
+                    case ts.SyntaxKind.NumericLiteral:
+                        value = parseInt((<ts.NumericLiteral>member.initializer).text, 10);
+                        break;
+                    default:
+                        throw new Error('Not Implemented');
+                }
+            } else {
+                value++;
+            }
+        }
+                
+        this.writer.EndBlock();
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {

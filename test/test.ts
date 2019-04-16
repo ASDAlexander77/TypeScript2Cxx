@@ -1,12 +1,7 @@
-let deck = {
-    createCardPicker: function () {
-        return function () {
-            return { suit: "spades" };
-        };
+class Class1 {
+    public static show() {
+        console.log("Hello");
     }
-};
+}
 
-let cardPicker = deck.createCardPicker();
-let pickedCard = cardPicker();
-
-console.log(pickedCard.suit);
+Class1.show();
