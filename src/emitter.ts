@@ -594,8 +594,33 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
-        //throw new Error('Method not implemented.');
-        this.processTSNode(node);
+        this.writer.writeString('enum ');
+        this.processIndentifier(node.name);
+        this.writer.writeString(' ');
+        this.writer.BeginBlock();
+
+        let next = false;
+        for (const member of node.members) {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            if (member.name.kind === ts.SyntaxKind.Identifier) {
+            this.processExpression(member.name);
+            } else {
+                throw new Error('Not Implemented');
+            }
+
+            if (member.initializer) {
+                this.writer.writeString(' = ');
+                this.processExpression(member.initializer);
+            }
+
+            next = true;
+        }
+                
+        this.writer.EndBlock();
+        this.writer.EndOfStatement();
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
@@ -1387,6 +1412,9 @@ export class Emitter {
             this.writer.writeString('["');
             this.processExpression(node.name);
             this.writer.writeString('"]');
+        } else if (this.resolver.isStaticAccess(typeInfo)) {
+            this.writer.writeString('::');
+            this.processExpression(node.name);        
         } else {
             // member access when type is known
             this.writer.writeString('.');

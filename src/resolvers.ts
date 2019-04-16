@@ -10,6 +10,11 @@ export class IdentifierResolver {
         return (isAnonymousObject && !typeInfo.symbol.name) || (<any>typeInfo).intrinsicName === 'any';
     }
 
+    public isStaticAccess(typeInfo: ts.Type): boolean {
+        return typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.EnumDeclaration
+            || typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ClassDeclaration;
+    }
+
     public isNotDetected(typeInfo: ts.Type): boolean {
         return !typeInfo || (<any>typeInfo).intrinsicName === 'error';
     }
