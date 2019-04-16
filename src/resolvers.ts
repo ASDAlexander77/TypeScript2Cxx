@@ -7,7 +7,7 @@ export class IdentifierResolver {
 
     public isAnyLikeType(typeInfo: ts.Type): boolean {
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
-        return isAnonymousObject || (<any>typeInfo).intrinsicName === 'any';
+        return (isAnonymousObject && !typeInfo.symbol.name) || (<any>typeInfo).intrinsicName === 'any';
     }
 
     public isNotDetected(typeInfo: ts.Type): boolean {

@@ -566,22 +566,31 @@ export class Emitter {
 
         this.writer.writeString('enum ');
         this.processIndentifier(node.name);
+        this.writer.writeString(' ');
         this.writer.BeginBlock();
+
+        let next = false;
         for (const member of node.members) {
-            if (member.initializer) {
-                switch (member.initializer.kind) {
-                    case ts.SyntaxKind.NumericLiteral:
-                        value = parseInt((<ts.NumericLiteral>member.initializer).text, 10);
-                        break;
-                    default:
-                        throw new Error('Not Implemented');
-                }
-            } else {
-                value++;
+            if (next) {
+                this.writer.writeString(', ');
             }
+
+            if (member.name.kind === ts.SyntaxKind.Identifier) {
+            this.processExpression(member.name);
+            } else {
+                throw new Error('Not Implemented');
+            }
+
+            if (member.initializer) {
+                this.writer.writeString(' = ');
+                this.processExpression(member.initializer);
+            }
+
+            next = true;
         }
                 
         this.writer.EndBlock();
+        this.writer.EndOfStatement();
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
