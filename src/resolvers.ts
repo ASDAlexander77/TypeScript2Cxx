@@ -11,6 +11,10 @@ export class IdentifierResolver {
     }
 
     public isStaticAccess(typeInfo: ts.Type): boolean {
+        if ((<ts.InterfaceType>typeInfo).thisType) {
+            return false;
+        }
+
         return typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.EnumDeclaration
             || typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ClassDeclaration;
     }

@@ -3,6 +3,7 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
+import { Interface } from 'readline';
 
 export class Emitter {
     public writer: CodeWriter;
@@ -585,7 +586,7 @@ export class Emitter {
             }
 
             if (member.name.kind === ts.SyntaxKind.Identifier) {
-            this.processExpression(member.name);
+                this.processExpression(member.name);
             } else {
                 throw new Error('Not Implemented');
             }
@@ -597,7 +598,7 @@ export class Emitter {
 
             next = true;
         }
-                
+
         this.writer.EndBlock();
         this.writer.EndOfStatement();
     }
@@ -615,7 +616,7 @@ export class Emitter {
         for (const member of node.members) {
             this.processDeclaration(member);
         }
-                
+
         this.writer.EndBlock();
         this.writer.EndOfStatement();
     }
@@ -624,7 +625,7 @@ export class Emitter {
         this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
     }
-    
+
     private processModifiers(modifiers: ts.NodeArray<ts.Modifier>) {
         modifiers.forEach(modifier => {
             switch (modifier.kind) {
@@ -632,7 +633,7 @@ export class Emitter {
                     this.writer.writeString('static ')
                     break;
             }
-        }); 
+        });
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
@@ -925,7 +926,7 @@ export class Emitter {
         const noCapture = !this.requireCapture(node);
 
         const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
-                                      || node.kind === ts.SyntaxKind.MethodDeclaration;
+            || node.kind === ts.SyntaxKind.MethodDeclaration;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
@@ -1358,6 +1359,7 @@ export class Emitter {
     }
 
     private processNewExpression(node: ts.NewExpression): void {
+        this.writer.writeString('new ');
         this.processCallExpression(node);
     }
 
@@ -1366,12 +1368,6 @@ export class Emitter {
         this.writer.writeString('(');
 
         let next = false;
-        if (node.kind === ts.SyntaxKind.NewExpression) {
-            // convert operator() -> operator(anyTypeId, ...)
-            this.writer.writeString('anyTypeId::object');
-            next = true;
-        }
-
         if (node.arguments.length) {
             node.arguments.forEach(element => {
                 if (next) {
@@ -1433,7 +1429,10 @@ export class Emitter {
             this.writer.writeString('"]');
         } else if (this.resolver.isStaticAccess(typeInfo)) {
             this.writer.writeString('::');
-            this.processExpression(node.name);        
+            this.processExpression(node.name);
+        } else if ((<ts.InterfaceType>typeInfo).thisType) {
+            this.writer.writeString('->');
+            this.processExpression(node.name);
         } else {
             // member access when type is known
             this.writer.writeString('.');
