@@ -317,7 +317,9 @@ export class Emitter {
 
     private processDeclaration(node: ts.Declaration): void {
         switch (node.kind) {
+            case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node); return;
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
+            case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
         }
 
         // TODO: finish it
@@ -621,9 +623,30 @@ export class Emitter {
         this.writer.EndOfStatement();
     }
 
+    private processPropertyDeclaration(node: ts.PropertyDeclaration): void {
+        this.processModifiers(node.modifiers);
+        this.processType(node.type);
+        this.writer.writeString(' ');
+
+        if (node.name.kind === ts.SyntaxKind.Identifier) {
+            this.processExpression(node.name);
+        } else {
+            throw new Error('Not Implemented');
+        }
+
+        this.writer.EndOfStatement();
+    }
+
     private processMethodDeclaration(node: ts.MethodDeclaration): void {
         this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
+        this.writer.writeStringNewLine();
+    }
+
+    private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
+        this.processModifiers(node.modifiers);
+        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
+        this.writer.writeStringNewLine();
     }
 
     private processModifiers(modifiers: ts.NodeArray<ts.Modifier>) {
@@ -1359,8 +1382,16 @@ export class Emitter {
     }
 
     private processNewExpression(node: ts.NewExpression): void {
+        if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            this.writer.writeString('(');
+        }
+
         this.writer.writeString('new ');
         this.processCallExpression(node);
+
+        if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            this.writer.writeString(')');
+        }
     }
 
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
@@ -1383,7 +1414,7 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
-        this.writer.writeString('(*_this)');
+        this.writer.writeString('this');
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {

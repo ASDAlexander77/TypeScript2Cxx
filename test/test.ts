@@ -1,7 +1,14 @@
 class Class1 {
-    public show(s: string) {
-        console.log(s);
+    private val: string;
+
+    public set(s: string): Class1 {
+        this.val = s;
+        return this;
+    }
+
+    public show() {
+        console.log(this.val);
     }
 }
 
-new Class1().show("Hello");
+new Class1().set("Hello").show();
