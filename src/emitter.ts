@@ -869,7 +869,7 @@ export class Emitter {
                 // named function
                 this.processExpression(node.name);
             } else if (isArrowFunction || isFunctionExpression) {
-                this.writer.writeString('(function) []');
+                this.writer.writeString('[]');
             }
 
             // lambda
