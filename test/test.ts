@@ -1,14 +1,12 @@
-class Class1 {
-    private val: string;
-
-    public set(s: string): Class1 {
-        this.val = s;
-        return this;
-    }
-
-    public show() {
-        console.log(this.val);
-    }
+class Vector3 {
+    constructor(
+        public x: number = 0,
+        public y: number = 0,
+        public z: number = 0
+    ) { }
 }
 
-new Class1().set("Hello").show();
+var v = new Vector3();
+console.log(v.x);
+console.log(v.y);
+console.log(v.z);

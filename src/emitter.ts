@@ -541,6 +541,9 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
+
+        this.scope.push(node);
+
         /*
         const properties = [];
         let value = 0;
@@ -603,9 +606,13 @@ export class Emitter {
 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
+
+        this.scope.pop();
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
+        this.scope.push(node);
+
         this.writer.writeString('class ');
         this.processIndentifier(node.name);
         this.writer.writeString(' ');
@@ -621,6 +628,8 @@ export class Emitter {
 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
+
+        this.scope.pop();
     }
 
     private processPropertyDeclaration(node: ts.PropertyDeclaration): void {
@@ -650,6 +659,10 @@ export class Emitter {
     }
 
     private processModifiers(modifiers: ts.NodeArray<ts.Modifier>) {
+        if (!modifiers) {
+            return;
+        }
+
         modifiers.forEach(modifier => {
             switch (modifier.kind) {
                 case ts.SyntaxKind.StaticKeyword:
@@ -935,7 +948,8 @@ export class Emitter {
         }
     }
 
-    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration): void {
+    private processFunctionExpression(
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.ConstructorDeclaration): void {
         if (!node.body
             || ((<any>node).body.statements
                 && (<any>node).body.statements.length === 0
@@ -949,7 +963,7 @@ export class Emitter {
         const noCapture = !this.requireCapture(node);
 
         const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
-            || node.kind === ts.SyntaxKind.MethodDeclaration;
+            || this.isClassMemberDeclaration(node);
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
@@ -957,14 +971,25 @@ export class Emitter {
 
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
-                this.writer.writeString('auto ');
-                // named function
-                if (node.name.kind === ts.SyntaxKind.Identifier) {
+                // type declaration
+                if (node.kind !== ts.SyntaxKind.Constructor) {
+                    this.writer.writeString('auto ');
+                }
+
+                // name
+                if (node.name && node.name.kind === ts.SyntaxKind.Identifier) {
                     this.processExpression(node.name);
                 } else {
-                    throw new Error('Not Implemeneted');
+                    // in case of constructor
+                    const classNode = this.scope[this.scope.length - 2];
+                    if (classNode && classNode.kind === ts.SyntaxKind.ClassDeclaration) {
+                        this.processExpression((<ts.ClassDeclaration>classNode).name);
+                    } else {
+                        throw new Error('Not Implemeneted');
+                    }
                 }
             } else if (isArrowFunction || isFunctionExpression) {
+                // lambda or noname function
                 this.writer.writeString('[]');
             }
 
@@ -1032,6 +1057,15 @@ export class Emitter {
         this.processFunctionExpression(<any>node);
     }
 
+    private isClassMemberDeclaration(node: ts.Node) {
+        return node.kind === ts.SyntaxKind.ClassDeclaration
+            || node.kind === ts.SyntaxKind.Constructor
+            || node.kind === ts.SyntaxKind.MethodDeclaration
+            || node.kind === ts.SyntaxKind.PropertyDeclaration
+            || node.kind === ts.SyntaxKind.GetAccessor
+            || node.kind === ts.SyntaxKind.SetAccessor;
+    }
+
     private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
         if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
             // skip it, as it is only declaration
@@ -1042,7 +1076,7 @@ export class Emitter {
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
         this.scope.pop();
 
-        if (node.kind !== ts.SyntaxKind.MethodDeclaration) {
+        if (!this.isClassMemberDeclaration(node)) {
             this.writer.EndOfStatement();
             this.writer.writeStringNewLine();
         }
