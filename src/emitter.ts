@@ -607,6 +607,10 @@ export class Emitter {
         this.processIndentifier(node.name);
         this.writer.writeString(' ');
         this.writer.BeginBlock();
+        this.writer.DecreaseIntent();
+        this.writer.writeString('public:');
+        this.writer.IncreaseIntent();
+        this.writer.writeStringNewLine();
 
         for (const member of node.members) {
             this.processDeclaration(member);
@@ -617,7 +621,18 @@ export class Emitter {
     }
 
     private processMethodDeclaration(node: ts.MethodDeclaration): void {
+        this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
+    }
+    
+    private processModifiers(modifiers: ts.NodeArray<ts.Modifier>) {
+        modifiers.forEach(modifier => {
+            switch (modifier.kind) {
+                case ts.SyntaxKind.StaticKeyword:
+                    this.writer.writeString('static ')
+                    break;
+            }
+        }); 
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
@@ -993,7 +1008,7 @@ export class Emitter {
         this.processFunctionExpression(<any>node);
     }
 
-    private processFunctionDeclaration(node: ts.FunctionDeclaration): void {
+    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
         if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
             // skip it, as it is only declaration
             return;
@@ -1003,8 +1018,10 @@ export class Emitter {
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
         this.scope.pop();
 
-        this.writer.EndOfStatement();
-        this.writer.writeStringNewLine();
+        if (node.kind !== ts.SyntaxKind.MethodDeclaration) {
+            this.writer.EndOfStatement();
+            this.writer.writeStringNewLine();
+        }
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
