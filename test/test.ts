@@ -1,6 +1,7 @@
-enum Color { Red = 1, Green, Blue } 
-console.log(Color.Red); 
+class Class1 {
+    public static show() {
+        console.log("Hello");
+    }
+}
 
-let x: [string, number];              
-x = ["hello", 10];
-console.log(x[0]); 
+Class1.show();

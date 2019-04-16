@@ -314,6 +314,15 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
+    private processDeclaration(node: ts.Declaration): void {
+        switch (node.kind) {
+            case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
+        }
+
+        // TODO: finish it
+        throw new Error('Method not implemented.');
+    }
+
     private processExpressionStatement(node: ts.ExpressionStatement): void {
         this.processExpression(node.expression);
         this.writer.EndOfStatement();
@@ -594,33 +603,21 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
-        this.writer.writeString('enum ');
+        this.writer.writeString('class ');
         this.processIndentifier(node.name);
         this.writer.writeString(' ');
         this.writer.BeginBlock();
 
-        let next = false;
         for (const member of node.members) {
-            if (next) {
-                this.writer.writeString(', ');
-            }
-
-            if (member.name.kind === ts.SyntaxKind.Identifier) {
-            this.processExpression(member.name);
-            } else {
-                throw new Error('Not Implemented');
-            }
-
-            if (member.initializer) {
-                this.writer.writeString(' = ');
-                this.processExpression(member.initializer);
-            }
-
-            next = true;
+            this.processDeclaration(member);
         }
                 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
+    }
+
+    private processMethodDeclaration(node: ts.MethodDeclaration): void {
+        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
@@ -899,7 +896,7 @@ export class Emitter {
         }
     }
 
-    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration): void {
+    private processFunctionExpression(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration): void {
         if (!node.body
             || ((<any>node).body.statements
                 && (<any>node).body.statements.length === 0
@@ -912,17 +909,22 @@ export class Emitter {
         const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         const noCapture = !this.requireCapture(node);
 
-        const isFunctionDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration;
+        const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
+                                      || node.kind === ts.SyntaxKind.MethodDeclaration;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
-        const isFunction = isFunctionDeclaration || isFunctionExpression;
+        const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
 
         if (writeAsLambdaCFunction) {
-            if (isFunctionDeclaration) {
+            if (isFunctionOrMethodDeclaration) {
                 this.writer.writeString('auto ');
                 // named function
-                this.processExpression(node.name);
+                if (node.name.kind === ts.SyntaxKind.Identifier) {
+                    this.processExpression(node.name);
+                } else {
+                    throw new Error('Not Implemeneted');
+                }
             } else if (isArrowFunction || isFunctionExpression) {
                 this.writer.writeString('[]');
             }
