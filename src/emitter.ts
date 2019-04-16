@@ -1461,7 +1461,7 @@ export class Emitter {
         } else if (this.resolver.isStaticAccess(typeInfo)) {
             this.writer.writeString('::');
             this.processExpression(node.name);
-        } else if ((<ts.InterfaceType>typeInfo).thisType) {
+        } else if (this.resolver.isThisType(typeInfo)) {
             this.writer.writeString('->');
             this.processExpression(node.name);
         } else {

@@ -103,7 +103,7 @@ struct string : public undefined_c {
 
     std::string _value;
 
-    string () : _value(nullptr) {
+    string () : _value() {
     }    
 
     string (std::string value) : _value(value) {

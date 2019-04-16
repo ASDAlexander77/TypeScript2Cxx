@@ -10,8 +10,16 @@ export class IdentifierResolver {
         return (isAnonymousObject && !typeInfo.symbol.name) || (<any>typeInfo).intrinsicName === 'any';
     }
 
+    public isThisType(typeInfo: ts.Type): boolean {
+        if ((<ts.InterfaceType>typeInfo).thisType || (<any>typeInfo).isThisType) {
+            return true;
+        }
+
+        return false;
+    }
+
     public isStaticAccess(typeInfo: ts.Type): boolean {
-        if ((<ts.InterfaceType>typeInfo).thisType) {
+        if (this.isThisType(typeInfo)) {
             return false;
         }
 
