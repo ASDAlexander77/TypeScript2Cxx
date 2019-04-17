@@ -188,12 +188,14 @@ describe('Classes', () => {
     it('Class inheritance - call super class with this', () => expect(new Run().test([
         'class Class1 {                                     \
             public class0 = false;                          \
+            public class1 = false;                          \
             public method1(): boolean {                     \
                 this.class1 = false;                        \
                 return false;                               \
             }                                               \
         }                                                   \
         class Class2 extends Class1 {                       \
+            public class2 = false;                          \
             public method1(): boolean {                     \
                 this.class1 = true;                         \
                 this.class2 = false;                        \
