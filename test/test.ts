@@ -1,12 +1,15 @@
-class Vector3 {
-    constructor(
-        public x: number = 0,
-        public y: number = 0,
-        public z: number = 0
-    ) { }
+class Class1 {
+    public method1(): boolean {
+        return false;
+    }
 }
-
-var v = new Vector3();
-console.log(v.x);
-console.log(v.y);
-console.log(v.z);
+class Class2 extends Class1 {
+    public method2(): boolean {
+        return true;
+    }
+}
+const c1 = new Class1();
+console.log(c1.method1());
+const c2 = new Class2();
+console.log(c2.method1());
+console.log(c2.method2());

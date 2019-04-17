@@ -623,6 +623,29 @@ export class Emitter {
 
         this.writer.writeString('class ');
         this.processIndentifier(node.name);
+
+        if (node.heritageClauses) {
+            this.writer.writeString(' : ');
+            let next = false;
+            node.heritageClauses.forEach(heritageClause => {
+                heritageClause.types.forEach(type => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    if (type.expression.kind === ts.SyntaxKind.Identifier) {
+                        const identifier = <ts.Identifier>type.expression;
+                        this.writer.writeString('public ');
+                        this.writer.writeString(identifier.text);
+                    } else {
+                        throw new Error('Not implemented');
+                    }
+
+                    next = true;
+                });
+            });
+        }
+
         this.writer.writeString(' ');
         this.writer.BeginBlock();
         this.writer.DecreaseIntent();
