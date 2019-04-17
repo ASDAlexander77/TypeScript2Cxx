@@ -1132,11 +1132,11 @@ export class Emitter {
 
             // process base consturctor call
             let superCall = (<any>node.body).statements[0];
-            if (superCall.kind === ts.SyntaxKind.ExpressionStatement) {
+            if (superCall && superCall.kind === ts.SyntaxKind.ExpressionStatement) {
                 superCall = (<ts.ExpressionStatement>superCall).expression;
             }
 
-            if (superCall.kind === ts.SyntaxKind.CallExpression 
+            if (superCall && superCall.kind === ts.SyntaxKind.CallExpression 
                 && (<ts.CallExpression>superCall).expression.kind === ts.SyntaxKind.SuperKeyword) {
                 if (!next) {
                     this.writer.writeString(' : ');

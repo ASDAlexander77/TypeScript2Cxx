@@ -1,20 +1,11 @@
-class Person {                                                 
-    protected name: string;                                     
-    constructor(name: string) { this.name = name; }             
-}                                                               
-                                                                
-class Employee extends Person {                                 
-    private department: string;                                 
-                                                                
-    constructor(name: string, department: string) {             
-        super(name);                                            
-        this.department = department;                           
-    }                                                           
-                                                                
-    public getElevatorPitch() {                                 
-        return `Hello, my name is ${this.name} and I work in ${this.department}.`;  
-    }                                                           
-}                                                               
-                                                                
-let howard = new Employee("Howard", "Sales");                   
-console.log(howard.getElevatorPitch());
+class Vector3 {                                
+    constructor(                                
+        public x: number = 0,                   
+        public y: number = 0,                   
+        public z: number = 0                    
+    ) {}                                        
+}                                               
+var v = new Vector3();                          
+console.log(v.x);                               
+console.log(v.y);                               
+console.log(v.z);
