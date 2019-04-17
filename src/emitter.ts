@@ -66,7 +66,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
 
-        this.opsMap[ts.SyntaxKind.InstanceOfKeyword] = '__InstanceOf';
+        //this.opsMap[ts.SyntaxKind.InstanceOfKeyword] = '__InstanceOf';
 
         this.opsMap[ts.SyntaxKind.CommaToken] = ',';
     }
@@ -653,6 +653,11 @@ export class Emitter {
         this.writer.IncreaseIntent();
         this.writer.writeStringNewLine();
 
+        if (!node.heritageClauses) {
+            // to make base class polymorphic
+            this.writer.writeStringNewLine('virtual void dummy() {};');
+        }
+
         // declare all private parameters of constructors
         for (const item of node.members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             const constructor = <ts.ConstructorDeclaration>item;
@@ -684,6 +689,11 @@ export class Emitter {
             this.processExpression(node.name);
         } else {
             throw new Error('Not Implemented');
+        }
+
+        if (node.initializer) {
+            this.writer.writeString(' = ');
+            this.processExpression(node.initializer);
         }
 
         this.writer.EndOfStatement();
@@ -1463,6 +1473,16 @@ export class Emitter {
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
+        if (node.operatorToken.kind === ts.SyntaxKind.InstanceOfKeyword) {
+            this.writer.writeString('is<');
+            this.processExpression(node.right);
+            this.writer.writeString('>(');
+            this.processExpression(node.left);
+            this.writer.writeString(')');
+            return;
+        }
+
+
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {

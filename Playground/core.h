@@ -9,6 +9,8 @@
 #include <ostream>
 #include <iostream>
 #include <cmath>
+#include <typeinfo>
+#include <typeindex>
 
 namespace js
 {
@@ -484,6 +486,17 @@ std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
 {
     return os << "null";
 }    
+
+template < typename I, typename T> 
+inline bool is(T* t) {
+    return dynamic_cast<I*>(t) != nullptr;
+}
+
+template < typename I, typename T> 
+inline bool __is(T* t) {
+    return std::type_index(typeid(I*)) == std::type_index(typeid(t))
+           || is<I>(t);
+}
 
 static struct Console
 {
