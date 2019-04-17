@@ -82,6 +82,8 @@ export class CodeWriter {
             this.pendingIntent = false;
             this.newLine = false;
             this.parts.pop();
+        } else if (this.parts.length > 0 && this.parts[this.parts.length - 1] === '\n') {
+            this.parts.pop();
         }
     }
 

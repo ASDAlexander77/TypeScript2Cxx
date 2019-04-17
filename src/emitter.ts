@@ -318,6 +318,7 @@ export class Emitter {
     private processDeclaration(node: ts.Declaration): void {
         switch (node.kind) {
             case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node); return;
+            case ts.SyntaxKind.Parameter: this.processPropertyDeclaration(<ts.ParameterDeclaration>node); return;
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
         }
@@ -622,9 +623,24 @@ export class Emitter {
         this.writer.IncreaseIntent();
         this.writer.writeStringNewLine();
 
+        // declare all private parameters of constructors
+        for (const item of node.members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
+            const constructor = <ts.ConstructorDeclaration>item;
+            for (const fieldAsParam of constructor.parameters
+                        .filter(p => p.modifiers
+                                .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
+                                    || m.kind === ts.SyntaxKind.ProtectedKeyword
+                                    || m.kind === ts.SyntaxKind.PublicKeyword))) {
+                this.processDeclaration(fieldAsParam);
+            }
+        }
+
         for (const member of node.members) {
             this.processDeclaration(member);
         }
+
+        this.writer.cancelNewLine();
+        this.writer.cancelNewLine();
 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
@@ -632,7 +648,7 @@ export class Emitter {
         this.scope.pop();
     }
 
-    private processPropertyDeclaration(node: ts.PropertyDeclaration): void {
+    private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration): void {
         this.processModifiers(node.modifiers);
         this.processType(node.type);
         this.writer.writeString(' ');
@@ -666,7 +682,7 @@ export class Emitter {
         modifiers.forEach(modifier => {
             switch (modifier.kind) {
                 case ts.SyntaxKind.StaticKeyword:
-                    this.writer.writeString('static ')
+                    this.writer.writeString('static ');
                     break;
             }
         });
