@@ -1,11 +1,10 @@
-class Vector3 {                                
-    constructor(                                
-        public x: number = 0,                   
-        public y: number = 0,                   
-        public z: number = 0                    
-    ) {}                                        
-}                                               
-var v = new Vector3();                          
-console.log(v.x);                               
-console.log(v.y);                               
-console.log(v.z);
+class GenericNumber<T> {
+    zeroValue: T;
+    add: (x: T, y: T) => T;
+}
+
+let stringNumeric = new GenericNumber<string>();
+stringNumeric.zeroValue = "";
+stringNumeric.add = function (x: string, y: string) { return x + y; };
+
+console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));

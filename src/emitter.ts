@@ -625,12 +625,27 @@ export class Emitter {
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.scope.push(node);
 
+        let next = false;
+        if (node.typeParameters) {
+            this.writer.writeString('template <');
+            node.typeParameters.forEach(type => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+
+                this.processType(type);
+                next = true;
+            });
+
+            this.writer.writeStringNewLine('>');
+        }
+
         this.writer.writeString('class ');
         this.processIndentifier(node.name);
 
         if (node.heritageClauses) {
             this.writer.writeString(' : ');
-            let next = false;
+            next = false;
             node.heritageClauses.forEach(heritageClause => {
                 heritageClause.types.forEach(type => {
                     if (next) {
@@ -903,7 +918,7 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode, auto: boolean = false): void {
+    private processType(type: ts.TypeNode | ts.TypeParameterDeclaration, auto: boolean = false): void {
         switch (type && type.kind) {
             case ts.SyntaxKind.BooleanKeyword:
                 this.writer.writeString('boolean');
@@ -945,19 +960,32 @@ export class Emitter {
                     throw new Error('Not Implemented');
                 }
 
-                this.writer.writeString('<');
+                if (typeReference.typeArguments) {
+                    this.writer.writeString('<');
 
-                let next1 = false;
-                typeReference.typeArguments.forEach(element => {
-                    if (next1) {
-                        this.writer.writeString(', ');
-                    }
+                    let next1 = false;
+                    typeReference.typeArguments.forEach(element => {
+                        if (next1) {
+                            this.writer.writeString(', ');
+                        }
 
-                    this.processType(element, false);
-                    next1 = true;
-                });
+                        this.processType(element, false);
+                        next1 = true;
+                    });
 
-                this.writer.writeString('>');
+                    this.writer.writeString('>');
+                }
+
+                break;
+            case ts.SyntaxKind.TypeParameter:
+                const typeParameter = <ts.TypeParameterDeclaration>type;
+                if (typeParameter.name.kind === ts.SyntaxKind.Identifier) {
+                    this.writer.writeString('typename ');
+                    this.writer.writeString(typeParameter.name.text);
+                } else {
+                    throw new Error('Not Implemented');
+                }
+
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
@@ -1560,9 +1588,24 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
         this.processExpression(node.expression);
-        this.writer.writeString('(');
 
         let next = false;
+        if (node.typeArguments) {
+            this.writer.writeString('<');
+            node.typeArguments.forEach(element => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+
+                this.processType(element);
+                next = true;
+            });
+            this.writer.writeString('>');
+        }
+
+        this.writer.writeString('(');
+
+        next = false;
         if (node.arguments.length) {
             node.arguments.forEach(element => {
                 if (next) {

@@ -11,7 +11,11 @@ export class IdentifierResolver {
     }
 
     public isThisType(typeInfo: ts.Type): boolean {
-        if ((<ts.InterfaceType>typeInfo).thisType || (<any>typeInfo).isThisType) {
+        if (!typeInfo) {
+            return false;
+        }
+
+        if ((<ts.InterfaceType>typeInfo).thisType || (<any>typeInfo).isThisType || this.isThisType((<any>typeInfo).target)) {
             return true;
         }
 
