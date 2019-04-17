@@ -1104,6 +1104,7 @@ export class Emitter {
         }
 
         // constructor init
+        let skipped = 0;
         if (node.kind === ts.SyntaxKind.Constructor) {
             this.writer.cancelNewLine();
 
@@ -1129,14 +1130,31 @@ export class Emitter {
                     next = true;
             });
 
+            // process base consturctor call
+            let superCall = (<any>node.body).statements[0];
+            if (superCall.kind === ts.SyntaxKind.ExpressionStatement) {
+                superCall = (<ts.ExpressionStatement>superCall).expression;
+            }
+
+            if (superCall.kind === ts.SyntaxKind.CallExpression 
+                && (<ts.CallExpression>superCall).expression.kind === ts.SyntaxKind.SuperKeyword) {
+                if (!next) {
+                    this.writer.writeString(' : ');
+                }
+
+                this.processExpression(superCall);
+                skipped = 1;
+            }
+
             if (next) {
                 this.writer.writeString(' ');
             }
         }
-
+        
+        this.writer.writeString(' ');
         this.writer.BeginBlock();
 
-        (<any>node.body).statements.forEach(element => {
+        (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
             this.processStatement(element);
         });
 
@@ -1351,7 +1369,7 @@ export class Emitter {
         this.writer.writeString(`${node.text}`);
     }
 
-    private processStringLiteral(node: ts.StringLiteral): void {
+    private processStringLiteral(node: ts.StringLiteral | ts.TemplateHead | ts.TemplateMiddle | ts.TemplateTail): void {
         this.writer.writeString(`"${node.text}"_S`);
     }
 
@@ -1360,7 +1378,13 @@ export class Emitter {
     }
 
     private processTemplateExpression(node: ts.TemplateExpression): void {
-        this.processTSNode(node);
+        this.processStringLiteral(node.head);
+        node.templateSpans.forEach(element => {
+            this.writer.writeString(' + ');
+            this.processExpression(element.expression);
+            this.writer.writeString(' + ');
+            this.processStringLiteral(element.literal);
+        });
     }
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
@@ -1557,6 +1581,21 @@ export class Emitter {
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
+        if (node.parent.kind === ts.SyntaxKind.CallExpression) {
+            const classNode = <ts.ClassDeclaration> this.scope[ this.scope.length - 2];
+            if (classNode) {
+                const heritageClause = classNode.heritageClauses[0];
+                if (heritageClause) {
+                    const firstType = heritageClause.types[0];
+                    if (firstType.expression.kind === ts.SyntaxKind.Identifier) {
+                        const identifier = <ts.Identifier>firstType.expression;
+                        this.writer.writeString(identifier.text);
+                        return;
+                    }
+                }
+            }
+        }
+
         this.writer.writeString('__super');
     }
 
