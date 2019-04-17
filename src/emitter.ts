@@ -612,6 +612,10 @@ export class Emitter {
     }
 
     private hasAccessModifier(modifiers: ts.ModifiersArray) {
+        if (!modifiers) {
+            return false;
+        }
+
         return modifiers
                 .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
                         || m.kind === ts.SyntaxKind.ProtectedKeyword
