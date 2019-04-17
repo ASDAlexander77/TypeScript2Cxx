@@ -1149,9 +1149,10 @@ export class Emitter {
             if (next) {
                 this.writer.writeString(' ');
             }
+
+            this.writer.writeString(' ');
         }
         
-        this.writer.writeString(' ');
         this.writer.BeginBlock();
 
         (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
