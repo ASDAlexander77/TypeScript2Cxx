@@ -611,6 +611,13 @@ export class Emitter {
         this.scope.pop();
     }
 
+    private hasAccessModifier(modifiers: ts.ModifiersArray) {
+        return modifiers
+                .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
+                        || m.kind === ts.SyntaxKind.ProtectedKeyword
+                        || m.kind === ts.SyntaxKind.PublicKeyword);
+    }
+
     private processClassDeclaration(node: ts.ClassDeclaration): void {
         this.scope.push(node);
 
@@ -627,10 +634,7 @@ export class Emitter {
         for (const item of node.members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             const constructor = <ts.ConstructorDeclaration>item;
             for (const fieldAsParam of constructor.parameters
-                        .filter(p => p.modifiers
-                                .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
-                                    || m.kind === ts.SyntaxKind.ProtectedKeyword
-                                    || m.kind === ts.SyntaxKind.PublicKeyword))) {
+                        .filter(p => this.hasAccessModifier(p.modifiers))) {
                 this.processDeclaration(fieldAsParam);
             }
         }
@@ -901,7 +905,7 @@ export class Emitter {
                 if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
                     this.writer.writeString(typeReference.typeName.text);
                 } else {
-                    throw 'Not Implemented';
+                    throw new Error('Not Implemented');
                 }
 
                 this.writer.writeString('<');
@@ -1036,6 +1040,13 @@ export class Emitter {
                 this.processType(element.type);
                 this.writer.writeString(' ');
                 this.processExpression(element.name);
+
+                // extra symbol to change parameter name
+                if (node.kind === ts.SyntaxKind.Constructor
+                    && this.hasAccessModifier(element.modifiers)) {
+                    this.writer.writeString('_');
+                }
+
                 if (element.initializer) {
                     this.writer.writeString(' = ');
                     this.processExpression(element.initializer);
@@ -1053,6 +1064,37 @@ export class Emitter {
             this.writer.writeStringNewLine(' -> auto');
         } else {
             this.writer.writeStringNewLine();
+        }
+
+        // constructor init
+        if (node.kind === ts.SyntaxKind.Constructor) {
+            this.writer.cancelNewLine();
+
+            next = false;
+            node.parameters
+                .filter(e => this.hasAccessModifier(e.modifiers))
+                .forEach(element => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    } else {
+                        this.writer.writeString(' : ');
+                    }
+
+                    if (element.name.kind === ts.SyntaxKind.Identifier) {
+                        this.processExpression(element.name);
+                        this.writer.writeString('(');
+                        this.processExpression(element.name);
+                        this.writer.writeString('_)');
+                    } else {
+                        throw new Error('Not implemented');
+                    }
+
+                    next = true;
+            });
+
+            if (next) {
+                this.writer.writeString(' ');
+            }
         }
 
         this.writer.BeginBlock();
@@ -1352,7 +1394,7 @@ export class Emitter {
         if ((<any>type).typeArguments && !(<any>type).symbol) {
             // tuple
             if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
-                throw 'Not implemented';
+                throw new Error('Not implemented');
             }
 
             this.writer.writeString('std::get<');
