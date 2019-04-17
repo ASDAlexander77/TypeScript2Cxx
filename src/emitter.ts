@@ -918,7 +918,8 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode | ts.TypeParameterDeclaration, auto: boolean = false): void {
+    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration, auto: boolean = false): void {
+        let next;
         switch (type && type.kind) {
             case ts.SyntaxKind.BooleanKeyword:
                 this.writer.writeString('boolean');
@@ -940,7 +941,7 @@ export class Emitter {
 
                 this.writer.writeString('std::tuple<');
 
-                let next = false;
+                next = false;
                 tupleType.elementTypes.forEach(element => {
                     if (next) {
                         this.writer.writeString(', ');
@@ -986,6 +987,36 @@ export class Emitter {
                     throw new Error('Not Implemented');
                 }
 
+                break;
+            case ts.SyntaxKind.Parameter:
+                const parameter = <ts.ParameterDeclaration>type;
+                if (parameter.name.kind === ts.SyntaxKind.Identifier) {
+                    this.processType(parameter.type);
+                } else {
+                    throw new Error('Not Implemented');
+                }
+
+                break;
+            case ts.SyntaxKind.FunctionType:
+                const functionType = <ts.FunctionTypeNode>type;
+                this.writer.writeString('std::function<');
+                this.processType(functionType.type);
+                this.writer.writeString('(');
+                if (functionType.parameters) {
+                    next = false;
+                    functionType.parameters.forEach(element => {
+                        if (next) {
+                            this.writer.writeString(', ');
+                        }
+
+                        this.processType(element);
+                        next = true;
+                    });
+                } else {
+                    this.writer.writeString('void');
+                }
+
+                this.writer.writeString(')>');
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');

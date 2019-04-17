@@ -63,7 +63,8 @@
             "sstream": "cpp",
             "cctype": "cpp",
             "cstdarg": "cpp",
-            "ctime": "cpp"
+            "ctime": "cpp",
+            "typeindex": "cpp"
         }
     }
 }
