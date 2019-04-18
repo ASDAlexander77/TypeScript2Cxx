@@ -70,6 +70,18 @@ export class Emitter {
     public HeaderMode: boolean;
     public SourceMode: boolean;
 
+    public isHeader() {
+        return this.HeaderMode;
+    }
+
+    public isSource() {
+        return this.SourceMode;
+    }
+
+    public isHeaderWithSource() {
+        return (this.HeaderMode && this.SourceMode) || (!this.HeaderMode && !this.SourceMode);
+    }
+
     public get isGlobalScope() {
         return this.scope.length > 0 && this.scope[this.scope.length - 1].kind === ts.SyntaxKind.SourceFile;
     }
@@ -109,8 +121,15 @@ export class Emitter {
     private isDeclarationStatement(f: ts.Statement): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
-            || f.kind === ts.SyntaxKind.ClassDeclaration
-            || f.kind === ts.SyntaxKind.VariableStatement) {
+            || f.kind === ts.SyntaxKind.ClassDeclaration) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private isVariableStatement(f: ts.Statement): boolean {
+        if (f.kind === ts.SyntaxKind.VariableStatement) {
             return true;
         }
 
@@ -132,31 +151,44 @@ export class Emitter {
         this.scope.push(sourceFile);
 
         // added header
-        this.writer.writeStringNewLine(`#include "core.h"`);
+        if (this.isSource()) {
+            this.writer.writeStringNewLine(`#include "${this.sourceFileName.replace(/\.ts$/, '.h')}"`);
+        } else {
+            this.writer.writeStringNewLine(`#include "core.h"`);
+        }
+
         this.writer.writeStringNewLine('');
         this.writer.writeStringNewLine('using namespace js;');
         this.writer.writeStringNewLine('');
 
-        sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
-            this.processStatement(s);
-        });
+        if (this.isHeader()) {
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+                this.processStatement(s);
+            });
+        } else {
+            sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
+                this.processStatement(s);
+            });
+        }
 
-        this.writer.writeStringNewLine('');
-        this.writer.writeStringNewLine('void Main(void)');
-        this.writer.BeginBlock();
+        if (this.isSource()) {
+            this.writer.writeStringNewLine('');
+            this.writer.writeStringNewLine('void Main(void)');
+            this.writer.BeginBlock();
 
-        sourceFile.statements.filter(s => !this.isDeclarationStatement(s)).forEach(s => {
-            this.processStatement(s);
-        });
+            sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)).forEach(s => {
+                this.processStatement(s);
+            });
 
-        this.writer.EndBlock();
+            this.writer.EndBlock();
 
-        this.writer.writeStringNewLine('');
-        this.writer.writeStringNewLine('int main(int argc, char** argv)');
-        this.writer.BeginBlock();
-        this.writer.writeStringNewLine('Main();');
-        this.writer.writeStringNewLine('return 0;');
-        this.writer.EndBlock();
+            this.writer.writeStringNewLine('');
+            this.writer.writeStringNewLine('int main(int argc, char** argv)');
+            this.writer.BeginBlock();
+            this.writer.writeStringNewLine('Main();');
+            this.writer.writeStringNewLine('return 0;');
+            this.writer.EndBlock();
+        }
 
         this.scope.pop();
     }
@@ -486,6 +518,10 @@ export class Emitter {
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
 
+        if (!this.isHeader()) {
+            return;
+        }
+
         this.scope.push(node);
 
         /*
@@ -566,6 +602,10 @@ export class Emitter {
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration): void {
+        if (!this.isHeader()) {
+            return;
+        }
+
         this.scope.push(node);
 
         let next = false;
