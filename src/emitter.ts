@@ -3,14 +3,12 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
-import { Interface } from 'readline';
 
 export class Emitter {
     public writer: CodeWriter;
     private resolver: IdentifierResolver;
     private preprocessor: Preprocessor;
     private sourceFileName: string;
-    private jsLib: boolean;
     private scope: Array<ts.Node> = new Array<ts.Node>();
     private opsMap: Map<number, string> = new Map<number, string>();
 
@@ -66,10 +64,11 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
 
-        //this.opsMap[ts.SyntaxKind.InstanceOfKeyword] = '__InstanceOf';
-
         this.opsMap[ts.SyntaxKind.CommaToken] = ',';
     }
+
+    public HeaderMode: boolean;
+    public SourceMode: boolean;
 
     public get isGlobalScope() {
         return this.scope.length > 0 && this.scope[this.scope.length - 1].kind === ts.SyntaxKind.SourceFile;
@@ -104,62 +103,6 @@ export class Emitter {
             default:
                 // TODO: finish it
                 throw new Error('Method not implemented.');
-        }
-    }
-
-    public save() {
-        // TODO: ...
-    }
-
-    private declare(node: ts.Statement) {
-        switch (node.kind) {
-            case ts.SyntaxKind.EmptyStatement: return;
-            case ts.SyntaxKind.VariableStatement:
-                const declarationList = (<ts.VariableStatement>node).declarationList;
-                this.writer.writeString('any');
-                let next = false;
-                declarationList.declarations.forEach(
-                    d => {
-                        if (d.name.kind === ts.SyntaxKind.Identifier) {
-                            if (next) {
-                                this.writer.writeString(',');
-                            }
-
-                            this.writer.writeString(' ');
-                            this.processIndentifier(d.name);
-                            next = true;
-                        }
-                    });
-
-                this.writer.EndOfStatement();
-
-                return;
-            case ts.SyntaxKind.FunctionDeclaration:
-                const functionDeclaration = <ts.FunctionDeclaration>node;
-                this.writer.writeString('any ');
-                this.processIndentifier(functionDeclaration.name);
-                this.writer.EndOfStatement();
-                return;
-            case ts.SyntaxKind.ModuleBlock: /*implement*/ return;
-            case ts.SyntaxKind.EnumDeclaration:
-                const enumDeclaration = <ts.EnumDeclaration>node;
-                this.writer.writeString('any ');
-                this.processIndentifier(enumDeclaration.name);
-                this.writer.EndOfStatement();
-                return;
-            case ts.SyntaxKind.ClassDeclaration:
-                const classDeclaration = <ts.ClassDeclaration>node;
-                this.writer.writeString('any ');
-                this.processIndentifier(classDeclaration.name);
-                this.writer.EndOfStatement();
-                return;
-            case ts.SyntaxKind.ExportDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.ImportDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.ModuleDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.NamespaceExportDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.InterfaceDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.TypeAliasDeclaration: /*implement*/ return;
-            case ts.SyntaxKind.ExportAssignment: /*implement*/ return;
         }
     }
 
@@ -1075,8 +1018,8 @@ export class Emitter {
         }
 
         const noReturn = !this.hasReturn(node);
-        const noParams = node.parameters.length === 0 && !this.hasArguments(node);
-        const noCapture = !this.requireCapture(node);
+        // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
+        // const noCapture = !this.requireCapture(node);
 
         const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
             || this.isClassMemberDeclaration(node);
@@ -1195,7 +1138,7 @@ export class Emitter {
                 superCall = (<ts.ExpressionStatement>superCall).expression;
             }
 
-            if (superCall && superCall.kind === ts.SyntaxKind.CallExpression 
+            if (superCall && superCall.kind === ts.SyntaxKind.CallExpression
                 && (<ts.CallExpression>superCall).expression.kind === ts.SyntaxKind.SuperKeyword) {
                 if (!next) {
                     this.writer.writeString(' : ');
@@ -1211,7 +1154,7 @@ export class Emitter {
 
             this.writer.writeString(' ');
         }
-        
+
         this.writer.BeginBlock();
 
         (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {

@@ -1,23 +1,20 @@
-class Animal {
-    protected constructor(public numLegs: number) {
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}
+
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
     }
 }
 
-class Bee extends Animal {
-    public constructor() {
-        super(1);
-    }
-}
-
-class Lion extends Animal {
-    public constructor() {
-        super(2);
-    }
-}
-
-function createInstance<A extends Animal>(c: new () => A): A {
-    return new c();
-}
-
-console.log(createInstance(Lion).numLegs);
-console.log(createInstance(Bee).numLegs);
+let howard = new Employee('Howard', 'Sales');
+console.log(howard.getElevatorPitch());

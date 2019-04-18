@@ -241,13 +241,17 @@ export class Run {
                 + ForegroundColorEscapeSequences.White
                 + s.fileName
                 + resetEscapeSequence);
-            const emitter = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
 
-            emitter.processNode(s);
-            emitter.save();
+            const emitterHeader = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
+            emitterHeader.HeaderMode = true;
+            emitterHeader.processNode(s);
+            const emitterSource = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
+            emitterSource.SourceMode = true;
+            emitterSource.processNode(s);
 
             const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-            const fileName = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'cpp'));
+            const fileNameHeader = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'h'));
+            const fileNameCpp = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'cpp'));
 
             console.log(
                 ForegroundColorEscapeSequences.Cyan
@@ -257,7 +261,8 @@ export class Run {
                 + s.fileName
                 + resetEscapeSequence);
 
-            fs.writeFileSync(fileName, emitter.writer.getText());
+            fs.writeFileSync(fileNameHeader, emitterHeader.writer.getText());
+            fs.writeFileSync(fileNameCpp, emitterSource.writer.getText());
         });
 
         console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
@@ -303,12 +308,16 @@ export class Run {
             sourceFiles.forEach((s: ts.SourceFile, index: number) => {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
-                    const emitter = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
-                    emitter.processNode(s);
-                    emitter.save();
+                    const emitterHeader = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    emitterHeader.processNode(s);
+                    const emitterSource = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    emitterSource.processNode(s);
 
                     const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
-                    fs.writeFileSync(cxxFile, emitter.writer.getText());
+                    fs.writeFileSync(cxxFile, emitterHeader.writer.getText());
+
+                    const headerFile = currentFile.replace(/\.ts$/, '.h');
+                    fs.writeFileSync(headerFile, emitterSource.writer.getText());
 
                     lastCxxFiles.push(cxxFile);
                 }
