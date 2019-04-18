@@ -1,20 +1,4 @@
-class Person {
-    protected name: string;
-    constructor(name: string) { this.name = name; }
-}
-
-class Employee extends Person {
-    private department: string;
-
-    constructor(name: string, department: string) {
-        super(name);
-        this.department = department;
-    }
-
-    public getElevatorPitch() {
-        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
-    }
-}
-
-let howard = new Employee('Howard', 'Sales');
-console.log(howard.getElevatorPitch());
+let fullName: string = `Bob Bobbington`;
+let age: number = 37;
+let sentence: string = `Hello, my name is ${fullName}. I'll be ${ age + 1} years old next month.`;
+console.log(sentence);

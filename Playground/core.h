@@ -95,6 +95,11 @@ struct number : public undefined_c {
         return (size_t)_value;
     }    
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    number operator +(T t) {
+        return number(_value + t);
+    }
+
     friend std::ostream& operator << (std::ostream& os, number val)
     {
         return os << val._value;

@@ -309,15 +309,17 @@ export class Run {
                 const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
                 if (currentFile) {
                     const emitterHeader = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    emitterHeader.HeaderMode = true;
                     emitterHeader.processNode(s);
                     const emitterSource = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
+                    emitterSource.SourceMode = true;
                     emitterSource.processNode(s);
 
-                    const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
-                    fs.writeFileSync(cxxFile, emitterHeader.writer.getText());
-
                     const headerFile = currentFile.replace(/\.ts$/, '.h');
-                    fs.writeFileSync(headerFile, emitterSource.writer.getText());
+                    fs.writeFileSync(headerFile, emitterHeader.writer.getText());
+
+                    const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
+                    fs.writeFileSync(cxxFile, emitterSource.writer.getText());
 
                     lastCxxFiles.push(cxxFile);
                 }

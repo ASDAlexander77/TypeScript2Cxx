@@ -11,5 +11,9 @@ __build_win32_release
 /test/test.cpp
 /test/test0.cpp
 /test/test1.cpp
+/test/test.h
+/test/test0.h
+/test/test1.h
+/test/test.exe
 /test/testapp1.exe
 .vs
