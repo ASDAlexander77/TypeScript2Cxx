@@ -1685,12 +1685,14 @@ export class Emitter {
     }
 
     private processAsExpression(node: ts.AsExpression): void {
+        this.writer.writeString('(');
+        this.processType(node.type);
+        this.writer.writeString(')');
         this.processExpression(node.expression);
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        this.writer.writeString('(paramsType) ');
-        this.processExpression(node.expression);
+        throw new Error('Method not implemented.');
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {

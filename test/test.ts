@@ -1,14 +1,23 @@
-class Class1 {
-    public method1(): boolean {
-        return false;
+class Animal {
+    protected constructor(public numLegs: number) {
     }
 }
-class Class2 extends Class1 {
-    public method1(): boolean {
-        return super.method1();
+
+class Bee extends Animal {
+    public constructor() {
+        super(1);
     }
 }
-const c1 = new Class1();
-console.log(c1.method1());
-const c2 = new Class2();
-console.log(c2.method1());
+
+class Lion extends Animal {
+    public constructor() {
+        super(2);
+    }
+}
+
+function createInstance<A extends Animal>(c: new () => A): A {
+    return new c();
+}
+
+console.log(createInstance(Lion).numLegs);
+console.log(createInstance(Bee).numLegs);
