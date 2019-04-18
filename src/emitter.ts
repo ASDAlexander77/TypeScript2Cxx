@@ -1711,7 +1711,7 @@ export class Emitter {
             this.writer.writeString('["');
             this.processExpression(node.name);
             this.writer.writeString('"]');
-        } else if (this.resolver.isStaticAccess(typeInfo)) {
+        } else if (this.resolver.isStaticAccess(typeInfo) || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
             this.writer.writeString('::');
             this.processExpression(node.name);
         } else if (this.resolver.isThisType(typeInfo)) {

@@ -1,10 +1,14 @@
-class GenericNumber<T> {
-    zeroValue: T;
-    add: (x: T, y: T) => T;
+class Class1 {
+    public method1(): boolean {
+        return false;
+    }
 }
-
-let stringNumeric = new GenericNumber<string>();
-stringNumeric.zeroValue = "";
-stringNumeric.add = function (x: string, y: string) { return x + y; };
-
-console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));
+class Class2 extends Class1 {
+    public method1(): boolean {
+        return super.method1();
+    }
+}
+const c1 = new Class1();
+console.log(c1.method1());
+const c2 = new Class2();
+console.log(c2.method1());
