@@ -11,6 +11,7 @@
 #include <cmath>
 #include <typeinfo>
 #include <typeindex>
+#include <iomanip>
 
 namespace js
 {

@@ -64,7 +64,8 @@
             "cctype": "cpp",
             "cstdarg": "cpp",
             "ctime": "cpp",
-            "typeindex": "cpp"
+            "typeindex": "cpp",
+            "iomanip": "cpp"
         }
     }
 }
