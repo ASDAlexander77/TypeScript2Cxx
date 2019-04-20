@@ -188,14 +188,12 @@ export class Emitter {
 
             this.writer.EndBlock();
 
-            /*
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('int main(int argc, char** argv)');
             this.writer.BeginBlock();
             this.writer.writeStringNewLine('Main();');
             this.writer.writeStringNewLine('return 0;');
             this.writer.EndBlock();
-            */
         }
 
         this.scope.pop();

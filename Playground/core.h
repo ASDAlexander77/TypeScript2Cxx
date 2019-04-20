@@ -96,10 +96,41 @@ struct number : public undefined_c {
         return (size_t)_value;
     }    
 
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator +(T t) {
         return number(_value + t);
     }
+
+    number operator +(number n) {
+        return number(_value + n._value);
+    }
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator -(T t) {
+        return number(_value - t);
+    }
+
+    number operator -(number n) {
+        return number(_value - n._value);
+    }    
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator *(T t) {
+        return number(_value * t);
+    }
+
+    number operator *(number n) {
+        return number(_value * n._value);
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator /(T t) {
+        return number(_value / t);
+    }
+
+    number operator /(number n) {
+        return number(_value / n._value);
+    }   
 
     friend std::ostream& operator << (std::ostream& os, number val)
     {
@@ -316,6 +347,68 @@ struct any {
 
     operator bool() {
         return _type != anyTypeId::undefined;
+    }
+
+    any operator +(const any& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number + t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }
+
+    any operator -(const any& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number - t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }
+
+    any operator *(const any& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number * t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }
+
+    any operator /(const any& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number / t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }    
+
+    any operator /(const js::number& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number / t);
+                break;
+        }
+
+        throw "not implemented";
     }
 
     friend std::ostream& operator << (std::ostream& os, any val)
