@@ -6,6 +6,10 @@ export class IdentifierResolver {
     }
 
     public isAnyLikeType(typeInfo: ts.Type): boolean {
+        if (!typeInfo) {
+            return false;
+        }
+
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
         return (isAnonymousObject && !typeInfo.symbol.name) || (<any>typeInfo).intrinsicName === 'any';
     }
@@ -24,6 +28,10 @@ export class IdentifierResolver {
 
     public isStaticAccess(typeInfo: ts.Type): boolean {
         if (this.isThisType(typeInfo)) {
+            return false;
+        }
+
+        if (!typeInfo || !typeInfo.symbol || !typeInfo.symbol.valueDeclaration) {
             return false;
         }
 
@@ -96,8 +104,13 @@ export class IdentifierResolver {
             break;
         }
 
-        const typeNode = this.typeChecker.getTypeOfSymbolAtLocation(resolvedSymbol, location);
-        return typeNode;
+        try {
+            const typeNode = this.typeChecker.getTypeOfSymbolAtLocation(resolvedSymbol, location);
+            return typeNode;
+        } catch (e) {
+        }
+
+        return undefined;
     }
 
     public isLocal(location: ts.Node): boolean {

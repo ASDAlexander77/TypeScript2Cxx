@@ -34,6 +34,17 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Node.js (BabylonJS)",
+            "preLaunchTask": "npm",
+            "program": "${workspaceFolder}/../__out/main.js",
+            "cwd": "D:\\Git\\Babylon.js\\src",
+            "args": [
+                "tsconfig.json"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Mocha Tests",
             "program": "${workspaceFolder}/../node_modules/mocha/bin/_mocha",
             "args": [

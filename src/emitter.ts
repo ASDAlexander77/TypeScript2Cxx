@@ -121,7 +121,9 @@ export class Emitter {
     private isDeclarationStatement(f: ts.Statement): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
-            || f.kind === ts.SyntaxKind.ClassDeclaration) {
+            || f.kind === ts.SyntaxKind.ClassDeclaration
+            || f.kind === ts.SyntaxKind.ModuleDeclaration
+            || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
             return true;
         }
 
@@ -146,32 +148,28 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+        this.fixupParentReferences(sourceFile);
+
         this.sourceFileName = sourceFile.fileName;
 
         this.scope.push(sourceFile);
 
-        // added header
-        if (this.isSource()) {
-            this.writer.writeStringNewLine(`#include "${this.sourceFileName.replace(/\.ts$/, '.h')}"`);
-        } else {
-            this.writer.writeStringNewLine(`#include "core.h"`);
-        }
-
-        this.writer.writeStringNewLine('');
-        this.writer.writeStringNewLine('using namespace js;');
-        this.writer.writeStringNewLine('');
-
         if (this.isHeader()) {
+            // added header
+            this.WriteHeader();
+
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
-        } else {
-            sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
-                this.processStatement(s);
-            });
         }
 
-        if (this.isSource()) {
+        if (this.isSource()
+            && (sourceFile.statements.some(s => this.isVariableStatement(s))
+                || sourceFile.statements.some(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)))) {
+
+            // added header
+            this.WriteHeader();
+
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('void Main(void)');
             this.writer.BeginBlock();
@@ -182,15 +180,29 @@ export class Emitter {
 
             this.writer.EndBlock();
 
+            /*
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('int main(int argc, char** argv)');
             this.writer.BeginBlock();
             this.writer.writeStringNewLine('Main();');
             this.writer.writeStringNewLine('return 0;');
             this.writer.EndBlock();
+            */
         }
 
         this.scope.pop();
+    }
+
+    private WriteHeader() {
+        if (this.isSource()) {
+            this.writer.writeStringNewLine(`#include "${this.sourceFileName.replace(/\.ts$/, '.h')}"`);
+        } else {
+            this.writer.writeStringNewLine(`#include "core.h"`);
+        }
+
+        this.writer.writeStringNewLine('');
+        this.writer.writeStringNewLine('using namespace js;');
+        this.writer.writeStringNewLine('');
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -245,6 +257,9 @@ export class Emitter {
 
     private processExpression(nodeIn: ts.Expression): void {
         const node = this.preprocessor.preprocessExpression(nodeIn);
+        if (!node) {
+            return;
+        }
 
         // we need to process it for statements only
         //// this.functionContext.code.setNodeToTrackDebugInfo(node, this.sourceMapGenerator);
@@ -296,6 +311,8 @@ export class Emitter {
             case ts.SyntaxKind.Parameter: this.processPropertyDeclaration(<ts.ParameterDeclaration>node); return;
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
+            case ts.SyntaxKind.SetAccessor: /*TODO: setter*/ return;
+            case ts.SyntaxKind.GetAccessor: /*TODO: getter*/ return;
         }
 
         // TODO: finish it
@@ -640,7 +657,7 @@ export class Emitter {
                         this.writer.writeString('public ');
                         this.writer.writeString(identifier.text);
                     } else {
-                        throw new Error('Not implemented');
+                        /* TODO: finish xxx.yyy<zzz> */
                     }
 
                     next = true;
@@ -728,11 +745,27 @@ export class Emitter {
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {
+        this.writer.writeString('namespace ');
+        this.processExpression(node.name);
+        this.writer.writeString(' ');
+
+        this.writer.BeginBlock();
+
         this.processStatement(<ts.ModuleBlock>node.body);
+
+        this.writer.EndBlock();
     }
 
     private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
+        this.writer.writeString('namespace ');
+        this.processExpression(node.name);
+        this.writer.writeString(' ');
+
+        this.writer.BeginBlock();
+
         this.processModuleDeclaration(node);
+
+        this.writer.EndBlock();
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
@@ -938,11 +971,20 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
-                if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
-                    this.writer.writeString(typeReference.typeName.text);
-                } else {
-                    throw new Error('Not Implemented');
-                }
+
+                const entityProcess = (entity: ts.EntityName) => {
+                    if (entity.kind === ts.SyntaxKind.Identifier) {
+                        this.writer.writeString(entity.text);
+                    } else if (entity.kind === ts.SyntaxKind.QualifiedName) {
+                        entityProcess(entity.left);
+                        this.writer.writeString('::');
+                        this.writer.writeString(entity.right.text);
+                    } else {
+                        throw new Error('Not Implemented');
+                    }
+                };
+
+                entityProcess(typeReference.typeName);
 
                 if (typeReference.typeArguments) {
                     this.writer.writeString('<');
@@ -1440,7 +1482,7 @@ export class Emitter {
     }
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
-        throw new Error('Method not implemented.');
+        /* TODO: finish regular expr.*/
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
@@ -1591,6 +1633,12 @@ export class Emitter {
             this.writer.writeString('.Delete("');
             this.processExpression(propertyAccess.name);
             this.writer.writeString('")');
+        } else if (node.expression.kind === ts.SyntaxKind.ElementAccessExpression) {
+            const elementAccessExpression = <ts.ElementAccessExpression>node.expression;
+            this.processExpression(elementAccessExpression.expression);
+            this.writer.writeString('.Delete(');
+            this.processExpression(elementAccessExpression.argumentExpression);
+            this.writer.writeString(')');
         } else {
             throw new Error('Method not implemented.');
         }
@@ -1684,7 +1732,7 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        throw new Error('Method not implemented.');
+        /* TODO: finish it */
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
