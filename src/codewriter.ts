@@ -5,6 +5,18 @@ export class CodeWriter {
     private newLine = false;
     private endOfStatement = false;
 
+    public newSection(): number {
+        return this.parts.length;
+    }
+
+    public hasAnyContent(point: number): boolean {
+        if (point >= this.parts.length) {
+            return false;
+        }
+
+        return true;
+    }
+
     public BeginBlock() {
         this.writeStringNewLine('{');
         this.IncreaseIntent();

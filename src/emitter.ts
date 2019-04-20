@@ -163,10 +163,7 @@ export class Emitter {
             });
         }
 
-        if (this.isSource()
-            && (sourceFile.statements.some(s => this.isVariableStatement(s))
-                || sourceFile.statements.some(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)))) {
-
+        if (this.isSource()) {
             // added header
             this.WriteHeader();
 
@@ -182,18 +179,24 @@ export class Emitter {
             this.writer.writeStringNewLine('void Main(void)');
             this.writer.BeginBlock();
 
+            const position = this.writer.newSection();
+
             sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
 
-            this.writer.EndBlock();
+            if (!this.writer.hasAnyContent(position)) {
 
-            this.writer.writeStringNewLine('');
-            this.writer.writeStringNewLine('int main(int argc, char** argv)');
-            this.writer.BeginBlock();
-            this.writer.writeStringNewLine('Main();');
-            this.writer.writeStringNewLine('return 0;');
-            this.writer.EndBlock();
+                this.writer.EndBlock();
+
+                this.writer.writeStringNewLine('');
+                this.writer.writeStringNewLine('int main(int argc, char** argv)');
+                this.writer.BeginBlock();
+                this.writer.writeStringNewLine('Main();');
+                this.writer.writeStringNewLine('return 0;');
+                this.writer.EndBlock();
+
+            }
         }
 
         this.scope.pop();
