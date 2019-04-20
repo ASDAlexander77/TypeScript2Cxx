@@ -43,6 +43,10 @@ export class IdentifierResolver {
         return !typeInfo || (<any>typeInfo).intrinsicName === 'error';
     }
 
+    public getOrResolveTypeOfAsTypeNode(location: ts.Node): ts.TypeNode {
+        return this.typeToTypeNode(this.getOrResolveTypeOf(location));
+    }
+
     public getOrResolveTypeOf(location: ts.Node): ts.Type {
         const type = this.getTypeAtLocation(location);
         if (!type || this.isNotDetected(type)) {
@@ -67,6 +71,10 @@ export class IdentifierResolver {
 
     public getTypeOfSymbolAtLocation(symbol: ts.Symbol, location: ts.Node): ts.Type {
         return this.typeChecker.getTypeOfSymbolAtLocation(symbol, location);
+    }
+
+    public typeToTypeNode(type: ts.Type): ts.TypeNode {
+        return this.typeChecker.typeToTypeNode(type);
     }
 
     public resolveTypeOf(location: ts.Node): ts.Type {

@@ -10,7 +10,7 @@ public:
         object::pair{"x"_S, 0}, 
         object::pair{"y"_S, 0}
     };
-    auto calculateDistanceFromOrigin(any point) -> auto
+    auto calculateDistanceFromOrigin(object point) -> auto
     {
         auto xDist = (point.x - Grid::origin.x);
         auto yDist = (point.y - Grid::origin.y);

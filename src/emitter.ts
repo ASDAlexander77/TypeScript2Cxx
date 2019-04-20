@@ -705,7 +705,8 @@ export class Emitter {
 
     private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration): void {
         this.processModifiers(node.modifiers);
-        this.processType(node.type || node.initializer);
+        this.processType(node.type 
+            || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer));
         this.writer.writeString(' ');
 
         if (node.name.kind === ts.SyntaxKind.Identifier) {
@@ -955,6 +956,7 @@ export class Emitter {
             case ts.SyntaxKind.StringKeyword:
                 this.writer.writeString('string');
                 break;
+            case ts.SyntaxKind.TypeLiteral:
             case ts.SyntaxKind.ObjectLiteralExpression:
                 this.writer.writeString('object');
                 break;
