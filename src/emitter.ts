@@ -175,6 +175,8 @@ export class Emitter {
                 this.processStatement(s);
             });
 
+            const rollbackPosition = this.writer.newSection();
+
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('void Main(void)');
             this.writer.BeginBlock();
@@ -185,8 +187,7 @@ export class Emitter {
                 this.processStatement(s);
             });
 
-            if (!this.writer.hasAnyContent(position)) {
-
+            if (this.writer.hasAnyContent(position, rollbackPosition)) {
                 this.writer.EndBlock();
 
                 this.writer.writeStringNewLine('');
@@ -195,7 +196,6 @@ export class Emitter {
                 this.writer.writeStringNewLine('Main();');
                 this.writer.writeStringNewLine('return 0;');
                 this.writer.EndBlock();
-
             }
         }
 
