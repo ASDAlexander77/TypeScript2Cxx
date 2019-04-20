@@ -705,7 +705,7 @@ export class Emitter {
 
     private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration): void {
         this.processModifiers(node.modifiers);
-        this.processType(node.type);
+        this.processType(node.type || node.initializer);
         this.writer.writeString(' ');
 
         if (node.name.kind === ts.SyntaxKind.Identifier) {
@@ -938,17 +938,25 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration, auto: boolean = false): void {
+    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression, 
+        auto: boolean = false): void {
         let next;
         switch (type && type.kind) {
+            case ts.SyntaxKind.TrueKeyword:
+            case ts.SyntaxKind.FalseKeyword:
             case ts.SyntaxKind.BooleanKeyword:
                 this.writer.writeString('boolean');
                 break;
+            case ts.SyntaxKind.NumericLiteral:
             case ts.SyntaxKind.NumberKeyword:
                 this.writer.writeString('number');
                 break;
+            case ts.SyntaxKind.StringLiteral:
             case ts.SyntaxKind.StringKeyword:
                 this.writer.writeString('string');
+                break;
+            case ts.SyntaxKind.ObjectLiteralExpression:
+                this.writer.writeString('object');
                 break;
             case ts.SyntaxKind.ArrayType:
                 const arrayType = <ts.ArrayTypeNode>type;
