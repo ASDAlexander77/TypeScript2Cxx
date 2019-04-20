@@ -170,6 +170,10 @@ export class Emitter {
             // added header
             this.WriteHeader();
 
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+                this.processImplementation(s);
+            });
+
             sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
@@ -321,6 +325,42 @@ export class Emitter {
 
         // TODO: finish it
         throw new Error('Method not implemented.');
+    }
+
+    private processImplementation(node: ts.Declaration | ts.Statement): void {
+        switch (node.kind) {
+            case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node); return;
+            case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true); return;
+            default:
+                return;
+        }
+    }
+
+    private processModuleImplementation(node: ts.ModuleDeclaration) {
+        this.scope.push(node);
+
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.forEach(element => {
+                this.processImplementation(element);
+            });
+        } else {
+            throw new Error('Not Implemented');
+        }
+
+        this.scope.pop();
+    }
+
+    private processClassImplementation(node: ts.ClassDeclaration) {
+
+        this.scope.push(node);
+
+        for (const member of node.members) {
+            this.processImplementation(member);
+        }
+
+        this.scope.pop();
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -703,19 +743,33 @@ export class Emitter {
         this.scope.pop();
     }
 
-    private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration): void {
-        this.processModifiers(node.modifiers);
-        this.processType(node.type 
+    private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration, implementationMode?: boolean): void {
+        if (!implementationMode) {
+            this.processModifiers(node.modifiers);
+        }
+
+        this.processType(node.type
             || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer));
         this.writer.writeString(' ');
 
         if (node.name.kind === ts.SyntaxKind.Identifier) {
+            if (implementationMode) {
+                // write class name
+                const classNode = this.scope[this.scope.length - 1];
+                if (classNode.kind === ts.SyntaxKind.ClassDeclaration) {
+                    this.writer.writeString((<ts.ClassDeclaration>classNode).name.text);
+                    this.writer.writeString('::');
+                } else {
+                    throw new Error('Not Implemented');
+                }
+            }
+
             this.processExpression(node.name);
         } else {
             throw new Error('Not Implemented');
         }
 
-        if (node.initializer) {
+        if (implementationMode && node.initializer) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
@@ -939,7 +993,7 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression, 
+    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
         auto: boolean = false): void {
         let next;
         switch (type && type.kind) {

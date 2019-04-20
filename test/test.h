@@ -6,10 +6,7 @@ class Grid {
 public:
     virtual void dummy() {};
     number scale;
-    static object origin = object{
-        object::pair{"x"_S, 0}, 
-        object::pair{"y"_S, 0}
-    };
+    static object origin;
     auto calculateDistanceFromOrigin(object point) -> auto
     {
         auto xDist = (point["x"] - Grid::origin["x"]);
