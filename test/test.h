@@ -2,23 +2,19 @@
 
 using namespace js;
 
-class Person {
+class Grid {
 public:
     virtual void dummy() {};
-    string name;
-    Person(string name) {
-        this->name = name;
-    }
-};
-class Employee : public Person {
-public:
-    string department;
-    Employee(string name, string department) : Person(name) {
-        this->department = department;
+    struct __asd { number x; number y; };
+    number scale;
+    static __asd origin;
+    auto calculateDistanceFromOrigin(__asd point) -> auto
+    {
+        auto xDist = (point.x - Grid::origin.x);
+        auto yDist = (point.y - Grid::origin.y);
+        return (xDist * xDist + yDist * yDist) / this->scale;
     }
 
-    auto getElevatorPitch() -> auto
-    {
-        return "Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S;
+    Grid(number scale_) : scale(scale_)  {
     }
 };

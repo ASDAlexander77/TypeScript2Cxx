@@ -170,6 +170,10 @@ export class Emitter {
             // added header
             this.WriteHeader();
 
+            sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
+                this.processStatement(s);
+            });
+
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('void Main(void)');
             this.writer.BeginBlock();
