@@ -554,7 +554,7 @@ struct ReadOnlyArray {
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
     T operator[] (I i) const {
         if ((size_t)i >= _values.size()) {
-            return T();
+            return T(undefined);
         }
 
         return _values[(size_t)i];
@@ -569,7 +569,7 @@ struct Array : public ReadOnlyArray<T> {
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
     T& operator[] (I i) {
         if ((size_t)i >= _values.size()) {
-            return T();
+            return T(undefined);
         }
 
         return _values[(size_t)i];
