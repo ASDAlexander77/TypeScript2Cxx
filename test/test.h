@@ -12,8 +12,8 @@ public:
     };
     auto calculateDistanceFromOrigin(object point) -> auto
     {
-        auto xDist = (point.x - Grid::origin.x);
-        auto yDist = (point.y - Grid::origin.y);
+        auto xDist = (point["x"] - Grid::origin["x"]);
+        auto yDist = (point["y"] - Grid::origin["y"]);
         return (xDist * xDist + yDist * yDist) / this->scale;
     }
 

@@ -11,7 +11,9 @@ export class IdentifierResolver {
         }
 
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
-        return (isAnonymousObject && !typeInfo.symbol.name) || (<any>typeInfo).intrinsicName === 'any';
+        return (isAnonymousObject 
+            && (!typeInfo.symbol.name || typeInfo.symbol.name === "__type" || typeInfo.symbol.name === "__object")) 
+            || (<any>typeInfo).intrinsicName === 'any';
     }
 
     public isThisType(typeInfo: ts.Type): boolean {
