@@ -341,14 +341,22 @@ export class Emitter {
     private processModuleImplementation(node: ts.ModuleDeclaration) {
         this.scope.push(node);
 
+        this.writer.writeString('namespace ');
+        this.writer.writeString(node.name.text);
+        this.writer.BeginBlock();
+
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
             block.statements.forEach(element => {
                 this.processImplementation(element);
             });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleImplementation(node.body);
         } else {
             throw new Error('Not Implemented');
         }
+
+        this.writer.EndBlock();
 
         this.scope.pop();
     }
