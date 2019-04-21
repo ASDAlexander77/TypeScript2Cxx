@@ -106,7 +106,7 @@ I\'ll be 38.000000 years old next month.\r\n').to.equals(new Run().test([
 
     it('Enum', () => expect('2\r\n').to.equals(new Run().test([
         'enum Color {Red = 1, Green, Blue}      \
-        console.log(Color::Green);              \
+        console.log(Color.Green);               \
     '])));
 
     it('Const Array with Const Objects', () => expect(new Run().test([
