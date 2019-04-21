@@ -257,6 +257,26 @@ struct object : public undefined_c {
     }
 };
 
+struct regex : public undefined_c {
+
+    string _pattern;
+
+    regex (string pattern) : _pattern(pattern) {
+    }
+
+    regex (const undefined_c& undef) : undefined_c(true) {
+    }
+
+    boolean test(string val) {
+        return false;
+    }
+
+    friend std::ostream& operator << (std::ostream& os, regex val)
+    {
+        return os << "[regex]";
+    }       
+};
+
 struct any {
 
     enum anyTypeId {

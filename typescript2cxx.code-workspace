@@ -65,7 +65,8 @@
             "cstdarg": "cpp",
             "ctime": "cpp",
             "typeindex": "cpp",
-            "iomanip": "cpp"
+            "iomanip": "cpp",
+            "xlocmon": "cpp"
         }
     }
 }

@@ -122,6 +122,7 @@ export class Emitter {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
             || f.kind === ts.SyntaxKind.ClassDeclaration
+            || f.kind === ts.SyntaxKind.InterfaceDeclaration
             || f.kind === ts.SyntaxKind.ModuleDeclaration
             || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
             return true;
@@ -251,6 +252,7 @@ export class Emitter {
             case ts.SyntaxKind.DebuggerStatement: this.processDebuggerStatement(<ts.DebuggerStatement>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.InterfaceDeclaration: this.processClassDeclaration(<ts.InterfaceDeclaration>node); return;
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
@@ -316,12 +318,16 @@ export class Emitter {
 
     private processDeclaration(node: ts.Declaration): void {
         switch (node.kind) {
+            case ts.SyntaxKind.PropertySignature: this.processPropertyDeclaration(<ts.PropertySignature>node); return;
             case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node); return;
             case ts.SyntaxKind.Parameter: this.processPropertyDeclaration(<ts.ParameterDeclaration>node); return;
+            case ts.SyntaxKind.MethodSignature: this.processMethodDeclaration(<ts.MethodSignature>node); return;
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
+            case ts.SyntaxKind.ConstructSignature: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
             case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
             case ts.SyntaxKind.SetAccessor: /*TODO: setter*/ return;
             case ts.SyntaxKind.GetAccessor: /*TODO: getter*/ return;
+            case ts.SyntaxKind.IndexSignature: /*TODO: index*/ return;
         }
 
         // TODO: finish it
@@ -671,7 +677,7 @@ export class Emitter {
                         || m.kind === ts.SyntaxKind.PublicKeyword);
     }
 
-    private processClassDeclaration(node: ts.ClassDeclaration): void {
+    private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
         if (!this.isHeader()) {
             return;
         }
@@ -731,7 +737,7 @@ export class Emitter {
         }
 
         // declare all private parameters of constructors
-        for (const item of node.members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
+        for (const item of (<any>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             const constructor = <ts.ConstructorDeclaration>item;
             for (const fieldAsParam of constructor.parameters
                         .filter(p => this.hasAccessModifier(p.modifiers))) {
@@ -752,7 +758,8 @@ export class Emitter {
         this.scope.pop();
     }
 
-    private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.ParameterDeclaration, implementationMode?: boolean): void {
+    private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.PropertySignature | ts.ParameterDeclaration,
+        implementationMode?: boolean): void {
         if (!implementationMode) {
             this.processModifiers(node.modifiers);
         }
@@ -786,13 +793,13 @@ export class Emitter {
         this.writer.EndOfStatement();
     }
 
-    private processMethodDeclaration(node: ts.MethodDeclaration): void {
+    private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature): void {
         this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
         this.writer.writeStringNewLine();
     }
 
-    private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
+    private processConstructorDeclaration(node: ts.ConstructorDeclaration | ts.ConstructSignature): void {
         this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
         this.writer.writeStringNewLine();
@@ -1531,7 +1538,8 @@ export class Emitter {
         this.writer.writeString(`${node.text}`);
     }
 
-    private processStringLiteral(node: ts.StringLiteral | ts.TemplateHead | ts.TemplateMiddle | ts.TemplateTail): void {
+    private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
+        | ts.TemplateHead | ts.TemplateMiddle | ts.TemplateTail): void {
         this.writer.writeString(`"${node.text}"_S`);
     }
 
@@ -1559,7 +1567,9 @@ export class Emitter {
     }
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
-        /* TODO: finish regular expr.*/
+        this.writer.writeString('regex(');
+        this.processStringLiteral(node);
+        this.writer.writeString(')');
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
@@ -1591,6 +1601,29 @@ export class Emitter {
 
                     this.writer.writeString(', ');
                     this.processExpression(property.initializer);
+                    this.writer.writeString('}');
+                } else if (element.kind === ts.SyntaxKind.ShorthandPropertyAssignment) {
+                    const property = <ts.ShorthandPropertyAssignment>element;
+
+                    this.writer.writeString('object::pair{');
+
+                    if (property.name
+                        && (property.name.kind === ts.SyntaxKind.Identifier
+                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
+                        this.processExpression(ts.createStringLiteral(property.name.text));
+                    } else {
+                        this.processExpression(<ts.Expression>property.name);
+                    }
+
+                    this.writer.writeString(', ');
+                    if (property.name
+                        && (property.name.kind === ts.SyntaxKind.Identifier
+                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
+                        this.processExpression(ts.createStringLiteral(property.name.text));
+                    } else {
+                        this.processExpression(<ts.Expression>property.name);
+                    }
+
                     this.writer.writeString('}');
                 }
 
