@@ -19,6 +19,9 @@ namespace js
 #define OR(x, y) ((bool)(x) ? (x) : (y))
 #define AND(x, y) ((bool)(x) ? (y) : (x))
 
+#define EQUALS(x, y) ((x) == (y))
+#define NOT_EQUALS(x, y) (!((x) == (y)))
+
 struct any;
 struct object;
 
