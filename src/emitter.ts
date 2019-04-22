@@ -799,7 +799,7 @@ export class Emitter {
         this.writer.writeStringNewLine();
     }
 
-    private processConstructorDeclaration(node: ts.ConstructorDeclaration | ts.ConstructSignature): void {
+    private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
         this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
         this.writer.writeStringNewLine();
@@ -1175,12 +1175,15 @@ export class Emitter {
 
     private processFunctionExpression(
         node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.ConstructorDeclaration): void {
+
+        let noBody = false;
+
         if (!node.body
             || ((<any>node).body.statements
                 && (<any>node).body.statements.length === 0
                 && ((<any>node).body.statements).isMissingList)) {
             // function without body;
-            return;
+            noBody = true;
         }
 
         const noReturn = !this.hasReturn(node);
@@ -1188,7 +1191,7 @@ export class Emitter {
         // const noCapture = !this.requireCapture(node);
 
         const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
-            || this.isClassMemberDeclaration(node);
+            || this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
@@ -1197,8 +1200,14 @@ export class Emitter {
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
-                if (node.kind !== ts.SyntaxKind.Constructor) {
-                    this.writer.writeString('auto ');
+                if (node.kind !== ts.SyntaxKind.Constructor && !noBody) {
+                    this.writer.writeString('virtual auto ');
+                }
+
+                if (noBody) {
+                    this.writer.writeString('virtual ');
+                    this.processType(node.type);
+                    this.writer.writeString(' ');
                 }
 
                 // name
@@ -1321,13 +1330,18 @@ export class Emitter {
             this.writer.writeString(' ');
         }
 
-        this.writer.BeginBlock();
+        if (noBody) {
+            this.writer.cancelNewLine();
+            this.writer.writeString(' = 0');
+        } else {
+            this.writer.BeginBlock();
 
-        (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
-            this.processStatement(element);
-        });
+            (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
+                this.processStatement(element);
+            });
 
-        this.writer.EndBlock();
+            this.writer.EndBlock();
+        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -1348,6 +1362,11 @@ export class Emitter {
             || node.kind === ts.SyntaxKind.SetAccessor;
     }
 
+    private isClassMemberSignature(node: ts.Node) {
+        return node.kind === ts.SyntaxKind.MethodSignature
+            || node.kind === ts.SyntaxKind.PropertySignature;
+    }
+
     private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
         if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
             // skip it, as it is only declaration
@@ -1361,6 +1380,10 @@ export class Emitter {
         if (!this.isClassMemberDeclaration(node)) {
             this.writer.EndOfStatement();
             this.writer.writeStringNewLine();
+        }
+
+        if (this.isClassMemberSignature(node)) {
+            this.writer.cancelNewLine();
         }
     }
 
