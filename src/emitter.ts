@@ -172,9 +172,13 @@ export class Emitter {
                 this.processImplementation(s);
             });
 
+            const positionBeforeVars = this.writer.newSection();
+
             sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
+
+            const hasVarsContent = this.writer.hasAnyContent(positionBeforeVars);
 
             const rollbackPosition = this.writer.newSection();
 
@@ -188,7 +192,7 @@ export class Emitter {
                 this.processStatement(s);
             });
 
-            if (this.writer.hasAnyContent(position, rollbackPosition)) {
+            if (hasVarsContent || this.writer.hasAnyContent(position, rollbackPosition)) {
                 this.writer.EndBlock();
 
                 this.writer.writeStringNewLine('');
@@ -1091,6 +1095,9 @@ export class Emitter {
 
                     this.writer.writeString('>');
                 }
+
+                // make it pointer
+                this.writer.writeString('*');
 
                 break;
             case ts.SyntaxKind.TypeParameter:

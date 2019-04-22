@@ -9,9 +9,12 @@ export class CodeWriter {
         return this.parts.length;
     }
 
-    public hasAnyContent(point: number, rollbackPosition: number): boolean {
+    public hasAnyContent(point: number, rollbackPosition?: number): boolean {
         if (point >= this.parts.length) {
-            this.parts.length = rollbackPosition;
+            if (rollbackPosition) {
+                this.parts.length = rollbackPosition;
+            }
+            
             return false;
         }
 
