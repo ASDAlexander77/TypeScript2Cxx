@@ -1013,7 +1013,7 @@ export class Emitter {
         auto: boolean = false): void {
 
         let type = typeIn;
-        if (typeIn.kind === ts.SyntaxKind.LiteralType) {
+        if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
             type = (<ts.LiteralTypeNode>typeIn).literal;
         }
 
