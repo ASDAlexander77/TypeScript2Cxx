@@ -2,8 +2,10 @@
 
 using namespace js;
 
-class IFace {
+class Test {
 public:
     virtual void dummy() {};
-    virtual number run() = 0;
+    static string NAME_EFFECTLAYER;
+    static number NAME_EFFECTLAYER1;
+    static boolean NAME_EFFECTLAYER2;
 };

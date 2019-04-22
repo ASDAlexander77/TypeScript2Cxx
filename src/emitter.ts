@@ -1009,8 +1009,14 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private processType(type: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
+    private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
         auto: boolean = false): void {
+
+        let type = typeIn;
+        if (typeIn.kind === ts.SyntaxKind.LiteralType) {
+            type = (<ts.LiteralTypeNode>typeIn).literal;
+        }
+
         let next;
         switch (type && type.kind) {
             case ts.SyntaxKind.TrueKeyword:
