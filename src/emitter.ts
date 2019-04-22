@@ -1213,13 +1213,14 @@ export class Emitter {
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
-                if (node.kind !== ts.SyntaxKind.Constructor && !noBody) {
-                    this.writer.writeString('virtual auto ');
-                }
-
-                if (noBody) {
+                if (node.kind !== ts.SyntaxKind.Constructor) {
                     this.writer.writeString('virtual ');
-                    this.processType(node.type);
+                    if (node.type) {
+                        this.processType(node.type);
+                    } else {
+                        this.writer.writeString('void');
+                    }
+
                     this.writer.writeString(' ');
                 }
 
