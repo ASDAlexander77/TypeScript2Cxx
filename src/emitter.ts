@@ -206,14 +206,22 @@ export class Emitter {
             }
         }
 
+        if (this.isHeader()) {
+            // end of header
+            this.writer.writeStringNewLine(`#endif`);
+        }
+
         this.scope.pop();
     }
 
     private WriteHeader() {
+        const filePath = Helpers.getSubPath(Helpers.cleanUpPath(this.sourceFileName), Helpers.cleanUpPath(this.rootFolder));
         if (this.isSource()) {
-            const filePath = Helpers.getSubPath(Helpers.cleanUpPath(this.sourceFileName), Helpers.cleanUpPath(this.rootFolder));
             this.writer.writeStringNewLine(`#include "${filePath.replace(/\.ts$/, '.h')}"`);
         } else {
+            const headerName = filePath.replace(/\.ts$/, '_h').replace('.', '_').replace(/[\\/_]/, '_').toUpperCase();
+            this.writer.writeStringNewLine(`#ifndef ${headerName}`);
+            this.writer.writeStringNewLine(`#define ${headerName}`);
             this.writer.writeStringNewLine(`#include "core.h"`);
         }
 
