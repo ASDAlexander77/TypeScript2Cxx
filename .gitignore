@@ -19,3 +19,4 @@ __build_win32_release
 .vs
 /Experiment/src
 /Experiment/__build
+out
