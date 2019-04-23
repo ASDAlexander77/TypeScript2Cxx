@@ -809,13 +809,11 @@ export class Emitter {
     }
 
     private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature): void {
-        this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
         this.writer.writeStringNewLine();
     }
 
     private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
-        this.processModifiers(node.modifiers);
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
         this.writer.writeStringNewLine();
     }
@@ -1275,6 +1273,9 @@ export class Emitter {
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
 
+        this.processTemplateParams(node);
+        this.processModifiers(node.modifiers);
+
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
@@ -1426,6 +1427,22 @@ export class Emitter {
 
             this.writer.EndBlock();
         }
+    }
+
+    private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration) {
+        let next = false;
+        if (node.typeParameters) {
+            this.writer.writeString('template <');
+            node.typeParameters.forEach(type => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+                this.processType(type);
+                next = true;
+            });
+            this.writer.writeStringNewLine('>');
+        }
+        return next;
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {

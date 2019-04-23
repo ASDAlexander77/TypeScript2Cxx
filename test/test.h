@@ -2,7 +2,11 @@
 
 using namespace js;
 
-void f(boolean a = true)
-{
+class SSS {
+public:
+    virtual void dummy() {};
+    template <typename T> static
+    void f(boolean a = true)
+    {
+    }
 };
-
