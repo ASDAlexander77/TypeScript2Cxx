@@ -551,7 +551,15 @@ export class Emitter {
         this.writer.EndBlock();
 
         if (node.catchClause) {
-            this.writer.writeString('catch (const any& ');
+            this.writer.writeString('catch (const ');
+            if (node.catchClause.variableDeclaration.type) {
+                this.processType(node.catchClause.variableDeclaration.type);
+            } else {
+                this.writer.writeString('any');
+            }
+
+            this.writer.writeString('& ');
+
             if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
                 this.processVariableDeclarationOne(
                     <ts.Identifier>(node.catchClause.variableDeclaration.name),
