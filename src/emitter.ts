@@ -1128,7 +1128,7 @@ export class Emitter {
                 entityProcess(typeReference.typeName);
 
                 if (typeReference.typeArguments) {
-                    this.writer.writeString('<');
+                    this.writer.writeString('< ');
 
                     let next1 = false;
                     typeReference.typeArguments.forEach(element => {
@@ -1140,7 +1140,7 @@ export class Emitter {
                         next1 = true;
                     });
 
-                    this.writer.writeString('>');
+                    this.writer.writeString(' >');
                 }
 
                 // make it pointer
