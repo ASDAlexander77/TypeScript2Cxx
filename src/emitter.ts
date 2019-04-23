@@ -1153,7 +1153,9 @@ export class Emitter {
                     }
                 }
 
-                if (!skipPointer && (<any>typeInfo).symbol.name !== "__type" && !skipPointerInType) {
+                if (!skipPointer
+                    && (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name !== "__type")
+                    && !skipPointerInType) {
                     this.writer.writeString('*');
                 }
 
