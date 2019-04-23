@@ -37,7 +37,7 @@
             "name": "Launch Node.js (BabylonJS)",
             "preLaunchTask": "npm",
             "program": "${workspaceFolder}/../__out/main.js",
-            "cwd": "D:\\Git\\Babylon.js\\src",
+            "cwd": "C:\\Dev\\Gits\\Babylon.js\\src",
             "args": [
                 "tsconfig.json"
             ]

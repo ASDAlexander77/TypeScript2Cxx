@@ -861,7 +861,20 @@ export class Emitter {
     }
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
-        throw new Error('Method not implemented.');
+
+        if (node.moduleSpecifier.kind != ts.SyntaxKind.Identifier) {
+            return;
+        }
+
+        this.writer.writeString("#include \"");
+        if (node.moduleSpecifier.kind == ts.SyntaxKind.Identifier) {
+            const ident = <ts.Identifier>node.moduleSpecifier;
+            this.writer.writeString(ident.text);
+            this.writer.writeString(".h");
+        }
+
+        this.writer.writeString("\"");
+        this.writer.EndOfStatement();
     }
 
     private isAlreadyDeclaredInGlobalScope(name: string) {
@@ -1710,7 +1723,7 @@ export class Emitter {
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
 
         const type = this.resolver.getOrResolveTypeOf(node.expression);
-        if ((<any>type).typeArguments && !(<any>type).symbol) {
+        if (type && (<any>type).typeArguments && !(<any>type).symbol) {
             // tuple
             if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
                 throw new Error('Not implemented');
@@ -1856,12 +1869,25 @@ export class Emitter {
     }
 
     private processThisExpression(node: ts.ThisExpression): void {
+
+        const method = this.scope[this.scope.length - 1];
+        if (method
+            && (this.isClassMemberDeclaration(method) || this.isClassMemberSignature(method))
+            && this.isStatic(method)) {
+            const classNode = <ts.ClassDeclaration> this.scope[this.scope.length - 2];
+            if (classNode) {
+                const identifier = classNode.name;
+                this.writer.writeString(identifier.text);
+                return;
+            }
+        }
+
         this.writer.writeString('this');
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
         if (node.parent.kind === ts.SyntaxKind.CallExpression) {
-            const classNode = <ts.ClassDeclaration> this.scope[ this.scope.length - 2];
+            const classNode = <ts.ClassDeclaration> this.scope[this.scope.length - 2];
             if (classNode) {
                 const heritageClause = classNode.heritageClauses[0];
                 if (heritageClause) {
@@ -1900,7 +1926,7 @@ export class Emitter {
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
-        throw new Error('Method not implemented.');
+        /* TODO: finish it */
     }
 
     private processIndentifier(node: ts.Identifier): void {
