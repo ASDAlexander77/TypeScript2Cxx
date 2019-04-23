@@ -8,7 +8,7 @@ std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
 }
 
 // Array
-array::array() : _values() {
+array::array() : _values(), undefined_c(true) {
 }
 
 array::array (std::initializer_list<any> values) : _values(values) {
@@ -22,7 +22,7 @@ any& array::operator[] (T t) {
 // End of Array
 
 // Object
-object::object() : _values() {
+object::object() : _values(), undefined_c(true) {
 }
 
 object::object (std::initializer_list<pair> values) {

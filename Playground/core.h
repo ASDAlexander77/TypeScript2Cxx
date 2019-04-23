@@ -55,6 +55,9 @@ struct boolean : public undefined_c {
 
     bool _value;
 
+    boolean () : _value(false), undefined_c(true) {
+    }
+
     boolean (bool initValue) {
         _value = initValue;
     }
@@ -80,7 +83,7 @@ struct number : public undefined_c {
 
     double _value;
 
-    number() : _value(0) {
+    number () : _value(0), undefined_c(true) {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -140,6 +143,33 @@ struct number : public undefined_c {
         return number(_value / n._value);
     }   
 
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator ==(T t) {
+        return _value == t;
+    }
+
+    bool operator ==(number n) {
+        return _value == n._value;
+    }    
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator <(T t) {
+        return _value < t;
+    }
+
+    bool operator <(number n) {
+        return _value < n._value;
+    } 
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator >(T t) {
+        return _value > t;
+    }
+
+    bool operator >(number n) {
+        return _value > n._value;
+    }     
+
     friend std::ostream& operator << (std::ostream& os, number val)
     {
         return os << val._value;
@@ -150,7 +180,7 @@ struct string : public undefined_c {
 
     std::string _value;
 
-    string () : _value() {
+    string () : _value(), undefined_c(true) {
     }    
 
     string (std::string value) : _value(value) {
