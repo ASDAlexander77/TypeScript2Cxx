@@ -842,7 +842,7 @@ export class Emitter {
                 const literal = <ts.LiteralTypeNode>argument;
                 this.writer.writeString('#include \"');
                 this.writer.writeString((<any>literal.literal).text);
-                this.writer.writeString('.h\"');
+                this.writer.writeStringNewLine('.h\"');
             } else {
                 throw new Error('Not Implemented');
             }
@@ -851,7 +851,7 @@ export class Emitter {
         }
 
         this.writer.writeString('typedef ');
-        this.processType(node.type);
+        this.processType(node.type, false, true);
         this.writer.writeString(' ');
         this.processExpression(node.name);
 
@@ -899,8 +899,7 @@ export class Emitter {
             this.writer.writeString(".h");
         }
 
-        this.writer.writeString("\"");
-        this.writer.EndOfStatement();
+        this.writer.writeStringNewLine("\"");
     }
 
     private isAlreadyDeclaredInGlobalScope(name: string) {
@@ -1062,7 +1061,7 @@ export class Emitter {
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false): void {
+        auto: boolean = false, skipPointerInType: boolean = false): void {
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1113,6 +1112,7 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
+                const typeInfo = this.resolver.getOrResolveTypeOf(type);
 
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
@@ -1153,7 +1153,7 @@ export class Emitter {
                     }
                 }
 
-                if (!skipPointer) {
+                if (!skipPointer && (<any>typeInfo).symbol.name !== "__type" && !skipPointerInType) {
                     this.writer.writeString('*');
                 }
 
@@ -1197,6 +1197,9 @@ export class Emitter {
                 }
 
                 this.writer.writeString(')>');
+                break;
+            case ts.SyntaxKind.VoidKeyword:
+                this.writer.writeString('void');
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
