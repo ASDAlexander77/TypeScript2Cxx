@@ -11,8 +11,8 @@ export class IdentifierResolver {
         }
 
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
-        return (isAnonymousObject 
-            && (!typeInfo.symbol.name || typeInfo.symbol.name === "__type" || typeInfo.symbol.name === "__object")) 
+        return (isAnonymousObject
+            && (!typeInfo.symbol.name || typeInfo.symbol.name === "__type" || typeInfo.symbol.name === "__object"))
             || (<any>typeInfo).intrinsicName === 'any';
     }
 
@@ -80,6 +80,10 @@ export class IdentifierResolver {
     }
 
     public resolveTypeOf(location: ts.Node): ts.Type {
+        if (!location) {
+            return undefined;
+        }
+
         if (location.kind !== ts.SyntaxKind.Identifier) {
             // only identifier is accepted
             return undefined;
