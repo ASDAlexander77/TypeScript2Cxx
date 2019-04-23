@@ -1644,9 +1644,9 @@ export class Emitter {
     }
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
-        this.writer.writeString('regex(');
+        this.writer.writeString('(new RegExp(');
         this.processStringLiteral(node);
-        this.writer.writeString(')');
+        this.writer.writeString('))');
     }
 
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {

@@ -62,9 +62,9 @@ struct boolean : public undefined_c {
     boolean (const undefined_c& undef) : undefined_c(true) {
     }
 
-    inline operator bool() {
+    operator bool() const {
         if (isUndefined) {
-            return undefined_c::operator bool();
+            return false;
         }
 
         return _value;
@@ -260,26 +260,6 @@ struct object : public undefined_c {
     {
         return os << "[object]";
     }
-};
-
-struct regex : public undefined_c {
-
-    string _pattern;
-
-    regex (string pattern) : _pattern(pattern) {
-    }
-
-    regex (const undefined_c& undef) : undefined_c(true) {
-    }
-
-    boolean test(string val) {
-        return false;
-    }
-
-    friend std::ostream& operator << (std::ostream& os, regex val)
-    {
-        return os << "[regex]";
-    }       
 };
 
 struct any {
@@ -781,6 +761,19 @@ static struct Console
     }
 
 } console;
+
+struct RegExp {
+
+    js::string _pattern;
+
+    RegExp (js::string pattern) : _pattern(pattern) {
+    }
+
+    js::boolean test(js::string val) {
+        return false;
+    }
+};
+
 
 } // namespace js
 
