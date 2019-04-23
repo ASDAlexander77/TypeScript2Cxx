@@ -125,7 +125,8 @@ export class Emitter {
             || f.kind === ts.SyntaxKind.InterfaceDeclaration
             || f.kind === ts.SyntaxKind.ModuleDeclaration
             || f.kind === ts.SyntaxKind.NamespaceExportDeclaration
-            || f.kind === ts.SyntaxKind.ImportDeclaration) {
+            || f.kind === ts.SyntaxKind.ImportDeclaration
+            || f.kind === ts.SyntaxKind.TypeAliasDeclaration) {
             return true;
         }
 
@@ -262,8 +263,7 @@ export class Emitter {
             case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
-            case ts.SyntaxKind.InterfaceDeclaration: /*nothing to do*/ return;
-            case ts.SyntaxKind.TypeAliasDeclaration: /*nothing to do*/ return;
+            case ts.SyntaxKind.TypeAliasDeclaration: this.processTypeAliasDeclaration(<ts.TypeAliasDeclaration>node); return;
             case ts.SyntaxKind.ExportAssignment: /*nothing to do*/ return;
         }
 
@@ -597,7 +597,7 @@ export class Emitter {
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        this.writer.writeString('TypeOf(');
+        this.writer.writeString('typeOf(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
     }
@@ -831,6 +831,15 @@ export class Emitter {
                     break;
             }
         });
+    }
+
+    private processTypeAliasDeclaration(node: ts.TypeAliasDeclaration): void {
+        this.writer.writeString('typedef ');
+        this.processType(node.type);
+        this.writer.writeString(' ');
+        this.processExpression(node.name);
+
+        this.writer.EndOfStatement();
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {

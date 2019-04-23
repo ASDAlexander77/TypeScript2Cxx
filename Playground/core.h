@@ -460,6 +460,46 @@ struct any {
         throw "not implemented";
     }
 
+    js::string typeOf()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+            return "undefined";
+
+        case anyTypeId::boolean:
+            return "boolean";
+
+        case anyTypeId::number:
+            return "number";
+
+        case anyTypeId::string:
+            return "string";
+
+        case anyTypeId::array:
+            return "array";
+
+        case anyTypeId::object:
+            return "object";
+
+        default:
+            return "error";
+        }
+    }
+
+    void Delete(const char *field)
+    {
+        switch (_type)
+        {
+        case anyTypeId::object:
+            ((js::object*)_value._data)->_values.erase(field);
+            break;
+
+        default:
+            throw "wrong type";
+        }
+    }    
+
     int hash(void) const noexcept
     {
         size_t const h1 ( std::hash<int>{}((int)_type) );
@@ -678,6 +718,21 @@ template < typename I, typename T>
 inline bool __is(T* t) {
     return std::type_index(typeid(I*)) == std::type_index(typeid(t))
            || is<I>(t);
+}
+
+template <class T>
+static string typeOf(T value);
+template <>
+static string typeOf(any value)
+{
+    return value.typeOf();
+}
+
+template< class T > static any Void(T value);
+template<> 
+static any Void(any value)
+{
+    return any();
 }
 
 struct Finally
