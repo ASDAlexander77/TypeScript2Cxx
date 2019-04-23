@@ -1203,8 +1203,9 @@ export class Emitter {
         // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         // const noCapture = !this.requireCapture(node);
 
+        const isClassMember = this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
         const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
-            || this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
+            || isClassMember;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
@@ -1214,7 +1215,10 @@ export class Emitter {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
                 if (node.kind !== ts.SyntaxKind.Constructor) {
-                    this.writer.writeString('virtual ');
+                    if (isClassMember && !this.isStatic(node)) {
+                        this.writer.writeString('virtual ');
+                    }
+
                     if (node.type) {
                         this.processType(node.type);
                     } else {
@@ -1286,13 +1290,7 @@ export class Emitter {
             next = true;
         });
 
-        this.writer.writeString(')');
-
-        if (writeAsLambdaCFunction && !noReturn) {
-            this.writer.writeStringNewLine(' -> auto');
-        } else {
-            this.writer.writeStringNewLine();
-        }
+        this.writer.writeStringNewLine(')');
 
         // constructor init
         let skipped = 0;
@@ -1381,12 +1379,11 @@ export class Emitter {
             || node.kind === ts.SyntaxKind.PropertySignature;
     }
 
-    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
-        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword)) {
-            // skip it, as it is only declaration
-            return;
-        }
+    private isStatic(node: ts.Node) {
+        return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+    }
 
+    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
         this.scope.push(node);
         this.processFunctionExpression(<ts.FunctionExpression><any>node);
         this.scope.pop();

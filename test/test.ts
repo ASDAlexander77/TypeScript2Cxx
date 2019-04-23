@@ -1,14 +1,7 @@
-interface ITest {
-    abort();
+class Class1 {
+    public static show() {
+        console.log("Hello");
+    }
 }
 
-class Test implements ITest {
-    abort() {
-    }
-};
-
-const a: Test = new Test();
-
-const b = new Test();
-
-const c: ITest = new Test();
+Class1.show();

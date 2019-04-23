@@ -2,14 +2,11 @@
 
 using namespace js;
 
-class ITest {
+class Class1 {
 public:
     virtual void dummy() {};
-    virtual void abort() = 0;
-};
-class Test : public ITest {
-public:
-    virtual void abort()
+    static void show()
     {
+        console.log("Hello"_S);
     }
 };
