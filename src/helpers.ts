@@ -25,7 +25,8 @@ export class Helpers {
         const extIndex = fileName.lastIndexOf('.');
         const fileNameNoExt = extIndex >= 0 ? fileName.substr(0, extIndex) : fileName;
 
-        const fileNameFixed = fileNameNoExt.replace(/\./g, '_');
+        //const fileNameFixed = fileNameNoExt.replace(/\./g, '_');
+        const fileNameFixed = fileNameNoExt;
 
         // rebuild filePath
         const beginPath = fileNameIndex >= 0 ? filePath.substr(0, fileNameIndex + 1) : '';
