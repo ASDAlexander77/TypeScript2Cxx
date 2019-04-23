@@ -551,7 +551,7 @@ export class Emitter {
         this.writer.EndBlock();
 
         if (node.catchClause) {
-            this.writer.writeStringNewLine('catch (const any& ');
+            this.writer.writeString('catch (const any& ');
             if (node.catchClause.variableDeclaration.name.kind === ts.SyntaxKind.Identifier) {
                 this.processVariableDeclarationOne(
                     <ts.Identifier>(node.catchClause.variableDeclaration.name),
@@ -579,8 +579,9 @@ export class Emitter {
     private processThrowStatement(node: ts.ThrowStatement): void {
         this.writer.writeString('throw');
         if (node.expression) {
-            this.writer.writeString(' ');
+            this.writer.writeString(' any(');
             this.processExpression(node.expression);
+            this.writer.writeString(')');
         }
 
         this.writer.EndOfStatement();
