@@ -834,6 +834,22 @@ export class Emitter {
     }
 
     private processTypeAliasDeclaration(node: ts.TypeAliasDeclaration): void {
+
+        if (node.type.kind === ts.SyntaxKind.ImportType) {
+            const typeLiteral = <ts.ImportTypeNode>node.type;
+            const argument = typeLiteral.argument;
+            if (argument.kind === ts.SyntaxKind.LiteralType) {
+                const literal = <ts.LiteralTypeNode>argument;
+                this.writer.writeString('#include \"');
+                this.writer.writeString((<any>literal.literal).text);
+                this.writer.writeString('.h\"');
+            } else {
+                throw new Error('Not Implemented');
+            }
+
+            return;
+        }
+
         this.writer.writeString('typedef ');
         this.processType(node.type);
         this.writer.writeString(' ');
@@ -1389,8 +1405,11 @@ export class Emitter {
         }
 
         if (noBody) {
-            this.writer.cancelNewLine();
-            this.writer.writeString(' = 0');
+            if (isClassMember) {
+                // abstract
+                this.writer.cancelNewLine();
+                this.writer.writeString(' = 0');
+            }
         } else {
             this.writer.BeginBlock();
 
