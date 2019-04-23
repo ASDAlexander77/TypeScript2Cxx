@@ -1097,7 +1097,17 @@ export class Emitter {
                 }
 
                 // make it pointer
-                this.writer.writeString('*');
+                let skipPointer = false;
+                if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
+                    const typeName = (<ts.Identifier>typeReference.typeName).text;
+                    if (typeName === "Array" || typeName === "Map") {
+                        skipPointer = true;
+                    }
+                }
+
+                if (!skipPointer) {
+                    this.writer.writeString('*');
+                }
 
                 break;
             case ts.SyntaxKind.TypeParameter:
