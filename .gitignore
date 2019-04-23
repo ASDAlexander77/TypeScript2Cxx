@@ -17,3 +17,5 @@ __build_win32_release
 /test/test.exe
 /test/testapp1.exe
 .vs
+/Experiment/src
+/Experiment/__build

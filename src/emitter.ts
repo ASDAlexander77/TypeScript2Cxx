@@ -883,7 +883,7 @@ export class Emitter {
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
-        this.processTSNode(node);
+        /* TODO: */
     }
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
