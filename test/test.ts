@@ -1,1 +1,1 @@
-export type MeshStageAction = (mesh: number, hardwareInstancedRendering: boolean) => boolean;
+console.log(typeof("asd"));

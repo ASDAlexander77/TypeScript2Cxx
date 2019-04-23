@@ -723,6 +723,25 @@ inline bool __is(T* t) {
 template <class T>
 static string typeOf(T value);
 template <>
+static string typeOf(boolean value)
+{
+    return "boolean"_S;
+}
+template <>
+static string typeOf(number value)
+{
+    return "number"_S;
+}
+template <>
+static string typeOf(string value)
+{
+    return "string"_S;
+}
+template <>
+static string typeOf(object value)
+{
+    return "object"_S;
+}
 static string typeOf(any value)
 {
     return value.typeOf();

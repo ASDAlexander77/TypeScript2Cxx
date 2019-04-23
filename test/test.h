@@ -2,4 +2,3 @@
 
 using namespace js;
 
-typedef std::function<boolean(number, boolean)> MeshStageAction;
