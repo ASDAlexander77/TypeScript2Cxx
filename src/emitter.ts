@@ -1337,7 +1337,8 @@ export class Emitter {
             if (element.dotDotDotToken) {
                 // ...
             } else {
-                this.processType(element.type);
+                this.processType(element.type
+                    || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer));
                 this.writer.writeString(' ');
                 this.processExpression(element.name);
 

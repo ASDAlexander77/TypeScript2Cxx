@@ -1,2 +1,3 @@
-var a = false;
-var b = undefined;
+function f(a = true) {
+
+}
