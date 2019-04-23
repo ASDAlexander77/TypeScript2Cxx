@@ -1527,8 +1527,9 @@ export class Emitter {
             }
 
             this.writer.BeginBlockNoIntent();
+            this.writer.writeString('any(');
             this.processExpression((<ts.CaseClause>element).expression);
-            this.writer.writeString(', ');
+            this.writer.writeString('), ');
             this.writer.writeString((++caseNumber).toString());
             this.writer.EndBlockNoIntent();
         });

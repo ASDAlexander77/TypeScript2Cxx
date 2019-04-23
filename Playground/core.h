@@ -377,6 +377,27 @@ struct any {
         return _type != anyTypeId::undefined;
     }
 
+    friend bool operator ==(const js::any& value, const js::any& other) {
+        if (value._type != other._type) {
+            return false;
+        }
+
+        switch (value._type) {
+            case anyTypeId::undefined:
+                return true;
+            case anyTypeId::boolean:
+                return value._value._boolean._value == other._value._boolean._value;
+            case anyTypeId::number:
+                return value._value._number._value == other._value._number._value;
+            case anyTypeId::string:
+                return std::strcmp(((js::string*)value._value._data)->_value.c_str(), ((js::string*)other._value._data)->_value.c_str()) == 0;
+            case anyTypeId::object:
+                return ((js::object*)value._value._data) == ((js::object*)other._value._data);
+        }
+
+        throw "not implemented";
+    }    
+
     any operator +(const any& t) {
         switch (_type) {
             case anyTypeId::number:
