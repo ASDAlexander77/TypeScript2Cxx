@@ -1264,7 +1264,11 @@ export class Emitter {
                     if (node.type) {
                         this.processType(node.type);
                     } else {
-                        this.writer.writeString('void');
+                        if (noReturn) {
+                            this.writer.writeString('void');
+                        } else {
+                            this.writer.writeString('any');
+                        }
                     }
 
                     this.writer.writeString(' ');
