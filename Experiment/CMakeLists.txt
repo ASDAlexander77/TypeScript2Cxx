@@ -23,6 +23,7 @@ message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 
 # files
 file(GLOB_RECURSE prj_SRC
+    "../Playground/*.cpp",
     "*.cpp"
 )
 

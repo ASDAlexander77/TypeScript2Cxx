@@ -211,7 +211,8 @@ export class Emitter {
 
     private WriteHeader() {
         if (this.isSource()) {
-            this.writer.writeStringNewLine(`#include "${this.sourceFileName.replace(/\.ts$/, '.h')}"`);
+            const filePath = Helpers.getSubPath(Helpers.cleanUpPath(this.sourceFileName), Helpers.cleanUpPath(this.rootFolder));
+            this.writer.writeStringNewLine(`#include "${filePath.replace(/\.ts$/, '.h')}"`);
         } else {
             this.writer.writeStringNewLine(`#include "core.h"`);
         }
