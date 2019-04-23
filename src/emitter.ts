@@ -124,7 +124,8 @@ export class Emitter {
             || f.kind === ts.SyntaxKind.ClassDeclaration
             || f.kind === ts.SyntaxKind.InterfaceDeclaration
             || f.kind === ts.SyntaxKind.ModuleDeclaration
-            || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
+            || f.kind === ts.SyntaxKind.NamespaceExportDeclaration
+            || f.kind === ts.SyntaxKind.ImportDeclaration) {
             return true;
         }
 
@@ -862,13 +863,13 @@ export class Emitter {
 
     private processImportDeclaration(node: ts.ImportDeclaration): void {
 
-        if (node.moduleSpecifier.kind != ts.SyntaxKind.Identifier) {
+        if (node.moduleSpecifier.kind != ts.SyntaxKind.StringLiteral) {
             return;
         }
 
         this.writer.writeString("#include \"");
-        if (node.moduleSpecifier.kind == ts.SyntaxKind.Identifier) {
-            const ident = <ts.Identifier>node.moduleSpecifier;
+        if (node.moduleSpecifier.kind == ts.SyntaxKind.StringLiteral) {
+            const ident = <ts.StringLiteral>node.moduleSpecifier;
             this.writer.writeString(ident.text);
             this.writer.writeString(".h");
         }
