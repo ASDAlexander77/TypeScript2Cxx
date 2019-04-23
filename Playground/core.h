@@ -25,6 +25,11 @@ namespace js
 struct any;
 struct object;
 
+inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
+{
+    return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
+}
+
 struct undefined_c {
 
     bool isUndefined;
@@ -434,6 +439,40 @@ struct any {
         throw "not implemented";
     }
 
+    int hash(void) const noexcept
+    {
+        size_t const h1 ( std::hash<int>{}((int)_type) );
+        size_t h2;
+
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+            h2 = 0;
+            break;
+
+        case anyTypeId::boolean:
+            h2 = std::hash<bool>{} (_value._boolean._value);
+            break;
+
+        case anyTypeId::number:
+            h2 = std::hash<double>{} (_value._number._value);
+            break;
+
+        case anyTypeId::string:
+            h2 = std::hash<std::string>{} (((js::string*)_value._data)->_value);
+            break;
+
+        case anyTypeId::object:
+            h2 = std::hash<void*>{} ((js::object*)_value._data);
+            break;            
+
+        default:
+            h2 = 0;
+        }
+
+        return hash_combine(h1, h2);
+    }    
+
     friend std::ostream& operator << (std::ostream& os, any val)
     {
         if (val._type == anyTypeId::undefined) {
@@ -620,6 +659,15 @@ inline bool __is(T* t) {
            || is<I>(t);
 }
 
+struct Finally
+{
+private:    
+	std::function<void()> _dtor;
+public:
+	Finally(std::function<void()> dtor) : _dtor(dtor) {};
+	~Finally() { _dtor(); }
+};
+
 static struct Console
 {
     Console() {
@@ -640,3 +688,16 @@ static struct Console
 } console;
 
 } // namespace js
+
+namespace std
+{
+    template<> struct hash<js::any>
+    {
+        typedef js::any argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const& value) const
+        {
+            return value.hash();
+        }
+    };
+}
