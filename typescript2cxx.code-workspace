@@ -67,7 +67,8 @@
             "typeindex": "cpp",
             "iomanip": "cpp",
             "xlocmon": "cpp",
-            "xloctime": "cpp"
+            "xloctime": "cpp",
+            "random": "cpp"
         }
     }
 }

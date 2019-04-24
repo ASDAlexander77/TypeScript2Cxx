@@ -15,6 +15,9 @@
 #include <typeinfo>
 #include <typeindex>
 #include <iomanip>
+#include <cmath>
+#include <algorithm>
+#include <random>
 
 namespace js
 {
@@ -95,17 +98,21 @@ struct number : public undefined_t {
     number (const undefined_t& undef) : undefined_t(true) {
     }
 
-    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     inline operator T() const {
         return static_cast<T>(_value);
     }
 
-    operator std::string() const {
+    inline operator std::string() const {
         return std::to_string(_value);
     }    
 
-    operator size_t() const {
+    inline operator size_t() const {
         return (size_t)_value;
+    }    
+
+    inline operator double() const {
+        return _value;
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
@@ -116,6 +123,10 @@ struct number : public undefined_t {
     number operator +(number n) {
         return number(_value + n._value);
     }
+
+    number operator +() {
+        return number(+_value);
+    }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator -(T t) {
@@ -236,6 +247,24 @@ struct string : public undefined_t {
     string& operator+ (string value) {
         _value.append(value._value);
         return *this;
+    }
+
+    string toUpperCase() {
+        std::string result(*this);
+        for (auto& c: result) {
+            c = toupper(c);
+        }
+
+        return string(result);
+    }
+
+    string toLowerCase() {
+        std::string result(*this);
+        for (auto& c: result) {
+            c = tolower(c);
+        }
+
+        return string(result);
     }
 
     friend std::ostream& operator << (std::ostream& os, string val)
@@ -762,6 +791,11 @@ public:
 	~Finally() { _dtor(); }
 };
 
+template <typename T>
+inline auto isNaN(T t) {
+    return std::isnan(NAN);
+}
+
 struct Date {
     number getHours() {
         return number(0);
@@ -826,6 +860,114 @@ struct ArrayBuffer {
 struct ArrayBufferView {
 };
 
+template <typename T>
+struct Promise {
+    static void all() {
+    }
+
+    void _catch() {
+    }
+
+    void finally() {
+    }
+
+    void then() {
+    }
+
+    static void race() {
+    }
+
+    static void reject() {
+    }
+
+    static void resolve() {
+    }
+};
+
+static struct MathImpl
+{
+    static js::number E;
+    static js::number LN10;
+    static js::number LN2;
+    static js::number LOG2E;
+    static js::number LOG10E;
+    static js::number PI;
+    static js::number SQRT1_2;
+    static js::number SQRT2;
+
+    static number pow(number op, number op2) {
+        return number(std::pow((double)op, (double)op2));
+    }
+
+    static number min(number op, number op2) {
+        return number(std::min((double)op, (double)op2));
+    }
+
+    static number max(number op, number op2) {
+        return number(std::max((double)op, (double)op2));
+    }
+
+    static number sin(number op) {
+        return number(std::sin((double)op));
+    }
+
+    static number cos(number op) {
+        return number(std::cos((double)op));
+    }
+
+    static number asin(number op) {
+        return number(std::asin((double)op));
+    }
+
+    static number acos(number op) {
+        return number(std::acos((double)op));
+    }
+
+    static number abs(number op) {
+        return number(std::abs((double)op));
+    }
+
+    static number floor(number op) {
+        return number(std::floor((double)op));
+    }
+
+    static number round(number op, int numDecimalPlaces = 0) {
+        const auto mult = 10 ^ (numDecimalPlaces);
+        return number(std::floor((double)op * mult + 0.5) / mult);
+    }
+
+    static number sqrt(number op) {
+        return number(std::sqrt((double)op));
+    }
+
+    static number tan(number op) {
+        return number(std::tan((double)op));
+    }
+
+    static number atan(number op) {
+        return number(std::atan((double)op));
+    }
+
+    static number atan2(number op) {
+        return number(std::atan((double)op));
+    }
+
+    static number log(number op) {
+        return number(std::log((double)op));
+    }
+
+    static number exp(number op) {
+        return number(std::exp((double)op));
+    }
+
+    static number random() {
+        std::default_random_engine generator;
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);
+        auto rnd = distribution(generator);
+        return number(rnd);
+    }
+} Math;
+
 static struct Console
 {
     Console() {
@@ -841,6 +983,28 @@ static struct Console
         }
 
         std::cout << std::endl;
+    }
+
+    template<class ... Args>
+    void warn(Args ... args) 
+    {
+        for (auto& arg : {args...}) 
+        {
+            std::clog << arg;
+        }
+
+        std::clog << std::endl;
+    }
+
+    template<class ... Args>
+    void err(Args ... args) 
+    {
+        for (auto& arg : {args...}) 
+        {
+            std::cerr << arg;
+        }
+
+        std::cerr << std::endl;
     }
 
 } console;
