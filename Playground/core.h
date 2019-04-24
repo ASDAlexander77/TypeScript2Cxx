@@ -1026,6 +1026,11 @@ static struct MathImpl
     }
 } Math;
 
+static std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
+{
+    return os << "null";
+}    
+
 static struct Console
 {
     Console() {
