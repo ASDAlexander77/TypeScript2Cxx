@@ -194,6 +194,7 @@ struct number : public undefined_t {
     }         
 
     js::string toString();
+    js::string toString(js::number radix);
     
     friend std::ostream& operator << (std::ostream& os, number val)
     {

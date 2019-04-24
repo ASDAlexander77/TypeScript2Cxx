@@ -161,6 +161,16 @@ export class Emitter {
             // added header
             this.WriteHeader();
 
+            const postion = this.writer.newSection();
+
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+                this.processForwardDeclaration(s);
+            });
+
+            if (this.writer.hasAnyContent(postion)) {
+                this.writer.writeStringNewLine();
+            }
+
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
@@ -346,6 +356,14 @@ export class Emitter {
 
         // TODO: finish it
         throw new Error('Method not implemented.');
+    }
+
+    private processForwardDeclaration(node: ts.Declaration | ts.Statement): void {
+        switch (node.kind) {
+            case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
+            default:
+                return;
+        }
     }
 
     private processImplementation(node: ts.Declaration | ts.Statement): void {
@@ -700,13 +718,15 @@ export class Emitter {
                         || m.kind === ts.SyntaxKind.PublicKeyword);
     }
 
-    private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
-        if (!this.isHeader()) {
-            return;
-        }
-
+    private processClassForwardDeclaration(node: ts.ClassDeclaration) {
         this.scope.push(node);
+        this.processClassForwardDeclarationIntenal(node);
+        this.scope.pop();
 
+        this.writer.EndOfStatement();
+    }
+
+    private processClassForwardDeclarationIntenal(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         let next = false;
         if (node.typeParameters) {
             this.writer.writeString('template <');
@@ -714,17 +734,25 @@ export class Emitter {
                 if (next) {
                     this.writer.writeString(', ');
                 }
-
                 this.processType(type);
                 next = true;
             });
-
             this.writer.writeStringNewLine('>');
         }
-
         this.writer.writeString('class ');
         this.processIndentifier(node.name);
+    }
 
+    private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
+        if (!this.isHeader()) {
+            return;
+        }
+
+        this.scope.push(node);
+
+        this.processClassForwardDeclarationIntenal(node);
+
+        let next;
         if (node.heritageClauses) {
             this.writer.writeString(' : ');
             next = false;
@@ -891,6 +919,7 @@ export class Emitter {
         }
 
         this.writer.EndOfStatement();
+        this.writer.writeStringNewLine();
     }
 
     private processModuleDeclaration(node: ts.ModuleDeclaration): void {

@@ -1,3 +1,7 @@
-export type Nullable<T> = T | null;
+class Class1 extends Class0 {
 
-type Primitive = undefined | null | boolean | string | number;
+}
+
+class Class0 {
+
+}

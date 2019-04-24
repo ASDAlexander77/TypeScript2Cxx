@@ -25,6 +25,13 @@ export class IdentifierResolver {
             return true;
         }
 
+        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
+            const type = (<any>typeInfo.symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return typeInfo.symbol.name === "Date" || typeInfo.symbol.name === "RegExp";
+            }
+        }
+
         return false;
     }
 

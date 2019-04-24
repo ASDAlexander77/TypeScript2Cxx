@@ -12,6 +12,10 @@ js::string number::toString() {
     return js::string(std::to_string(_value));
 } 
 
+js::string number::toString(js::number radix) {
+    return js::string(std::to_string(_value));
+} 
+
 // Array
 array::array() : _values(), undefined_t(true) {
 }
