@@ -775,6 +775,10 @@ struct Date {
     }
 };
 
+struct Function {
+
+};
+
 struct RegExp {
 
     js::string _pattern;
@@ -785,6 +789,40 @@ struct RegExp {
     js::boolean test(js::string val) {
         return false;
     }
+};
+
+template <typename T>
+struct TypedArray {
+};
+
+struct Int16Array : TypedArray<short> {
+};
+
+struct Uint16Array : TypedArray<unsigned short> {
+};
+
+struct Float32Array : TypedArray<float> {
+};
+
+struct Float64Array : TypedArray<double> {
+};
+
+struct Int32Array : TypedArray<int> {
+};
+
+struct Uint32Array : TypedArray<unsigned int> {
+};
+
+struct Int64Array : TypedArray<long> {
+};
+
+struct Uint64Array : TypedArray<unsigned long> {
+};
+
+struct ArrayBuffer {
+};
+
+struct ArrayBufferView {
 };
 
 static struct Console
