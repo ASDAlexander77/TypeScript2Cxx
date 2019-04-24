@@ -7,8 +7,13 @@ std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
     return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
 }
 
+// Number
+js::string number::toString() {
+    return js::string(std::to_string(_value));
+} 
+
 // Array
-array::array() : _values(), undefined_c(true) {
+array::array() : _values(), undefined_t(true) {
 }
 
 array::array (std::initializer_list<any> values) : _values(values) {
@@ -22,7 +27,7 @@ any& array::operator[] (T t) {
 // End of Array
 
 // Object
-object::object() : _values(), undefined_c(true) {
+object::object() : _values(), undefined_t(true) {
 }
 
 object::object (std::initializer_list<pair> values) {

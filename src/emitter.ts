@@ -779,6 +779,8 @@ export class Emitter {
         this.writer.EndOfStatement();
 
         this.scope.pop();
+
+        this.writer.writeStringNewLine();
     }
 
     private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.PropertySignature | ts.ParameterDeclaration,
@@ -814,6 +816,8 @@ export class Emitter {
         }
 
         this.writer.EndOfStatement();
+
+        this.writer.writeStringNewLine();
     }
 
     private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature): void {
@@ -857,10 +861,34 @@ export class Emitter {
             return;
         }
 
-        this.writer.writeString('typedef ');
-        this.processType(node.type, false, true);
-        this.writer.writeString(' ');
-        this.processExpression(node.name);
+        const name = node.name.text;
+        if (name === "float" || name === "double" || name === "int") {
+            return;
+        }
+
+        // remove NULL from union types, do we need to remove "undefined" as well?
+        let type = node.type;
+        if (node.type.kind === ts.SyntaxKind.UnionType) {
+            const unionType = <ts.UnionTypeNode>type;
+            const filtered = unionType.types.filter(t => t.kind != ts.SyntaxKind.NullKeyword && t.kind != ts.SyntaxKind.UndefinedKeyword);
+            if (filtered.length === 1) {
+                type = filtered[0];
+            }
+        }
+
+        if (node.typeParameters) {
+            this.processTemplateParams(node);
+            this.writer.writeString('using ');
+            this.processExpression(node.name);
+            this.writer.writeString(' = ');
+            this.processType(type, false, true);
+        } else {
+            // default typedef
+            this.writer.writeString('typedef ');
+            this.processType(type, false, true);
+            this.writer.writeString(' ');
+            this.processExpression(node.name);
+        }
 
         this.writer.EndOfStatement();
     }
@@ -1084,7 +1112,7 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.NumericLiteral:
             case ts.SyntaxKind.NumberKeyword:
-                this.writer.writeString('number');
+                this.writer.writeString('js::number');
                 break;
             case ts.SyntaxKind.StringLiteral:
             case ts.SyntaxKind.StringKeyword:
@@ -1209,6 +1237,32 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.VoidKeyword:
                 this.writer.writeString('void');
+                break;
+            case ts.SyntaxKind.NullKeyword:
+                this.writer.writeString('std::nullptr_t');
+                break;
+            case ts.SyntaxKind.UndefinedKeyword:
+                this.writer.writeString('undefined_t');
+                break;
+            case ts.SyntaxKind.UnionType:
+                const unionType = <ts.UnionTypeNode>type;
+                const unionName = `__union${type.pos}_${type.end} `;
+                this.writer.writeString('union ');
+                this.writer.writeString(unionName);
+                this.writer.BeginBlock();
+
+                unionType.types.forEach((element, i) => {
+                    this.processType(element);
+                    this.writer.writeString(` v${i}`);
+                    this.writer.EndOfStatement();
+                    this.writer.cancelNewLine();
+                    this.writer.writeString(` ${unionName}(`);
+                    this.processType(element);
+                    this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                });
+
+                this.writer.EndBlock();
+                this.writer.cancelNewLine();
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
@@ -1437,7 +1491,7 @@ export class Emitter {
         }
     }
 
-    private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration) {
+    private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration | ts.TypeAliasDeclaration) {
         let next = false;
         if (node.typeParameters) {
             this.writer.writeString('template <');

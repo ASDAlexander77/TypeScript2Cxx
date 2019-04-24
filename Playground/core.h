@@ -27,42 +27,43 @@ namespace js
 
 struct any;
 struct object;
+struct string;
 
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
 
-struct undefined_c {
+struct undefined_t {
 
     bool isUndefined;
 
-    undefined_c () {
+    undefined_t () {
         isUndefined = false;
     }
 
-    undefined_c (bool value) : isUndefined(value) {
+    undefined_t (bool value) : isUndefined(value) {
     }
 
     inline operator bool() {
         return !isUndefined;
     }
 
-    friend std::ostream& operator << (std::ostream& os, undefined_c val)
+    friend std::ostream& operator << (std::ostream& os, undefined_t val)
     {
         return os << "undefined";
     }       
 } undefined(true);
 
-struct boolean : public undefined_c {
+struct boolean : public undefined_t {
 
     bool _value;
 
-    boolean () : _value(false), undefined_c(true) {
+    boolean () : _value(false), undefined_t(true) {
     }
 
     boolean (bool initValue) {
         _value = initValue;
     }
 
-    boolean (const undefined_c& undef) : undefined_c(true) {
+    boolean (const undefined_t& undef) : undefined_t(true) {
     }
 
     operator bool() const {
@@ -79,11 +80,11 @@ struct boolean : public undefined_c {
     }       
 };
 
-struct number : public undefined_c {
+struct number : public undefined_t {
 
     double _value;
 
-    number () : _value(0), undefined_c(true) {
+    number () : _value(0), undefined_t(true) {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -91,7 +92,7 @@ struct number : public undefined_c {
         _value = static_cast<T>(initValue);
     }
 
-    number (const undefined_c& undef) : undefined_c(true) {
+    number (const undefined_t& undef) : undefined_t(true) {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -123,6 +124,10 @@ struct number : public undefined_c {
 
     number operator -(number n) {
         return number(_value - n._value);
+    }    
+
+    number operator -() {
+        return number(-_value);
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
@@ -162,6 +167,15 @@ struct number : public undefined_c {
     } 
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator <=(T t) {
+        return _value <= t;
+    }
+
+    bool operator <=(number n) {
+        return _value <= n._value;
+    } 
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator >(T t) {
         return _value > t;
     }
@@ -170,17 +184,28 @@ struct number : public undefined_c {
         return _value > n._value;
     }     
 
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator >=(T t) {
+        return _value >= t;
+    }
+
+    bool operator >=(number n) {
+        return _value >= n._value;
+    }         
+
+    js::string toString();
+    
     friend std::ostream& operator << (std::ostream& os, number val)
     {
         return os << val._value;
     }       
 };
 
-struct string : public undefined_c {
+struct string : public undefined_t {
 
     std::string _value;
 
-    string () : _value(), undefined_c(true) {
+    string () : _value(), undefined_t(true) {
     }    
 
     string (std::string value) : _value(value) {
@@ -189,7 +214,7 @@ struct string : public undefined_c {
     string (const char* value) : _value(value) {
     }    
 
-    string (const undefined_c& undef) : undefined_c(true) {
+    string (const undefined_t& undef) : undefined_t(true) {
     }
 
     inline operator const char*() {
@@ -246,7 +271,7 @@ struct function_t : public function {
     }
 };
 
-struct array : public undefined_c {
+struct array : public undefined_t {
 
     std::vector<any> _values;
 
@@ -254,7 +279,7 @@ struct array : public undefined_c {
 
     array (std::initializer_list<any> values);
 
-    array (const undefined_c& undef) : undefined_c(true) {
+    array (const undefined_t& undef) : undefined_t(true) {
     }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
@@ -266,7 +291,7 @@ struct array : public undefined_c {
     }
 };
 
-struct object : public undefined_c {
+struct object : public undefined_t {
 
     using pair = std::pair<std::string, any>;
 
@@ -276,7 +301,7 @@ struct object : public undefined_c {
 
     object (std::initializer_list<pair> values);
 
-    object (const undefined_c& undef) : undefined_c(true) {
+    object (const undefined_t& undef) : undefined_t(true) {
     }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
@@ -332,7 +357,7 @@ struct any {
     any() : _type(anyTypeId::undefined) {
     }
 
-    any (const undefined_c& undef) : _type(anyTypeId::undefined) {
+    any (const undefined_t& undef) : _type(anyTypeId::undefined) {
     }        
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
@@ -736,6 +761,32 @@ public:
 	~Finally() { _dtor(); }
 };
 
+struct Date {
+    number getHours() {
+        return number(0);
+    }
+    
+    number getMinutes() {
+        return number(0);
+    }
+
+    number getSeconds() {
+        return number(0);
+    }
+};
+
+struct RegExp {
+
+    js::string _pattern;
+
+    RegExp (js::string pattern) : _pattern(pattern) {
+    }
+
+    js::boolean test(js::string val) {
+        return false;
+    }
+};
+
 static struct Console
 {
     Console() {
@@ -754,19 +805,6 @@ static struct Console
     }
 
 } console;
-
-struct RegExp {
-
-    js::string _pattern;
-
-    RegExp (js::string pattern) : _pattern(pattern) {
-    }
-
-    js::boolean test(js::string val) {
-        return false;
-    }
-};
-
 
 } // namespace js
 

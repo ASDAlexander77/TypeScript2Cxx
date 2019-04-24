@@ -1,5 +1,3 @@
-class SSS {
-static f<T>(a = true) {
+export type Nullable<T> = T | null;
 
-}
-}
+type Primitive = undefined | null | boolean | string | number;
