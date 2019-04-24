@@ -124,8 +124,27 @@ struct number : public undefined_t {
         return number(_value + n._value);
     }
 
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator +(T t, number value) {
+        return number(t + value._value);
+    } 
+
     number operator +() {
         return number(+_value);
+    }    
+
+    number& operator ++() {
+        _value += 1;
+        return *this;
+    }    
+
+    number operator ++(int) {
+        return number(_value + 1);
+    }    
+
+    number& operator +=(number other){
+        _value += other._value;
+        return *this;
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
@@ -137,8 +156,27 @@ struct number : public undefined_t {
         return number(_value - n._value);
     }    
 
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator -(T t, number value) {
+        return number(t - value._value);
+    } 
+
     number operator -() {
         return number(-_value);
+    }    
+
+    number& operator --() {
+        _value -= 1;
+        return *this;
+    }    
+
+    number operator --(int) {
+        return number(_value - 1);
+    }        
+
+    number& operator -=(number other){
+        _value -= other._value;
+        return *this;
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
@@ -150,6 +188,16 @@ struct number : public undefined_t {
         return number(_value * n._value);
     }   
 
+    number& operator *=(number other){
+        _value *= other._value;
+        return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator *(T t, number value) {
+        return number(t * value._value);
+    }    
+
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator /(T t) {
         return number(_value / t);
@@ -158,6 +206,16 @@ struct number : public undefined_t {
     number operator /(number n) {
         return number(_value / n._value);
     }   
+
+    number& operator /=(number other){
+        _value /= other._value;
+        return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator /(T t, number value) {
+        return number(t / value._value);
+    }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator ==(T t) {
