@@ -49,6 +49,10 @@ struct undefined_t {
         return !isUndefined;
     }
 
+    inline operator std::nullptr_t() {
+        return nullptr;
+    }
+
     friend std::ostream& operator << (std::ostream& os, undefined_t val)
     {
         return os << "undefined";
@@ -1055,7 +1059,7 @@ static struct Console
     }
 
     template<class ... Args>
-    void err(Args ... args) 
+    void error(Args ... args) 
     {
         for (auto& arg : {args...}) 
         {
@@ -1066,6 +1070,17 @@ static struct Console
     }
 
 } console;
+
+/*
+template <typename T>
+using ArrayLike = ReadOnlyArray<T>;
+*/
+
+template <typename T>
+class ArrayLike {
+    number length;
+    virtual T operator[](number n) = 0;
+};
 
 } // namespace js
 

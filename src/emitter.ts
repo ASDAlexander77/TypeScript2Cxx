@@ -1416,6 +1416,7 @@ export class Emitter {
 
         this.writer.writeString('(');
 
+        let defaultParams = false;
         let next = false;
         node.parameters.forEach(element => {
             if (element.name.kind !== ts.SyntaxKind.Identifier) {
@@ -1443,7 +1444,8 @@ export class Emitter {
                 if (element.initializer) {
                     this.writer.writeString(' = ');
                     this.processExpression(element.initializer);
-                } else if (element.questionToken) {
+                    defaultParams = true;
+                } else if (element.questionToken || defaultParams) {
                     this.writer.writeString(' = undefined');
                 }
             }
@@ -1598,6 +1600,7 @@ export class Emitter {
         this.processStatement(node.thenStatement);
 
         if (node.elseStatement) {
+            this.writer.cancelNewLine();
             this.writer.writeString('else ');
             this.processStatement(node.elseStatement);
         }
