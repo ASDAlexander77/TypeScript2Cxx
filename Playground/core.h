@@ -34,7 +34,9 @@ struct string;
 
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
 
-struct undefined_t {
+std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
+
+static struct undefined_t {
 
     bool isUndefined;
 
@@ -335,6 +337,10 @@ struct string : public undefined_t {
     }    
 };
 
+static js::string operator ""_S(const char* s, std::size_t size) {
+    return js::string(s);
+}
+
 struct function {
     virtual void invoke(std::initializer_list<int> args) = 0;
 
@@ -490,7 +496,7 @@ struct any {
         }
 
         throw "wrong type";
-    }    
+    }
 
     operator string() {
         if (_type == anyTypeId::string) {
@@ -788,16 +794,6 @@ struct Array : public ReadOnlyArray<T> {
         return _values[(size_t)i];
     }
 };
-
-string operator ""_S(const char* s, std::size_t size) {
-    return string(s);
-}
-
-
-std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
-{
-    return os << "null";
-}    
 
 template < typename I, typename T> 
 inline bool is(T* t) {

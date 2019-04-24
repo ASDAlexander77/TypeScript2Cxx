@@ -4,16 +4,10 @@
 
 using namespace js;
 
-class Class1;
-class Class0;
-
-class Class1 : public Class0 {
-public:
-};
-
-class Class0 {
-public:
-    virtual void dummy() {};
+void f(ReadOnlyArray<object> events)
+{
+    console.log(events[0]["name"]);
+    if (events[1]) console.log("failed"_S);
 };
 
 #endif

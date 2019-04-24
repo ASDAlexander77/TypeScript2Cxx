@@ -1,7 +1,5 @@
-class Class1 extends Class0 {
-
+function f(events: { name: string; handler: any; }[]) {
+    console.log(events[0].name);
+    if (events[1]) console.log("failed");
 }
-
-class Class0 {
-
-}
+f([{ name: "blur", handler: 1 }]);

@@ -70,7 +70,7 @@ I\'ll be 38.000000 years old next month.\r\n').to.equals(new Run().test([
         console.log(list2[2]);                  \
         list2[2] = 10;                          \
         console.log(list2[2]);                  \
-    '])));    
+    '])));
 
     it('Array - c++ read only array', () => expect('1\r\n2\r\n3\r\n3\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
         'let list: number[] = [1, 2, 3];        \

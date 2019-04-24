@@ -2,6 +2,11 @@
 
 using namespace js;
 
+std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
+{
+    return os << "null";
+}    
+
 std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
 {
     return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);

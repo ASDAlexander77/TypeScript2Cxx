@@ -36,6 +36,10 @@ export class Helpers {
     }
 
     public static cleanUpPath(path: string) {
+        if (!path) {
+            return;
+        }
+
         if (path.charAt(1) === ':' && path.charAt(0).match('[A-Z]')) {
             path = path.charAt(0).toLowerCase() + path.substr(1);
         }
@@ -44,6 +48,10 @@ export class Helpers {
     }
 
     public static getSubPath(filePath: string, rootPath: string) {
+        if (!rootPath) {
+            return filePath;
+        }
+
         if (rootPath[rootPath.length - 1] === '/' || rootPath[rootPath.length - 1] === '\\') {
             rootPath = rootPath.substr(0, rootPath.length - 1);
         }
