@@ -391,7 +391,7 @@ export class Emitter {
             case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node, template); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
             case ts.SyntaxKind.PropertyDeclaration:
-                !template && this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true);
+                !template && this.isStatic(node) && this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true);
                 return;
             case ts.SyntaxKind.MethodDeclaration:
                 if ((template && this.isTemplate(<ts.MethodDeclaration>node))
@@ -1241,6 +1241,7 @@ export class Emitter {
 
                 if (!skipPointer
                     && (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name !== "__type")
+                    && !((<any>typeInfo).primitiveTypesOnly)
                     && !skipPointerInType) {
                     this.writer.writeString('*');
                 }

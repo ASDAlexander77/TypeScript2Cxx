@@ -1,5 +1,14 @@
-export const ToGammaSpace = 1 / 2.2;
+enum Orientation {
+    CW = 0,
+    CCW = 1
+}
 
-export const ToLinearSpace = 2.2;
+class Arc2 {
+    public orientation: Orientation;
 
-let Epsilon = 0.001;
+    public static val = 10;
+
+    constructor() {
+        this.orientation = Orientation.CW;
+    }
+}
