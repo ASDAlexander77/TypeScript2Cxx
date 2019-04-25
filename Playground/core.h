@@ -789,6 +789,9 @@ struct ReadOnlyArray {
     ReadOnlyArray() : _values() {
     }
 
+    ReadOnlyArray(ReadOnlyArray* values) : _values(*values) {
+    }
+
     ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
@@ -806,6 +809,9 @@ template < typename T >
 struct Array : public ReadOnlyArray<T> {
 
     Array() : ReadOnlyArray<T>() {
+    }
+
+    Array(Array* values) : ReadOnlyArray<T>(*(ReadOnlyArray<T>*)values) {
     }
 
     Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
