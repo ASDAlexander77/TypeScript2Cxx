@@ -1,18 +1,16 @@
-type Primitive = undefined | null | boolean | string | number | Function;
+class Test {
+    Test1<T>(): void {
+        console.log('asd1');
+    }
 
-export type Immutable<T> = T extends Primitive
-  ? T
-  : T extends Array<infer U>
-  ? ReadonlyArray<U>
-  : /* T extends Map<infer K, infer V> ? ReadonlyMap<K, V> : // es2015+ only */
-  DeepImmutable<T>;
+    Test2(): void {
+        console.log('asd2');
+    }
 
-export type DeepImmutable<T> = T extends Primitive
-  ? T
-  : T extends Array<infer U>
-  ? DeepImmutableArray<U>
-  : /* T extends Map<infer K, infer V> ? DeepImmutableMap<K, V> : // es2015+ only */
-  DeepImmutableObject<T>;
+    static Test3(): void {
+        console.log('asd3');
+    }
+}
 
-interface DeepImmutableArray<T> extends ReadonlyArray<DeepImmutable<T>> { }
-type DeepImmutableObject<T> = { readonly [K in keyof T]: DeepImmutable<T[K]> };
+
+(new Test()).Test1<void>();

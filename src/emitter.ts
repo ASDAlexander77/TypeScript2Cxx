@@ -174,6 +174,10 @@ export class Emitter {
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processStatement(s);
             });
+
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+                this.processImplementation(s, true);
+            });
         }
 
         if (this.isSource()) {
@@ -366,17 +370,31 @@ export class Emitter {
         }
     }
 
-    private processImplementation(node: ts.Declaration | ts.Statement): void {
+    private isMethodTemplate(methodDeclaration: ts.MethodDeclaration) {
+        if (!methodDeclaration.typeParameters) {
+            return false;
+        }
+
+        return methodDeclaration.typeParameters.length !== 0;
+    }
+
+    private processImplementation(node: ts.Declaration | ts.Statement, template?: boolean): void {
         switch (node.kind) {
-            case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node); return;
-            case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node); return;
+            case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node, template); return;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
             case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true); return;
+            case ts.SyntaxKind.MethodDeclaration:
+                if ((template && this.isMethodTemplate(<ts.MethodDeclaration>node))
+                    || (!template && !this.isMethodTemplate(<ts.MethodDeclaration>node))) {
+                    this.processMethodDeclaration(<ts.MethodDeclaration>node, true);
+                }
+                return;
             default:
                 return;
         }
     }
 
-    private processModuleImplementation(node: ts.ModuleDeclaration) {
+    private processModuleImplementation(node: ts.ModuleDeclaration, template?: boolean) {
         this.scope.push(node);
 
         this.writer.writeString('namespace ');
@@ -386,10 +404,10 @@ export class Emitter {
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
             block.statements.forEach(element => {
-                this.processImplementation(element);
+                this.processImplementation(element, template);
             });
         } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
-            this.processModuleImplementation(node.body);
+            this.processModuleImplementation(node.body, template);
         } else {
             throw new Error('Not Implemented');
         }
@@ -399,12 +417,12 @@ export class Emitter {
         this.scope.pop();
     }
 
-    private processClassImplementation(node: ts.ClassDeclaration) {
+    private processClassImplementation(node: ts.ClassDeclaration, template?: boolean) {
 
         this.scope.push(node);
 
         for (const member of node.members) {
-            this.processImplementation(member);
+            this.processImplementation(member, template);
         }
 
         this.scope.pop();
@@ -848,9 +866,13 @@ export class Emitter {
         this.writer.writeStringNewLine();
     }
 
-    private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature): void {
-        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
-        this.writer.writeStringNewLine();
+    private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature, implementationMode?: boolean): void {
+        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
+        if (implementationMode) {
+            this.writer.writeStringNewLine();
+        } else {
+            this.writer.EndOfStatement();
+        }
     }
 
     private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
@@ -1343,7 +1365,8 @@ export class Emitter {
     }
 
     private processFunctionExpression(
-        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.ConstructorDeclaration): void {
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.ConstructorDeclaration,
+        implementationMode?: boolean): void {
 
         let noBody = false;
 
@@ -1368,13 +1391,19 @@ export class Emitter {
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
 
         this.processTemplateParams(node);
-        this.processModifiers(node.modifiers);
+
+        if (implementationMode !== true) {
+            this.processModifiers(node.modifiers);
+        }
 
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
                 if (node.kind !== ts.SyntaxKind.Constructor) {
-                    if (isClassMember && !this.isStatic(node)) {
+                    if (isClassMember
+                        && !this.isStatic(node)
+                        && !this.isMethodTemplate(<ts.MethodDeclaration>node)
+                        && implementationMode !== true) {
                         this.writer.writeString('virtual ');
                     }
 
@@ -1391,17 +1420,18 @@ export class Emitter {
                     this.writer.writeString(' ');
                 }
 
+                if (node.kind === ts.SyntaxKind.MethodDeclaration && implementationMode) {
+                    // in case of constructor
+                    this.writeClassName();
+                    this.writer.writeString('::');
+                }
+
                 // name
                 if (node.name && node.name.kind === ts.SyntaxKind.Identifier) {
                     this.processExpression(node.name);
                 } else {
                     // in case of constructor
-                    const classNode = this.scope[this.scope.length - 2];
-                    if (classNode && classNode.kind === ts.SyntaxKind.ClassDeclaration) {
-                        this.processExpression((<ts.ClassDeclaration>classNode).name);
-                    } else {
-                        throw new Error('Not Implemeneted');
-                    }
+                    this.writeClassName();
                 }
             } else if (isArrowFunction || isFunctionExpression) {
                 // lambda or noname function
@@ -1508,20 +1538,32 @@ export class Emitter {
             this.writer.writeString(' ');
         }
 
-        if (noBody) {
-            if (isClassMember) {
-                // abstract
-                this.writer.cancelNewLine();
-                this.writer.writeString(' = 0');
+        if (node.kind !== ts.SyntaxKind.MethodDeclaration || implementationMode) {
+            if (noBody) {
+                if (isClassMember) {
+                    // abstract
+                    this.writer.cancelNewLine();
+                    this.writer.writeString(' = 0');
+                }
+            } else {
+                this.writer.BeginBlock();
+
+                (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
+                    this.processStatement(element);
+                });
+
+                this.writer.EndBlock();
             }
-        } else {
-            this.writer.BeginBlock();
+        }
+    }
 
-            (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
-                this.processStatement(element);
-            });
-
-            this.writer.EndBlock();
+    private writeClassName() {
+        const classNode = this.scope[this.scope.length - 2];
+        if (classNode && classNode.kind === ts.SyntaxKind.ClassDeclaration) {
+            this.processExpression((<ts.ClassDeclaration>classNode).name);
+        }
+        else {
+            throw new Error('Not Implemeneted');
         }
     }
 
@@ -1568,9 +1610,9 @@ export class Emitter {
         return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
     }
 
-    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration): void {
+    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): void {
         this.scope.push(node);
-        this.processFunctionExpression(<ts.FunctionExpression><any>node);
+        this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
         this.scope.pop();
 
         if (!this.isClassMemberDeclaration(node)) {
