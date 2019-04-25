@@ -1,16 +1,5 @@
-class Test<T> {
-    Test1<T>(): void {
-        console.log('asd1');
-    }
+export const ToGammaSpace = 1 / 2.2;
 
-    Test2<T2>(): void {
-        console.log('asd2');
-    }
+export const ToLinearSpace = 2.2;
 
-    static Test3(): void {
-        console.log('asd3');
-    }
-}
-
-
-(new Test<void>()).Test1<void>();
+let Epsilon = 0.001;

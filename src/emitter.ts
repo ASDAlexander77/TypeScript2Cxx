@@ -163,7 +163,7 @@ export class Emitter {
 
             const postion = this.writer.newSection();
 
-            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
                 this.processForwardDeclaration(s);
             });
 
@@ -364,6 +364,7 @@ export class Emitter {
 
     private processForwardDeclaration(node: ts.Declaration | ts.Statement): void {
         switch (node.kind) {
+            case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
             default:
                 return;
@@ -745,6 +746,12 @@ export class Emitter {
                         || m.kind === ts.SyntaxKind.PublicKeyword);
     }
 
+    private processVariablesForwardDeclaration(node: ts.VariableStatement) {
+        this.processVariableDeclarationList(node.declarationList, true);
+
+        this.writer.EndOfStatement();
+    }
+
     private processClassForwardDeclaration(node: ts.ClassDeclaration) {
         this.scope.push(node);
         this.processClassForwardDeclarationIntenal(node);
@@ -1000,40 +1007,20 @@ export class Emitter {
         this.writer.writeStringNewLine("\"");
     }
 
-    private isAlreadyDeclaredInGlobalScope(name: string) {
-        return (<any>this.scope).declaredVars && (<any>this.scope).declaredVars.indexOf(name) >= 0;
-    }
-
-    private addToDeclaredInGlobalScope(name: string) {
-        if (!(<any>this.scope).declaredVars) {
-            (<any>this.scope).declaredVars = [];
-        }
-
-        return (<any>this.scope).declaredVars.push(name);
-    }
-
-    private isAlreadyDeclared(name: string) {
-        const currentScope = (<any>this.scope[this.scope.length - 1]);
-        return currentScope.declaredVars
-            && currentScope.declaredVars.indexOf(name) >= 0;
-    }
-
-    private addToDeclared(name: string) {
-        const currentScope = (<any>this.scope[this.scope.length - 1]);
-        if (!(currentScope).declaredVars) {
-            (currentScope).declaredVars = [];
-        }
-
-        return currentScope.declaredVars.push(name);
-    }
-
-    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList): boolean {
+    private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
         if (!((<any>declarationList).__ignore_type)) {
+
+            if (forwardDeclaration) {
+                this.writer.writeString('extern ');
+            }
+
             if (Helpers.isConst(declarationList)) {
                 this.writer.writeString('const ');
             }
 
-            this.processType(declarationList.declarations[0].type, (declarationList.declarations[0].initializer) ? true : false);
+            this.processType(declarationList.declarations[0].type
+                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer));
+
             this.writer.writeString(' ');
         }
 
@@ -1041,26 +1028,27 @@ export class Emitter {
         let result = false;
         declarationList.declarations.forEach(
             d => result = this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, d.type, next) || result);
+                <ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration) || result);
 
         return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, type: ts.TypeNode, next?: { next: boolean }) {
+        name: ts.Identifier, initializer: ts.Expression, type: ts.TypeNode, next?: { next: boolean }, forwardDeclaration?: boolean) {
         if (next && next.next) {
             this.writer.writeString(', ');
         }
 
         this.writer.writeString(name.text);
-        this.addToDeclaredInGlobalScope(name.text);
 
-        if (initializer) {
-            this.writer.writeString(' = ');
-            this.processExpression(initializer);
-        } else {
-            if (type && type.kind === ts.SyntaxKind.TupleType) {
-                this.processDefaultValue(type);
+        if (!forwardDeclaration) {
+            if (initializer) {
+                this.writer.writeString(' = ');
+                this.processExpression(initializer);
+            } else {
+                if (type && type.kind === ts.SyntaxKind.TupleType) {
+                    this.processDefaultValue(type);
+                }
             }
         }
 
