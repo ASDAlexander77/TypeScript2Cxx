@@ -19,19 +19,19 @@ public:
 
 template <typename TC>
 template <typename T>
-void Test::Test1()
+void Test<TC>::Test1()
 {
     console.log("asd1"_S);
 }
 
 template <typename TC>
-void Test::Test2()
+void Test<TC>::Test2()
 {
     console.log("asd2"_S);
 }
 
 template <typename TC>
-void Test::Test3()
+void Test<TC>::Test3()
 {
     console.log("asd3"_S);
 }

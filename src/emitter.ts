@@ -389,7 +389,9 @@ export class Emitter {
         switch (node.kind) {
             case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node, template); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
-            case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true); return;
+            case ts.SyntaxKind.PropertyDeclaration:
+                !template && this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true);
+                return;
             case ts.SyntaxKind.MethodDeclaration:
                 if ((template && this.isTemplate(<ts.MethodDeclaration>node))
                     || (!template && !this.isTemplate(<ts.MethodDeclaration>node))) {
@@ -1157,7 +1159,7 @@ export class Emitter {
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false, skipPointerInType: boolean = false): void {
+        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false): void {
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1259,7 +1261,10 @@ export class Emitter {
             case ts.SyntaxKind.TypeParameter:
                 const typeParameter = <ts.TypeParameterDeclaration>type;
                 if (typeParameter.name.kind === ts.SyntaxKind.Identifier) {
-                    this.writer.writeString('typename ');
+                    if (!noTypeName) {
+                        this.writer.writeString('typename ');
+                    }
+
                     this.writer.writeString(typeParameter.name.text);
                 } else {
                     throw new Error('Not Implemented');
@@ -1607,10 +1612,10 @@ export class Emitter {
                 if (next) {
                     this.writer.writeString(', ');
                 }
-                this.processType(type);
+                this.processType(type, undefined, undefined, true);
                 next = true;
             });
-            this.writer.writeStringNewLine('>');
+            this.writer.writeString('>');
         }
 
         return next;
