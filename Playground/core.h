@@ -786,6 +786,9 @@ struct ReadOnlyArray {
     number length;
     std::vector<T> _values;
 
+    ReadOnlyArray() : _values() {
+    }
+
     ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
@@ -801,6 +804,10 @@ struct ReadOnlyArray {
 
 template < typename T >
 struct Array : public ReadOnlyArray<T> {
+
+    Array() : ReadOnlyArray<T>() {
+    }
+
     Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
     }
 
@@ -905,30 +912,49 @@ struct RegExp {
 
 template <typename T>
 struct TypedArray {
+    js::number length;
+    TypedArray(js::number length_) : length(length_) {
+    }
 };
 
 struct Int16Array : TypedArray<short> {
+    Int16Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Uint16Array : TypedArray<unsigned short> {
+    Uint16Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Float32Array : TypedArray<float> {
+    Float32Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Float64Array : TypedArray<double> {
+    Float64Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Int32Array : TypedArray<int> {
+    Int32Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Uint32Array : TypedArray<unsigned int> {
+    Uint32Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Int64Array : TypedArray<long> {
+    Int64Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct Uint64Array : TypedArray<unsigned long> {
+    Uint64Array(js::number length_) : TypedArray(length_) {
+    }
 };
 
 struct ArrayBuffer {

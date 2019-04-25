@@ -872,7 +872,7 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
-        if (implementationMode && node.initializer) {
+        if (implementationMode || (node.initializer && !this.isStatic(node) )) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
