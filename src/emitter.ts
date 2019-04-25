@@ -1495,12 +1495,14 @@ export class Emitter {
                     this.writer.writeString('_');
                 }
 
-                if (element.initializer) {
-                    this.writer.writeString(' = ');
-                    this.processExpression(element.initializer);
-                    defaultParams = true;
-                } else if (element.questionToken || defaultParams) {
-                    this.writer.writeString(' = undefined');
+                if (!implementationMode) {
+                    if (element.initializer) {
+                        this.writer.writeString(' = ');
+                        this.processExpression(element.initializer);
+                        defaultParams = true;
+                    } else if (element.questionToken || defaultParams) {
+                        this.writer.writeString(' = undefined');
+                    }
                 }
             }
 
@@ -1589,10 +1591,20 @@ export class Emitter {
     }
 
     private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration | ts.TypeAliasDeclaration) {
+
+        let types = <ts.TypeParameterDeclaration[]><any>node.typeParameters;
+        if (!types) {
+            return;
+        }
+
+        if (node.parent && (<any>node.parent).typeParameters) {
+            types = types.filter(t => (<any>node.parent).typeParameters.every(t2 => t.name.text !== t2.name.text));
+        }
+
         let next = false;
-        if (node.typeParameters) {
+        if (types && types.length > 0) {
             this.writer.writeString('template <');
-            node.typeParameters.forEach(type => {
+            types.forEach(type => {
                 if (next) {
                     this.writer.writeString(', ');
                 }
@@ -1601,6 +1613,7 @@ export class Emitter {
             });
             this.writer.writeStringNewLine('>');
         }
+
         return next;
     }
 

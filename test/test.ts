@@ -1,9 +1,9 @@
-class Test<TC> {
+class Test<T> {
     Test1<T>(): void {
         console.log('asd1');
     }
 
-    Test2(): void {
+    Test2<T2>(): void {
         console.log('asd2');
     }
 

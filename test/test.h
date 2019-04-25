@@ -4,34 +4,34 @@
 
 using namespace js;
 
-template <typename TC>
+template <typename T>
 class Test;
 
-template <typename TC>
+template <typename T>
 class Test {
 public:
     virtual void dummy() {};
-    template <typename T>
     void Test1();
+    template <typename T2>
     void Test2();
     static void Test3();
 };
 
-template <typename TC>
 template <typename T>
-void Test<TC>::Test1()
+void Test<T>::Test1()
 {
     console.log("asd1"_S);
 }
 
-template <typename TC>
-void Test<TC>::Test2()
+template <typename T>
+template <typename T2>
+void Test<T>::Test2()
 {
     console.log("asd2"_S);
 }
 
-template <typename TC>
-void Test<TC>::Test3()
+template <typename T>
+void Test<T>::Test3()
 {
     console.log("asd3"_S);
 }
