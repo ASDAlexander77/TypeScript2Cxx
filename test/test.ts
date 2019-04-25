@@ -1,4 +1,4 @@
-class Test {
+class Test<TC> {
     Test1<T>(): void {
         console.log('asd1');
     }
@@ -13,4 +13,4 @@ class Test {
 }
 
 
-(new Test()).Test1<void>();
+(new Test<void>()).Test1<void>();

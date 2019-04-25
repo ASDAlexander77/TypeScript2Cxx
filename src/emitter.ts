@@ -370,12 +370,19 @@ export class Emitter {
         }
     }
 
-    private isMethodTemplate(methodDeclaration: ts.MethodDeclaration) {
-        if (!methodDeclaration.typeParameters) {
-            return false;
+    private isTemplate(declaration: ts.MethodDeclaration | ts.ClassDeclaration) {
+
+        if (declaration.typeParameters && declaration.typeParameters.length > 0) {
+            return true;
         }
 
-        return methodDeclaration.typeParameters.length !== 0;
+        if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+            if (declaration.parent && declaration.parent.kind === ts.SyntaxKind.ClassDeclaration) {
+                return this.isTemplate(declaration.parent);
+            }
+        }
+
+        return false;
     }
 
     private processImplementation(node: ts.Declaration | ts.Statement, template?: boolean): void {
@@ -384,8 +391,8 @@ export class Emitter {
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
             case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true); return;
             case ts.SyntaxKind.MethodDeclaration:
-                if ((template && this.isMethodTemplate(<ts.MethodDeclaration>node))
-                    || (!template && !this.isMethodTemplate(<ts.MethodDeclaration>node))) {
+                if ((template && this.isTemplate(<ts.MethodDeclaration>node))
+                    || (!template && !this.isTemplate(<ts.MethodDeclaration>node))) {
                     this.processMethodDeclaration(<ts.MethodDeclaration>node, true);
                 }
                 return;
@@ -1390,6 +1397,10 @@ export class Emitter {
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
 
+        if (implementationMode && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration && this.isTemplate(<any>node.parent)) {
+            this.processTemplateParams(<any>node.parent);
+        }
+
         this.processTemplateParams(node);
 
         if (implementationMode !== true) {
@@ -1402,7 +1413,7 @@ export class Emitter {
                 if (node.kind !== ts.SyntaxKind.Constructor) {
                     if (isClassMember
                         && !this.isStatic(node)
-                        && !this.isMethodTemplate(<ts.MethodDeclaration>node)
+                        && !this.isTemplate(<ts.MethodDeclaration>node)
                         && implementationMode !== true) {
                         this.writer.writeString('virtual ');
                     }
@@ -1423,6 +1434,11 @@ export class Emitter {
                 if (node.kind === ts.SyntaxKind.MethodDeclaration && implementationMode) {
                     // in case of constructor
                     this.writeClassName();
+
+                    if (implementationMode && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration && this.isTemplate(<any>node.parent)) {
+                        this.processTemplateArguments(<any>node.parent);
+                    }
+
                     this.writer.writeString('::');
                 }
 
@@ -1580,6 +1596,23 @@ export class Emitter {
             });
             this.writer.writeStringNewLine('>');
         }
+        return next;
+    }
+
+    private processTemplateArguments(node: ts.ClassDeclaration) {
+        let next = false;
+        if (node.typeParameters) {
+            this.writer.writeString('<');
+            node.typeParameters.forEach(type => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+                this.processType(type);
+                next = true;
+            });
+            this.writer.writeStringNewLine('>');
+        }
+
         return next;
     }
 
