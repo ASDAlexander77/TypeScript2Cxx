@@ -902,6 +902,9 @@ export class Emitter {
             if (filtered.length === 1) {
                 type = filtered[0];
             }
+        } else if (node.type.kind === ts.SyntaxKind.ConditionalType) {
+            const conditionType = <ts.ConditionalTypeNode>type;
+            type = conditionType.checkType;
         }
 
         if (node.typeParameters) {

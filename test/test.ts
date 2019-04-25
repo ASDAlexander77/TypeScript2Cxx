@@ -1,12 +1,18 @@
-let isDone1: boolean = false;
-const isDone2: boolean = false;
-var isDone3: boolean = false;
-let val1: any = null;
-const val2: any = null;
-var val3: any = null;
-console.log(isDone1);
-console.log(isDone2);
-console.log(isDone3);
-console.log(val1);
-console.log(val2);
-console.log(val3);
+type Primitive = undefined | null | boolean | string | number | Function;
+
+export type Immutable<T> = T extends Primitive
+  ? T
+  : T extends Array<infer U>
+  ? ReadonlyArray<U>
+  : /* T extends Map<infer K, infer V> ? ReadonlyMap<K, V> : // es2015+ only */
+  DeepImmutable<T>;
+
+export type DeepImmutable<T> = T extends Primitive
+  ? T
+  : T extends Array<infer U>
+  ? DeepImmutableArray<U>
+  : /* T extends Map<infer K, infer V> ? DeepImmutableMap<K, V> : // es2015+ only */
+  DeepImmutableObject<T>;
+
+interface DeepImmutableArray<T> extends ReadonlyArray<DeepImmutable<T>> { }
+type DeepImmutableObject<T> = { readonly [K in keyof T]: DeepImmutable<T[K]> };
