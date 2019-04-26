@@ -1175,7 +1175,7 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.ArrayType:
                 const arrayType = <ts.ArrayTypeNode>type;
-                this.writer.writeString('ReadOnlyArray<');
+                this.writer.writeString('Array<');
                 this.processType(arrayType.elementType, false);
                 this.writer.writeString('>');
                 break;
@@ -1239,10 +1239,12 @@ export class Emitter {
                     }
                 }
 
-                if (!skipPointer
-                    && (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name !== "__type")
-                    && !((<any>typeInfo).primitiveTypesOnly)
-                    && !skipPointerInType) {
+                let skipPointerIf =
+                    skipPointer
+                    || (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
+                    || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
+                    || skipPointerInType;
+                if (!skipPointerIf) {
                     this.writer.writeString('*');
                 }
 
@@ -2179,7 +2181,8 @@ export class Emitter {
             this.writer.writeString('["');
             this.processExpression(node.name);
             this.writer.writeString('"]');
-        } else if (this.resolver.isStaticAccess(typeInfo) || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
+        } else if (this.resolver.isStaticAccess(typeInfo)
+            || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
             this.writer.writeString('::');
             this.processExpression(node.name);
         } else if (this.resolver.isThisType(typeInfo)) {

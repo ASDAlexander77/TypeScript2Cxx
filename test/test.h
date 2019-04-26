@@ -4,20 +4,21 @@
 
 using namespace js;
 
-class Arc2;
+class Vector2;
+class Obj;
 
-enum Orientation {
-    CW = 0, CCW = 1
-};
-class Arc2 {
+class Vector2 {
 public:
     virtual void dummy() {};
-    Orientation orientation;
+};
 
-    static js::number val;
+class Obj {
+public:
+    virtual void dummy() {};
+    Array<Vector2*> _points = new Array<Vector2*>();
 
-    Arc2() {
-        this->orientation = Orientation::CW;
+    Obj() {
+        this->_points.push(1);
     }
 };
 

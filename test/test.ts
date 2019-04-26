@@ -1,14 +1,11 @@
-enum Orientation {
-    CW = 0,
-    CCW = 1
+export class Vector2 {
 }
 
-class Arc2 {
-    public orientation: Orientation;
-
-    public static val = 10;
+class Obj
+{
+    private _points = new Array<Vector2>();
 
     constructor() {
-        this.orientation = Orientation.CW;
+        this._points.push(1);
     }
 }

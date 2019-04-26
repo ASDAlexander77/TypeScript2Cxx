@@ -21,8 +21,10 @@ export class IdentifierResolver {
             return false;
         }
 
-        if ((<ts.InterfaceType>typeInfo).thisType || (<any>typeInfo).isThisType || this.isThisType((<any>typeInfo).target)) {
-            return true;
+        if ((<ts.InterfaceType>typeInfo).thisType
+            || (<any>typeInfo).isThisType
+            || this.isThisType((<any>typeInfo).target)) {
+            return (<any>typeInfo).symbol.name !== "Array" && (<any>typeInfo).symbol.name !== "Map";
         }
 
         if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {

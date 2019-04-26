@@ -825,6 +825,21 @@ struct Array : public ReadOnlyArray<T> {
 
         return _values[(size_t)i];
     }
+
+    void push(T t) {
+        _values.push_back(t);
+    }
+
+    template <typename ... Args>
+    void push(Args... args) {
+        for (const auto& item : {args...}) {
+            _values.push_back(item);
+        }
+    }
+
+    T pop() {
+        return _values.pop_back();
+    }    
 };
 
 template < typename I, typename T> 
