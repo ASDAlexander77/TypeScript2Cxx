@@ -34,8 +34,6 @@ struct string;
 
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
 
-std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
-
 static struct undefined_t {
 
     bool isUndefined;
@@ -1086,10 +1084,7 @@ static struct MathImpl
     }
 } Math;
 
-static std::ostream& operator << (std::ostream& os, std::nullptr_t ptr)
-{
-    return os << "null";
-}    
+std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
 
 static struct Console
 {
