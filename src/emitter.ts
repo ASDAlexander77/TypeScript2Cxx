@@ -1203,6 +1203,7 @@ export class Emitter {
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
                 const typeInfo = this.resolver.getOrResolveTypeOf(type);
+                const isTypeAlias = this.resolver.isTypeAlias((<any>type).typeName);
 
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
@@ -1238,7 +1239,8 @@ export class Emitter {
                 let skipPointerIf =
                     (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
-                    || skipPointerInType;
+                    || skipPointerInType
+                    || isTypeAlias;
                 if (!skipPointerIf) {
                     this.writer.writeString('*');
                 }

@@ -88,6 +88,48 @@ export class IdentifierResolver {
         return this.typeChecker.typeToTypeNode(type);
     }
 
+    public isTypeAlias(location: ts.Node): boolean {
+        if (!location) {
+            return undefined;
+        }
+
+        if (location.kind !== ts.SyntaxKind.Identifier) {
+            // only identifier is accepted
+            return undefined;
+        }
+
+        const name = (<ts.Identifier>location).text;
+        let resolvedSymbol;
+
+        // find first node with 'locals'
+        let locationWithLocals = location;
+        while (true) {
+            while (locationWithLocals) {
+                if ((<any>locationWithLocals).locals) {
+                    break;
+                }
+
+                locationWithLocals = locationWithLocals.parent;
+            }
+
+            if (!locationWithLocals) {
+                // todo function, method etc can't be found
+                return null;
+            }
+
+            resolvedSymbol = (<any>this.typeChecker).resolveName(
+                name, locationWithLocals, ((1 << 27) - 1));
+            if (!resolvedSymbol) {
+                locationWithLocals = locationWithLocals.parent;
+                continue;
+            }
+
+            break;
+        }
+
+        return (<any>resolvedSymbol).declarations[0].kind === ts.SyntaxKind.TypeAliasDeclaration;
+    }
+
     public resolveTypeOf(location: ts.Node): ts.Type {
         if (!location) {
             return undefined;
