@@ -43,6 +43,7 @@ int main(int argc, char** argv)
     CallWrapper c(m);
 
     std::function<int(int, const char*)> f = m;
+    std::function<int(int, const char*)> f2 = nullptr;
 
     std::cout << m(10, "Hello 1") << std::endl;
     std::cout << std::apply(m, std::make_tuple(20, "Hello 2")) << std::endl;

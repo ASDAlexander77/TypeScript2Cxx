@@ -1147,7 +1147,7 @@ export class Emitter {
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false): void {
+        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false, unionAndConditionTypesAreTemplates: boolean = false): void {
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1300,24 +1300,30 @@ export class Emitter {
                 this.writer.writeString('undefined_t');
                 break;
             case ts.SyntaxKind.UnionType:
-                const unionType = <ts.UnionTypeNode>type;
-                const unionName = `__union${type.pos}_${type.end} `;
-                this.writer.writeString('union ');
-                this.writer.writeString(unionName);
-                this.writer.BeginBlock();
 
-                unionType.types.forEach((element, i) => {
-                    this.processType(element);
-                    this.writer.writeString(` v${i}`);
-                    this.writer.EndOfStatement();
+                if (unionAndConditionTypesAreTemplates) {
+                    this.writer.writeString('U');
+                } else {
+                    const unionType = <ts.UnionTypeNode>type;
+                    const unionName = `__union${type.pos}_${type.end} `;
+                    this.writer.writeString('union ');
+                    this.writer.writeString(unionName);
+                    this.writer.BeginBlock();
+
+                    unionType.types.forEach((element, i) => {
+                        this.processType(element);
+                        this.writer.writeString(` v${i}`);
+                        this.writer.EndOfStatement();
+                        this.writer.cancelNewLine();
+                        this.writer.writeString(` ${unionName}(`);
+                        this.processType(element);
+                        this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                    });
+
+                    this.writer.EndBlock();
                     this.writer.cancelNewLine();
-                    this.writer.writeString(` ${unionName}(`);
-                    this.processType(element);
-                    this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
-                });
+                }
 
-                this.writer.EndBlock();
-                this.writer.cancelNewLine();
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
@@ -1413,7 +1419,7 @@ export class Emitter {
                     }
 
                     if (node.type) {
-                        this.processType(node.type);
+                        this.processType(node.type, undefined, undefined, undefined, true);
                     } else {
                         if (noReturn) {
                             this.writer.writeString('void');
@@ -1474,7 +1480,8 @@ export class Emitter {
                 // ...
             } else {
                 this.processType(element.type
-                    || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer));
+                    || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer),
+                    undefined, undefined, undefined, true);
                 this.writer.writeString(' ');
                 this.processExpression(element.name);
 
@@ -1490,7 +1497,14 @@ export class Emitter {
                         this.processExpression(element.initializer);
                         defaultParams = true;
                     } else if (element.questionToken || defaultParams) {
-                        this.writer.writeString(' = undefined');
+                        switch (element.type && element.type.kind) {
+                            case ts.SyntaxKind.FunctionType:
+                                this.writer.writeString(' = nullptr');
+                                break;
+                            default:
+                                this.writer.writeString(' = undefined');
+                                break;
+                        }
                     }
                 }
             }

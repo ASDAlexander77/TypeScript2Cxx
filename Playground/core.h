@@ -1127,6 +1127,9 @@ static struct Console
 
 } console;
 
+struct XMLHttpRequest {    
+};
+
 /*
 template <typename T>
 using ArrayLike = ReadOnlyArray<T>;
@@ -1136,6 +1139,12 @@ template <typename T>
 class ArrayLike {
     number length;
     virtual T operator[](number n) = 0;
+};
+
+struct HTMLElement {
+};
+
+struct HTMLImageElement {
 };
 
 } // namespace js
