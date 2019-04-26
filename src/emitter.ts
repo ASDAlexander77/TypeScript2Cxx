@@ -1203,7 +1203,8 @@ export class Emitter {
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
                 const typeInfo = this.resolver.getOrResolveTypeOf(type);
-                const isTypeAlias = this.resolver.isTypeAlias((<any>type).typeName);
+                const isTypeAlias = (typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
+                                    || this.resolver.isTypeAlias((<any>type).typeName);
 
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {

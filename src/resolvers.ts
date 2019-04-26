@@ -88,6 +88,14 @@ export class IdentifierResolver {
         return this.typeChecker.typeToTypeNode(type);
     }
 
+    public checkTypeAlias(symbol: ts.Symbol): boolean {
+        if  (symbol && symbol.declarations[0].kind === ts.SyntaxKind.TypeAliasDeclaration) {
+            return true;
+        }
+
+        return false;
+    }
+
     public isTypeAlias(location: ts.Node): boolean {
         if (!location) {
             return undefined;
@@ -127,7 +135,16 @@ export class IdentifierResolver {
             break;
         }
 
-        return (<any>resolvedSymbol).declarations[0].kind === ts.SyntaxKind.TypeAliasDeclaration;
+        if  (this.checkTypeAlias(resolvedSymbol)) {
+            return true;
+        }
+
+        const typeInfo = this.getTypeAtLocation(location);
+        if (typeInfo) {
+            return this.checkTypeAlias(typeInfo.aliasSymbol);
+        }
+
+        return false;
     }
 
     public resolveTypeOf(location: ts.Node): ts.Type {
