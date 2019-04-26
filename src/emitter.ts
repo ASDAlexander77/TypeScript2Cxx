@@ -1177,7 +1177,7 @@ export class Emitter {
                 const arrayType = <ts.ArrayTypeNode>type;
                 this.writer.writeString('Array<');
                 this.processType(arrayType.elementType, false);
-                this.writer.writeString('>');
+                this.writer.writeString('>*');
                 break;
             case ts.SyntaxKind.TupleType:
                 const tupleType = <ts.TupleTypeNode>type;
@@ -1231,16 +1231,7 @@ export class Emitter {
                 }
 
                 // make it pointer
-                let skipPointer = false;
-                if (typeReference.typeName.kind === ts.SyntaxKind.Identifier) {
-                    const typeName = (<ts.Identifier>typeReference.typeName).text;
-                    if (typeName === "Array" || typeName === "Map") {
-                        skipPointer = true;
-                    }
-                }
-
                 let skipPointerIf =
-                    skipPointer
                     || (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
                     || skipPointerInType;

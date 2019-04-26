@@ -24,7 +24,7 @@ export class IdentifierResolver {
         if ((<ts.InterfaceType>typeInfo).thisType
             || (<any>typeInfo).isThisType
             || this.isThisType((<any>typeInfo).target)) {
-            return (<any>typeInfo).symbol.name !== "Array" && (<any>typeInfo).symbol.name !== "Map";
+            return true;
         }
 
         if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
