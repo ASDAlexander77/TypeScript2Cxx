@@ -1177,7 +1177,11 @@ export class Emitter {
                 const arrayType = <ts.ArrayTypeNode>type;
                 this.writer.writeString('Array<');
                 this.processType(arrayType.elementType, false);
-                this.writer.writeString('>*');
+                this.writer.writeString('>');
+                if (!skipPointerInType) {
+                    this.writer.writeString('*');
+                }
+
                 break;
             case ts.SyntaxKind.TupleType:
                 const tupleType = <ts.TupleTypeNode>type;
@@ -1232,7 +1236,7 @@ export class Emitter {
 
                 // make it pointer
                 let skipPointerIf =
-                    || (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
+                    (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
                     || skipPointerInType;
                 if (!skipPointerIf) {
@@ -1933,6 +1937,10 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
+        this.writer.writeString('new ');
+        this.processType((<any>node).parent.type, undefined, true);
+        this.writer.writeString('(');
+
         if (node.elements.length !== 0) {
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
@@ -1947,6 +1955,8 @@ export class Emitter {
 
             this.writer.EndBlockNoIntent();
         }
+
+        this.writer.writeString(')');
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
@@ -1964,7 +1974,9 @@ export class Emitter {
             this.processExpression(node.expression);
             this.writer.writeString(')');
         } else {
+            this.writer.writeString('(*');
             this.processExpression(node.expression);
+            this.writer.writeString(')');
             this.writer.writeString('[');
             this.processExpression(node.argumentExpression);
             this.writer.writeString(']');
