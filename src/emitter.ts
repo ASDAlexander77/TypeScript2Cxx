@@ -1052,7 +1052,7 @@ export class Emitter {
             }
 
             this.processType(declarationList.declarations[0].type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer));
+                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer), true);
 
             this.writer.writeString(' ');
         }
@@ -1334,24 +1334,28 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.UnionType:
 
-                const unionType = <ts.UnionTypeNode>type;
-                const unionName = `__union${type.pos}_${type.end} `;
-                this.writer.writeString('union ');
-                this.writer.writeString(unionName);
-                this.writer.BeginBlock();
+                if (auto) {
+                    this.writer.writeString('auto');
+                } else {
+                    const unionType = <ts.UnionTypeNode>type;
+                    const unionName = `__union${type.pos}_${type.end} `;
+                    this.writer.writeString('union ');
+                    this.writer.writeString(unionName);
+                    this.writer.BeginBlock();
 
-                unionType.types.forEach((element, i) => {
-                    this.processType(element);
-                    this.writer.writeString(` v${i}`);
-                    this.writer.EndOfStatement();
+                    unionType.types.forEach((element, i) => {
+                        this.processType(element);
+                        this.writer.writeString(` v${i}`);
+                        this.writer.EndOfStatement();
+                        this.writer.cancelNewLine();
+                        this.writer.writeString(` ${unionName}(`);
+                        this.processType(element);
+                        this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                    });
+
+                    this.writer.EndBlock();
                     this.writer.cancelNewLine();
-                    this.writer.writeString(` ${unionName}(`);
-                    this.processType(element);
-                    this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
-                });
-
-                this.writer.EndBlock();
-                this.writer.cancelNewLine();
+                }
 
                 break;
             default:
