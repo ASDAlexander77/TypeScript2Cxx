@@ -1737,14 +1737,27 @@ export class Emitter {
         if (node.expression) {
             this.writer.writeString(' ');
 
+            const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
             const functionReturn = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1])).type;
-            this.writer.writeString('cast<');
-            this.processType(functionReturn);
-            this.writer.writeString('>(');
+            let theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
+                || this.resolver.typesAreTheSame(typeReturn, functionReturn);
+
+            // TODO: hack
+            if (typeReturn && typeReturn.kind === ts.SyntaxKind.ArrayType) {
+                theSame = false;
+            }
+
+            if (!theSame) {
+                this.writer.writeString('cast<');
+                this.processType(functionReturn);
+                this.writer.writeString('>(');
+            }
 
             this.processExpression(node.expression);
 
-            this.writer.writeString(')');
+            if (!theSame) {
+                this.writer.writeString(')');
+            }
         }
 
         this.writer.EndOfStatement();

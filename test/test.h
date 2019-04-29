@@ -9,12 +9,12 @@ class Test;
 class Test {
 public:
     virtual void dummy() {};
-    Array<js::number>* test();
+    string test();
 };
 
-Array<js::number>* Test::test()
+string Test::test()
 {
-    return cast<Array<js::number>*>(new Array<any>());
+    return ""_S;
 }
 
 #endif

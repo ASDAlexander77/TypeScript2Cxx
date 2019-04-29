@@ -2,14 +2,24 @@ import * as ts from 'typescript';
 
 export class IdentifierResolver {
 
-    public typesAreTheSame(typeReturn: ts.TypeNode, functionReturn: ts.TypeNode): boolean {
+    public typesAreTheSame(typeReturnIn: ts.TypeNode, functionReturnIn: ts.TypeNode): boolean {
+        let typeReturn = typeReturnIn;
+        let functionReturn = functionReturnIn;
         if (!typeReturn || !functionReturn) {
             return false;
         }
 
+        if (typeReturn.kind === ts.SyntaxKind.LiteralType) {
+            typeReturn = (<any>typeReturn).literal;
+        }
+
+        if (functionReturn.kind === ts.SyntaxKind.LiteralType) {
+            functionReturn = (<any>functionReturn).literal;
+        }
+
         if ((typeReturn.kind === ts.SyntaxKind.StringKeyword && functionReturn.kind === ts.SyntaxKind.StringLiteral)
             || (functionReturn.kind === ts.SyntaxKind.StringKeyword && typeReturn.kind === ts.SyntaxKind.StringLiteral)) {
-            return false;
+            return true;
         }
 
         if (typeReturn.kind !== functionReturn.kind) {

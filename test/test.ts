@@ -1,5 +1,5 @@
 class Test {
-    test(): number[] {
-        return [];
+    test(): string {
+        return "";
     }
 }
