@@ -57,22 +57,7 @@ I\'ll be 38.000000 years old next month.\r\n').to.equals(new Run().test([
         console.log(sentence);                                      \
     '])));
 
-    it.skip('Array', () => expect('1\r\n2\r\n3\r\n10\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
-        'let list: number[] = [1, 2, 3];        \
-        console.log(list[0]);                   \
-        console.log(list[1]);                   \
-        console.log(list[2]);                   \
-        list[2] = 10;                           \
-        console.log(list[2]);                   \
-        var list2: Array<number> = [1, 2, 3];   \
-        console.log(list2[0]);                  \
-        console.log(list2[1]);                  \
-        console.log(list2[2]);                  \
-        list2[2] = 10;                          \
-        console.log(list2[2]);                  \
-    '])));
-
-    it('Array - c++ read only array', () => expect('1\r\n2\r\n3\r\n3\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
+    it('Array', () => expect('1\r\n2\r\n3\r\n10\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
         'let list: number[] = [1, 2, 3];        \
         console.log(list[0]);                   \
         console.log(list[1]);                   \

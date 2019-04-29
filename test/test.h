@@ -4,19 +4,10 @@
 
 using namespace js;
 
-class Cls;
-
-class Cls {
-public:
-    virtual void dummy() {};
-    template <typename P0, typename P1>
-    js::number test(P0 value1, P1 value2);
-};
-
-template <typename P0, typename P1>
-js::number Cls::test(P0 value1, P1 value2)
+void f(Array<object>* events)
 {
-    return 1;
-}
+    console.log((*events)[0]["name"]);
+    if ((*events)[1]) console.log("failed"_S);
+};
 
 #endif

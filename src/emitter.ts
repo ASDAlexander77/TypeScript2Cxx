@@ -1987,10 +1987,16 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
-        this.writer.writeString('new ');
-        this.processType((<any>node).parent.type, undefined, true);
-        this.writer.writeString('(');
+        let elementsType = (<any>node).parent.type;
+        if (!elementsType) {
+            if (node.elements.length !== 0) {
+                elementsType = this.resolver.typeToTypeNode(this.resolver.getTypeAtLocation(node.elements[0]));
+            }
+        }
 
+        this.writer.writeString('new Array<');
+        this.processType(elementsType, undefined, true);
+        this.writer.writeString('>(');
         if (node.elements.length !== 0) {
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
