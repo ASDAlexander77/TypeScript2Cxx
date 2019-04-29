@@ -3,12 +3,25 @@ import * as ts from 'typescript';
 export class IdentifierResolver {
 
     public typesAreTheSame(typeReturn: ts.TypeNode, functionReturn: ts.TypeNode): boolean {
+        if (!typeReturn || !functionReturn) {
+            return false;
+        }
+
+        if ((typeReturn.kind === ts.SyntaxKind.StringKeyword && functionReturn.kind === ts.SyntaxKind.StringLiteral)
+            || (functionReturn.kind === ts.SyntaxKind.StringKeyword && typeReturn.kind === ts.SyntaxKind.StringLiteral)) {
+            return false;
+        }
+
         if (typeReturn.kind !== functionReturn.kind) {
             return false;
         }
 
         if (typeReturn.kind === ts.SyntaxKind.ArrayType) {
             return this.typesAreTheSame((<any>typeReturn).elementType, (<any>functionReturn).elementType);
+        }
+
+        if ((<any>typeReturn).typeName == (<any>functionReturn).typeName) {
+            return true;
         }
 
         return (<any>typeReturn).typeName.text === (<any>functionReturn).typeName.text;

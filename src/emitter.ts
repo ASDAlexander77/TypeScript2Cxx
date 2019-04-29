@@ -1739,7 +1739,8 @@ export class Emitter {
 
             const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
             const functionReturn = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1])).type;
-            const theSame = this.resolver.typesAreTheSame(typeReturn, functionReturn);
+            const theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
+                || this.resolver.typesAreTheSame(typeReturn, functionReturn);
             if (!theSame) {
                 this.writer.writeString('cast<');
                 this.processType(functionReturn);
