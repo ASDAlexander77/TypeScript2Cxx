@@ -371,7 +371,7 @@ export class Emitter {
         }
     }
 
-    private isTemplate(declaration: ts.MethodDeclaration | ts.ClassDeclaration) {
+    private isTemplate(declaration: ts.MethodDeclaration | ts.ConstructorDeclaration | ts.ClassDeclaration) {
 
         if (declaration.typeParameters && declaration.typeParameters.length > 0) {
             return true;
@@ -381,9 +381,9 @@ export class Emitter {
             return true;
         }
 
-        if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+        if (this.isClassMemberDeclaration(declaration)) {
             if (declaration.parent && declaration.parent.kind === ts.SyntaxKind.ClassDeclaration) {
-                return this.isTemplate(declaration.parent);
+                return this.isTemplate(<any>declaration.parent);
             }
         }
 
@@ -392,7 +392,7 @@ export class Emitter {
 
     private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any) {
         // if method has union type, it should be treated as generic method
-        if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+        if (this.isClassMemberDeclaration(declaration)) {
             for (var element of declaration.parameters) {
                 const effectiveType = element.type;
                 if (effectiveType) {
@@ -414,6 +414,12 @@ export class Emitter {
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
             case ts.SyntaxKind.PropertyDeclaration:
                 !template && this.isStatic(node) && this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true);
+                return;
+            case ts.SyntaxKind.Constructor:
+                if ((template && this.isTemplate(<ts.ConstructorDeclaration>node))
+                    || (!template && !this.isTemplate(<ts.ConstructorDeclaration>node))) {
+                    this.processConstructorDeclaration(<ts.ConstructorDeclaration>node, true);
+                }
                 return;
             case ts.SyntaxKind.MethodDeclaration:
                 if ((template && this.isTemplate(<ts.MethodDeclaration>node))
@@ -913,9 +919,13 @@ export class Emitter {
         }
     }
 
-    private processConstructorDeclaration(node: ts.ConstructorDeclaration): void {
-        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node);
-        this.writer.writeStringNewLine();
+    private processConstructorDeclaration(node: ts.ConstructorDeclaration, implementationMode?: boolean): void {
+        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
+        if (implementationMode) {
+            this.writer.writeStringNewLine();
+        } else {
+            this.writer.EndOfStatement();
+        }
     }
 
     private processModifiers(modifiers: ts.NodeArray<ts.Modifier>) {
@@ -1449,7 +1459,7 @@ export class Emitter {
                     this.writer.writeString(' ');
                 }
 
-                if (node.kind === ts.SyntaxKind.MethodDeclaration && implementationMode) {
+                if (this.isClassMemberDeclaration(node) && implementationMode) {
                     // in case of constructor
                     this.writeClassName();
 
@@ -1589,7 +1599,7 @@ export class Emitter {
             this.writer.writeString(' ');
         }
 
-        if (node.kind !== ts.SyntaxKind.MethodDeclaration || implementationMode) {
+        if (!this.isClassMemberDeclaration(node) || implementationMode) {
             if (noBody) {
                 if (isClassMember) {
                     // abstract
@@ -1690,8 +1700,7 @@ export class Emitter {
     }
 
     private isClassMemberDeclaration(node: ts.Node) {
-        return node.kind === ts.SyntaxKind.ClassDeclaration
-            || node.kind === ts.SyntaxKind.Constructor
+        return node.kind === ts.SyntaxKind.Constructor
             || node.kind === ts.SyntaxKind.MethodDeclaration
             || node.kind === ts.SyntaxKind.PropertyDeclaration
             || node.kind === ts.SyntaxKind.GetAccessor
