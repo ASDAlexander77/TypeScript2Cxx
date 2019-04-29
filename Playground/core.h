@@ -33,6 +33,23 @@ inline R cast(T t) {
 	return (R)t;
 }
 
+template <typename T>
+struct property {
+    T _t;
+
+    property() : _t() {};
+    property(T t_) : _t(t_) {};
+
+    inline constexpr operator T() const {
+        return _t;
+    }
+
+    inline constexpr T& operator=(T t_) {
+        _t = t_;
+        return _t;
+    }
+};
+
 struct any;
 struct object;
 struct string;

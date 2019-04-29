@@ -33,22 +33,31 @@ struct CallPtrWrapper {
     }
 };
 
-class T1 {
-	
+class Test {
+public:    
+    template <typename T>
+    class property {
+    private:
+        T _t;
+    public:
+        property() {};
+        property(T t_) : _t(t_) {};
+
+        inline constexpr operator T() const {
+            return _t;
+        }
+
+        inline constexpr T& operator=(T t_) {
+            _t = t_;
+            return _t;
+        }
+    };
+
+    property<int> field;
+    property<js::string> field2;
+
+    Test() {}
 };
-
-class T2 {
-	
-};
-
-friend operator T1*(T2* p) {
-	return nullptr;
-}
-
-T1* f() {
-	T2* t;
-	return t;
-}
 
 int main(int argc, char** argv)
 {
@@ -70,4 +79,9 @@ int main(int argc, char** argv)
     CallPtrWrapper cp(f);
 
     auto v = cp.call<int>(10, "Test");
+
+    Test* t = new Test();
+    t->field = 12;
+    t->field2 = "Hello";
+    std::cout << t->field << t->field2 << std::endl;
 }
