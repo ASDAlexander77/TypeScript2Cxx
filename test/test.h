@@ -16,7 +16,7 @@ class Test {
 public:
     virtual void dummy() {};
     template <typename P0>
-    Test(P0 t) ;
+    Test(P0 t);
 };
 
 template <typename P0>

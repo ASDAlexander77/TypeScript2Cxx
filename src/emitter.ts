@@ -1551,7 +1551,7 @@ export class Emitter {
 
         // constructor init
         let skipped = 0;
-        if (node.kind === ts.SyntaxKind.Constructor) {
+        if (node.kind === ts.SyntaxKind.Constructor && implementationMode) {
             this.writer.cancelNewLine();
 
             next = false;
@@ -2246,6 +2246,11 @@ export class Emitter {
     }
 
     private processIndentifier(node: ts.Identifier): void {
+        // fix issue with 'continue'
+        if (node.text === 'continue') {
+            this.writer.writeString('_');
+        }
+
         this.writer.writeString(node.text);
     }
 
@@ -2264,6 +2269,9 @@ export class Emitter {
             this.writer.writeString('::');
             this.processExpression(node.name);
         } else if (this.resolver.isThisType(typeInfo)) {
+            this.writer.writeString('->');
+            this.processExpression(node.name);
+        } else if (typeInfo && typeInfo.symbol && typeInfo.symbol.name === '__type') {
             this.writer.writeString('->');
             this.processExpression(node.name);
         } else {
