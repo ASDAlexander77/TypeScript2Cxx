@@ -395,8 +395,14 @@ export class Emitter {
         if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
             for (var element of declaration.parameters) {
                 const effectiveType = element.type;
-                if (effectiveType.kind === ts.SyntaxKind.UnionType) {
-                    return true;
+                if (effectiveType) {
+                    if (effectiveType.kind === ts.SyntaxKind.UnionType) {
+                        return true;
+                    }
+
+                    if (this.resolver.isTypeAliasUnionType(effectiveType.typeName)) {
+                        return true;
+                    }
                 }
             };
         }
@@ -757,9 +763,9 @@ export class Emitter {
         }
 
         return modifiers
-                .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
-                        || m.kind === ts.SyntaxKind.ProtectedKeyword
-                        || m.kind === ts.SyntaxKind.PublicKeyword);
+            .some(m => m.kind === ts.SyntaxKind.PrivateKeyword
+                || m.kind === ts.SyntaxKind.ProtectedKeyword
+                || m.kind === ts.SyntaxKind.PublicKeyword);
     }
 
     private processVariablesForwardDeclaration(node: ts.VariableStatement) {
@@ -841,7 +847,7 @@ export class Emitter {
         for (const item of (<any>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             const constructor = <ts.ConstructorDeclaration>item;
             for (const fieldAsParam of constructor.parameters
-                        .filter(p => this.hasAccessModifier(p.modifiers))) {
+                .filter(p => this.hasAccessModifier(p.modifiers))) {
                 this.processDeclaration(fieldAsParam);
             }
         }
@@ -888,7 +894,7 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
-        if (implementationMode || (node.initializer && !this.isStatic(node) )) {
+        if (implementationMode || (node.initializer && !this.isStatic(node))) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
@@ -1163,8 +1169,7 @@ export class Emitter {
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false,
-        unionAndConditionTypesAreTemplates: boolean = false, index: number = 0): void {
+        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false): void {
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1221,7 +1226,7 @@ export class Emitter {
                 const typeReference = <ts.TypeReferenceNode>type;
                 const typeInfo = this.resolver.getOrResolveTypeOf(type);
                 const isTypeAlias = (typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
-                                    || this.resolver.isTypeAlias((<any>type).typeName);
+                    || this.resolver.isTypeAlias((<any>type).typeName);
 
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
@@ -1318,28 +1323,24 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.UnionType:
 
-                if (unionAndConditionTypesAreTemplates) {
-                    this.writer.writeString('P' + index);
-                } else {
-                    const unionType = <ts.UnionTypeNode>type;
-                    const unionName = `__union${type.pos}_${type.end} `;
-                    this.writer.writeString('union ');
-                    this.writer.writeString(unionName);
-                    this.writer.BeginBlock();
+                const unionType = <ts.UnionTypeNode>type;
+                const unionName = `__union${type.pos}_${type.end} `;
+                this.writer.writeString('union ');
+                this.writer.writeString(unionName);
+                this.writer.BeginBlock();
 
-                    unionType.types.forEach((element, i) => {
-                        this.processType(element);
-                        this.writer.writeString(` v${i}`);
-                        this.writer.EndOfStatement();
-                        this.writer.cancelNewLine();
-                        this.writer.writeString(` ${unionName}(`);
-                        this.processType(element);
-                        this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
-                    });
-
-                    this.writer.EndBlock();
+                unionType.types.forEach((element, i) => {
+                    this.processType(element);
+                    this.writer.writeString(` v${i}`);
+                    this.writer.EndOfStatement();
                     this.writer.cancelNewLine();
-                }
+                    this.writer.writeString(` ${unionName}(`);
+                    this.processType(element);
+                    this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                });
+
+                this.writer.EndBlock();
+                this.writer.cancelNewLine();
 
                 break;
             default:
@@ -1436,7 +1437,7 @@ export class Emitter {
                     }
 
                     if (node.type) {
-                        this.processType(node.type, undefined, undefined, undefined, true);
+                        this.processType(node.type);
                     } else {
                         if (noReturn) {
                             this.writer.writeString('void');
@@ -1496,9 +1497,16 @@ export class Emitter {
             if (element.dotDotDotToken) {
                 // ...
             } else {
-                this.processType(element.type
-                    || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer),
-                    undefined, undefined, undefined, true, index);
+                const effectiveType = element.type
+                || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer)
+                if (effectiveType
+                        && (effectiveType.kind === ts.SyntaxKind.UnionType
+                                || this.resolver.isTypeAliasUnionType((<any>effectiveType).typeName))) {
+                    this.writer.writeString("P" + index);
+                } else {
+                    this.processType(effectiveType);
+                }
+
                 this.writer.writeString(' ');
                 this.processExpression(element.name);
 
@@ -1556,7 +1564,7 @@ export class Emitter {
                     }
 
                     next = true;
-            });
+                });
 
             // process base consturctor call
             let superCall = (<any>node.body).statements[0];
@@ -1637,13 +1645,15 @@ export class Emitter {
             // add params
             if (isParamTemplate) {
                 (<ts.MethodDeclaration>node).parameters.forEach((element, index) => {
-                    if (next) {
-                        this.writer.writeString(', ');
-                    }
+                    if (element.type && (element.type.kind === ts.SyntaxKind.UnionType
+                        || this.resolver.isTypeAliasUnionType((<any>element.type).typeName))) {
+                        if (next) {
+                            this.writer.writeString(', ');
+                        }
 
-                    this.writer.writeString('typename ');
-                    this.processType(element.type, undefined, undefined, undefined, true, index);
-                    next = true;
+                        this.writer.writeString('typename P' + index);
+                        next = true;
+                    }
                 });
             }
 
@@ -2171,7 +2181,7 @@ export class Emitter {
         if (method
             && (this.isClassMemberDeclaration(method) || this.isClassMemberSignature(method))
             && this.isStatic(method)) {
-            const classNode = <ts.ClassDeclaration> this.scope[this.scope.length - 2];
+            const classNode = <ts.ClassDeclaration>this.scope[this.scope.length - 2];
             if (classNode) {
                 const identifier = classNode.name;
                 this.writer.writeString(identifier.text);
@@ -2184,7 +2194,7 @@ export class Emitter {
 
     private processSuperExpression(node: ts.SuperExpression): void {
         if (node.parent.kind === ts.SyntaxKind.CallExpression) {
-            const classNode = <ts.ClassDeclaration> this.scope[this.scope.length - 2];
+            const classNode = <ts.ClassDeclaration>this.scope[this.scope.length - 2];
             if (classNode) {
                 const heritageClause = classNode.heritageClauses[0];
                 if (heritageClause) {

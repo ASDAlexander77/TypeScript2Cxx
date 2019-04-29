@@ -96,6 +96,24 @@ export class IdentifierResolver {
         return false;
     }
 
+    public checkImportSpecifier(symbol: ts.Symbol): boolean {
+        if  (symbol && symbol.declarations[0].kind === ts.SyntaxKind.ImportSpecifier) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public checkUnionType(symbol: ts.Symbol): boolean {
+        if  (symbol
+            && (<any>symbol.declarations[0]).type
+            && (<any>symbol.declarations[0]).type.kind === ts.SyntaxKind.UnionType) {
+            return true;
+        }
+
+        return false;
+    }
+
     public isTypeAlias(location: ts.Node): boolean {
         if (!location) {
             return undefined;
@@ -142,6 +160,57 @@ export class IdentifierResolver {
         const typeInfo = this.getTypeAtLocation(location);
         if (typeInfo) {
             return this.checkTypeAlias(typeInfo.aliasSymbol);
+        }
+
+        return false;
+    }
+
+    public isTypeAliasUnionType(location: ts.Node): boolean {
+        if (!location) {
+            return undefined;
+        }
+
+        if (location.kind !== ts.SyntaxKind.Identifier) {
+            // only identifier is accepted
+            return undefined;
+        }
+
+        const name = (<ts.Identifier>location).text;
+        let resolvedSymbol;
+
+        // find first node with 'locals'
+        let locationWithLocals = location;
+        while (true) {
+            while (locationWithLocals) {
+                if ((<any>locationWithLocals).locals) {
+                    break;
+                }
+
+                locationWithLocals = locationWithLocals.parent;
+            }
+
+            if (!locationWithLocals) {
+                // todo function, method etc can't be found
+                return null;
+            }
+
+            resolvedSymbol = (<any>this.typeChecker).resolveName(
+                name, locationWithLocals, ((1 << 27) - 1));
+            if (!resolvedSymbol) {
+                locationWithLocals = locationWithLocals.parent;
+                continue;
+            }
+
+            break;
+        }
+
+        if  (!this.checkTypeAlias(resolvedSymbol) && !this.checkImportSpecifier(resolvedSymbol)) {
+            return false;
+        }
+
+        const typeInfo = this.getTypeAtLocation(location);
+        if (this.checkUnionType(typeInfo.aliasSymbol)) {
+            return true;
         }
 
         return false;
