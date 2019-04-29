@@ -1112,8 +1112,8 @@ static struct MathImpl
         return number(std::atan((double)op));
     }
 
-    static number atan2(number op) {
-        return number(std::atan((double)op));
+    static number atan2(number op1, number op2) {
+        return number(std::atan2((double)op1, (double)op2));
     }
 
     static number log(number op) {
