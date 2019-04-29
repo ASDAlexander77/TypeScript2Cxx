@@ -1,7 +1,8 @@
-type Wrapper<T> = T;
-
 class Cls {
+
+    test(value1: number | null, value2: string | null): number {
+        return 1;
+    }
 
 }
 
-let a: Wrapper<Cls> = null;

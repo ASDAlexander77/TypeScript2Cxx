@@ -377,6 +377,10 @@ export class Emitter {
             return true;
         }
 
+        if (!this.isMethodParamsTemplate(declaration)) {
+            return true;
+        }
+
         if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
             if (declaration.parent && declaration.parent.kind === ts.SyntaxKind.ClassDeclaration) {
                 return this.isTemplate(declaration.parent);
@@ -384,6 +388,18 @@ export class Emitter {
         }
 
         return false;
+    }
+
+    private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any) {
+        // if method has union type, it should be treated as generic method
+        if (declaration.kind === ts.SyntaxKind.MethodDeclaration) {
+            for (var element of declaration.parameters) {
+                const effectiveType = element.type;
+                if (effectiveType.kind === ts.SyntaxKind.UnionType) {
+                    return true;
+                }
+            };
+        }
     }
 
     private processImplementation(node: ts.Declaration | ts.Statement, template?: boolean): void {
@@ -1147,7 +1163,8 @@ export class Emitter {
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false, unionAndConditionTypesAreTemplates: boolean = false): void {
+        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false,
+        unionAndConditionTypesAreTemplates: boolean = false, index: number = 0): void {
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1302,7 +1319,7 @@ export class Emitter {
             case ts.SyntaxKind.UnionType:
 
                 if (unionAndConditionTypesAreTemplates) {
-                    this.writer.writeString('U');
+                    this.writer.writeString('P' + index);
                 } else {
                     const unionType = <ts.UnionTypeNode>type;
                     const unionName = `__union${type.pos}_${type.end} `;
@@ -1467,7 +1484,7 @@ export class Emitter {
 
         let defaultParams = false;
         let next = false;
-        node.parameters.forEach(element => {
+        node.parameters.forEach((element, index) => {
             if (element.name.kind !== ts.SyntaxKind.Identifier) {
                 throw new Error('Not implemented');
             }
@@ -1481,7 +1498,7 @@ export class Emitter {
             } else {
                 this.processType(element.type
                     || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer),
-                    undefined, undefined, undefined, true);
+                    undefined, undefined, undefined, true, index);
                 this.writer.writeString(' ');
                 this.processExpression(element.name);
 
@@ -1596,24 +1613,40 @@ export class Emitter {
     private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration | ts.TypeAliasDeclaration) {
 
         let types = <ts.TypeParameterDeclaration[]><any>node.typeParameters;
-        if (!types) {
-            return;
-        }
-
-        if (node.parent && (<any>node.parent).typeParameters) {
+        if (types && node.parent && (<any>node.parent).typeParameters) {
             types = types.filter(t => (<any>node.parent).typeParameters.every(t2 => t.name.text !== t2.name.text));
         }
 
+        const templateTypes = types && types.length > 0;
+        const isParamTemplate = this.isMethodParamsTemplate(node);
+
         let next = false;
-        if (types && types.length > 0) {
+        if (templateTypes || isParamTemplate) {
             this.writer.writeString('template <');
-            types.forEach(type => {
-                if (next) {
-                    this.writer.writeString(', ');
-                }
-                this.processType(type);
-                next = true;
-            });
+            if (templateTypes) {
+                types.forEach(type => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.processType(type);
+                    next = true;
+                });
+            }
+
+            // add params
+            if (isParamTemplate) {
+                (<ts.MethodDeclaration>node).parameters.forEach((element, index) => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.writer.writeString('typename ');
+                    this.processType(element.type, undefined, undefined, undefined, true, index);
+                    next = true;
+                });
+            }
+
             this.writer.writeStringNewLine('>');
         }
 
