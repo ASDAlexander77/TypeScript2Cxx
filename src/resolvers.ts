@@ -2,6 +2,18 @@ import * as ts from 'typescript';
 
 export class IdentifierResolver {
 
+    public typesAreTheSame(typeReturn: ts.TypeNode, functionReturn: ts.TypeNode): boolean {
+        if (typeReturn.kind !== functionReturn.kind) {
+            return false;
+        }
+
+        if (typeReturn.kind === ts.SyntaxKind.ArrayType) {
+            return this.typesAreTheSame((<any>typeReturn).elementType, (<any>functionReturn).elementType);
+        }
+
+        return (<any>typeReturn).typeName.text === (<any>functionReturn).typeName.text;
+    }
+
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 

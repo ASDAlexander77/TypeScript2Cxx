@@ -33,6 +33,23 @@ struct CallPtrWrapper {
     }
 };
 
+class T1 {
+	
+};
+
+class T2 {
+	
+};
+
+friend operator T1*(T2* p) {
+	return nullptr;
+}
+
+T1* f() {
+	T2* t;
+	return t;
+}
+
 int main(int argc, char** argv)
 {
     auto m = [](int p1, const char* v) -> int 

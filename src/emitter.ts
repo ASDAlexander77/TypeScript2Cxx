@@ -3,6 +3,7 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
+import { timingSafeEqual } from 'crypto';
 
 export class Emitter {
     public writer: CodeWriter;
@@ -1735,7 +1736,21 @@ export class Emitter {
         this.writer.writeString('return');
         if (node.expression) {
             this.writer.writeString(' ');
+
+            const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
+            const functionReturn = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1])).type;
+            const theSame = this.resolver.typesAreTheSame(typeReturn, functionReturn);
+            if (!theSame) {
+                this.writer.writeString('cast<');
+                this.processType(functionReturn);
+                this.writer.writeString('>(');
+            }
+
             this.processExpression(node.expression);
+
+            if (!theSame) {
+                this.writer.writeString(')');
+            }
         }
 
         this.writer.EndOfStatement();

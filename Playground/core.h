@@ -28,6 +28,11 @@ namespace js
 #define EQUALS(x, y) ((x) == (y))
 #define NOT_EQUALS(x, y) (!((x) == (y)))
 
+template <typename R, typename T> 
+inline R cast(T t) {
+	return (R)t;
+}
+
 struct any;
 struct object;
 struct string;
@@ -241,6 +246,25 @@ struct number : public undefined_t {
     } 
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator |(T t) {
+        return number((long)_value | (long)t);
+    }
+
+    number operator |(number n) {
+        return number((long)_value | (long)n._value);
+    }   
+
+    number& operator |=(number other){
+        _value = (long)_value | (long)other._value;
+        return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator |(T t, number value) {
+        return number((long)t | (long)value._value);
+    } 
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator ==(T t) {
         return _value == t;
     }
@@ -298,13 +322,16 @@ struct string : public undefined_t {
 
     std::string _value;
 
+    size_t length;
+
     string () : _value(), undefined_t(true) {
     }    
 
-    string (std::string value) : _value(value) {
+    string (std::string value) : _value(value), length(value.length()) {
     }
 
     string (const char* value) : _value(value) {
+        length = _value.length();
     }    
 
     string (const undefined_t& undef) : undefined_t(true) {
@@ -330,6 +357,14 @@ struct string : public undefined_t {
         return *this;
     }
 
+    friend bool operator ==(const js::string& value, const js::string& other) {
+        return value._value.compare(other._value) == 0;
+    }    
+
+    friend bool operator !=(const js::string& value, const js::string& other) {
+        return value._value.compare(other._value) != 0;
+    }    
+
     string toUpperCase() {
         std::string result(*this);
         for (auto& c: result) {
@@ -347,6 +382,15 @@ struct string : public undefined_t {
 
         return string(result);
     }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    string substring(T begin, T end) {
+        return string(_value.substr(begin, end - begin));
+    }    
+    
+    string substring(number begin, number end) {
+        return string(_value.substr(begin, end - begin));
+    }    
 
     friend std::ostream& operator << (std::ostream& os, string val)
     {
@@ -976,6 +1020,10 @@ struct ArrayBuffer {
 struct ArrayBufferView {
 };
 
+number parseInt(const js::string& value, int base = 10);
+
+number parseFloat(const js::string& value);
+
 template <typename T>
 struct Promise {
     static void all() {
@@ -1130,16 +1178,8 @@ static struct Console
 struct XMLHttpRequest {    
 };
 
-/*
 template <typename T>
-using ArrayLike = ReadOnlyArray<T>;
-*/
-
-template <typename T>
-class ArrayLike {
-    number length;
-    virtual T operator[](number n) = 0;
-};
+using ArrayLike = Array<T>;
 
 struct HTMLElement {
 };
