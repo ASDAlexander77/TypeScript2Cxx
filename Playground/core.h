@@ -308,6 +308,25 @@ struct number : public undefined_t {
     } 
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator &(T t) {
+        return number((long)_value & (long)t);
+    }
+
+    number operator &(number n) {
+        return number((long)_value & (long)n._value);
+    }   
+
+    number& operator &=(number other){
+        _value = (long)_value & (long)other._value;
+        return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator &(T t, number value) {
+        return number((long)t & (long)value._value);
+    } 
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator ==(T t) {
         return _value == t;
     }
