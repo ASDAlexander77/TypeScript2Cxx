@@ -354,8 +354,8 @@ export class Emitter {
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.ConstructSignature: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
             case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
-            case ts.SyntaxKind.SetAccessor: /*TODO: setter*/ return;
-            case ts.SyntaxKind.GetAccessor: /*TODO: getter*/ return;
+            case ts.SyntaxKind.SetAccessor: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
+            case ts.SyntaxKind.GetAccessor: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.IndexSignature: /*TODO: index*/ return;
         }
 
@@ -423,6 +423,8 @@ export class Emitter {
                 }
                 return;
             case ts.SyntaxKind.MethodDeclaration:
+            case ts.SyntaxKind.GetAccessor:
+            case ts.SyntaxKind.SetAccessor:
                 if ((template && this.isTemplate(<ts.MethodDeclaration>node))
                     || (!template && !this.isTemplate(<ts.MethodDeclaration>node))) {
                     this.processMethodDeclaration(<ts.MethodDeclaration>node, true);
@@ -854,7 +856,7 @@ export class Emitter {
         for (const item of (<any>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             const constructor = <ts.ConstructorDeclaration>item;
             for (const fieldAsParam of constructor.parameters
-                .filter(p => this.hasAccessModifier(p.modifiers))) {
+                    .filter(p => this.hasAccessModifier(p.modifiers))) {
                 this.processDeclaration(fieldAsParam);
             }
         }
@@ -1405,7 +1407,8 @@ export class Emitter {
     }
 
     private processFunctionExpression(
-        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.ConstructorDeclaration,
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
+            | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
         implementationMode?: boolean): void {
 
         let noBody = false;
@@ -1477,7 +1480,17 @@ export class Emitter {
 
                 // name
                 if (node.name && node.name.kind === ts.SyntaxKind.Identifier) {
-                    this.processExpression(node.name);
+                    if (node.kind === ts.SyntaxKind.GetAccessor) {
+                        this.writer.writeString('get_');
+                    } else if (node.kind === ts.SyntaxKind.SetAccessor) {
+                        this.writer.writeString('set_');
+                    }
+
+                    if (node.name.kind === ts.SyntaxKind.Identifier) {
+                        this.processExpression(node.name);
+                    } else {
+                        throw new Error('Not implemented');
+                    }
                 } else {
                     // in case of constructor
                     this.writeClassName();
@@ -1633,7 +1646,8 @@ export class Emitter {
         }
     }
 
-    private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration | ts.TypeAliasDeclaration) {
+    private processTemplateParams(node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
+        | ts.MethodSignature | ts.ConstructorDeclaration | ts.TypeAliasDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration) {
 
         let types = <ts.TypeParameterDeclaration[]><any>node.typeParameters;
         if (types && node.parent && (<any>node.parent).typeParameters) {
@@ -2283,6 +2297,8 @@ export class Emitter {
     private processPropertyAccessExpression(node: ts.PropertyAccessExpression): void {
 
         const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
+        const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
+        const getAccess = symbolInfo && symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor;
 
         this.processExpression(node.expression);
 
@@ -2290,20 +2306,27 @@ export class Emitter {
             this.writer.writeString('["');
             this.processExpression(node.name);
             this.writer.writeString('"]');
+            return;
         } else if (this.resolver.isStaticAccess(typeInfo)
             || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
             this.writer.writeString('::');
-            this.processExpression(node.name);
         } else if (this.resolver.isThisType(typeInfo)) {
             this.writer.writeString('->');
-            this.processExpression(node.name);
         } else if (typeInfo && typeInfo.symbol && typeInfo.symbol.name === '__type') {
             this.writer.writeString('->');
-            this.processExpression(node.name);
         } else {
             // member access when type is known
             this.writer.writeString('.');
-            this.processExpression(node.name);
+        }
+
+        if (getAccess) {
+            this.writer.writeString('get_');
+        }
+
+        this.processExpression(node.name);
+
+        if (getAccess) {
+            this.writer.writeString('()');
         }
     }
 }
