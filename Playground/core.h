@@ -34,11 +34,12 @@ inline R cast(T t) {
 }
 
 template <typename T>
-struct property {
+class property_t {
+private:
     T _t;
-
-    property() : _t() {};
-    property(T t_) : _t(t_) {};
+public:
+    property_t() {};
+    property_t(T t_) : _t(t_) {};
 
     inline constexpr operator T() const {
         return _t;
@@ -47,6 +48,29 @@ struct property {
     inline constexpr T& operator=(T t_) {
         _t = t_;
         return _t;
+    }
+};
+
+template <typename T, class C>
+class property_getset {
+public:
+    typedef T (C::* get_method)();    
+    typedef void (C::* set_method)(T t);    
+private:
+    C* _c;
+    get_method _g;
+    set_method _s;
+    
+public:
+    property_getset(C* c_, get_method g_, set_method s_) : _c(c_), _g(g_), _s(s_) {};
+
+    inline operator T() const {
+        return ((*_c).*(_g))();
+    }
+
+    inline property_getset& operator=(T value) {
+        ((*_c).*(_s))(value);
+        return *this;
     }
 };
 
