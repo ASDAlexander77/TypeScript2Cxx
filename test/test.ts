@@ -1,5 +1,12 @@
-for (let i = 0; i < 3; i++) {
-    console.log(i);
-    if (i == 0) continue;
-    break;
-}
+let isDone1: boolean = false;
+const isDone2: boolean = false;
+var isDone3: boolean = false;
+let val1: any = null;
+const val2: any = null;
+var val3: any = null;
+console.log(isDone1);
+console.log(isDone2);
+console.log(isDone3);
+console.log(val1);
+console.log(val2);
+console.log(val3);

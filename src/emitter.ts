@@ -1328,6 +1328,9 @@ export class Emitter {
             case ts.SyntaxKind.VoidKeyword:
                 this.writer.writeString('void');
                 break;
+            case ts.SyntaxKind.AnyKeyword:
+                this.writer.writeString('any');
+                break;
             case ts.SyntaxKind.NullKeyword:
                 this.writer.writeString('std::nullptr_t');
                 break;
