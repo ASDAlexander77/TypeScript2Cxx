@@ -2054,6 +2054,12 @@ export class Emitter {
             if (node.elements.length !== 0) {
                 elementsType = this.resolver.typeToTypeNode(this.resolver.getTypeAtLocation(node.elements[0]));
             }
+        } else {
+            if (elementsType.elementType) {
+                elementsType = elementsType.elementType;
+            } else if (elementsType.typeArguments && elementsType.typeArguments[0]) {
+                elementsType = elementsType.typeArguments[0];
+            }
         }
 
         this.writer.writeString('new Array<');
