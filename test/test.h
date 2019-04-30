@@ -4,7 +4,7 @@
 
 using namespace js;
 
-extern Array<js::number>* list;
-extern Array< js::number >* list2;
+template <typename T>
+using DeepImmutableObject = T;
 
 #endif

@@ -978,6 +978,11 @@ export class Emitter {
         } else if (node.type.kind === ts.SyntaxKind.ConditionalType) {
             const conditionType = <ts.ConditionalTypeNode>type;
             type = conditionType.checkType;
+        } else if (node.type.kind === ts.SyntaxKind.MappedType) {
+            const mappedType = <ts.MappedTypeNode>type;
+            if (node.typeParameters && node.typeParameters[0]) {
+                type = <any> { kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier(node.typeParameters[0].symbol.name) };
+            }
         }
 
         if (node.typeParameters) {
@@ -985,11 +990,11 @@ export class Emitter {
             this.writer.writeString('using ');
             this.processExpression(node.name);
             this.writer.writeString(' = ');
-            this.processType(type, false, true);
+            this.processType(type, false, true, true);
         } else {
             // default typedef
             this.writer.writeString('typedef ');
-            this.processType(type, false, true);
+            this.processType(type, false, true, true);
             this.writer.writeString(' ');
             this.processExpression(node.name);
         }
