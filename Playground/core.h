@@ -189,7 +189,9 @@ struct number : public undefined_t {
     }    
 
     number operator ++(int) {
-        return number(_value + 1);
+        number tmp(*this); 
+        operator++();
+        return tmp;
     }    
 
     number& operator +=(number other){
