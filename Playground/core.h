@@ -34,12 +34,12 @@ inline R cast(T t) {
 }
 
 template <typename T>
-class property_t {
+class _property_t {
 private:
     T _t;
 public:
-    property_t() {};
-    property_t(T t_) : _t(t_) {};
+    _property_t() {};
+    _property_t(T t_) : _t(t_) {};
 
     inline constexpr operator T() const {
         return _t;
@@ -336,6 +336,11 @@ struct number : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator ==(T t, number value) {
+        return t == value._value;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator <(T t) {
         return _value < t;
     }
@@ -354,6 +359,11 @@ struct number : public undefined_t {
     } 
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator <(T t, number value) {
+        return t < value._value;
+    }     
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator >(T t) {
         return _value > t;
     }
@@ -370,6 +380,11 @@ struct number : public undefined_t {
     bool operator >=(number n) {
         return _value >= n._value;
     }         
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator >(T t, number value) {
+        return t > value._value;
+    }   
 
     js::string toString();
     js::string toString(js::number radix);

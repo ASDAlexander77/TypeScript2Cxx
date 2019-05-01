@@ -981,7 +981,7 @@ export class Emitter {
         } else if (node.type.kind === ts.SyntaxKind.MappedType) {
             const mappedType = <ts.MappedTypeNode>type;
             if (node.typeParameters && node.typeParameters[0]) {
-                type = <any> { kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier(node.typeParameters[0].symbol.name) };
+                type = <any> { kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier((<any>(node.typeParameters[0])).symbol.name) };
             }
         }
 
@@ -1058,8 +1058,14 @@ export class Emitter {
                 this.writer.writeString('const ');
             }
 
+            const scopeItem = this.scope[this.scope.length - 1];
+            const autoAllowed =
+                scopeItem.kind != ts.SyntaxKind.SourceFile
+                && scopeItem.kind != ts.SyntaxKind.ClassDeclaration
+                && scopeItem.kind != ts.SyntaxKind.ModuleDeclaration
+                && scopeItem.kind != ts.SyntaxKind.NamespaceExportDeclaration;
             this.processType(declarationList.declarations[0].type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer), true);
+                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer), autoAllowed);
 
             this.writer.writeString(' ');
         }
@@ -1188,6 +1194,11 @@ export class Emitter {
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
         auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false): void {
+
+        if (auto) {
+            this.writer.writeString('auto');
+            return;
+        }
 
         let type = typeIn;
         if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
@@ -1344,28 +1355,24 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.UnionType:
 
-                if (auto) {
-                    this.writer.writeString('auto');
-                } else {
-                    const unionType = <ts.UnionTypeNode>type;
-                    const unionName = `__union${type.pos}_${type.end} `;
-                    this.writer.writeString('union ');
-                    this.writer.writeString(unionName);
-                    this.writer.BeginBlock();
+                const unionType = <ts.UnionTypeNode>type;
+                const unionName = `__union${type.pos}_${type.end} `;
+                this.writer.writeString('union ');
+                this.writer.writeString(unionName);
+                this.writer.BeginBlock();
 
-                    unionType.types.forEach((element, i) => {
-                        this.processType(element);
-                        this.writer.writeString(` v${i}`);
-                        this.writer.EndOfStatement();
-                        this.writer.cancelNewLine();
-                        this.writer.writeString(` ${unionName}(`);
-                        this.processType(element);
-                        this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
-                    });
-
-                    this.writer.EndBlock();
+                unionType.types.forEach((element, i) => {
+                    this.processType(element);
+                    this.writer.writeString(` v${i}`);
+                    this.writer.EndOfStatement();
                     this.writer.cancelNewLine();
-                }
+                    this.writer.writeString(` ${unionName}(`);
+                    this.processType(element);
+                    this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                });
+
+                this.writer.EndBlock();
+                this.writer.cancelNewLine();
 
                 break;
             default:
