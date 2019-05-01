@@ -1313,7 +1313,7 @@ export class Emitter {
                 let skipPointerIf =
                     (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
-                    || (typeInfo && (<any>typeInfo).intrinsicName !== "error")
+                    || (typeInfo && (<any>typeInfo).intrinsicName === "number")
                     || skipPointerInType
                     || isTypeAlias;
                 if (!skipPointerIf) {
