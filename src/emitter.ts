@@ -838,6 +838,8 @@ export class Emitter {
                     next = true;
                 });
             });
+        } else {
+            this.writer.writeString(' : public object');
         }
 
         this.writer.writeString(' ');
@@ -847,10 +849,12 @@ export class Emitter {
         this.writer.IncreaseIntent();
         this.writer.writeStringNewLine();
 
+        /*
         if (!node.heritageClauses) {
             // to make base class polymorphic
             this.writer.writeStringNewLine('virtual void dummy() {};');
         }
+        */
 
         // declare all private parameters of constructors
         for (const item of (<any>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {

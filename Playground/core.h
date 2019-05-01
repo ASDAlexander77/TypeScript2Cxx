@@ -565,6 +565,8 @@ struct object : public undefined_t {
     {
         return os << "[object]";
     }
+
+    virtual void __dummy__() {};
 };
 
 struct any {
