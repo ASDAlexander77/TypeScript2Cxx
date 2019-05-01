@@ -208,6 +208,12 @@ struct number : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend T& operator +=(T& t, number other){
+        t += other._value;
+        return t;
+    }    
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator -(T t) {
         return number(_value - t);
     }
@@ -240,6 +246,12 @@ struct number : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend T& operator -=(T& t, number other){
+        t -= other._value;
+        return t;
+    }       
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator *(T t) {
         return number(_value * t);
     }
@@ -252,6 +264,12 @@ struct number : public undefined_t {
         _value *= other._value;
         return *this;
     }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend T& operator *=(T& t, number other){
+        t *= other._value;
+        return t;
+    }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     friend number operator *(T t, number value) {
@@ -270,6 +288,12 @@ struct number : public undefined_t {
     number& operator /=(number other){
         _value /= other._value;
         return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend T& operator /=(T& t, number other){
+        t /= other._value;
+        return t;
     }   
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
@@ -345,6 +369,11 @@ struct number : public undefined_t {
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     friend bool operator ==(T t, number value) {
+        return t == value._value;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator ==(const number& value, T t) {
         return t == value._value;
     }   
 
@@ -693,6 +722,14 @@ struct any {
         return _type != anyTypeId::undefined;
     }
 
+    operator double() {
+        if (_type == anyTypeId::number) {
+            return _value._number._value;
+        }
+
+        throw "wrong type";        
+    }
+
     friend bool operator ==(const js::any& value, const js::any& other) {
         if (value._type != other._type) {
             return false;
@@ -714,7 +751,7 @@ struct any {
         throw "not implemented";
     }    
 
-    any operator +(const any& t) {
+    any operator +(any t) {
         switch (_type) {
             case anyTypeId::number:
                 switch (t._type) {
@@ -727,7 +764,7 @@ struct any {
         throw "not implemented";
     }
 
-    any operator -(const any& t) {
+    any operator -(any t) {
         switch (_type) {
             case anyTypeId::number:
                 switch (t._type) {
@@ -740,7 +777,7 @@ struct any {
         throw "not implemented";
     }
 
-    any operator *(const any& t) {
+    any operator *(any t) {
         switch (_type) {
             case anyTypeId::number:
                 switch (t._type) {
@@ -753,7 +790,26 @@ struct any {
         throw "not implemented";
     }
 
-    any operator /(const any& t) {
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend any operator *(T t, any value) {
+        switch (value._type) {
+            case anyTypeId::number:
+                return any(t * value._value._number);
+        }
+
+        throw "not implemented";        
+    }    
+
+    friend any operator *(js::number n, any value) {
+        switch (value._type) {
+            case anyTypeId::number:
+                return any(n._value * value._value._number);
+        }
+
+        throw "not implemented";        
+    }       
+
+    any operator /(any t) {
         switch (_type) {
             case anyTypeId::number:
                 switch (t._type) {
@@ -770,10 +826,19 @@ struct any {
         switch (_type) {
             case anyTypeId::number:
                 return any(_value._number / t);
-                break;
         }
 
         throw "not implemented";
+    }
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend any operator /(T t, any value) {
+        switch (value._type) {
+            case anyTypeId::number:
+                return any(t / value._value._number);
+        }
+
+        throw "not implemented";        
     }
 
     js::string typeOf()

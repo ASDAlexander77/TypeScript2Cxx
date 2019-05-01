@@ -1087,7 +1087,8 @@ export class Emitter {
                 && scopeItem.kind != ts.SyntaxKind.ModuleDeclaration
                 && scopeItem.kind != ts.SyntaxKind.NamespaceExportDeclaration;
             this.processType(declarationList.declarations[0].type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer), autoAllowed);
+                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer),
+                    autoAllowed && !!(declarationList.declarations[0].initializer));
 
             this.writer.writeString(' ');
         }
@@ -1810,9 +1811,7 @@ export class Emitter {
     }
 
     private processIfStatement(node: ts.IfStatement): void {
-        this.writer.writeString('if ');
-
-        this.writer.writeString('(');
+        this.writer.writeString('if (');
         this.processExpression(node.expression);
         this.writer.writeString(') ');
 
@@ -1820,7 +1819,7 @@ export class Emitter {
 
         if (node.elseStatement) {
             this.writer.cancelNewLine();
-            this.writer.writeString('else ');
+            this.writer.writeString(' else ');
             this.processStatement(node.elseStatement);
         }
     }
