@@ -2107,12 +2107,11 @@ export class Emitter {
             this.processExpression(node.expression);
             this.writer.writeString(')');
         } else {
-            this.writer.writeString('(*');
+            this.writer.writeString('(');
             this.processExpression(node.expression);
-            this.writer.writeString(')');
-            this.writer.writeString('[');
+            this.writer.writeString(')->operator[](');
             this.processExpression(node.argumentExpression);
-            this.writer.writeString(']');
+            this.writer.writeString(')');
         }
     }
 
@@ -2341,13 +2340,8 @@ export class Emitter {
         } else if (this.resolver.isStaticAccess(typeInfo)
             || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
             this.writer.writeString('::');
-        } else if (this.resolver.isThisType(typeInfo)) {
-            this.writer.writeString('->');
-        } else if (typeInfo && typeInfo.symbol && typeInfo.symbol.name === '__type') {
-            this.writer.writeString('->');
         } else {
-            // member access when type is known
-            this.writer.writeString('.');
+            this.writer.writeString('->');
         }
 
         if (getAccess) {

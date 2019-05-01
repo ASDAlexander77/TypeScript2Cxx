@@ -127,6 +127,10 @@ struct boolean : public undefined_t {
         return _value;
     }
 
+    constexpr boolean* operator->() {
+        return this;
+    }    
+
     friend std::ostream& operator << (std::ostream& os, boolean val)
     {
         return os << ((bool)val ? "true" : "false");
@@ -149,7 +153,7 @@ struct number : public undefined_t {
     }
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
-    inline operator T() const {
+    constexpr operator T() const {
         return static_cast<T>(_value);
     }
 
@@ -157,13 +161,17 @@ struct number : public undefined_t {
         return std::to_string(_value);
     }    
 
-    inline operator size_t() const {
+    constexpr operator size_t() const {
         return (size_t)_value;
     }    
 
-    inline operator double() const {
+    constexpr operator double() const {
         return _value;
     }    
+
+    constexpr number* operator->() {
+        return this;
+    }
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     number operator +(T t) {
@@ -432,6 +440,19 @@ struct string : public undefined_t {
         return _value.c_str();
     }
 
+    constexpr string* operator->() {
+        return this;
+    }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    string operator[] (T t) {
+        return string(_value[t]);
+    }
+
+    string operator[] (number n) {
+        return string(_value[n]);
+    }
+
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     string& operator+ (T t) {
         _value.append(std::to_string(t));
@@ -554,6 +575,10 @@ struct object : public undefined_t {
     object (const undefined_t& undef) : undefined_t(true) {
     }    
 
+    constexpr object* operator->() {
+        return this;
+    }    
+
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
     any& operator[] (T t);
 
@@ -637,6 +662,10 @@ struct any {
     }   
 
     any(const js::object& value) : _type(anyTypeId::object), _value((void*)new js::object(value)) {
+    }   
+
+    constexpr any* operator->() {
+        return this;
     }   
 
     template<class T>
@@ -1155,6 +1184,10 @@ static struct MathImpl
     static js::number SQRT1_2;
     static js::number SQRT2;
 
+    constexpr MathImpl* operator->() {
+        return this;
+    }    
+
     static number pow(number op, number op2) {
         return number(std::pow((double)op, (double)op2));
     }
@@ -1235,6 +1268,10 @@ static struct Console
     Console() {
         std::cout << std::boolalpha;
     }
+
+    constexpr Console* operator->() {
+        return this;
+    } 
 
     template<class ... Args>
     void log(Args ... args) 
