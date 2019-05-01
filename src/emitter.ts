@@ -1512,15 +1512,8 @@ export class Emitter {
                 }
             } else if (isArrowFunction || isFunctionExpression) {
                 // lambda or noname function
-                this.writer.writeString('[]');
-            }
-
-            // lambda
-            if (isArrowFunction) {
-                const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                // ...
-            } else {
-                // ...
+                //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
+                this.writer.writeString('[&]');
             }
         }
 
@@ -1547,7 +1540,7 @@ export class Emitter {
                                 || this.resolver.isTypeAliasUnionType((<any>effectiveType).typeName))) {
                     this.writer.writeString("P" + index);
                 } else {
-                    this.processType(effectiveType);
+                    this.processType(effectiveType, isArrowFunction);
                 }
 
                 this.writer.writeString(' ');
@@ -2324,7 +2317,17 @@ export class Emitter {
             && symbolInfo.declarations.length > 0
             && symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor;
 
+        if (node.expression.kind === ts.SyntaxKind.NewExpression
+            || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            this.writer.writeString('(');
+        }
+
         this.processExpression(node.expression);
+
+        if (node.expression.kind === ts.SyntaxKind.NewExpression
+            || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            this.writer.writeString(')');
+        }
 
         if (this.resolver.isAnyLikeType(typeInfo)) {
             this.writer.writeString('["');

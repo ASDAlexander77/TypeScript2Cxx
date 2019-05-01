@@ -341,6 +341,20 @@ struct number : public undefined_t {
     }   
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator !=(T t) {
+        return _value != t;
+    }
+
+    bool operator !=(number n) {
+        return _value != n._value;
+    }    
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator !=(T t, number value) {
+        return t != value._value;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator <(T t) {
         return _value < t;
     }
@@ -919,6 +933,9 @@ struct ReadOnlyArray {
 
         return _values[(size_t)i];
     }
+
+    void forEach(std::function<void(T, size_t)> callback) {
+    }
 };
 
 template < typename T >
@@ -1045,7 +1062,7 @@ struct RegExp {
 };
 
 template <typename T>
-struct TypedArray {
+struct TypedArray : public Array<T> {
     js::number length;
     TypedArray(js::number length_) : length(length_) {
     }
