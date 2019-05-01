@@ -368,16 +368,6 @@ struct number : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
-    friend bool operator ==(T t, number value) {
-        return t == value._value;
-    }   
-
-    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
-    friend bool operator ==(const number& value, T t) {
-        return t == value._value;
-    }   
-
-    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator !=(T t) {
         return _value != t;
     }
@@ -385,11 +375,6 @@ struct number : public undefined_t {
     bool operator !=(number n) {
         return _value != n._value;
     }    
-
-    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
-    friend bool operator !=(T t, number value) {
-        return t != value._value;
-    }   
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator <(T t) {
@@ -498,12 +483,12 @@ struct string : public undefined_t {
         return *this;
     }
 
-    friend bool operator ==(const js::string& value, const js::string& other) {
-        return value._value.compare(other._value) == 0;
+    bool operator ==(const js::string& other) {
+        return _value.compare(other._value) == 0;
     }    
 
-    friend bool operator !=(const js::string& value, const js::string& other) {
-        return value._value.compare(other._value) != 0;
+    bool operator !=(const js::string& other) {
+        return _value.compare(other._value) != 0;
     }    
 
     string toUpperCase() {
@@ -730,26 +715,30 @@ struct any {
         throw "wrong type";        
     }
 
-    friend bool operator ==(const js::any& value, const js::any& other) {
-        if (value._type != other._type) {
+    bool operator ==(const js::any& other) const {
+        if (_type != other._type) {
             return false;
         }
 
-        switch (value._type) {
+        switch (_type) {
             case anyTypeId::undefined:
                 return true;
             case anyTypeId::boolean:
-                return value._value._boolean._value == other._value._boolean._value;
+                return _value._boolean._value == other._value._boolean._value;
             case anyTypeId::number:
-                return value._value._number._value == other._value._number._value;
+                return _value._number._value == other._value._number._value;
             case anyTypeId::string:
-                return std::strcmp(((js::string*)value._value._data)->_value.c_str(), ((js::string*)other._value._data)->_value.c_str()) == 0;
+                return std::strcmp(((js::string*)_value._data)->_value.c_str(), ((js::string*)other._value._data)->_value.c_str()) == 0;
             case anyTypeId::object:
-                return ((js::object*)value._value._data) == ((js::object*)other._value._data);
+                return ((js::object*)_value._data) == ((js::object*)other._value._data);
         }
 
         throw "not implemented";
     }    
+
+    bool operator !=(const js::any& other) const {
+        return !(*this == other);
+    }
 
     any operator +(any t) {
         switch (_type) {

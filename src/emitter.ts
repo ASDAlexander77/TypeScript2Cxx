@@ -1076,10 +1076,6 @@ export class Emitter {
                 this.writer.writeString('extern ');
             }
 
-            if (Helpers.isConst(declarationList)) {
-                this.writer.writeString('const ');
-            }
-
             const scopeItem = this.scope[this.scope.length - 1];
             const autoAllowed =
                 scopeItem.kind != ts.SyntaxKind.SourceFile
