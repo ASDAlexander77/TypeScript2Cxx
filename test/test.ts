@@ -1,7 +1,7 @@
-type DeepImmutableObject<T> = { readonly [K in keyof T]: any };
+type float = number;
 
 class T {
-   test(a: DeepImmutableObject< ArrayLike<number> >): void {
+   test(a: float): void {
 
    }
 }
