@@ -400,7 +400,7 @@ export class Emitter {
             return true;
         }
 
-        if (effectiveType.typeName.text === "ArrayLike") {
+        if (effectiveType.typeName && effectiveType.typeName.text === "ArrayLike") {
             return true;
         }
 
