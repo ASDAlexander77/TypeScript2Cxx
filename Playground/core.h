@@ -354,6 +354,25 @@ struct number : public undefined_t {
     }   
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    number operator %(T t) {
+        return number((long)_value % (long)t);
+    }
+
+    number operator %(number n) {
+        return number((long)_value % (long)n._value);
+    }   
+
+    number& operator %=(number other){
+        _value = (long)_value % (long)other._value;
+        return *this;
+    }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend number operator %(T t, number value) {
+        return number((long)t % (long)value._value);
+    } 
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     friend number operator &(T t, number value) {
         return number((long)t & (long)value._value);
     } 
@@ -400,6 +419,11 @@ struct number : public undefined_t {
     }     
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator <=(T t, number value) {
+        return t <= value._value;
+    }       
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     bool operator >(T t) {
         return _value > t;
     }
@@ -421,6 +445,11 @@ struct number : public undefined_t {
     friend bool operator >(T t, number value) {
         return t > value._value;
     }   
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    friend bool operator >=(T t, number value) {
+        return t >= value._value;
+    }     
 
     js::string toString();
     js::string toString(js::number radix);
@@ -753,6 +782,16 @@ struct any {
         throw "not implemented";
     }
 
+    any& operator +=(js::number other){
+        switch (_type) {
+            case anyTypeId::number:
+                _value._number += other;
+                return *this;
+        }
+
+        throw "not implemented";        
+    }    
+
     any operator -(any t) {
         switch (_type) {
             case anyTypeId::number:
@@ -766,6 +805,16 @@ struct any {
         throw "not implemented";
     }
 
+    any& operator -=(js::number other){
+        switch (_type) {
+            case anyTypeId::number:
+                _value._number -= other;
+                return *this;
+        }
+
+        throw "not implemented";        
+    }     
+
     any operator *(any t) {
         switch (_type) {
             case anyTypeId::number:
@@ -778,6 +827,16 @@ struct any {
 
         throw "not implemented";
     }
+
+    any& operator *=(js::number other){
+        switch (_type) {
+            case anyTypeId::number:
+                _value._number *= other;
+                return *this;
+        }
+
+        throw "not implemented";        
+    }       
 
     template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
     friend any operator *(T t, any value) {
@@ -829,6 +888,92 @@ struct any {
 
         throw "not implemented";        
     }
+
+    any& operator /=(js::number other){
+        switch (_type) {
+            case anyTypeId::number:
+                _value._number /= other;
+                return *this;
+        }
+
+        throw "not implemented";        
+    }     
+
+    bool operator >(js::number n) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value > n._value;
+        }
+
+        throw "not implemented";     
+    }     
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator >(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value > t;
+        }
+
+        throw "not implemented";        
+    }    
+
+    bool operator >=(js::number n) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value >= n._value;
+        }
+
+        throw "not implemented";     
+    }     
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator >=(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value > t;
+        }
+
+        throw "not implemented";        
+    }    
+
+    bool operator <(js::number n) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value < n._value;
+        }
+
+        throw "not implemented";     
+    }     
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator <(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value > t;
+        }
+
+        throw "not implemented";        
+    }    
+
+    bool operator <=(js::number n) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value <= n._value;
+        }
+
+        throw "not implemented";     
+    }     
+
+    template<class T, class = std::enable_if<std::is_arithmetic_v<T>>>
+    bool operator <=(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return _value._number._value > t;
+        }
+
+        throw "not implemented";        
+    }    
 
     js::string typeOf()
     {

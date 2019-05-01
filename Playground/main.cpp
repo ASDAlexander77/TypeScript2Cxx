@@ -5,7 +5,6 @@
 
 using namespace js;
 
-/*
 template < class T >
 struct CallWrapper {
     T _t;
@@ -32,21 +31,25 @@ struct CallPtrWrapper {
         return fcall(args...);
     }
 };
-*/
 
-/*
-struct or_t {
-    template <typename T>
-    constexpr bool operator()(const T &lhs, const T &rhs) const 
-    {
-        return lhs | rhs;
-    }    
-};
-*/
+template <typename T>
+constexpr bool logical_or_t(const T& lhs, const T& rhs) 
+{
+    return lhs || rhs;
+}
+
+int func1() {
+    std::cout << "value 1" << std::endl;
+    return 10;
+}
+
+int func2() {
+    std::cout << "value 2" << std::endl;
+    return 20;
+}
 
 int main(int argc, char** argv)
 {
-    /*
     auto m = [](int p1, const char* v) -> int 
     {
         return p1;
@@ -65,7 +68,6 @@ int main(int argc, char** argv)
     CallPtrWrapper cp(f);
 
     auto v = cp.call<int>(10, "Test");
-    */
 
-    //auto res = or_t<int>(10, 20);
+    auto res = logical_or_t(func1(), func2());
 }
