@@ -391,19 +391,37 @@ export class Emitter {
         return false;
     }
 
+    private isTemplateType(effectiveType: any): boolean {
+        if (!effectiveType) {
+            return false;
+        }
+
+        if (effectiveType.kind === ts.SyntaxKind.UnionType) {
+            return true;
+        }
+
+        if (effectiveType.typeName.text === "ArrayLike") {
+            return true;
+        }
+
+        if (effectiveType.typeArguments && effectiveType.typeArguments.length > 0) {
+            if (effectiveType.typeArguments.some(t => this.isTemplateType(t))) {
+                return true;
+            }
+        }
+
+
+        if (this.resolver.isTypeAliasUnionType(effectiveType.typeName)) {
+            return true;
+        }
+    }
+
     private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any) {
         // if method has union type, it should be treated as generic method
         if (this.isClassMemberDeclaration(declaration)) {
             for (var element of declaration.parameters) {
-                const effectiveType = element.type;
-                if (effectiveType) {
-                    if (effectiveType.kind === ts.SyntaxKind.UnionType) {
-                        return true;
-                    }
-
-                    if (this.resolver.isTypeAliasUnionType(effectiveType.typeName)) {
-                        return true;
-                    }
+                if (this.isTemplateType(element.type)) {
+                    return true;
                 }
             };
         }
@@ -1539,9 +1557,7 @@ export class Emitter {
             } else {
                 const effectiveType = element.type
                 || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer)
-                if (effectiveType
-                        && (effectiveType.kind === ts.SyntaxKind.UnionType
-                                || this.resolver.isTypeAliasUnionType((<any>effectiveType).typeName))) {
+                if (this.isTemplateType(effectiveType)) {
                     this.writer.writeString("P" + index);
                 } else {
                     this.processType(effectiveType, isArrowFunction);
@@ -1686,8 +1702,7 @@ export class Emitter {
             // add params
             if (isParamTemplate) {
                 (<ts.MethodDeclaration>node).parameters.forEach((element, index) => {
-                    if (element.type && (element.type.kind === ts.SyntaxKind.UnionType
-                        || this.resolver.isTypeAliasUnionType((<any>element.type).typeName))) {
+                    if (this.isTemplateType(element.type)) {
                         if (next) {
                             this.writer.writeString(', ');
                         }
