@@ -1,10 +1,11 @@
 import * as ts from 'typescript';
 import { IdentifierResolver } from './resolvers';
 import { toASCII } from 'punycode';
+import { Emitter } from './emitter';
 
 export class Preprocessor {
 
-    public constructor(private resolver: IdentifierResolver) {
+    public constructor(private resolver: IdentifierResolver, private emitter: Emitter) {
     }
 
     public preprocessStatement(node: ts.Declaration | ts.Statement): ts.Declaration | ts.Statement {
@@ -21,17 +22,19 @@ export class Preprocessor {
         const init = declr0.initializer;
         if (init.kind === ts.SyntaxKind.FunctionExpression) {
             const funcExpr = <ts.FunctionExpression>init;
-            const funcNode = ts.createFunctionDeclaration(
-                funcExpr.decorators,
-                funcExpr.modifiers,
-                undefined,
-                <ts.Identifier>declr0.name,
-                funcExpr.typeParameters,
-                funcExpr.parameters,
-                funcExpr.type,
-                funcExpr.body);
+            if (this.emitter.isTemplate(funcExpr)) {
+                const funcNode = ts.createFunctionDeclaration(
+                    funcExpr.decorators,
+                    funcExpr.modifiers,
+                    undefined,
+                    <ts.Identifier>declr0.name,
+                    funcExpr.typeParameters,
+                    funcExpr.parameters,
+                    funcExpr.type,
+                    funcExpr.body);
 
-            return funcNode;
+                return funcNode;
+            }
         }
 
         return variableStatement;

@@ -19,7 +19,7 @@ export class Emitter {
 
         this.writer = new CodeWriter();
         this.resolver = new IdentifierResolver(typeChecker);
-        this.preprocessor = new Preprocessor(this.resolver);
+        this.preprocessor = new Preprocessor(this.resolver, this);
 
         this.opsMap[ts.SyntaxKind.EqualsToken] = '=';
         this.opsMap[ts.SyntaxKind.PlusToken] = '+';
@@ -382,7 +382,9 @@ export class Emitter {
         }
     }
 
-    private isTemplate(declaration: ts.MethodDeclaration | ts.ConstructorDeclaration | ts.ClassDeclaration) {
+    public isTemplate(declaration:
+        ts.MethodDeclaration | ts.ConstructorDeclaration | ts.ClassDeclaration
+        | ts.FunctionDeclaration | ts.FunctionExpression) {
 
         if (declaration.typeParameters && declaration.typeParameters.length > 0) {
             return true;
@@ -419,7 +421,6 @@ export class Emitter {
                 return true;
             }
         }
-
 
         if (this.resolver.isTypeAliasUnionType(effectiveType.typeName)) {
             return true;
