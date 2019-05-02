@@ -427,11 +427,19 @@ export class Emitter {
         }
     }
 
-    private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any) {
+    private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any): boolean {
+        if (!declaration) {
+            return false;
+        }
+
         // if method has union type, it should be treated as generic method
         if (!this.isClassMemberDeclaration(declaration)
             && declaration.kind !== ts.SyntaxKind.FunctionDeclaration) {
             return false;
+        }
+
+        if (this.isTemplateType(declaration.type)) {
+            return true;
         }
 
         for (var element of declaration.parameters) {
@@ -1509,7 +1517,11 @@ export class Emitter {
                     }
 
                     if (node.type) {
-                        this.processType(node.type);
+                        if (this.isTemplateType(node.type)) {
+                            this.writer.writeString("RET");
+                        } else {
+                            this.processType(node.type);
+                        }
                     } else {
                         if (noReturn) {
                             this.writer.writeString('void');
@@ -1701,9 +1713,10 @@ export class Emitter {
 
         const templateTypes = types && types.length > 0;
         const isParamTemplate = this.isMethodParamsTemplate(node);
+        const isReturnTemplate = this.isTemplateType(node.type);
 
         let next = false;
-        if (templateTypes || isParamTemplate) {
+        if (templateTypes || isParamTemplate || isReturnTemplate) {
             this.writer.writeString('template <');
             if (templateTypes) {
                 types.forEach(type => {
@@ -1714,6 +1727,15 @@ export class Emitter {
                     this.processType(type);
                     next = true;
                 });
+            }
+
+            if (isReturnTemplate) {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+
+                this.writer.writeString('typename RET');
+                next = true;
             }
 
             // add params
@@ -1763,6 +1785,10 @@ export class Emitter {
     }
 
     private isClassMemberDeclaration(node: ts.Node) {
+        if (!node) {
+            return false;
+        }
+
         return node.kind === ts.SyntaxKind.Constructor
             || node.kind === ts.SyntaxKind.MethodDeclaration
             || node.kind === ts.SyntaxKind.PropertyDeclaration
@@ -1771,6 +1797,10 @@ export class Emitter {
     }
 
     private isClassMemberSignature(node: ts.Node) {
+        if (!node) {
+            return false;
+        }
+
         return node.kind === ts.SyntaxKind.MethodSignature
             || node.kind === ts.SyntaxKind.PropertySignature;
     }
@@ -1811,7 +1841,13 @@ export class Emitter {
 
             if (!theSame) {
                 this.writer.writeString('cast<');
-                this.processType(functionReturn);
+
+                if (this.isTemplateType(functionReturn)) {
+                    this.writer.writeString("RET");
+                } else {
+                    this.processType(functionReturn);
+                }
+
                 this.writer.writeString('>(');
             }
 

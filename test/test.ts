@@ -1,9 +1,9 @@
 class Test
 {
-    public get Name(): string | null {
+    public get NameT(): string | number | null {
         return null;
     }
 
-    public set Name(value: string | null) {
+    public set NameT(value: string | number | null) {
     }
 }
