@@ -30,7 +30,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
         this.opsMap[ts.SyntaxKind.AmpersandToken] = '__bitwise::amd';
         this.opsMap[ts.SyntaxKind.BarToken] = '__bitwise::or';
-        this.opsMap[ts.SyntaxKind.CaretToken] = '__bitwise::not';
+        this.opsMap[ts.SyntaxKind.CaretToken] = '__bitwise::xor';
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
