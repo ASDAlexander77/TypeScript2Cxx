@@ -1332,6 +1332,8 @@ export class Emitter {
                     (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
                     || (typeInfo && (<any>typeInfo).intrinsicName === "number")
+                    || (typeInfo && (<any>typeInfo).symbol
+                        && (<any>typeInfo).symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter)
                     || skipPointerInType
                     || isTypeAlias;
                 if (!skipPointerIf) {

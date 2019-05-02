@@ -5,6 +5,8 @@
 using namespace js;
 
 template <typename T>
+class Test22;
+template <typename T>
 class Test;
 
 template <typename T2>
@@ -17,7 +19,12 @@ public:
 };
 
 template <typename T>
-class Test : public ITest<T> {
+class Test22 : public object {
+public:
+};
+
+template <typename T>
+class Test : public ITest<Test22<T > > {
 public:
     template <typename RET>
     RET get_NameT();
@@ -27,14 +34,14 @@ public:
 
 template <typename T>
 template <typename RET>
-RET Test<T>::get_NameT()
+RET Test<T >::get_NameT()
 {
     return cast<RET>(nullptr);
 }
 
 template <typename T>
 template <typename P0>
-void Test<T>::set_NameT(P0 value)
+void Test<T >::set_NameT(P0 value)
 {
 }
 
