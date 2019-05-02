@@ -1125,14 +1125,14 @@ struct ElementReference {
 */
 
 template < typename T >
-struct ReadOnlyArray {
+struct ReadonlyArray {
     number length;
     std::vector<T> _values;
 
-    ReadOnlyArray() : _values() {
+    ReadonlyArray() : _values() {
     }
 
-    ReadOnlyArray(std::initializer_list<T> values) : _values(values) {
+    ReadonlyArray(std::initializer_list<T> values) : _values(values) {
     }
 
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
@@ -1149,12 +1149,12 @@ struct ReadOnlyArray {
 };
 
 template < typename T >
-struct Array : public ReadOnlyArray<T> {
+struct Array : public ReadonlyArray<T> {
 
-    Array() : ReadOnlyArray<T>() {
+    Array() : ReadonlyArray<T>() {
     }
 
-    Array(std::initializer_list<T> values) : ReadOnlyArray<T>(values) {
+    Array(std::initializer_list<T> values) : ReadonlyArray<T>(values) {
     }
 
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
