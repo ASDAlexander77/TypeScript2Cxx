@@ -878,6 +878,7 @@ export class Emitter {
                         const identifier = <ts.Identifier>type.expression;
                         this.writer.writeString('public ');
                         this.writer.writeString(identifier.text);
+                        this.processTemplateArguments(type, true);
                     } else {
                         /* TODO: finish xxx.yyy<zzz> */
                     }
@@ -1538,7 +1539,7 @@ export class Emitter {
                     this.writeClassName();
 
                     if (implementationMode && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration && this.isTemplate(<any>node.parent)) {
-                        this.processTemplateArguments(<any>node.parent);
+                        this.processTemplateParameters(<any>node.parent);
                     }
 
                     this.writer.writeString('::');
@@ -1758,7 +1759,7 @@ export class Emitter {
         return next;
     }
 
-    private processTemplateArguments(node: ts.ClassDeclaration) {
+    private processTemplateParameters(node: ts.ClassDeclaration) {
         let next = false;
         if (node.typeParameters) {
             this.writer.writeString('<');
@@ -1773,6 +1774,22 @@ export class Emitter {
         }
 
         return next;
+    }
+
+    private processTemplateArguments(node: ts.ExpressionWithTypeArguments | ts.CallExpression | ts.NewExpression, skipPointerInType?: boolean) {
+        let next = false;
+        if (node.typeArguments) {
+            this.writer.writeString('<');
+            node.typeArguments.forEach(element => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+
+                this.processType(element, undefined, skipPointerInType);
+                next = true;
+            });
+            this.writer.writeString('>');
+        }
     }
 
     private processArrowFunction(node: ts.ArrowFunction): void {
@@ -2276,23 +2293,11 @@ export class Emitter {
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
         this.processExpression(node.expression);
 
-        let next = false;
-        if (node.typeArguments) {
-            this.writer.writeString('<');
-            node.typeArguments.forEach(element => {
-                if (next) {
-                    this.writer.writeString(', ');
-                }
-
-                this.processType(element);
-                next = true;
-            });
-            this.writer.writeString('>');
-        }
+        this.processTemplateArguments(node);
 
         this.writer.writeString('(');
 
-        next = false;
+        let next = false;
         if (node.arguments.length) {
             node.arguments.forEach(element => {
                 if (next) {
