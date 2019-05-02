@@ -1289,7 +1289,7 @@ export class Emitter {
                     next = true;
                 });
 
-                this.writer.writeString('>');
+                this.writer.writeString(' >');
                 break;
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
@@ -1312,7 +1312,7 @@ export class Emitter {
                 entityProcess(typeReference.typeName);
 
                 if (typeReference.typeArguments) {
-                    this.writer.writeString('< ');
+                    this.writer.writeString('<');
 
                     let next1 = false;
                     typeReference.typeArguments.forEach(element => {
@@ -1770,7 +1770,7 @@ export class Emitter {
                 this.processType(type, undefined, undefined, true);
                 next = true;
             });
-            this.writer.writeString('>');
+            this.writer.writeString(' >');
         }
 
         return next;
@@ -1788,7 +1788,7 @@ export class Emitter {
                 this.processType(element, undefined, skipPointerInType);
                 next = true;
             });
-            this.writer.writeString('>');
+            this.writer.writeString(' >');
         }
     }
 
