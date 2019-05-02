@@ -28,11 +28,11 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
         this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
-        this.opsMap[ts.SyntaxKind.AmpersandToken] = '&';
-        this.opsMap[ts.SyntaxKind.BarToken] = '|';
-        this.opsMap[ts.SyntaxKind.CaretToken] = '^';
-        this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '<<';
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '>>';
+        this.opsMap[ts.SyntaxKind.AmpersandToken] = '__bitwise::amd';
+        this.opsMap[ts.SyntaxKind.BarToken] = '__bitwise::or';
+        this.opsMap[ts.SyntaxKind.CaretToken] = '__bitwise::not';
+        this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
         this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__EQUALS';
         this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
@@ -56,7 +56,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>=';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__StrictNotEqualsAssign';
 
-        this.opsMap[ts.SyntaxKind.TildeToken] = '~';
+        this.opsMap[ts.SyntaxKind.TildeToken] = '__bitwise::not';
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';

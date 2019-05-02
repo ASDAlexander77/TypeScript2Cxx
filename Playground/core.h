@@ -28,57 +28,37 @@ namespace js
 #define EQUALS(x, y) ((x) == (y))
 #define NOT_EQUALS(x, y) (!((x) == (y)))
 
-template <typename R, typename T> 
-inline R cast(T t) {
-	return (R)t;
-}
-
-template <typename T>
-class _property_t {
-private:
-    T _t;
-public:
-    _property_t() {};
-    _property_t(T t_) : _t(t_) {};
-
-    inline constexpr operator T() const {
-        return _t;
-    }
-
-    inline constexpr T& operator=(T t_) {
-        _t = t_;
-        return _t;
-    }
-};
-
-template <typename T, class C>
-class property_getset {
-public:
-    typedef T (C::* get_method)();    
-    typedef void (C::* set_method)(T t);    
-private:
-    C* _c;
-    get_method _g;
-    set_method _s;
-    
-public:
-    property_getset(C* c_, get_method g_, set_method s_) : _c(c_), _g(g_), _s(s_) {};
-
-    inline operator T() const {
-        return ((*_c).*(_g))();
-    }
-
-    inline property_getset& operator=(T value) {
-        ((*_c).*(_s))(value);
-        return *this;
-    }
-};
-
 struct any;
 struct object;
 struct string;
 
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
+
+namespace bitwise {
+    template <typename T> T or(T op1, T op2) {
+        return (T)((long)op1 | (long)op1);
+    }
+
+    template <typename T> T and(T op1, T op2) {
+        return (T)((long)op1 & (long)op1);
+    }
+
+    template <typename T> T xor(T op1, T op2) {
+        return (T)((long)op1 ^ (long)op1);
+    }
+
+    template <typename T> T not(T op) {
+        return (T)(~(long)op);
+    }
+
+    template <typename T> T rshift(T op1, T op2) {
+        return (T)((long)op1 << (long)op1);
+    }
+
+    template <typename T> T lshift(T op1, T op2) {
+        return (T)((long)op1 >> (long)op1);
+    }
+}
 
 static struct undefined_t {
 
@@ -1461,6 +1441,11 @@ static struct MathImpl
 } Math;
 
 std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
+
+template <typename R, typename T> 
+inline R cast(T t) {
+	return (R)t;
+}
 
 static struct Console
 {
