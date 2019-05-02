@@ -139,11 +139,18 @@ export class IdentifierResolver {
         return false;
     }
 
-    public checkUnionType(symbol: ts.Symbol): boolean {
-        if  (symbol
-            && (<any>symbol.declarations[0]).type
-            && (<any>symbol.declarations[0]).type.kind === ts.SyntaxKind.UnionType) {
-            return true;
+    public checkUnionSymbol(symbol: ts.Symbol): boolean {
+        if  (symbol && (<any>symbol.declarations[0]).type) {
+            return this.checkUnionType((<any>symbol.declarations[0]).type);
+        }
+
+        return false;
+    }
+
+    public checkUnionType(type: ts.TypeNode): boolean {
+        if  (type && type.kind === ts.SyntaxKind.UnionType) {
+            const unionType = <ts.UnionTypeNode>(type);
+            return unionType.types.filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword).length > 1
         }
 
         return false;
@@ -244,7 +251,7 @@ export class IdentifierResolver {
         }
 
         const typeInfo = this.getTypeAtLocation(location);
-        if (this.checkUnionType(typeInfo.aliasSymbol)) {
+        if (this.checkUnionSymbol(typeInfo.aliasSymbol)) {
             return true;
         }
 
