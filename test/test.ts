@@ -1,18 +1,9 @@
-interface ITest<T2>
-{
-    NameT: string | number | null;
+enum PromiseStates {
+    Pending,
+    Fulfilled,
+    Rejected
 }
 
-class Test22<T> {
-
-}
-
-class Test<T> implements ITest<Test22<T>>
-{
-    public get NameT(): string | number | null {
-        return null;
-    }
-
-    public set NameT(value: string | number | null) {
-    }
+class InternalPromise<T> {
+    private _state = PromiseStates.Pending;
 }

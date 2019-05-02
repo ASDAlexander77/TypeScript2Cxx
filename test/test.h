@@ -5,44 +5,15 @@
 using namespace js;
 
 template <typename T>
-class Test22;
-template <typename T>
-class Test;
+class InternalPromise;
 
-template <typename T2>
-class ITest : public object {
-public:
-    union __union34_57 {
-        string v0; __union34_57 (string v_) : v0(v_) {}
-        js::number v1; __union34_57 (js::number v_) : v1(v_) {}
-    } NameT;
+enum PromiseStates {
+    Pending, Fulfilled, Rejected
 };
-
 template <typename T>
-class Test22 : public object {
+class InternalPromise : public object {
 public:
+    PromiseStates* _state = PromiseStates::Pending;
 };
-
-template <typename T>
-class Test : public ITest<Test22<T > > {
-public:
-    template <typename RET>
-    RET get_NameT();
-    template <typename P0>
-    void set_NameT(P0 value);
-};
-
-template <typename T>
-template <typename RET>
-RET Test<T >::get_NameT()
-{
-    return cast<RET>(nullptr);
-}
-
-template <typename T>
-template <typename P0>
-void Test<T >::set_NameT(P0 value)
-{
-}
 
 #endif

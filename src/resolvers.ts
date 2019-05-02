@@ -51,6 +51,12 @@ export class IdentifierResolver {
             || (<any>typeInfo).intrinsicName === 'any';
     }
 
+    public isTypeFromSymbol(node: ts.Node | ts.Type, kind: ts.SyntaxKind) {
+        return node
+            && (<any>node).symbol
+            && (<any>node).symbol.declarations[0].kind === kind;
+    }
+
     public isThisType(typeInfo: ts.Type): boolean {
         if (!typeInfo) {
             return false;

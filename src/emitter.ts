@@ -1297,13 +1297,17 @@ export class Emitter {
                 const isTypeAlias = (typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
                     || this.resolver.isTypeAlias((<any>type).typeName);
 
+                let isEnum = false;
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
                         this.writer.writeString(entity.text);
                     } else if (entity.kind === ts.SyntaxKind.QualifiedName) {
                         entityProcess(entity.left);
-                        this.writer.writeString('::');
-                        this.writer.writeString(entity.right.text);
+                        isEnum = this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration);
+                        if (!isEnum) {
+                            this.writer.writeString('::');
+                            this.writer.writeString(entity.right.text);
+                        }
                     } else {
                         throw new Error('Not Implemented');
                     }
@@ -1332,8 +1336,9 @@ export class Emitter {
                     (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === "__type")
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
                     || (typeInfo && (<any>typeInfo).intrinsicName === "number")
-                    || (typeInfo && (<any>typeInfo).symbol
-                        && (<any>typeInfo).symbol.declarations[0].kind === ts.SyntaxKind.TypeParameter)
+                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)
+                    || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
+                    || isEnum
                     || skipPointerInType
                     || isTypeAlias;
                 if (!skipPointerIf) {
