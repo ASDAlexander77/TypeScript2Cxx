@@ -4,15 +4,24 @@
 
 using namespace js;
 
-class T;
+class Test;
+extern string s;
 
-class T : public object {
+template <typename T>
+T* _copySource(std::function<T*()> creationFunction, T* source, boolean instanciate);
+
+any copySource(std::function<any()> creationFunction, any source, boolean instanciate);
+
+class Test : public object {
 public:
-    void test(float a);
 };
 
-void T::test(float a)
+template <typename T>
+T* _copySource(std::function<T*()> creationFunction, T* source, boolean instanciate)
 {
-}
+    auto destination = creationFunction();
+    return destination;
+};
+
 
 #endif

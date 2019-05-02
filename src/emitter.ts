@@ -119,7 +119,7 @@ export class Emitter {
         }
     }
 
-    private isDeclarationStatement(f: ts.Statement): boolean {
+    private isDeclarationStatement(f: ts.Statement | ts.Declaration): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
             || f.kind === ts.SyntaxKind.ClassDeclaration
@@ -134,7 +134,7 @@ export class Emitter {
         return false;
     }
 
-    private isVariableStatement(f: ts.Statement): boolean {
+    private isVariableStatement(f: ts.Node): boolean {
         if (f.kind === ts.SyntaxKind.VariableStatement) {
             return true;
         }
@@ -172,11 +172,14 @@ export class Emitter {
                 this.writer.writeStringNewLine();
             }
 
-            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+            sourceFile.statements
+                .map(v => this.preprocessor.preprocessStatement(v))
+                .filter(s => this.isDeclarationStatement(s))
+                .forEach(s => {
                 this.processStatement(s);
             });
 
-            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
                 this.processImplementation(s, true);
             });
         }
@@ -191,8 +194,11 @@ export class Emitter {
 
             const positionBeforeVars = this.writer.newSection();
 
-            sourceFile.statements.filter(s => this.isVariableStatement(s)).forEach(s => {
-                this.processStatement(s);
+            sourceFile.statements
+                .map(v => this.preprocessor.preprocessStatement(v))
+                .filter(s => this.isVariableStatement(s))
+                .forEach(s => {
+                this.processStatement(<ts.Statement>s);
             });
 
             const hasVarsContent = this.writer.hasAnyContent(positionBeforeVars);
@@ -253,11 +259,11 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private processStatement(node: ts.Statement): void {
+    private processStatement(node: ts.Statement | ts.Declaration): void {
         this.processStatementInternal(node);
     }
 
-    private processStatementInternal(nodeIn: ts.Statement): void {
+    private processStatementInternal(nodeIn: ts.Statement | ts.Declaration): void {
         const node = this.preprocessor.preprocessStatement(nodeIn);
 
         switch (node.kind) {
@@ -352,10 +358,11 @@ export class Emitter {
             case ts.SyntaxKind.Parameter: this.processPropertyDeclaration(<ts.ParameterDeclaration>node); return;
             case ts.SyntaxKind.MethodSignature: this.processMethodDeclaration(<ts.MethodSignature>node); return;
             case ts.SyntaxKind.MethodDeclaration: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
-            case ts.SyntaxKind.ConstructSignature: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
-            case ts.SyntaxKind.Constructor: this.processConstructorDeclaration(<ts.ConstructorDeclaration>node); return;
+            case ts.SyntaxKind.ConstructSignature: this.processMethodDeclaration(<ts.ConstructorDeclaration>node); return;
+            case ts.SyntaxKind.Constructor: this.processMethodDeclaration(<ts.ConstructorDeclaration>node); return;
             case ts.SyntaxKind.SetAccessor: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.GetAccessor: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
+            case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.IndexSignature: /*TODO: index*/ return;
         }
 
@@ -363,7 +370,10 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
-    private processForwardDeclaration(node: ts.Declaration | ts.Statement): void {
+    private processForwardDeclaration(nodeIn: ts.Declaration | ts.Statement): void {
+
+        const node = this.preprocessor.preprocessStatement(<ts.Statement>nodeIn);
+
         switch (node.kind) {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
@@ -378,7 +388,7 @@ export class Emitter {
             return true;
         }
 
-        if (!this.isMethodParamsTemplate(declaration)) {
+        if (this.isMethodParamsTemplate(declaration)) {
             return true;
         }
 
@@ -418,16 +428,22 @@ export class Emitter {
 
     private isMethodParamsTemplate(declaration: ts.MethodDeclaration | any) {
         // if method has union type, it should be treated as generic method
-        if (this.isClassMemberDeclaration(declaration)) {
-            for (var element of declaration.parameters) {
-                if (this.isTemplateType(element.type)) {
-                    return true;
-                }
-            };
+        if (!this.isClassMemberDeclaration(declaration)
+            && declaration.kind !== ts.SyntaxKind.FunctionDeclaration) {
+            return false;
         }
+
+        for (var element of declaration.parameters) {
+            if (this.isTemplateType(element.type)) {
+                return true;
+            }
+        };
     }
 
-    private processImplementation(node: ts.Declaration | ts.Statement, template?: boolean): void {
+    private processImplementation(nodeIn: ts.Declaration | ts.Statement, template?: boolean): void {
+
+        const node = this.preprocessor.preprocessStatement(nodeIn);
+
         switch (node.kind) {
             case ts.SyntaxKind.ClassDeclaration: this.processClassImplementation(<ts.ClassDeclaration>node, template); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleImplementation(<ts.ModuleDeclaration>node, template); return;
@@ -435,14 +451,10 @@ export class Emitter {
                 !template && this.isStatic(node) && this.processPropertyDeclaration(<ts.PropertyDeclaration>node, true);
                 return;
             case ts.SyntaxKind.Constructor:
-                if ((template && this.isTemplate(<ts.ConstructorDeclaration>node))
-                    || (!template && !this.isTemplate(<ts.ConstructorDeclaration>node))) {
-                    this.processConstructorDeclaration(<ts.ConstructorDeclaration>node, true);
-                }
-                return;
             case ts.SyntaxKind.MethodDeclaration:
             case ts.SyntaxKind.GetAccessor:
             case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.FunctionDeclaration:
                 if ((template && this.isTemplate(<ts.MethodDeclaration>node))
                     || (!template && !this.isTemplate(<ts.MethodDeclaration>node))) {
                     this.processMethodDeclaration(<ts.MethodDeclaration>node, true);
@@ -809,6 +821,14 @@ export class Emitter {
         this.writer.EndOfStatement();
     }
 
+    private processFunctionForwardDeclaration(node: ts.FunctionDeclaration) {
+        this.scope.push(node);
+        this.processFunctionDeclaration(node, false);
+        this.scope.pop();
+
+        this.writer.EndOfStatement();
+    }
+
     private processClassForwardDeclarationIntenal(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         let next = false;
         if (node.typeParameters) {
@@ -935,16 +955,7 @@ export class Emitter {
         this.writer.writeStringNewLine();
     }
 
-    private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature, implementationMode?: boolean): void {
-        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
-        if (implementationMode) {
-            this.writer.writeStringNewLine();
-        } else {
-            this.writer.EndOfStatement();
-        }
-    }
-
-    private processConstructorDeclaration(node: ts.ConstructorDeclaration, implementationMode?: boolean): void {
+    private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration, implementationMode?: boolean): void {
         this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
         if (implementationMode) {
             this.writer.writeStringNewLine();
@@ -1650,7 +1661,7 @@ export class Emitter {
                     this.writer.cancelNewLine();
                     this.writer.writeString(' = 0');
                 }
-            } else {
+            } else if (node.kind != ts.SyntaxKind.FunctionDeclaration || implementationMode) {
                 this.writer.BeginBlock();
 
                 (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
