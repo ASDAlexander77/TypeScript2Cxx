@@ -168,6 +168,10 @@ export class Emitter {
                 this.processForwardDeclaration(s);
             });
 
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
+                this.processInclude(s);
+            });
+
             if (this.writer.hasAnyContent(postion)) {
                 this.writer.writeStringNewLine();
             }
@@ -370,6 +374,18 @@ export class Emitter {
         throw new Error('Method not implemented.');
     }
 
+    private processInclude(nodeIn: ts.Declaration | ts.Statement): void {
+
+        const node = this.preprocessor.preprocessStatement(<ts.Statement>nodeIn);
+
+        switch (node.kind) {
+            case ts.SyntaxKind.TypeAliasDeclaration: this.processTypeAliasDeclaration(<ts.TypeAliasDeclaration>node); return;
+            case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
+            default:
+                return;
+        }
+    }
+
     private processForwardDeclaration(nodeIn: ts.Declaration | ts.Statement): void {
 
         const node = this.preprocessor.preprocessStatement(<ts.Statement>nodeIn);
@@ -378,8 +394,6 @@ export class Emitter {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
-            case ts.SyntaxKind.TypeAliasDeclaration: this.processTypeAliasDeclaration(<ts.TypeAliasDeclaration>node); return;
-            case ts.SyntaxKind.ImportDeclaration: this.processImportDeclaration(<ts.ImportDeclaration>node); return;
             default:
                 return;
         }
