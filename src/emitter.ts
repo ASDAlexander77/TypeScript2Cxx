@@ -174,7 +174,7 @@ export class Emitter {
 
             sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
-                .filter(s => this.isDeclarationStatement(s))
+                .filter(s => this.isDeclarationStatement(s) && s.kind !== ts.SyntaxKind.EnumDeclaration)
                 .forEach(s => {
                 this.processStatement(s);
             });
@@ -377,6 +377,7 @@ export class Emitter {
         switch (node.kind) {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             default:
                 return;
         }
@@ -1441,6 +1442,7 @@ export class Emitter {
                     || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
                     || (typeInfo && (<any>typeInfo).intrinsicName === "number")
                     || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)
+                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumMember)
                     || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
                     || isEnum
                     || skipPointerInType

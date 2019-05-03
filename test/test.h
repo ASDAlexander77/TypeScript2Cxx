@@ -4,19 +4,13 @@
 
 using namespace js;
 
-class InternalPromise1;
-class InternalPromise2;
-
-class ITest : public object {
-public:
+enum AnimationKeyInterpolation {
+    STEP = 1
 };
 
-class InternalPromise1 : public ITest {
+class IAnimationKey : public object {
 public:
-};
-
-class InternalPromise2 : public InternalPromise1 {
-public:
+    AnimationKeyInterpolation interpolation;
 };
 
 #endif
