@@ -1514,6 +1514,9 @@ struct AddEventListenerOptions: public EventListenerOptions {
     boolean passive;
 };
 
+struct Blob {
+};
+
 struct DataView {    
 };
 
@@ -1524,6 +1527,21 @@ struct Document {
 };
 
 struct WebGLQuery {
+};
+
+struct HTMLCanvasElement {
+};
+
+struct CanvasRenderingContext2D {
+};
+
+struct WebGLFramebuffer {
+};
+
+struct WebGLRenderbuffer {
+};
+
+struct WebGLTexture {
 };
 
 // end of HTML

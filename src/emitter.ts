@@ -1405,8 +1405,8 @@ export class Emitter {
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
                 const typeInfo = this.resolver.getOrResolveTypeOf(type);
-                const isTypeAlias = (typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
-                    || this.resolver.isTypeAlias((<any>type).typeName);
+                const isTypeAlias = ((typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
+                    || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
                 let isEnum = false;
                 const entityProcess = (entity: ts.EntityName) => {
@@ -1526,6 +1526,8 @@ export class Emitter {
                         this.writer.writeString(unionName);
                         this.writer.writeString(' ');
                         this.writer.BeginBlock();
+
+                        this.writer.writeStringNewLine(`${unionName}(std::nullptr_t v_) {}`);
 
                         unionTypes.forEach((element, i) => {
                             this.processType(element);
