@@ -1520,7 +1520,9 @@ export class Emitter {
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
 
                 if (unionTypes.length > 1) {
-                    const unionName = `__union${type.pos}_${type.end}`;
+                    const pos = type.pos >= 0 ? type.pos : 0;
+                    const end = type.end >= 0 ? type.end : 0;
+                    const unionName = `__union${pos}_${end}`;
                     if (implementingUnionType) {
                         this.writer.writeString('union ');
                         this.writer.writeString(unionName);
