@@ -934,8 +934,10 @@ export class Emitter {
             this.processModifiers(node.modifiers);
         }
 
-        this.processType(node.type
-            || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer));
+        const effectiveType = node.type
+            || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer);
+        this.processPredefineType(effectiveType);
+        this.processType(effectiveType);
         this.writer.writeString(' ');
 
         if (node.name.kind === ts.SyntaxKind.Identifier) {
@@ -1012,6 +1014,9 @@ export class Emitter {
 
         // remove NULL from union types, do we need to remove "undefined" as well?
         let type = node.type;
+
+        this.processPredefineType(type);
+
         if (node.type.kind === ts.SyntaxKind.UnionType) {
             const unionType = <ts.UnionTypeNode>type;
             const filtered = unionType.types.filter(t => t.kind != ts.SyntaxKind.NullKeyword && t.kind != ts.SyntaxKind.UndefinedKeyword);
@@ -1103,9 +1108,12 @@ export class Emitter {
                 && scopeItem.kind != ts.SyntaxKind.ClassDeclaration
                 && scopeItem.kind != ts.SyntaxKind.ModuleDeclaration
                 && scopeItem.kind != ts.SyntaxKind.NamespaceExportDeclaration;
-            this.processType(declarationList.declarations[0].type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer),
-                    autoAllowed && !!(declarationList.declarations[0].initializer));
+            const effectiveType = declarationList.declarations[0].type
+                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer);
+            this.processPredefineType(effectiveType);
+            this.processType(
+                effectiveType,
+                autoAllowed && !!(declarationList.declarations[0].initializer));
 
             this.writer.writeString(' ');
         }
@@ -1232,8 +1240,84 @@ export class Emitter {
         return requireCaptureResult;
     }
 
+    private processPredefineType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
+        auto: boolean = false): void {
+
+        if (auto) {
+            return;
+        }
+
+        let type = typeIn;
+        if (typeIn && typeIn.kind === ts.SyntaxKind.LiteralType) {
+            type = (<ts.LiteralTypeNode>typeIn).literal;
+        }
+
+        let next;
+        switch (type && type.kind) {
+            case ts.SyntaxKind.ArrayType:
+                const arrayType = <ts.ArrayTypeNode>type;
+                this.processPredefineType(arrayType.elementType, false);
+
+                break;
+            case ts.SyntaxKind.TupleType:
+                const tupleType = <ts.TupleTypeNode>type;
+
+                tupleType.elementTypes.forEach(element => {
+                    this.processPredefineType(element, false);
+                });
+
+                break;
+            case ts.SyntaxKind.TypeReference:
+                const typeReference = <ts.TypeReferenceNode>type;
+
+                if (typeReference.typeArguments) {
+                    typeReference.typeArguments.forEach(element => {
+                        this.processPredefineType(element, false);
+                    });
+                }
+
+                break;
+            case ts.SyntaxKind.Parameter:
+                const parameter = <ts.ParameterDeclaration>type;
+                if (parameter.name.kind === ts.SyntaxKind.Identifier) {
+                    this.processPredefineType(parameter.type);
+                } else {
+                    throw new Error('Not Implemented');
+                }
+
+                break;
+            case ts.SyntaxKind.FunctionType:
+                const functionType = <ts.FunctionTypeNode>type;
+                this.processPredefineType(functionType.type);
+                if (functionType.parameters) {
+                    functionType.parameters.forEach(element => {
+                        this.processPredefineType(element);
+                    });
+                }
+                break;
+             case ts.SyntaxKind.UnionType:
+
+                const unionType = <ts.UnionTypeNode>type;
+                const unionTypes = unionType.types
+                    .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
+
+                if (unionTypes.length > 1) {
+                    unionTypes.forEach((element, i) => {
+                        this.processPredefineType(element);
+                    });
+
+                    this.processType(type, undefined, undefined, undefined, true);
+                    this.writer.EndOfStatement();
+                } else {
+                    this.processPredefineType(unionTypes[0]);
+                }
+
+                break;
+        }
+    }
+
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
-        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false): void {
+        auto: boolean = false, skipPointerInType: boolean = false, noTypeName: boolean = false, implementingUnionType: boolean = false): void {
 
         if (auto) {
             this.writer.writeString('auto');
@@ -1408,23 +1492,28 @@ export class Emitter {
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
 
                 if (unionTypes.length > 1) {
-                    const unionName = `__union${type.pos}_${type.end} `;
-                    this.writer.writeString('union ');
-                    this.writer.writeString(unionName);
-                    this.writer.BeginBlock();
+                    const unionName = `__union${type.pos}_${type.end}`;
+                    if (implementingUnionType) {
+                        this.writer.writeString('union ');
+                        this.writer.writeString(unionName);
+                        this.writer.writeString(' ');
+                        this.writer.BeginBlock();
 
-                    unionTypes.forEach((element, i) => {
-                        this.processType(element);
-                        this.writer.writeString(` v${i}`);
-                        this.writer.EndOfStatement();
+                        unionTypes.forEach((element, i) => {
+                            this.processType(element);
+                            this.writer.writeString(` v${i}`);
+                            this.writer.EndOfStatement();
+                            this.writer.cancelNewLine();
+                            this.writer.writeString(` ${unionName}(`);
+                            this.processType(element);
+                            this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
+                        });
+
+                        this.writer.EndBlock();
                         this.writer.cancelNewLine();
-                        this.writer.writeString(` ${unionName}(`);
-                        this.processType(element);
-                        this.writer.writeStringNewLine(` v_) : v${i}(v_) {}`);
-                    });
-
-                    this.writer.EndBlock();
-                    this.writer.cancelNewLine();
+                    } else {
+                        this.writer.writeString(unionName);
+                    }
                 } else {
                     this.processType(unionTypes[0]);
                 }

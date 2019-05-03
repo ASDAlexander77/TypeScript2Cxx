@@ -1,9 +1,3 @@
-enum PromiseStates {
-    Pending,
-    Fulfilled,
-    Rejected
-}
-
 class InternalPromise<T> {
-    private _state = PromiseStates.Pending;
+    private _onFulfilled?: (fulfillment?: Nullable<T>) => Nullable<InternalPromise<T>> | T;
 }
