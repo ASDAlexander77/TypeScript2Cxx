@@ -439,12 +439,10 @@ export class Emitter {
             }
         }
 
-        /*
         if (effectiveType.kind === ts.SyntaxKind.FunctionType
             && this.resolver.isTypeParameter(effectiveType.type)) {
             return true;
         }
-        */
 
         if (this.resolver.isTypeAliasUnionType(effectiveType.typeName)) {
             return true;
