@@ -860,6 +860,12 @@ export class Emitter {
 
         const effectiveSymbol = (<any>baseClass).symbol || ((<any>baseClass).exprName).symbol;
 
+        if (!effectiveSymbol
+            || !effectiveSymbol.valueDeclaration
+            || !effectiveSymbol.valueDeclaration.heritageClauses) {
+            return false;
+        }
+
         const hasInBase = effectiveSymbol.valueDeclaration.heritageClauses.some(hc => hc.types.some(t => t.expression.text === identifier.text));
 
         return hasInBase;
