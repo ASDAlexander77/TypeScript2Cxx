@@ -1523,6 +1523,9 @@ struct BodyInit {
 struct Document {
 };
 
+struct WebGLQuery {
+};
+
 // end of HTML
 
 } // namespace js

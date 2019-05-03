@@ -240,7 +240,7 @@ export class Emitter {
         if (this.isSource()) {
             this.writer.writeStringNewLine(`#include "${filePath.replace(/\.ts$/, '.h')}"`);
         } else {
-            const headerName = filePath.replace(/\.ts$/, '_h').replace('.', '_').replace(/[\\\/_]/, '_').toUpperCase();
+            const headerName = filePath.replace(/\.ts$/, '_h').replace(/[\\\/\.]/g, '_').toUpperCase();
             this.writer.writeStringNewLine(`#ifndef ${headerName}`);
             this.writer.writeStringNewLine(`#define ${headerName}`);
             this.writer.writeStringNewLine(`#include "core.h"`);
