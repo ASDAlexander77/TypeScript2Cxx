@@ -240,7 +240,7 @@ export class Emitter {
         if (this.isSource()) {
             this.writer.writeStringNewLine(`#include "${filePath.replace(/\.ts$/, '.h')}"`);
         } else {
-            const headerName = filePath.replace(/\.ts$/, '_h').replace('.', '_').replace(/[\\/_]/, '_').toUpperCase();
+            const headerName = filePath.replace(/\.ts$/, '_h').replace('.', '_').replace(/[\\\/_]/, '_').toUpperCase();
             this.writer.writeStringNewLine(`#ifndef ${headerName}`);
             this.writer.writeStringNewLine(`#define ${headerName}`);
             this.writer.writeStringNewLine(`#include "core.h"`);
@@ -344,7 +344,7 @@ export class Emitter {
             case ts.SyntaxKind.AsExpression: this.processAsExpression(<ts.AsExpression>node); return;
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.AwaitExpression: this.processAwaitExpression(<ts.AwaitExpression>node); return;
-            case ts.SyntaxKind.Identifier: this.processIndentifier(<ts.Identifier>node); return;
+            case ts.SyntaxKind.Identifier: this.processIdentifier(<ts.Identifier>node); return;
         }
 
         // TODO: finish it
@@ -775,7 +775,7 @@ export class Emitter {
         */
 
         this.writer.writeString('enum ');
-        this.processIndentifier(node.name);
+        this.processIdentifier(node.name);
         this.writer.writeString(' ');
         this.writer.BeginBlock();
 
@@ -852,7 +852,7 @@ export class Emitter {
             this.writer.writeStringNewLine('>');
         }
         this.writer.writeString('class ');
-        this.processIndentifier(node.name);
+        this.processIdentifier(node.name);
     }
 
     private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
@@ -1923,6 +1923,14 @@ export class Emitter {
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): void {
+
+        if (!implementationMode) {
+            this.processPredefineType(node.type);
+            node.parameters.forEach((element) => {
+                this.processPredefineType(element.type);
+            });
+        }
+
         this.scope.push(node);
         this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
         this.scope.pop();
@@ -2469,9 +2477,10 @@ export class Emitter {
         /* TODO: finish it */
     }
 
-    private processIndentifier(node: ts.Identifier): void {
+    private processIdentifier(node: ts.Identifier): void {
         // fix issue with 'continue'
-        if (node.text === 'continue') {
+        if (node.text === 'continue'
+            || node.text === 'catch') {
             this.writer.writeString('_');
         }
 

@@ -1498,11 +1498,32 @@ struct XMLHttpRequest {
 template <typename T>
 using ArrayLike = Array<T>;
 
+// HTML
 struct HTMLElement {
 };
 
 struct HTMLImageElement {
 };
+
+struct EventListenerOptions {
+    boolean capture;
+};
+
+struct AddEventListenerOptions: public EventListenerOptions {
+    boolean once;
+    boolean passive;
+};
+
+struct DataView {    
+};
+
+struct BodyInit {    
+};
+
+struct Document {
+};
+
+// end of HTML
 
 } // namespace js
 
