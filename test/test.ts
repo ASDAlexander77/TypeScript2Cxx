@@ -1,3 +1,7 @@
-class InternalPromise<T> {
-    private _onFulfilled?: (fulfillment?: Nullable<T>) => Nullable<InternalPromise<T>> | T;
+export interface IAnimationKey {
+    interpolation?: AnimationKeyInterpolation;
+}
+
+export enum AnimationKeyInterpolation {
+    STEP = 1
 }

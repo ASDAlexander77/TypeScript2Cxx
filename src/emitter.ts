@@ -855,6 +855,15 @@ export class Emitter {
         this.processIdentifier(node.name);
     }
 
+    private isInBaseClass(baseClass: ts.TypeNode, identifier: ts.Identifier): boolean {
+
+        const effectiveSymbol = (<any>baseClass).symbol || ((<any>baseClass).exprName).symbol;
+
+        const hasInBase = effectiveSymbol.valueDeclaration.heritageClauses.some(hc => hc.types.some(t => t.expression.text === identifier.text));
+
+        return hasInBase;
+    }
+
     private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
         if (!this.isHeader()) {
             return;
@@ -864,26 +873,37 @@ export class Emitter {
 
         this.processClassForwardDeclarationIntenal(node);
 
-        let next;
+        let next = false;
         if (node.heritageClauses) {
-            this.writer.writeString(' : ');
-            next = false;
+            let baseClass;
             node.heritageClauses.forEach(heritageClause => {
                 heritageClause.types.forEach(type => {
-                    if (next) {
-                        this.writer.writeString(', ');
-                    }
-
                     if (type.expression.kind === ts.SyntaxKind.Identifier) {
                         const identifier = <ts.Identifier>type.expression;
+
+                        if (baseClass && this.isInBaseClass(baseClass, identifier)) {
+                            return;
+                        }
+
+                        if (!baseClass) {
+                            baseClass = this.resolver.getOrResolveTypeOfAsTypeNode(identifier);
+                        }
+
+                        if (next) {
+                            this.writer.writeString(', ');
+                        } else {
+                            this.writer.writeString(' : ');
+                        }
+
                         this.writer.writeString('public ');
                         this.writer.writeString(identifier.text);
                         this.processTemplateArguments(type, true);
+
+                        next = true;
                     } else {
                         /* TODO: finish xxx.yyy<zzz> */
                     }
 
-                    next = true;
                 });
             });
         } else {
