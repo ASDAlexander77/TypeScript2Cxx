@@ -1,7 +1,9 @@
-export interface IAnimationKey {
-    interpolation?: AnimationKeyInterpolation;
-}
-
-export enum AnimationKeyInterpolation {
-    STEP = 1
+export class ArrayTools {
+    public static BuildArray<T>(size: number, itemBuilder: () => T): Array<T> {
+        const a: T[] = [];
+        for (let i = 0; i < size; ++i) {
+            a.push(itemBuilder());
+        }
+        return a;
+    }
 }

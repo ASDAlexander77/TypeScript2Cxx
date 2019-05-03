@@ -264,6 +264,15 @@ export class IdentifierResolver {
         return false;
     }
 
+    public isTypeParameter(location: ts.Node): boolean {
+        const typeInfo = this.getTypeAtLocation(location);
+        if (this.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public resolveTypeOf(location: ts.Node): ts.Type {
         if (!location) {
             return undefined;
