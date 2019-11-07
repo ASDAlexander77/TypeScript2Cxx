@@ -14,7 +14,17 @@
             "environment": [],
             "externalConsole": true,
             "preLaunchTask": "Build VS2017 Debug",
-        },        
+        },
+        {
+            "name": "C++ (Windows) Test App Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/testapp1.exe",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true
+        },
         {
             "name": "C++ (MinGW) Launch",
             "type": "cppdbg",
@@ -60,7 +70,7 @@
             "stopAtEntry": false,
             "cwd": "/mnt/c/Temp/guard/__build_debug",
             "environment": [],
-            "externalConsole": false,            
+            "externalConsole": false,
             "preLaunchTask": "Build (shell) Debug",
             "windows": {
                 "MIMode": "gdb",
@@ -71,7 +81,7 @@
                         "ignoreFailures": true
                     }
                 ]
-            }, 
+            },
             "pipeTransport": {
                 "pipeCwd": "${workspaceRoot}",
                 "pipeProgram": "C:\\Windows\\System32\\bash.exe",
@@ -85,8 +95,8 @@
 
                 "engineLogging": true,
                 "trace": true
-            }            
-        },        
+            }
+        },
         {
             "name": "C++ (Shell) Attach",
             "type": "cppdbg",
@@ -116,7 +126,7 @@
 
                 "engineLogging": true,
                 "trace": true
-            }              
-        } 
+            }
+        }
     ]
 }

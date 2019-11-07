@@ -71,7 +71,7 @@ static struct undefined_t {
     undefined_t (bool value) : isUndefined(value) {
     }
 
-    inline operator bool() {
+    constexpr operator bool() {
         return !isUndefined;
     }
 
@@ -99,12 +99,8 @@ struct boolean : public undefined_t {
     boolean (const undefined_t& undef) : undefined_t(true) {
     }
 
-    operator bool() const {
-        if (isUndefined) {
-            return false;
-        }
-
-        return _value;
+    constexpr operator bool() const {
+        return !isUndefined && _value;
     }
 
     constexpr boolean* operator->() {
@@ -144,6 +140,10 @@ struct number : public undefined_t {
     constexpr operator size_t() const {
         return (size_t)_value;
     }    
+
+    constexpr operator bool() const {
+        return !isUndefined && _value != 0;
+    }       
 
     constexpr operator double() const {
         return _value;
@@ -217,10 +217,12 @@ struct number : public undefined_t {
     }    
 
     number operator --(int) {
-        return number(_value - 1);
+        number tmp(*this); 
+        operator--();
+        return tmp;
     }        
 
-    number& operator -=(number other){
+    number& operator -=(number other) {
         _value -= other._value;
         return *this;
     }    
