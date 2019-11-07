@@ -662,6 +662,9 @@ struct any {
     any (const undefined_t& undef) : _type(anyTypeId::undefined) {
     }        
 
+    any(std::nullptr_t) : _type(anyTypeId::object), _value(nullptr) {
+    } 
+
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     any(T initValue) : _type(anyTypeId::number), _value((T)initValue) {
     }
@@ -1043,6 +1046,10 @@ struct any {
 
         if (val._type == anyTypeId::number) {
             return os << val._value._number;
+        }
+
+        if (val._value._data == nullptr) {
+            return os << "null";
         }
 
         if (val._type == anyTypeId::string) {

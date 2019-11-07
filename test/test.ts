@@ -1,9 +1,12 @@
-export class ArrayTools {
-    public static BuildArray<T>(size: number, itemBuilder: () => T): Array<T> {
-        const a: T[] = [];
-        for (let i = 0; i < size; ++i) {
-            a.push(itemBuilder());
-        }
-        return a;
-    }
-}
+	let isDone1: boolean = false;  
+        const isDone2: boolean = false; 
+        var isDone3: boolean = false;   
+        let val1: any = null;           
+        const val2: any = null;         
+        var val3: any = null;           
+        console.log(isDone1);           
+        console.log(isDone2);           
+        console.log(isDone3);           
+        console.log(val1);              
+        console.log(val2);              
+        console.log(val3);              

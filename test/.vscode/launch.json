@@ -16,6 +16,16 @@
             "preLaunchTask": "Build VS2017 Debug",
         },
         {
+            "name": "C++ (Windows) Test Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceRoot}/test.exe",
+            "stopAtEntry": true,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true
+        },
+        {
             "name": "C++ (Windows) Test App Launch",
             "type": "cppvsdbg",
             "request": "launch",
