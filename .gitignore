@@ -20,3 +20,5 @@ __build_win32_release
 /Experiment/src
 /Experiment/__build
 /Experiment/out
+*.ilk
+*.pdb

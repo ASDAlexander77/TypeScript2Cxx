@@ -2298,6 +2298,13 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
+        let isTuple = false;
+        const type = this.resolver.getOrResolveTypeOf(node);
+        if (type && (<any>type).typeArguments && !(<any>type).symbol) {
+            // tuple
+            isTuple = true;
+        }
+
         let elementsType = (<any>node).parent.type;
         if (!elementsType) {
             if (node.elements.length !== 0) {
@@ -2311,9 +2318,13 @@ export class Emitter {
             }
         }
 
-        this.writer.writeString('new Array<');
-        this.processType(elementsType, undefined, true);
-        this.writer.writeString('>(');
+        if (!isTuple)
+        {
+            this.writer.writeString('new Array<');
+            this.processType(elementsType, undefined, true);
+            this.writer.writeString('>(');
+        }
+
         if (node.elements.length !== 0) {
             this.writer.BeginBlockNoIntent();
             node.elements.forEach(element => {
@@ -2329,7 +2340,10 @@ export class Emitter {
             this.writer.EndBlockNoIntent();
         }
 
-        this.writer.writeString(')');
+        if (!isTuple)
+        {
+            this.writer.writeString(')');
+        }
     }
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
