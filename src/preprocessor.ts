@@ -39,13 +39,20 @@ export class Preprocessor {
             const c = ts.createConstructor(
                 null,
                 null,
-                element.parameters,
+                element.parameters.map(p => ts.createParameter(
+                    p.decorators,
+                    p.modifiers.filter(m => m.kind !== ts.SyntaxKind.PrivateKeyword && m.kind !== ts.SyntaxKind.ProtectedKeyword && m.kind !== ts.SyntaxKind.PublicKeyword),
+                    p.dotDotDotToken,
+                    p.name,
+                    p.questionToken,
+                    p.type,
+                    p.initializer)),
                 ts.createBlock(
                     [ts.createStatement(
                         ts.createCall(
                             ts.createSuper(),
                             null,
-                            []))]));
+                            element.parameters.map(p => <ts.Identifier>p.name)))]));
             this.fixupParentReferences(c, node);
             (<any>node.members).push(c);
         });

@@ -17,9 +17,7 @@ public:
 
 class Test2 : public Test {
 public:
-    string name;
-
-    Test2(string name_);
+    Test2(string name);
 };
 
 #endif
