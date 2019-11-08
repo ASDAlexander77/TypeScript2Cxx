@@ -2087,7 +2087,7 @@ export class Emitter {
         this.processExpression(initVar);
         this.writer.writeString(' : ');
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine('.keys())');
+        this.writer.writeStringNewLine('->keys())');
         this.processStatement(node.statement);
     }
 
@@ -2299,9 +2299,8 @@ export class Emitter {
         let next = false;
 
         let isTuple = false;
-        const type = this.resolver.getOrResolveTypeOf(node);
-        if (type && (<any>type).typeArguments && !(<any>type).symbol) {
-            // tuple
+        const type = this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node));
+        if (type.kind === ts.SyntaxKind.TupleType) {
             isTuple = true;
         }
 
@@ -2348,8 +2347,8 @@ export class Emitter {
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
 
-        const type = this.resolver.getOrResolveTypeOf(node.expression);
-        if (type && (<any>type).typeArguments && !(<any>type).symbol) {
+        const type = this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node.expression));
+        if (type.kind === ts.SyntaxKind.TupleType) {
             // tuple
             if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
                 throw new Error('Not implemented');

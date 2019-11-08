@@ -22,3 +22,5 @@ __build_win32_release
 /Experiment/out
 *.ilk
 *.pdb
+*.ipch
+*.bin
