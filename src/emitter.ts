@@ -953,10 +953,8 @@ export class Emitter {
         */
 
         // declare all private parameters of constructors
-        for (const item of (<any>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
-            const constructor = <ts.ConstructorDeclaration>item;
-            for (const fieldAsParam of constructor.parameters
-                    .filter(p => this.hasAccessModifier(p.modifiers))) {
+        for (const constructor of <ts.ConstructorDeclaration[]>(<ts.ClassDeclaration>node).members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
+            for (const fieldAsParam of constructor.parameters.filter(p => this.hasAccessModifier(p.modifiers))) {
                 this.processDeclaration(fieldAsParam);
             }
         }
@@ -1638,8 +1636,8 @@ export class Emitter {
         // const noCapture = !this.requireCapture(node);
 
         const isClassMember = this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
-        const isFunctionOrMethodDeclaration = node.kind === ts.SyntaxKind.FunctionDeclaration
-            || isClassMember;
+        const isFunctionOrMethodDeclaration =
+            node.kind === ts.SyntaxKind.FunctionDeclaration || isClassMember;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
@@ -1811,6 +1809,8 @@ export class Emitter {
                 && (<ts.CallExpression>superCall).expression.kind === ts.SyntaxKind.SuperKeyword) {
                 if (!next) {
                     this.writer.writeString(' : ');
+                } else {
+                    this.writer.writeString(', ');
                 }
 
                 this.processExpression(superCall);

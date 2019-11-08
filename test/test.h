@@ -4,6 +4,22 @@
 
 using namespace js;
 
-extern std::tuple<string, js::number > x;
+class Test;
+class Test2;
+extern Test2* c;
+
+class Test : public object {
+public:
+    string name;
+
+    Test(string name_);
+};
+
+class Test2 : public Test {
+public:
+    string name;
+
+    Test2(string name_);
+};
 
 #endif
