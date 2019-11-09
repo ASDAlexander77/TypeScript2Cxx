@@ -41,7 +41,7 @@ export class Preprocessor {
                 null,
                 element.parameters.map(p => ts.createParameter(
                     p.decorators,
-                    p.modifiers.filter(m => m.kind !== ts.SyntaxKind.PrivateKeyword && m.kind !== ts.SyntaxKind.ProtectedKeyword && m.kind !== ts.SyntaxKind.PublicKeyword),
+                    p.modifiers && p.modifiers.filter(m => m.kind !== ts.SyntaxKind.PrivateKeyword && m.kind !== ts.SyntaxKind.ProtectedKeyword && m.kind !== ts.SyntaxKind.PublicKeyword),
                     p.dotDotDotToken,
                     p.name,
                     p.questionToken,

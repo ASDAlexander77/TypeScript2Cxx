@@ -4,20 +4,24 @@
 
 using namespace js;
 
-class Test;
-class Test2;
-extern Test2* c;
+class Person;
+class Employee;
+extern Employee* howard;
 
-class Test : public object {
+class Person : public object {
 public:
     string name;
 
-    Test(string name_);
+    Person(string name);
 };
 
-class Test2 : public Test {
+class Employee : public Person {
 public:
-    Test2(string name);
+    string department;
+
+    Employee(string name, string department);
+    virtual any getElevatorPitch();
+    Employee(string name);
 };
 
 #endif
