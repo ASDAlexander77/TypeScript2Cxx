@@ -19,6 +19,15 @@ export class Preprocessor {
         return node;
     }
 
+    public preprocessExpression(node: ts.Expression): ts.Expression {
+        switch (node.kind) {
+            case ts.SyntaxKind.BinaryExpression:
+                return this.preprocessBinaryExpression(<ts.BinaryExpression>node);
+        }
+
+        return node;
+    }
+
     private preprocessClassDeclaration(node: ts.ClassDeclaration): ts.Declaration | ts.Statement {
 
         const inheritance = node.heritageClauses && node.heritageClauses.filter(i => i.token === ts.SyntaxKind.ExtendsKeyword);
@@ -83,8 +92,32 @@ export class Preprocessor {
         return variableStatement;
     }
 
-    public preprocessExpression(node: ts.Expression): ts.Expression {
-        return node;
+    private preprocessBinaryExpression(node: ts.BinaryExpression) {
+
+        switch (node.operatorToken.kind) {
+            case ts.SyntaxKind.EqualsToken:
+
+                if (node.left.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                    const propertyAccess = <ts.PropertyAccessExpression>node.left;
+
+                    const symbolInfo = this.resolver.getSymbolAtLocation(propertyAccess.name);
+                    const getAccess = symbolInfo
+                        && symbolInfo.declarations
+                        && symbolInfo.declarations.length > 0
+                        && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
+                            || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor);
+
+                    if (getAccess) {
+                        const newCall = ts.createCall(node.left, null, [node.right]);
+                        (<any>newCall.expression).__set = true;
+                        return this.fixupParentReferences(newCall, node.parent);
+                    }
+                }
+
+                break;
+        }
+
+        return node
     }
 
     private fixupParentReferences<T extends ts.Node>(rootNode: T, setParent?: ts.Node): T {

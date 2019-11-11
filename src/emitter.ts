@@ -2560,7 +2560,8 @@ export class Emitter {
         const getAccess = symbolInfo
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
-            && symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor;
+            && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
+                || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor);
 
         if (node.expression.kind === ts.SyntaxKind.NewExpression
             || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
@@ -2587,12 +2588,16 @@ export class Emitter {
         }
 
         if (getAccess) {
-            this.writer.writeString('get_');
+            if ((<any>node).__set === true) {
+                this.writer.writeString('set_');
+            } else {
+                this.writer.writeString('get_');
+            }
         }
 
         this.processExpression(node.name);
 
-        if (getAccess) {
+        if (getAccess && (<any>node).__set !== true) {
             this.writer.writeString('()');
         }
     }

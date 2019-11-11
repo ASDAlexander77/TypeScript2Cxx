@@ -4,8 +4,15 @@
 
 using namespace js;
 
-any _x();
+class Employee;
+extern Employee* employee;
 
-any _y();
+class Employee : public object {
+public:
+    string _fullName;
+
+    virtual string get_fullName();
+    virtual void set_fullName(string newName);
+};
 
 #endif
