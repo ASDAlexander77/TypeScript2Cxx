@@ -4,13 +4,11 @@
 
 using namespace js;
 
-class Matrix;
+class Test;
 
-class Matrix : public object {
+class Test : public object {
 public:
-    js::number _value = 1;
-
-    js::number _identityReadOnly = this->_value;
+    Test(js::number t1 = undefined, js::number t2 = undefined, js::number t3 = undefined);
 };
 
 #endif

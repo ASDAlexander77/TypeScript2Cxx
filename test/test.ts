@@ -1,7 +1,8 @@
-	export class Matrix {                                          
-            public _identityReadOnly = this._value;                     
-                                                                        
-            public _value = 1;                                          
-        }                                                               
-                                                                        
-        console.log(new Matrix()._identityReadOnly);                    
+	export class Test {                                                
+            constructor(t1?: number, t2?: number, t3?: number) {            
+                console.log(t1);                                            
+                console.log(t2);                                            
+                console.log(t3);                                            
+            }                                                               
+        }                                                                   
+        new Test(1);

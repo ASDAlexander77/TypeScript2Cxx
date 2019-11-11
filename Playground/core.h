@@ -125,6 +125,10 @@ struct boolean : public undefined_t {
 
     friend std::ostream& operator << (std::ostream& os, boolean val)
     {
+        if (val.isUndefined) {
+            return os << "undefined";
+        }
+
         return os << ((bool)val ? "true" : "false");
     }       
 };
@@ -454,6 +458,10 @@ struct number : public undefined_t {
     
     friend std::ostream& operator << (std::ostream& os, number val)
     {
+        if (val.isUndefined) {
+            return os << "undefined";
+        }
+
         return os << val._value;
     }       
 };
@@ -547,6 +555,10 @@ struct string : public undefined_t {
 
     friend std::ostream& operator << (std::ostream& os, string val)
     {
+        if (val.isUndefined) {
+            return os << "undefined";
+        }
+
         return os << val._value;
     }    
 };
@@ -599,6 +611,10 @@ struct array : public undefined_t {
 
     friend std::ostream& operator << (std::ostream& os, array val)
     {
+        if (val.isUndefined) {
+            return os << "undefined";
+        }
+
         return os << "[array]";
     }
 };
@@ -629,6 +645,10 @@ struct object : public undefined_t {
 
     friend std::ostream& operator << (std::ostream& os, object val)
     {
+        if (val.isUndefined) {
+            return os << "undefined";
+        }
+
         return os << "[object]";
     }
 
