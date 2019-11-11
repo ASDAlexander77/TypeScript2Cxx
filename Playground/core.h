@@ -49,6 +49,22 @@ constexpr const T const_(T t) {
 	return static_cast<const T>(t);
 }
 
+template <typename T> 
+constexpr T& mutable_(const T& t) {
+	return const_cast<T&>(t);
+}
+
+template <typename T> 
+constexpr T* mutable_(const T* t) {
+	return const_cast<T*>(t);
+}
+
+/*
+template <typename T> 
+constexpr T mutable_(const T t) {
+	return const_cast<T>(t);
+}
+*/
 
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
@@ -85,6 +101,10 @@ static struct undefined_t {
     }
 
     undefined_t (bool value) : isUndefined(value) {
+    }
+
+    constexpr operator bool() const {
+        return !isUndefined;
     }
 
     constexpr operator bool() {
@@ -635,6 +655,13 @@ struct object : public undefined_t {
     constexpr object* operator->() {
         return this;
     }    
+
+    template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
+    const any& operator[] (T t) const;
+
+    const any& operator[] (const char* s) const;
+
+    const any& operator[] (std::string s) const;
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
     any& operator[] (T t);

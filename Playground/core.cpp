@@ -54,6 +54,19 @@ object::object (std::initializer_list<pair> values) {
 }
 
 template<class T, class>
+const any& object::operator[] (T t) const {
+    return mutable_(_values)[std::to_string(t)];
+}
+
+const any& object::operator[] (const char* s) const {
+    return mutable_(_values)[std::string(s)];
+}
+
+const any& object::operator[] (std::string s) const {
+    return mutable_(_values)[s];
+}
+
+template<class T, class>
 any& object::operator[] (T t) {
     return _values[std::to_string(t)];
 }
