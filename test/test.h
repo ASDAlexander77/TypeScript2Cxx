@@ -4,15 +4,12 @@
 
 using namespace js;
 
-class Employee;
-extern Employee* employee;
+class Matrix;
+extern Matrix* result;
 
-class Employee : public object {
+class Matrix : public object {
 public:
-    string _fullName;
-
-    virtual string get_fullName();
-    virtual void set_fullName(string newName);
+    Array<any>* m = new Array<any>();
 };
 
 #endif

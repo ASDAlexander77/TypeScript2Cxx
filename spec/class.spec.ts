@@ -557,7 +557,7 @@ describe('Classes', () => {
         console.log(e.Last);                                                \
     '])));
 
-    it('Class - Static Properties',  () => expect('200.0\r\n40.0\r\n').to.equals(new Run().test([
+    it('Class - Static Properties',  () => expect('200\r\n40\r\n').to.equals(new Run().test([
         'class Grid {                                                       \
             static origin = {x: 0, y: 0};                                   \
             calculateDistanceFromOrigin(point: {x: number; y: number;}) {   \

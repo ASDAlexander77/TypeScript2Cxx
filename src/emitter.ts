@@ -3,7 +3,6 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
-import { timingSafeEqual } from 'crypto';
 
 export class Emitter {
     public writer: CodeWriter;
@@ -137,15 +136,6 @@ export class Emitter {
     private isVariableStatement(f: ts.Node): boolean {
         if (f.kind === ts.SyntaxKind.VariableStatement) {
             return true;
-        }
-
-        return false;
-    }
-
-    private isLocalVarDeclaration(f: ts.Statement): boolean {
-        if (f.kind === ts.SyntaxKind.VariableStatement) {
-            const variableStatement = <ts.VariableStatement>f;
-            return Helpers.isConstOrLet(variableStatement.declarationList);
         }
 
         return false;
@@ -1397,7 +1387,12 @@ export class Emitter {
             case ts.SyntaxKind.ArrayType:
                 const arrayType = <ts.ArrayTypeNode>type;
                 this.writer.writeString('Array<');
-                this.processType(arrayType.elementType, false);
+                if (arrayType.elementType.kind === ts.SyntaxKind.UndefinedKeyword) {
+                    this.writer.writeString('any');
+                } else {
+                    this.processType(arrayType.elementType, false);
+                }
+
                 this.writer.writeString('>');
                 if (!skipPointerInType) {
                     this.writer.writeString('*');
