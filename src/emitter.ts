@@ -2355,11 +2355,29 @@ export class Emitter {
             this.processExpression(node.expression);
             this.writer.writeString(')');
         } else {
-            this.writer.writeString('(');
+            let isWriting = false;
+            if (node.parent.kind === ts.SyntaxKind.BinaryExpression)
+            {
+                const binaryExpression = <ts.BinaryExpression>node.parent;
+                isWriting = binaryExpression.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                    && binaryExpression.left === node;
+            }
+
+            this.writer.writeString('(*');
+
+            if (!isWriting) {
+                this.writer.writeString('const_(');
+            }
+
             this.processExpression(node.expression);
-            this.writer.writeString(')->operator[](');
+
+            if (!isWriting) {
+                this.writer.writeString(')');
+            }
+
+            this.writer.writeString(')[');
             this.processExpression(node.argumentExpression);
-            this.writer.writeString(')');
+            this.writer.writeString(']');
         }
     }
 

@@ -34,6 +34,22 @@ struct string;
 
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
 
+template <typename T> 
+constexpr const T& const_(T& t) {
+	return static_cast<const T&>(t);
+}
+
+template <typename T> 
+constexpr const T* const_(T* t) {
+	return static_cast<const T*>(t);
+}
+
+template <typename T> 
+constexpr const T const_(T t) {
+	return static_cast<const T>(t);
+}
+
+
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
         return (T)((long)op1 | (long)op1);
@@ -1163,7 +1179,7 @@ struct ReadonlyArray {
     }
 
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
-    T operator[] (I i) const {
+    const T& operator[] (I i) const {
         if ((size_t)i >= _values.size()) {
             return T(undefined);
         }
@@ -1185,9 +1201,18 @@ struct Array : public ReadonlyArray<T> {
     }
 
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
-    T& operator[] (I i) {
+    const T& operator[] (I i) const {
         if ((size_t)i >= _values.size()) {
             return T(undefined);
+        }
+
+        return _values[(size_t)i];
+    }
+
+    template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    T& operator[] (I i) {
+        while ((size_t)i >= _values.size()) {
+            _values.push_back(undefined_t());
         }
 
         return _values[(size_t)i];
