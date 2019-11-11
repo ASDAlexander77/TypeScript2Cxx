@@ -1,7 +1,7 @@
-	class Matrix {                                                 
-            public m = [];                                              
+	export class Matrix {                                          
+            public _identityReadOnly = this._value;                     
+                                                                        
+            public _value = 1;                                          
         }                                                               
                                                                         
-        var result = new Matrix();                                      
-        result.m[0] = 10;                                               
-        console.log(result.m[0]);                                       
+        console.log(new Matrix()._identityReadOnly);                    

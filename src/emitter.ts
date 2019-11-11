@@ -949,7 +949,11 @@ export class Emitter {
             }
         }
 
-        for (const member of node.members) {
+        for (const member of (<any[]><any>node.members).filter(m => m.kind !== ts.SyntaxKind.PropertyDeclaration || !this.hasThis(m))) {
+            this.processDeclaration(member);
+        }
+
+        for (const member of (<any[]><any>node.members).filter(m => m.kind === ts.SyntaxKind.PropertyDeclaration && this.hasThis(m))) {
             this.processDeclaration(member);
         }
 
@@ -1274,6 +1278,20 @@ export class Emitter {
         });
 
         return requireCaptureResult;
+    }
+
+    private hasThis(location: ts.Node): boolean {
+        let createThis = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                createThis = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return createThis;
     }
 
     private processPredefineType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,

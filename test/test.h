@@ -5,11 +5,12 @@
 using namespace js;
 
 class Matrix;
-extern Matrix* result;
 
 class Matrix : public object {
 public:
-    Array<any>* m = new Array<any>();
+    js::number _value = 1;
+
+    js::number _identityReadOnly = this->_value;
 };
 
 #endif
