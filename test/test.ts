@@ -1,20 +1,11 @@
-	class Person {                                                 
-            protected name: string;                                     
-            constructor(name: string) { this.name = name; }             
-        }                                                               
-                                                                        
-        class Employee extends Person {                                 
-            private department: string;                                 
-                                                                        
-            constructor(name: string, department: string) {             
-                super(name);                                            
-                this.department = department;                           
-            }                                                           
-                                                                        
-            public getElevatorPitch() {                                 
-                return `Hello, my name is ${this.name} and I work in ${this.department}.`;  
-            }                                                           
-        }                                                               
-                                                                        
-        let howard = new Employee("Howard", "Sales");                   
-        console.log(howard.getElevatorPitch());                         
+	function _x() {                      
+            console.log(1);                   
+            return 1;                         
+        }                                     
+        function _y() {                       
+            console.log(2);                   
+            return 2;                         
+        }                                     
+                                              
+        console.log(!_x() || _x() == 0 ? _x() : _y());    
+        console.log(_x() && _x() != 0 ? _x() : _y());     

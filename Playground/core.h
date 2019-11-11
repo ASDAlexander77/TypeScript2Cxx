@@ -729,6 +729,24 @@ struct any {
         throw "wrong type";        
     }
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    bool operator ==(T t) const {
+        switch (_type) {
+            case anyTypeId::undefined:
+                return false;
+            case anyTypeId::boolean:
+                return _value._boolean._value == (bool)t;
+            case anyTypeId::number:
+                return _value._number._value == t;
+            case anyTypeId::string:
+                return ((js::string*)_value._data)->_value == std::to_string(t);
+            case anyTypeId::object:
+                return false;
+        }
+
+        throw "not implemented";
+    }    
+
     bool operator ==(const js::any& other) const {
         if (_type != other._type) {
             return false;

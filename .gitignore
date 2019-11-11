@@ -24,3 +24,4 @@ __build_win32_release
 *.pdb
 *.ipch
 *.bin
+out
