@@ -1,16 +1,16 @@
-	export class Base {                                                
-            constructor(public number: number) {                            
-            }                                                               
-        }                                                                   
-                                                                            
-        export class Derived extends Base {                                 
-            constructor(number: number) {                                   
-                super(number);                                              
-            }                                                               
-        }                                                                   
-                                                                            
-        const d1 = new Derived(1);                                          
-        const d2 = new Derived(2);                                          
-                                                                            
-        console.log(d1.number);                                             
-        console.log(d2.number);
+	class Class0 {                                 
+            public Identity(): string {                 
+                return "class0";                        
+            }                                           
+        }                                               
+        class Class1 {                                 
+            constructor(v1: number, v2:string, v3: number, d: number = 10) {  
+                console.log(v1);                        
+                console.log(v2);                        
+                console.log(v3);                        
+                console.log(d);                         
+            }                                           
+        }                                               
+                                                        
+        var c = new Class1(1, new Class0().Identity(), 3);    
+        c.show();                                       

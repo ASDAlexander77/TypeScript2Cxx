@@ -814,7 +814,6 @@ describe('Classes', () => {
         }                                               \
                                                         \
         var c = new Class1(1, new Class0().Identity(), 3);    \
-        c.show();                                       \
     '])));
 
     it('Class - base fields are isolated',  () => expect('1\r\n2\r\n').to.equals(new Run().test([

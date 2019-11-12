@@ -28,6 +28,18 @@ export class Preprocessor {
         return node;
     }
 
+    private compareTypesOfParameters(p0: ts.ParameterDeclaration, p1: ts.ParameterDeclaration): boolean {
+        if (p0 && !p1 || !p0 && p1) {
+            return false;
+        }
+
+        if (p0.type && p1.type && p0.type.kind === p1.type.kind) {
+            return true;
+        }
+
+        return false;
+    }
+
     private preprocessClassDeclaration(node: ts.ClassDeclaration): ts.Declaration | ts.Statement {
 
         const inheritance = node.heritageClauses && node.heritageClauses.filter(i => i.token === ts.SyntaxKind.ExtendsKeyword);
@@ -43,7 +55,7 @@ export class Preprocessor {
         const baseConstructors = <ts.ConstructorDeclaration[]>baseClassDeclaration.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
 
         baseConstructors
-            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) => e.parameters[index].type.kind == p.type.kind)) == -1)
+            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) => this.compareTypesOfParameters(e.parameters[index], p))) == -1)
             .forEach(element => {
             const c = ts.createConstructor(
                 null,
