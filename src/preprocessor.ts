@@ -43,7 +43,7 @@ export class Preprocessor {
         const baseConstructors = <ts.ConstructorDeclaration[]>baseClassDeclaration.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
 
         baseConstructors
-            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) => e.parameters[index].name == p.name)) == -1)
+            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) => e.parameters[index].type.kind == p.type.kind)) == -1)
             .forEach(element => {
             const c = ts.createConstructor(
                 null,

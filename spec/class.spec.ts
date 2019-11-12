@@ -790,7 +790,7 @@ describe('Classes', () => {
                 console.log(d);                         \
             }                                           \
                                                         \
-            public static Identity(): number {          \
+            public static Identity(): string {          \
                 return "class1";                        \
             }                                           \
         }                                               \
@@ -800,7 +800,7 @@ describe('Classes', () => {
 
     it('Class - constructor with Default Parameter - 6', () => expect('1\r\nclass0\r\n3\r\n10\r\n').to.equals(new Run().test([
         'class Class0 {                                 \
-            public Identity(): number {                 \
+            public Identity(): string {                 \
                 return "class0";                        \
             }                                           \
         }                                               \

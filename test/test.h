@@ -4,13 +4,21 @@
 
 using namespace js;
 
-class Class1;
-extern Class1* c;
+class Base;
+class Derived;
+extern Derived* d1;
+extern Derived* d2;
 
-class Class1 : public object {
+class Base : public object {
 public:
-    Class1(js::number v1, string v2, js::number v3, js::number d = 10);
-    static js::number Identity();
+    js::number number;
+
+    Base(js::number number_);
+};
+
+class Derived : public Base {
+public:
+    Derived(js::number number);
 };
 
 #endif
