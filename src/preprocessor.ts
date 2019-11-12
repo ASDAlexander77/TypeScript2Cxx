@@ -43,7 +43,7 @@ export class Preprocessor {
     private preprocessClassDeclaration(node: ts.ClassDeclaration): ts.Declaration | ts.Statement {
 
         const inheritance = node.heritageClauses && node.heritageClauses.filter(i => i.token === ts.SyntaxKind.ExtendsKeyword);
-        if (!inheritance) {
+        if (!inheritance || inheritance.length === 0) {
             return node;
         }
 
