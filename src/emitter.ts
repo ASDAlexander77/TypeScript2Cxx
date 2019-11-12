@@ -2611,48 +2611,67 @@ export class Emitter {
 
         const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
         const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
+        const methodAccess = symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
         const getAccess = symbolInfo
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
             && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
                 || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor);
 
-        if (node.expression.kind === ts.SyntaxKind.NewExpression
-            || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-            this.writer.writeString('(');
-        }
+        if (methodAccess) {
+            this.writer.writeString('std::bind(&');
+            if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+                const valueDeclaration = <ts.ClassDeclaration>symbolInfo.valueDeclaration.parent;
+                this.processExpression(<ts.Identifier>valueDeclaration.name);
+            }
 
-        this.processExpression(node.expression);
-
-        if (node.expression.kind === ts.SyntaxKind.NewExpression
-            || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+            this.writer.writeString('::');
+            this.processExpression(node.name);
+            this.writer.writeString(', ');
+            this.processExpression(node.expression);
             this.writer.writeString(')');
         }
-
-        if (this.resolver.isAnyLikeType(typeInfo)) {
-            this.writer.writeString('["');
-            this.processExpression(node.name);
-            this.writer.writeString('"]');
-            return;
-        } else if (this.resolver.isStaticAccess(typeInfo)
-            || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
-            this.writer.writeString('::');
-        } else {
-            this.writer.writeString('->');
-        }
-
-        if (getAccess) {
-            if ((<any>node).__set === true) {
-                this.writer.writeString('set_');
-            } else {
-                this.writer.writeString('get_');
+        else
+        {
+            if (node.expression.kind === ts.SyntaxKind.NewExpression
+                || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                this.writer.writeString('(');
             }
-        }
 
-        this.processExpression(node.name);
+                // field access
+            this.processExpression(node.expression);
 
-        if (getAccess && (<any>node).__set !== true) {
-            this.writer.writeString('()');
+            if (node.expression.kind === ts.SyntaxKind.NewExpression
+                || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+                this.writer.writeString(')');
+            }
+
+            if (this.resolver.isAnyLikeType(typeInfo)) {
+                this.writer.writeString('["');
+                this.processExpression(node.name);
+                this.writer.writeString('"]');
+                return;
+            } else if (this.resolver.isStaticAccess(typeInfo)
+                || node.expression.kind === ts.SyntaxKind.SuperKeyword
+                || symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration) {
+                this.writer.writeString('::');
+            } else {
+                this.writer.writeString('->');
+            }
+
+            if (getAccess) {
+                if ((<any>node).__set === true) {
+                    this.writer.writeString('set_');
+                } else {
+                    this.writer.writeString('get_');
+                }
+            }
+
+            this.processExpression(node.name);
+
+            if (getAccess && (<any>node).__set !== true) {
+                this.writer.writeString('()');
+            }
         }
     }
 }

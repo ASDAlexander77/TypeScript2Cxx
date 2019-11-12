@@ -4,40 +4,15 @@
 
 using namespace js;
 
-class Node1;
-class AbstractScene;
-class Scene;
-class Camera;
-extern Scene* s;
-extern Camera* c;
+class Test;
+extern Test* t;
+extern std::function<void()> m2;
 
-class Node1 : public object {
+class Test : public object {
 public:
-    Scene* _scene;
+    js::number val = 10;
 
-    Node1(Scene* scene);
-    virtual Scene* getScene();
-    virtual any get_parent();
-    virtual void set_parent(any v);
-};
-
-class AbstractScene : public object {
-public:
-};
-
-class Scene : public AbstractScene {
-public:
-    Array<any>* cameras = new Array<any>();
-
-    virtual void addCamera(Camera* newCamera);
-    virtual any get_parent();
-    virtual void set_parent(any v);
-};
-
-class Camera : public Node1 {
-public:
-    Camera(Scene* scene);
-    virtual any get_parent();
+    virtual void testMethod();
 };
 
 #endif
