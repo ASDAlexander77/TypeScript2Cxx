@@ -1951,6 +1951,16 @@ export class Emitter {
                 next = true;
             });
             this.writer.writeString(' >');
+        } else {
+            const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
+            const templateParametersInfoFromType: ts.TypeParameter[] = typeInfo
+                && typeInfo.symbol
+                && typeInfo.symbol.valueDeclaration
+                && (<any>typeInfo.symbol.valueDeclaration).typeParameters;
+
+            if (templateParametersInfoFromType) {
+                this.writer.writeString('<void>');
+            }
         }
     }
 

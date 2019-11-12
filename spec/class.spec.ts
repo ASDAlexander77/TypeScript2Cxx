@@ -796,7 +796,6 @@ describe('Classes', () => {
         }                                               \
                                                         \
         var c = new Class1(1, Class1.Identity(), 3);    \
-        c.show();                                       \
     '])));
 
     it('Class - constructor with Default Parameter - 6', () => expect('1\r\nclass0\r\n3\r\n10\r\n').to.equals(new Run().test([

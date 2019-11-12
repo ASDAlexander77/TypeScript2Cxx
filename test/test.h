@@ -4,15 +4,13 @@
 
 using namespace js;
 
-class Test;
+class Class1;
+extern Class1* c;
 
-class Test : public object {
+class Class1 : public object {
 public:
-    Test(any t1, any t2 = undefined, any t3 = undefined);
+    Class1(js::number v1, string v2, js::number v3, js::number d = 10);
+    static js::number Identity();
 };
-
-any getValue(any val);
-
-void run(any val);
 
 #endif
