@@ -1,26 +1,19 @@
-	class Test {                           
-            val = 10;                           
-                                                
-            public testMethod() {               
-                console.log(this.val);          
-            }                                   
-        }                                       
-                                                
-        class Test2 {                           
-            val = 20;                           
-        }                                       
-                                                
-        const t = new Test();                   
-                                                
-        const m1 = t.testMethod;                
-        m1();                                   
-                                                
-        const t2 = new Test2();                 
-                                                
-        const m2 = t.testMethod.bind(t2);       
-        m2();                                   
-        function fff(m3) {                      
-            m3();                               
-        }                                       
-                                                
-        fff(t.testMethod.bind(t2));             
+     class Test {                                           
+        private _pointerInput: (p: any, s: any) => void;        
+                                                                
+        public runTest() {                                      
+            this._pointerInput = (p, s) => {                    
+                console.log(p.obj);                             
+                console.log(s.obj);                             
+            };                                                  
+                                                                
+            this.add(this._pointerInput);                       
+        }                                                       
+                                                                
+        public add(callback: (eventData: any, eventState: any) => void) {   
+            callback({ obj: 1 }, { obj: 2});                    
+        }                                                       
+    }                                                           
+                                                                
+    const t = new Test();                                       
+    t.runTest();                                                

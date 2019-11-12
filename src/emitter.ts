@@ -2611,7 +2611,8 @@ export class Emitter {
 
         const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
         const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
-        const methodAccess = symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+        const methodAccess = symbolInfo
+                && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
                 && node.parent.kind !== ts.SyntaxKind.CallExpression;
         const getAccess = symbolInfo
             && symbolInfo.declarations
