@@ -632,7 +632,9 @@ struct array : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
-    any& operator[] (T t);
+    any& operator[] (T t) {
+        return _values[(size_t)t];
+    }
 
     friend std::ostream& operator << (std::ostream& os, array val)
     {
@@ -662,14 +664,18 @@ struct object : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
-    const any& operator[] (T t) const;
+    const any& operator[] (T t) const {
+        return mutable_(_values)[std::to_string(t)];
+    }
 
     const any& operator[] (const char* s) const;
 
     const any& operator[] (std::string s) const;
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
-    any& operator[] (T t);
+    any& operator[] (T t) {
+        return _values[std::to_string(t)];
+    }
 
     any& operator[] (const char* s);
 
