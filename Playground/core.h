@@ -772,7 +772,8 @@ struct any {
         throw "wrong type";
     }
 
-    operator string() {
+    using js_string = js::string;
+    operator js_string() {
         if (_type == anyTypeId::string) {
             return *(js::string*)_value._data;
         }
@@ -835,6 +836,16 @@ struct any {
         return !(*this == other);
     }
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any operator +(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number + t);
+        }
+
+        throw "not implemented";
+    }
+
     any operator +(any t) {
         switch (_type) {
             case anyTypeId::number:
@@ -857,6 +868,16 @@ struct any {
 
         throw "not implemented";        
     }    
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any operator -(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number - t);
+        }
+
+        throw "not implemented";
+    }
 
     any operator -(any t) {
         switch (_type) {

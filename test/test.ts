@@ -1,14 +1,9 @@
-	export class Test {                                                
-            constructor(t1: any, t2?: any, t3?: any) {                      
-                console.log(t1);                                            
-                console.log(t2);                                            
-                console.log(t3);                                            
+	export class Observable<T> {                                       
+            constructor(onObserverAdded?: (observer: any) => void) {        
+                console.log("Run");                                         
+                if (onObserverAdded) {                                      
+                    console.log("Error");                                   
+                }                                                           
             }                                                               
         }                                                                   
-        function getValue(val) {                                            
-            return val + 1;                                                 
-        }                                                                   
-        function run(val) {                                                 
-            new Test(getValue(val));                                        
-        }                                                                   
-        run(10);                                                            
+        new Observable();                                                   
