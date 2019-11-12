@@ -2611,7 +2611,8 @@ export class Emitter {
 
         const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
         const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
-        const methodAccess = symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration;
+        const methodAccess = symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+                && node.parent.kind !== ts.SyntaxKind.CallExpression;
         const getAccess = symbolInfo
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
@@ -2652,8 +2653,7 @@ export class Emitter {
                 this.writer.writeString('"]');
                 return;
             } else if (this.resolver.isStaticAccess(typeInfo)
-                || node.expression.kind === ts.SyntaxKind.SuperKeyword
-                || symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration) {
+                || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
                 this.writer.writeString('::');
             } else {
                 this.writer.writeString('->');

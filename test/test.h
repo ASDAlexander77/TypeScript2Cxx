@@ -4,15 +4,15 @@
 
 using namespace js;
 
-class Test;
-extern Test* t;
-extern std::function<void()> m2;
+class Class1;
+extern Class1* c;
 
-class Test : public object {
+class Class1 : public object {
 public:
-    js::number val = 10;
+    js::number i;
 
-    virtual void testMethod();
+    Class1(js::number i_);
+    virtual void show();
 };
 
 #endif
