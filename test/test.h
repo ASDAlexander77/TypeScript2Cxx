@@ -4,40 +4,40 @@
 
 using namespace js;
 
-class Node;
-class TargetCamera;
-class ArcCamera;
+class Node1;
+class AbstractScene;
+class Scene;
+class Camera;
+extern Scene* s;
+extern Camera* c;
 
-template <typename T>
-class IBehaviorAware : public object {
+class Node1 : public object {
 public:
-    virtual void init() = 0;
+    Scene* _scene;
+
+    Node1(Scene* scene);
+    virtual Scene* getScene();
+    virtual any get_parent();
+    virtual void set_parent(any v);
 };
 
-class Node : public IBehaviorAware<Node > {
+class AbstractScene : public object {
 public:
-    any metadata = nullptr;
-
-    Array<any>* animations = new Array<any>();
-
-    Node(any scene = nullptr);
-    virtual void init();
-    virtual void set_x(any v);
-    virtual any get_x();
 };
 
-class TargetCamera : public Node {
+class Scene : public AbstractScene {
 public:
-    TargetCamera();
-    virtual void set_x1(any v);
-    virtual any get_x1();
+    Array<any>* cameras = new Array<any>();
+
+    virtual void addCamera(Camera* newCamera);
+    virtual any get_parent();
+    virtual void set_parent(any v);
 };
 
-class ArcCamera : public TargetCamera {
+class Camera : public Node1 {
 public:
-    ArcCamera();
-    virtual void set_x2(any v);
-    virtual any get_x2();
+    Camera(Scene* scene);
+    virtual any get_parent();
 };
 
 #endif

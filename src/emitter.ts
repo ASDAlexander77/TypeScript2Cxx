@@ -2315,6 +2315,8 @@ export class Emitter {
             });
 
             this.writer.EndBlock(true);
+        } else {
+            this.writer.writeString('{}');
         }
     }
 
@@ -2384,6 +2386,7 @@ export class Emitter {
             this.writer.writeString(')');
         } else {
             let isWriting = false;
+            let dereference = true;
             if (node.parent.kind === ts.SyntaxKind.BinaryExpression)
             {
                 const binaryExpression = <ts.BinaryExpression>node.parent;
@@ -2391,7 +2394,12 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
-            this.writer.writeString('(*');
+            dereference = type.kind !== ts.SyntaxKind.TypeLiteral;
+
+            if (dereference)
+            {
+                this.writer.writeString('(*');
+            }
 
             if (!isWriting) {
                 this.writer.writeString('const_(');
@@ -2403,7 +2411,12 @@ export class Emitter {
                 this.writer.writeString(')');
             }
 
-            this.writer.writeString(')[');
+            if (dereference)
+            {
+                this.writer.writeString(')');
+            }
+
+            this.writer.writeString('[');
             this.processExpression(node.argumentExpression);
             this.writer.writeString(']');
         }

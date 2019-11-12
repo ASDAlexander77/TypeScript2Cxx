@@ -160,9 +160,14 @@ struct number : public undefined_t {
     number () : _value(0), undefined_t(true) {
     }
 
+    template<class T>
+    number (T* initValue) {
+        _value = static_cast<double>(reinterpret_cast<unsigned long long>(initValue));
+    }
+
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
     number (T initValue) {
-        _value = static_cast<T>(initValue);
+        _value = static_cast<double>(initValue);
     }
 
     number (const undefined_t& undef) : undefined_t(true) {
