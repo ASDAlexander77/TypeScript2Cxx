@@ -44,10 +44,12 @@ constexpr const T* const_(T* t) {
 	return static_cast<const T*>(t);
 }
 
+/*
 template <typename T> 
 constexpr const T const_(T t) {
 	return static_cast<const T>(t);
 }
+*/
 
 template <typename T> 
 constexpr T& mutable_(const T& t) {
@@ -665,7 +667,7 @@ struct ObjectKeys {
     }
 
     const std::string& operator*() const {
-        return (*_index).first;
+        return _index->first;
     }
 
     bool operator!=(const iterator& rhs) const { 
