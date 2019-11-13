@@ -530,17 +530,36 @@ struct string : public undefined_t {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
-    string& operator+ (T t) {
+    string operator+ (T t) {
+        string tmp(_value);
+        tmp._value.append(std::to_string(t));
+        return tmp;
+    }
+
+    string operator+ (number value) {
+        string tmp(_value);
+        tmp._value.append(value.operator std::string());
+        return *this;
+    }
+
+    string operator+ (string value) {
+        string tmp(_value);
+        tmp._value.append(value._value);
+        return *this;
+    }
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    string& operator+= (T t) {
         _value.append(std::to_string(t));
         return *this;
     }
 
-    string& operator+ (number value) {
+    string& operator+= (number value) {
         _value.append(value.operator std::string());
         return *this;
     }
 
-    string& operator+ (string value) {
+    string& operator+= (string value) {
         _value.append(value._value);
         return *this;
     }
