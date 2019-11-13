@@ -1,4 +1,6 @@
-	var someArray = [9, 2, 5];                             
-        for (var item of someArray) {                           
-            console.log(item);                                  
-        }
+	function push(...objs: any[]) {                        
+            for (const obj of objs) {                           
+                console.log(obj);                               
+            }                                                   
+        }                                                       
+        push(<any>1, <any>2, <any>3);                           

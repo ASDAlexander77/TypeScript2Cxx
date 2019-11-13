@@ -73,6 +73,11 @@ constexpr T& deref_(T* t) {
 	return *t;
 }
 
+template <typename T> 
+constexpr T& deref_(T& t) {
+	return t;
+}
+
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
         return (T)((long)op1 | (long)op1);
@@ -502,16 +507,13 @@ struct string : public undefined_t {
 
     std::string _value;
 
-    size_t length;
-
     string () : _value(), undefined_t(true) {
     }    
 
-    string (std::string value) : _value(value), length(value.length()) {
+    string (std::string value) : _value(value) {
     }
 
     string (const char* value) : _value(value) {
-        length = _value.length();
     }    
 
     string (const undefined_t& undef) : undefined_t(true) {
@@ -603,6 +605,14 @@ struct string : public undefined_t {
     string substring(number begin, number end) {
         return string(_value.substr(begin, end - begin));
     }    
+
+    auto begin() -> decltype(_value.begin()) {
+        return _value.begin();
+    }
+
+    auto end() -> decltype(_value.end()) {
+        return _value.end();
+    }
 
     friend std::ostream& operator << (std::ostream& os, string val)
     {
