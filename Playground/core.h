@@ -78,6 +78,16 @@ constexpr T& deref_(T& t) {
 	return t;
 }
 
+template <typename T> 
+constexpr auto keys_(T& t) -> decltype(t->keys()) {
+	return t->keys();
+}
+
+template <typename T> 
+constexpr auto values_(T t) -> decltype(deref_(t)) {
+	return deref_(t);
+}
+
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
         return (T)((long)op1 | (long)op1);

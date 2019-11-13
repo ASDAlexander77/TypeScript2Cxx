@@ -2112,9 +2112,9 @@ export class Emitter {
         const initVar = <any>node.initializer;
         initVar.__ignore_type = true;
         this.processExpression(initVar);
-        this.writer.writeString(' : ');
+        this.writer.writeString(' : keys_(');
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine('->keys())');
+        this.writer.writeStringNewLine('))');
         this.processStatement(node.statement);
     }
 
@@ -2123,7 +2123,7 @@ export class Emitter {
         const initVar = <any>node.initializer;
         initVar.__ignore_type = true;
         this.processExpression(initVar);
-        this.writer.writeString(' : deref_(');
+        this.writer.writeString(' : values_(');
         this.processExpression(node.expression);
         this.writer.writeStringNewLine('))');
         this.processStatement(node.statement);

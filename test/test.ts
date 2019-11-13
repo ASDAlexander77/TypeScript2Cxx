@@ -1,6 +1,5 @@
-	function push(...objs: any[]) {                        
-            for (const obj of objs) {                           
-                console.log(obj);                               
-            }                                                   
-        }                                                       
-        push(<any>1, <any>2, <any>3);                           
+	let vals = [10, 20, 30];                               
+        let i;                                                  
+        for (i in vals) {                                       
+            console.log(vals[i]);                               
+        }
