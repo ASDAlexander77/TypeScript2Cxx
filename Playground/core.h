@@ -870,6 +870,22 @@ struct any {
         throw "not implemented";
     }
 
+    any& operator ++() {
+        switch (_type) {
+            case anyTypeId::number:
+                _value._number += 1;
+                return *this;
+        }
+
+        throw "not implemented";        
+    }    
+
+    any operator ++(int) {
+        any tmp(*this); 
+        operator++();
+        return tmp;
+    }    
+
     any& operator +=(js::number other){
         switch (_type) {
             case anyTypeId::number:
@@ -1048,7 +1064,7 @@ struct any {
     bool operator <(T t) {
         switch (_type) {
             case anyTypeId::number:
-                return _value._number._value > t;
+                return _value._number._value < t;
         }
 
         throw "not implemented";        
@@ -1067,7 +1083,7 @@ struct any {
     bool operator <=(T t) {
         switch (_type) {
             case anyTypeId::number:
-                return _value._number._value > t;
+                return _value._number._value <= t;
         }
 
         throw "not implemented";        

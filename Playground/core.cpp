@@ -30,7 +30,7 @@ js::string number::toString(js::number radix) {
 } 
 
 // Array
-array::array() : _values(), undefined_t(true) {
+array::array() : _values(), undefined_t(false) {
 }
 
 array::array (std::initializer_list<any> values) : _values(values) {
@@ -39,7 +39,7 @@ array::array (std::initializer_list<any> values) : _values(values) {
 // End of Array
 
 // Object
-object::object() : _values(), undefined_t(true) {
+object::object() : _values(), undefined_t(false) {
 }
 
 object::object (std::initializer_list<pair> values) {
