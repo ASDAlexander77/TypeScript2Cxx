@@ -4,6 +4,6 @@
 
 using namespace js;
 
-extern any i;
+extern Array<js::number>* vals;
 
 #endif

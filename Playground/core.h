@@ -1263,6 +1263,38 @@ struct ElementReference {
 */
 
 template < typename T >
+struct ArrayKeys {
+    typedef ArrayKeys<T> iterator;
+
+    T _index;
+    T _end;
+
+    ArrayKeys(T end_) : _index(0), _end(end_) {
+    }
+
+    iterator& begin() {
+        return *this;
+    }
+
+    iterator& end() {
+        return *this;
+    }
+
+    const T& operator*() const {
+        return _index;
+    }
+
+    bool operator!=(const iterator& rhs) const { 
+        return _index != rhs._end; 
+    }
+
+    iterator& operator++() {
+        _index++;
+        return *this;
+    }
+};
+
+template < typename T >
 struct ReadonlyArray {
     number length;
     std::vector<T> _values;
@@ -1271,6 +1303,10 @@ struct ReadonlyArray {
     }
 
     ReadonlyArray(std::initializer_list<T> values) : _values(values) {
+    }
+
+    ArrayKeys<std::size_t> keys() {
+        return ArrayKeys<std::size_t>(_values.size());
     }
 
     template<class I, class = std::enable_if<std::is_integral_v<I> || std::is_same_v<I, number>>>
