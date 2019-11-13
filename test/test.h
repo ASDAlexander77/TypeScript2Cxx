@@ -4,6 +4,6 @@
 
 using namespace js;
 
-extern object attached;
+extern Array<js::number>* someArray;
 
 #endif

@@ -2123,9 +2123,9 @@ export class Emitter {
         const initVar = <any>node.initializer;
         initVar.__ignore_type = true;
         this.processExpression(initVar);
-        this.writer.writeString(' : ');
+        this.writer.writeString(' : deref_(');
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine(')');
+        this.writer.writeStringNewLine('))');
         this.processStatement(node.statement);
     }
 

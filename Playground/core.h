@@ -68,6 +68,11 @@ constexpr T mutable_(const T t) {
 }
 */
 
+template <typename T> 
+constexpr T& deref_(T* t) {
+	return *t;
+}
+
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
         return (T)((long)op1 | (long)op1);
@@ -1467,6 +1472,14 @@ struct Array : public ReadonlyArray<T> {
     T pop() {
         return _values.pop_back();
     }    
+
+    auto begin() -> decltype(_values.begin()) {
+        return _values.begin();
+    }
+
+    auto end() -> decltype(_values.end()) {
+        return _values.end();
+    }
 };
 
 template < typename I, typename T> 

@@ -1,4 +1,4 @@
-	const attached = { type: function() { console.log("works"); } }; 
-        for (var cam in attached) {                             
-            attached[cam]();                                    
+	var someArray = [9, 2, 5];                             
+        for (var item of someArray) {                           
+            console.log(item);                                  
         }
