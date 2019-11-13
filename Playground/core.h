@@ -74,7 +74,7 @@ constexpr T& deref_(T* t) {
 }
 
 template <typename T> 
-constexpr T& deref_(T& t) {
+constexpr T deref_(T t) {
 	return t;
 }
 

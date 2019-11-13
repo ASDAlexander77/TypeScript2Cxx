@@ -1,5 +1,4 @@
-	let vals = [10, 20, 30];                               
-        let i;                                                  
-        for (i in vals) {                                       
-            console.log(vals[i]);                               
+	var hello = "is";                                      
+        for (var _char of hello) {                              
+            console.log(<any>_char);                            
         }
