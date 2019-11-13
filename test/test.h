@@ -5,6 +5,7 @@
 using namespace js;
 
 extern object person;
+extern string text;
 extern any x;
 
 #endif

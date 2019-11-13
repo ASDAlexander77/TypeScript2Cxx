@@ -1,6 +1,8 @@
-	let person = {fname:"John", lname:"Doe", age:25};      
+	let person = {};                                       
                                                                 
+        let text = "";                                          
         let x;                                                  
         for (x in person) {                                     
-            console.log(person[x]);                             
-        }
+            text += person[x] + " ";                            
+        }                                                       
+        console.log(text);                                      

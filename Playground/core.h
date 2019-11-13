@@ -893,7 +893,7 @@ struct any {
         throw "not implemented";
     }
 
-    any operator +(any t) {
+    const any operator +(any t) const {
         switch (_type) {
             case anyTypeId::number:
                 switch (t._type) {
@@ -904,6 +904,10 @@ struct any {
         }
 
         throw "not implemented";
+    }
+
+    any operator +(any t) {
+        return const_(this)->operator +(t);
     }
 
     any& operator ++() {
