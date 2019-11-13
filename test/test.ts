@@ -1,8 +1,4 @@
-	let person = {};                                       
-                                                                
-        let text = "";                                          
-        let x;                                                  
-        for (x in person) {                                     
-            text += person[x] + " ";                            
-        }                                                       
-        console.log(text);                                      
+	const attached = { type: function() { console.log("works"); } }; 
+        for (var cam in attached) {                             
+            attached[cam]();                                    
+        }

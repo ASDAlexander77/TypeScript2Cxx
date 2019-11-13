@@ -614,10 +614,12 @@ static js::string operator ""_S(const char* s, std::size_t size) {
 }
 
 struct function {
-    virtual void invoke(std::initializer_list<int> args) = 0;
+    virtual void invoke() = 0;
+
+    virtual void invoke(std::initializer_list<any> args) = 0;
 
     void operator()(void) {
-        invoke({});
+        invoke();
     }
 
     template < typename ... Args > void operator()(Args... args) {
@@ -636,8 +638,12 @@ struct function_t : public function {
     function_t (const F& f) : _f(f) {
     } 
 
-    virtual void invoke(std::initializer_list<int> args) override {
-        auto _result = std::invoke(_f, 1);
+    virtual void invoke() override {
+        std::invoke(_f);
+    }
+
+    virtual void invoke(std::initializer_list<any> args) override {
+        //auto _result = std::invoke(_f, 1);
     }
 };
 
@@ -764,6 +770,7 @@ struct any {
         js::boolean _boolean;
         js::number _number;
         void* _data;
+        js::function* _function;
 
         constexpr anyType(): _data(nullptr) {
         }
@@ -779,6 +786,9 @@ struct any {
         }
 
         constexpr anyType(void* ptr): _data(ptr) {
+        }        
+
+        constexpr anyType(js::function* funcPtr): _function(funcPtr) {
         }        
     };
 
@@ -810,10 +820,9 @@ struct any {
     any(const js::string& value) : _type(anyTypeId::string), _value((void*)new js::string(value)) {
     }
 
-/*
-    any(const js::function& value) : _type(anyTypeId::function), _value((void*)new js::function(value)) {
+    template< class F >
+    any(const js::function_t<F>& value) : _type(anyTypeId::function), _value((js::function*)new js::function_t<F>(value)) {
     }
-*/
 
     any(const js::array& value) : _type(anyTypeId::array), _value((void*)new js::array(value)) {
     }   
@@ -1146,6 +1155,42 @@ struct any {
         }
 
         throw "not implemented";        
+    }    
+
+    void operator()(void) const {
+        switch (_type) {
+            case anyTypeId::function:
+                _value._function->invoke();
+                return;
+        }
+
+        throw "not implemented";   
+    }
+
+    template < typename ... Args > void operator()(Args... args) const {
+        //invoke({args...});
+    }
+
+    template < typename R, typename ... Args > R operator()(Args... args) const {
+        //invoke({args...});
+    }        
+
+    void operator()(void) {
+        switch (_type) {
+            case anyTypeId::function:
+                _value._function->invoke();
+                return;
+        }
+
+        throw "not implemented";   
+    }
+
+    template < typename ... Args > void operator()(Args... args) {
+        //invoke({args...});
+    }
+
+    template < typename R, typename ... Args > R operator()(Args... args) {
+        //invoke({args...});
     }    
 
     js::string typeOf()

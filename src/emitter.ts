@@ -1725,7 +1725,7 @@ export class Emitter {
             } else if (isArrowFunction || isFunctionExpression) {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString('[&]');
+                this.writer.writeString('js::function_t([&]');
             }
         }
 
@@ -1852,6 +1852,10 @@ export class Emitter {
                 });
 
                 this.writer.EndBlock();
+
+                if (writeAsLambdaCFunction && (isArrowFunction || isFunctionExpression)) {
+                    this.writer.writeString(')');
+                }
             }
         }
     }

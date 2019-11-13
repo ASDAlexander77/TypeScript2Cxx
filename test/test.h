@@ -4,8 +4,6 @@
 
 using namespace js;
 
-extern object person;
-extern string text;
-extern any x;
+extern object attached;
 
 #endif
