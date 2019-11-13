@@ -646,6 +646,38 @@ struct array : public undefined_t {
     }
 };
 
+template< typename T >
+struct ObjectKeys {
+    typedef ObjectKeys<T> iterator;
+
+    T _index;
+    T _end;
+
+    ObjectKeys(T begin_, T end_) : _index(begin_), _end(end_) {
+    }
+
+    iterator& begin() {
+        return *this;
+    }
+
+    iterator& end() {
+        return *this;
+    }
+
+    const std::string& operator*() const {
+        return (*_index).first;
+    }
+
+    bool operator!=(const iterator& rhs) const { 
+        return _index != rhs._end; 
+    }
+
+    iterator& operator++() {
+        ++_index;
+        return *this;
+    }
+};
+
 struct object : public undefined_t {
 
     using pair = std::pair<std::string, any>;
@@ -658,6 +690,8 @@ struct object : public undefined_t {
 
     object (const undefined_t& undef) : undefined_t(true) {
     }    
+
+    ObjectKeys<decltype(_values.begin())> keys();
 
     constexpr object* operator->() {
         return this;

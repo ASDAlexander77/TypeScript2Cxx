@@ -1,0 +1,46 @@
+
+C:\Temp\TypeScript2Cxx\test>call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" 
+**********************************************************************
+** Visual Studio 2017 Developer Command Prompt v15.9.14
+** Copyright (c) 2017 Microsoft Corporation
+**********************************************************************
+core.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\include\utility(320): error C2079: 'std::pair<const _Kty,_Ty>::second' uses undefined struct 'js::any'
+        with
+        [
+            _Kty=std::string,
+            _Ty=js::any
+        ]
+c:\temp\typescript2cxx\playground\core.h(695): note: see reference to class template instantiation 'std::pair<const _Kty,_Ty>' being compiled
+        with
+        [
+            _Kty=std::string,
+            _Ty=js::any
+        ]
+test.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.16.27023\include\utility(320): error C2079: 'std::pair<const _Kty,_Ty>::second' uses undefined struct 'js::any'
+        with
+        [
+            _Kty=std::string,
+            _Ty=js::any
+        ]
+C:\Temp\TypeScript2Cxx\Playground\core.h(695): note: see reference to class template instantiation 'std::pair<const _Kty,_Ty>' being compiled
+        with
+        [
+            _Kty=std::string,
+            _Ty=js::any
+        ]
+test.cpp(16): error C2668: 'js::const_': ambiguous call to overloaded function
+C:\Temp\TypeScript2Cxx\Playground\core.h(48): note: could be 'const T js::const_<js::object>(T)'
+        with
+        [
+            T=js::object
+        ]
+C:\Temp\TypeScript2Cxx\Playground\core.h(38): note: or       'const T &js::const_<js::object>(T &)'
+        with
+        [
+            T=js::object
+        ]
+test.cpp(16): note: while trying to match the argument list '(js::object)'
+test.cpp(16): error C2672: 'js::Console::log': no matching overloaded function found
+Generating Code...

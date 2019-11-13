@@ -4,6 +4,7 @@
 
 using namespace js;
 
-extern Array<js::number>* vals;
+extern object person;
+extern any x;
 
 #endif
