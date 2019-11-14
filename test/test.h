@@ -4,6 +4,6 @@
 
 using namespace js;
 
-extern object attached;
+extern js::number a;
 
 #endif

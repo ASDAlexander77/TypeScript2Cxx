@@ -32,7 +32,10 @@ struct any;
 struct object;
 struct string;
 
-inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue);
+inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
+{
+    return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
+}
 
 template <typename T> 
 constexpr const T& const_(T& t) {
