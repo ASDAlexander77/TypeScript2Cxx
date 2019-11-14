@@ -1764,7 +1764,8 @@ export class Emitter {
 
             // extra symbol to change parameter name
             if (node.kind === ts.SyntaxKind.Constructor
-                && this.hasAccessModifier(element.modifiers)) {
+                && this.hasAccessModifier(element.modifiers)
+                || element.dotDotDotToken) {
                 this.writer.writeString('_');
             }
 
@@ -1851,6 +1852,16 @@ export class Emitter {
                 }
             } else if (node.kind != ts.SyntaxKind.FunctionDeclaration || implementationMode) {
                 this.writer.BeginBlock();
+
+                node.parameters
+                    .filter(e => e.dotDotDotToken)
+                    .forEach(element => {
+                        this.writer.writeString('array ');
+                        this.processExpression(<ts.Identifier>element.name);
+                        this.writer.writeString(' = {');
+                        this.processExpression(<ts.Identifier>element.name);
+                        this.writer.writeStringNewLine('_...};');
+                    });
 
                 (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
                     this.processStatement(element);
@@ -2409,6 +2420,7 @@ export class Emitter {
 
     private processElementAccessExpression(node: ts.ElementAccessExpression): void {
 
+        const symbolInfo = this.resolver.getSymbolAtLocation(node.expression);
         const type = this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node.expression));
         if (type.kind === ts.SyntaxKind.TupleType) {
             // tuple
@@ -2431,7 +2443,7 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
-            dereference = type.kind !== ts.SyntaxKind.TypeLiteral;
+            dereference = type.kind !== ts.SyntaxKind.TypeLiteral && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
 
             if (dereference)
             {

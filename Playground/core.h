@@ -682,7 +682,7 @@ struct array : public undefined_t {
     }    
 
     template<class T, class = std::enable_if<std::is_integral_v<T> || std::is_same_v<T, number>>>
-    any& operator[] (T t) {
+    const any& operator[] (T t) const {
         return _values[(size_t)t];
     }
 

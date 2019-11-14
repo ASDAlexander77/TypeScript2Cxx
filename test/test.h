@@ -5,15 +5,16 @@
 using namespace js;
 
 template <typename ...Args>
-void push(Args... objs);
+void buildName(string firstName, Args... restOfName_);
 
 template <typename ...Args>
-void push(Args... objs)
+void buildName(string firstName, Args... restOfName_)
 {
-    for (auto& obj : {objs...})
-    {
-        console->log(obj);
-    }
+    array restOfName = {restOfName_...};
+    console->log(firstName);
+    console->log(const_(restOfName)[0]);
+    console->log(const_(restOfName)[1]);
+    console->log(const_(restOfName)[2]);
 };
 
 
