@@ -4,6 +4,6 @@
 
 using namespace js;
 
-extern js::number a;
+void push();
 
 #endif

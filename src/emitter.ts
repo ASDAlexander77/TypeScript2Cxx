@@ -2130,9 +2130,32 @@ export class Emitter {
         const initVar = <any>node.initializer;
         initVar.__ignore_type = true;
         this.processExpression(initVar);
-        this.writer.writeString(' : values_(');
+
+        const symbolInfo = this.resolver.getSymbolAtLocation(node.expression);
+        const typeNode = this.resolver.getOrResolveTypeOf(node.expression);
+        const type = this.resolver.typeToTypeNode(typeNode);
+        const dotDotDot = !!(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
+        const dereference = type.kind !== ts.SyntaxKind.TypeLiteral && !dotDotDot;
+
+        this.writer.writeString(' : ');
+        if (dereference) {
+            this.writer.writeString('*(');
+        }
+
+        if (dotDotDot) {
+            this.writer.writeString('{');
+        }
+
         this.processExpression(node.expression);
-        this.writer.writeStringNewLine('))');
+        if (dotDotDot) {
+            this.writer.writeString('...}');
+        }
+
+        if (dereference) {
+            this.writer.writeString(')');
+        }
+
+        this.writer.writeStringNewLine(')');
         this.processStatement(node.statement);
     }
 
