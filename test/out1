@@ -1,10 +1,1459 @@
+C:\Program Files (x86)\nodejs\node.exe --inspect-brk=17349 node_modules\mocha\bin\_mocha -u tdd --timeout 999999 --colors -r ts-node/register C:\Temp\TypeScript2Cxx\src/../spec/**/*.spec.ts
+Debugger listening on ws://127.0.0.1:17349/dd2e3dc0-e2ba-4865-abbd-dd5814b08832
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
 
-C:\Temp\TypeScript2Cxx\test>call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsDevCmd.bat" 
-**********************************************************************
-** Visual Studio 2017 Developer Command Prompt v15.9.14
-** Copyright (c) 2017 Microsoft Corporation
-**********************************************************************
-core.cpp
-test.cpp
-test.cpp(13): error C2676: binary '+=': 'js::string' does not define this operator or a conversion to a type acceptable to the predefined operator
-Generating Code...
+  Basic Types
+    v simple bool/null value: local (4656ms)
+    v Basic Types (4410ms)
+    - Template Strings
+    1) Template Strings
+    v Array (3614ms)
+    v Tuple (3536ms)
+    - Enum
+    v Enum (3507ms)
+    v Const Array with Const Objects (3637ms)
+  Test 1
+    v print "Hello World!" as string const. (3616ms)
+    v print "Hello World!" as variable (3580ms)
+    v print "Hello World!" as function (3627ms)
+    v print "Hello World!" as function declaration (3642ms)
+    v print "Hello World!" as function return (3532ms)
+    v print "Hello World!" as arrow function (3603ms)
+    v print "Hello World!" as direct function call (3587ms)
+    2) var declaration: print - true,1,1.5,Hello World!
+    v equals(var): print - 2 true,1,1.5,Hello World! (3532ms)
+    v equals(local): print - 3 true,1,1.5,Hello World! (3514ms)
+  Breaks
+    v Break/continue for while/do/for (3677ms)
+    v Break/continue for for/in (3554ms)
+    v Break/continue for for/in 2 (3496ms)
+  Classes
+    v Class static member (3565ms)
+    v Class static member with parameter (3509ms)
+    v new instance of Class with parametered member (3482ms)
+    v new instance of Class with parametered member into local (3483ms)
+    v new instance of Class with setting class field (3864ms)
+    v new instance of Class with setting class field via local (3641ms)
+    v new instance of Class with setting class field via global (3758ms)
+    v new instance of Class with setting class default fields (3659ms)
+    v Class private member in constructor (3703ms)
+    v Class inheritance (3527ms)
+    v Class inheritance - with static get accessor (3610ms)
+    v Class inheritance - call super class (3920ms)
+    v Class inheritance - call super class with this (3587ms)
+    v Class inheritance - instance (3614ms)
+    3) Class inheritance - complete example
+    4) Class inheritance - complete example with property
+    5) Class inheritance - complete example with property on base class
+    6) Class inheritance - complete example with property on base class 2
+    7) Class inheritance - complete example with property on base class 3
+    v Class - default ctor - readonly (3446ms)
+    v Class - readonly (3965ms)
+    v Class - call base class constructor (3628ms)
+    v Class - call base class constructor with abstract method and default constructor (3826ms)
+    8) Class - generic
+    9) Class - generic 2
+    v Class - Accessors (3659ms)
+    10) Class - Accessors 2
+    v Class - Static Get Accessors (4041ms)
+    v Class - Static Get/Set Accessors (3472ms)
+    v Class - Get/Set Accessors on base class (3543ms)
+    v Class - Static Properties (3508ms)
+    11) Class - Properties - Arrow Function
+    v Class - static - method call (3481ms)
+    v Class - initializing property without constructor (3526ms)
+    v Class - this in property initialization (3517ms)
+    v Class - constructor with Parameters (3610ms)
+    v Class - constructor with Optional Parameters - 1 (3900ms)
+    v Class - constructor with Optional Parameters - 2 (3832ms)
+    v Class - constructor with Optional Parameters - 2(2) (4333ms)
+    v Class - constructor with Optional Parameters - 2(3) (4135ms)
+    v Class - constructor with Optional Parameters - 3 (3687ms)
+    v Class - constructor with Optional Parameters - 4 (3585ms)
+    v Class - constructor with Default Parameter (3620ms)
+    v Class - constructor with Default Parameter - 2 (3767ms)
+    v Class - constructor with Default Parameter - 3 (3412ms)
+    v Class - constructor with Default Parameter - 5 (3604ms)
+    v Class - constructor with Default Parameter - 6 (3605ms)
+    v Class - base fields are isolated (3568ms)
+    v Class - deep inheritance (3672ms)
+    v Class - deep inheritance 2 (4006ms)
+    v Class - this in static (3736ms)
+    v Class - BUG (count of method return vars) (3672ms)
+    12) Class - BUG (class static method should not have "this" as in param)
+    v Class - BUG (base class has setter and derived not) (3268ms)
+    v Class - BUG (chain call) (3594ms)
+    v Class - BUG (chain call) 2 (3543ms)
+    v Class - class method call by reference (3777ms)
+    13) Class - class bind method call by reference
+    v Class - class static method reference by this reference (3696ms)
+    14) Class - calling chain of lamdas with this
+    - Class - calling method via interface function
+    15) Class - calling method reference via method reference
+  Delete
+    16) Local
+    17) Remove item
+  Discrepancies
+    18) 0 is false in || expressions
+    19) 0 as "any" is false in || expressions
+    20) 0 is false in && expressions
+    21) 0 as "any" is false in && expressions
+    v 0 is false in !<xxx> (3977ms)
+    22) 0 as "any" is false in !<xxx>
+  Export
+    23) Class export
+    24) Class export (import as)
+    25) Class export (default)
+    26) Class export - alias
+  Functions
+    27) Function, Noname function, Arrow function
+    28) Optional Parameters
+    29) Default Parameters
+    30) function 1
+    31) this in function
+    - this 2
+    32) this - in an arrow function
+    v external values (bool) (4045ms)
+    v external values (value) (3885ms)
+    v external values (value) 2 (3868ms)
+    v test generic function (3536ms)
+    33) test function - ...
+    34) test function - ... 2
+    35) test function - union types
+    - test function - method call by reference
+    36) test function - method call by reference
+    37) function var scope
+  InstanceOf
+    38) InstanceOf: number, string, boolean
+  Modules
+    39) Module 1
+    40) Module 2 - nested
+    41) Module 3 - <module1>.<module2>
+    42) Module - export function
+    43) Module - multi blocks
+    44) Module - import only
+    45) Module - static method call with param
+  Objects
+    46) new
+    47) new class
+    48) object - spread assignment
+  Arithmetic Operators
+    49) Binary
+    50) String (strict) concat
+    51) String (any) concat
+    52) String (strict) op +=
+    53) Bitwise
+    v Logical (3431ms)
+    54) Logical = not on boolean
+    v Logical (basic 1) (3314ms)
+    55) Logical (basic 2)
+    56) Logical (basic 3)
+    57) Logical (basic 4)
+    v Logical (basic 5) (3964ms)
+    58) In operator
+  RegExp
+    - Simple RegExp test 1
+    59) Simple RegExp test 1
+    - Simple RegExp test 2
+    60) Simple RegExp test 2
+  Special cases
+    v Multiple assignments(local) (3913ms)
+    v Multiple assignments(global) (3929ms)
+    v Or in assignments(local) (3906ms)
+    v Or in assignments(local) 2 (3681ms)
+    v Or in assignments(local) 3 (3869ms)
+    v Or in assignments(local) 4 (4049ms)
+    v ++/-- prefix/suffix (local) (3971ms)
+    v ++/-- prefix/suffix (global) (3881ms)
+    v ++/-- prefix/suffix (field) (3273ms)
+    v ++/-- prefix/suffix (field and cast) (3313ms)
+    v chain of = (local) (3962ms)
+    v chain of = (global) (3972ms)
+    v chain of = (local) (3806ms)
+    v chain of = (global) (3653ms)
+    v ? : (local) (3707ms)
+    v ? : (global) (4214ms)
+    v ? : (special cases) (3777ms)
+    v ? : (special cases 2) (3948ms)
+    61) ? : (special cases 3)
+    62) = || : (local)
+    v Class - field.value++ - BUG (3603ms)
+  Statements
+    v simple If - bool (4279ms)
+    v simple If/else - bool (4017ms)
+    v simple If - reference (3915ms)
+    v simple If/else - reference (3936ms)
+    v simple do/while (local) (3838ms)
+    v simple do/while (global) (3818ms)
+    v simple while (local) (3914ms)
+    v simple while (global) (3815ms)
+    v simple while - 2 (3820ms)
+    v simple for (local) (3908ms)
+    v simple for (global) (3798ms)
+    v simple for/in (local) (3876ms)
+    v simple for/in (local) 1 (3889ms)
+    v simple for/in (local) 2 (4283ms)
+    v simple for/in (global) 1 (4050ms)
+    v simple for/in (global) 2 (4323ms)
+    v simple for/in (local) empty dictionary (3995ms)
+    v simple for/in (var) (3945ms)
+    v simple for/of (array) - global (3971ms)
+    v simple for/of (array) - local (3845ms)
+    v simple for/of (array) - empty (3793ms)
+    v simple for/of (string) (3857ms)
+    63) simple for/of (params)
+    64) switch (local) 1
+    65) switch (string)
+    66) switch - with for statement
+    67) switch - 1, 2, 3
+  Strings
+    68) index
+  Try/Finally
+    v Simple Try/Finally (3858ms)
+    v Simple Try/Catch/Finally (3828ms)
+  TypeOf
+    v TypeOf: string (3918ms)
+  Undefined/null cases
+    69) strict equals/not equals
+    70) not strict equals/not equals
+    71) strict 0
+    72) strict ""
+    73) not strict 0
+    74) not strict ""
+    75) undefined default params with undefined
+  Variable Declarations
+    v var (3750ms)
+    v var in function (3689ms)
+    76) var access variables within other functions
+    - var access variables within other functions 2
+    77) var access variables within other functions 3 (multi-level)
+    78) var Re-declarations and Shadowing
+    v Scoped locals (3611ms)
+    79) const declarations
+    - Array destructuring
+  121 passing (12m)
+  9 pending
+  79 failing
+  1) Basic Types
+       Template Strings:
+
+      AssertionError: expected 'Hello, my name is Bob Bobbington.                                                                                I\'ll be 38.000000 years old next month.\r\n' to equal 'Hello, my name is \r\n'
+      + expected - actual
+
+      -Hello, my name is Bob Bobbington.                                                                                I'll be 38.000000 years old next month.
+      +Hello, my name is 
+      
+      at Context.<anonymous> (spec\basic_types.spec.ts:51:51)
+      at processImmediate (internal/timers.js:439:21)
+
+  2) Test 1
+       var declaration: print - true,1,1.5,Hello World!:
+
+      AssertionError: expected 'Hello World!\r\n' to equal 'true\r\n1\r\n1.5\r\nHello World!\r\n'
+      + expected - actual
+
+      +true
+      +1
+      +1.5
+       Hello World!
+      
+      at Context.<anonymous> (spec\basic.spec.ts:65:17)
+      at processImmediate (internal/timers.js:439:21)
+
+  3) Classes
+       Class inheritance - complete example:
+
+      AssertionError: expected 'Hello, my name is Howard and I work in Sales.\r\n' to equal 'Hello, my name is \r\n'
+      + expected - actual
+
+      -Hello, my name is Howard and I work in Sales.
+      +Hello, my name is 
+      
+      at Context.<anonymous> (spec\class.spec.ts:233:118)
+      at processImmediate (internal/timers.js:439:21)
+
+  4) Classes
+       Class inheritance - complete example with property:
+
+      AssertionError: expected 'Hello, my name is Howard and I work in Sales.\r\n' to equal 'Hello, my name is \r\n'
+      + expected - actual
+
+      -Hello, my name is Howard and I work in Sales.
+      +Hello, my name is 
+      
+      at Context.<anonymous> (spec\class.spec.ts:257:74)
+      at processImmediate (internal/timers.js:439:21)
+
+  5) Classes
+       Class inheritance - complete example with property on base class:
+
+      AssertionError: expected 'Hello, my name is \r\n' to equal 'Hello, my name is Howard and I work in Sales.\r\n'
+      + expected - actual
+
+      -Hello, my name is 
+      +Hello, my name is Howard and I work in Sales.
+      
+      at Context.<anonymous> (spec\class.spec.ts:302:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  6) Classes
+       Class inheritance - complete example with property on base class 2:
+
+      AssertionError: expected 'Hello, my name is \r\n' to equal 'Hello, my name is Howard and I work in Sales.\r\n'
+      + expected - actual
+
+      -Hello, my name is 
+      +Hello, my name is Howard and I work in Sales.
+      
+      at Context.<anonymous> (spec\class.spec.ts:334:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  7) Classes
+       Class inheritance - complete example with property on base class 3:
+
+      AssertionError: expected 'Hello, my name is \r\n' to equal 'Hello, my name is Howard and I work in Sales.\r\n'
+      + expected - actual
+
+      -Hello, my name is 
+      +Hello, my name is Howard and I work in Sales.
+      
+      at Context.<anonymous> (spec\class.spec.ts:373:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  8) Classes
+       Class - generic:
+
+      AssertionError: expected 'asd\r\nasd\r\n' to equal 'test\r\n'
+      + expected - actual
+
+      -asd
+      -asd
+      +test
+      
+      at Context.<anonymous> (spec\class.spec.ts:442:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  9) Classes
+       Class - generic 2:
+
+      AssertionError: expected '2\r\n1\r\n' to equal 'asd\r\nasd\r\n'
+      + expected - actual
+
+      -2
+      -1
+      +asd
+      +asd
+      
+      at Context.<anonymous> (spec\class.spec.ts:444:60)
+      at processImmediate (internal/timers.js:439:21)
+
+  10) Classes
+       Class - Accessors 2:
+
+      AssertionError: expected 'Hello, my name is Howard and I work in Sales.\r\n' to equal 'Hello, my name is \r\n'
+      + expected - actual
+
+      -Hello, my name is Howard and I work in Sales.
+      +Hello, my name is 
+      
+      at Context.<anonymous> (spec\class.spec.ts:489:101)
+      at processImmediate (internal/timers.js:439:21)
+
+  11) Classes
+       Class - Properties - Arrow Function:
+
+      AssertionError: expected 'test\r\n' to equal '200\r\n40\r\n'
+      + expected - actual
+
+      -test
+      +200
+      +40
+      
+      at Context.<anonymous> (spec\class.spec.ts:578:76)
+      at processImmediate (internal/timers.js:439:21)
+
+  12) Classes
+       Class - BUG (class static method should not have "this" as in param):
+
+      AssertionError: expected '0\r\n0\r\n0\r\n' to equal 'Run\r\n'
+      + expected - actual
+
+      -0
+      -0
+      -0
+      +Run
+      
+      at Context.<anonymous> (spec\class.spec.ts:1026:116)
+      at processImmediate (internal/timers.js:439:21)
+
+  13) Classes
+       Class - class bind method call by reference:
+
+      AssertionError: expected '10\r\n' to equal '10\r\n20\r\n20\r\n'
+      + expected - actual
+
+       10
+      +20
+      +20
+      
+      at Context.<anonymous> (spec\class.spec.ts:1232:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  14) Classes
+       Class - calling chain of lamdas with this:
+
+      AssertionError: expected '10\r\n' to equal '10\r\n20\r\n'
+      + expected - actual
+
+       10
+      +20
+      
+      at Context.<anonymous> (spec\class.spec.ts:1283:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  15) Classes
+       Class - calling method reference via method reference:
+
+      AssertionError: expected '10\r\n' to equal '1\r\n2\r\n'
+      + expected - actual
+
+      -10
+      +1
+      +2
+      
+      at Context.<anonymous> (spec\class.spec.ts:1328:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  16) Delete
+       Local:
+
+      AssertionError: expected '10\r\n' to equal 'undefined\r\n'
+      + expected - actual
+
+      -10
+      +undefined
+      
+      at Context.<anonymous> (spec\delete.spec.ts:11:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  17) Delete
+       Remove item:
+
+      AssertionError: expected '10\r\n' to equal 'obj2\r\nvalue\r\n'
+      + expected - actual
+
+      -10
+      +obj2
+      +value
+      
+      at Context.<anonymous> (spec\delete.spec.ts:21:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  18) Discrepancies
+       0 is false in || expressions:
+
+      AssertionError: expected '10\r\n' to equal 'null\r\nnull\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'
+      + expected - actual
+
+      -10
+      +null
+      +null
+      +1
+      +0
+      +0
+      +1
+      +1
+      +1
+      +1
+      
+      at Context.<anonymous> (spec\discrepancies.spec.ts:20:18)
+      at processImmediate (internal/timers.js:439:21)
+
+  19) Discrepancies
+       0 as "any" is false in || expressions:
+
+      AssertionError: expected 'null\r\n0\r\n1\r\nnull\r\n0\r\n1\r\nnull\r\n0\r\n1\r\n' to equal 'null\r\nnull\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'
+      + expected - actual
+
+       null
+      -0
+      -1
+       null
+      -0
+       1
+      -null
+       0
+      +0
+       1
+      +1
+      +1
+      +1
+      
+      at Context.<anonymous> (spec\discrepancies.spec.ts:35:17)
+      at processImmediate (internal/timers.js:439:21)
+
+  20) Discrepancies
+       0 is false in && expressions:
+
+      AssertionError: expected 'null\r\n0\r\n1\r\nnull\r\n0\r\n1\r\nnull\r\n0\r\n1\r\n' to equal 'null\r\n0\r\nnull\r\nnull\r\n0\r\n0\r\nnull\r\n0\r\n1\r\n2\r\n'
+      + expected - actual
+
+       null
+       0
+      -1
+       null
+      +null
+       0
+      -1
+      +0
+       null
+       0
+       1
+      +2
+      
+      at Context.<anonymous> (spec\discrepancies.spec.ts:51:17)
+      at processImmediate (internal/timers.js:439:21)
+
+  21) Discrepancies
+       0 as "any" is false in && expressions:
+
+      AssertionError: expected 'null\r\nnull\r\nnull\r\n0\r\n0\r\n0\r\n1\r\n1\r\n1\r\n2\r\n' to equal 'null\r\n0\r\nnull\r\nnull\r\n0\r\n0\r\nnull\r\n0\r\n1\r\n2\r\n'
+      + expected - actual
+
+       null
+      +0
+       null
+       null
+       0
+       0
+      +null
+       0
+       1
+      -1
+      -1
+       2
+      
+      at Context.<anonymous> (spec\discrepancies.spec.ts:67:17)
+      at processImmediate (internal/timers.js:439:21)
+
+  22) Discrepancies
+       0 as "any" is false in !<xxx>:
+
+      AssertionError: expected 'false\r\nfalse\r\nfalse\r\n' to equal 'true\r\ntrue\r\nfalse\r\n'
+      + expected - actual
+
+      +true
+      +true
+       false
+      -false
+      -false
+      
+      at Context.<anonymous> (spec\discrepancies.spec.ts:84:17)
+      at processImmediate (internal/timers.js:439:21)
+
+  23) Export
+       Class export:
+
+      AssertionError: expected 'false\r\n' to equal 'false\r\nfalse\r\nfalse\r\n'
+      + expected - actual
+
+       false
+      +false
+      +false
+      
+      at Context.<anonymous> (spec\exports.spec.ts:7:53)
+      at processImmediate (internal/timers.js:439:21)
+
+  24) Export
+       Class export (import as):
+
+      AssertionError: expected 'false\r\n' to equal 'false\r\nfalse\r\nfalse\r\n'
+      + expected - actual
+
+       false
+      +false
+      +false
+      
+      at Context.<anonymous> (spec\exports.spec.ts:19:65)
+      at processImmediate (internal/timers.js:439:21)
+
+  25) Export
+       Class export (default):
+
+      AssertionError: expected 'false\r\n' to equal 'false\r\nfalse\r\nfalse\r\n'
+      + expected - actual
+
+       false
+      +false
+      +false
+      
+      at Context.<anonymous> (spec\exports.spec.ts:31:63)
+      at processImmediate (internal/timers.js:439:21)
+
+  26) Export
+       Class export - alias:
+
+      AssertionError: expected 'false\r\n' to equal 'false\r\nfalse\r\nfalse\r\n'
+      + expected - actual
+
+       false
+      +false
+      +false
+      
+      at Context.<anonymous> (spec\exports.spec.ts:43:61)
+      at processImmediate (internal/timers.js:439:21)
+
+  27) Functions
+       Function, Noname function, Arrow function:
+
+      AssertionError: expected 'false\r\nfalse\r\nfalse\r\n' to equal ''
+      + expected - actual
+
+      -false
+      -false
+      -false
+      
+      at Context.<anonymous> (spec\functions.spec.ts:40:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  28) Functions
+       Optional Parameters:
+
+      AssertionError: expected 'Bob Adams\r\nBob\r\n' to equal 'Bob\r\nBob\r\n'
+      + expected - actual
+
+      -Bob Adams
+       Bob
+      +Bob
+      
+      at Context.<anonymous> (spec\functions.spec.ts:42:71)
+      at processImmediate (internal/timers.js:439:21)
+
+  29) Functions
+       Default Parameters:
+
+      AssertionError: expected 'Bob Adams\r\nBob Smith\r\n' to equal 'Bob\r\nBob\r\n'
+      + expected - actual
+
+      -Bob Adams
+      -Bob Smith
+      +Bob
+      +Bob
+      
+      at Context.<anonymous> (spec\functions.spec.ts:56:76)
+      at processImmediate (internal/timers.js:439:21)
+
+  30) Functions
+       function 1:
+
+      AssertionError: expected 'spades\r\n' to equal 'Bob\r\nBob\r\n'
+      + expected - actual
+
+      -spades
+      +Bob
+      +Bob
+      
+      at Context.<anonymous> (spec\functions.spec.ts:67:52)
+      at processImmediate (internal/timers.js:439:21)
+
+  31) Functions
+       this in function:
+
+      AssertionError: expected '37\r\n' to equal 'Bob\r\nBob\r\n'
+      + expected - actual
+
+      -37
+      +Bob
+      +Bob
+      
+      at Context.<anonymous> (spec\functions.spec.ts:82:54)
+      at processImmediate (internal/timers.js:439:21)
+
+  32) Functions
+       this - in an arrow function:
+
+      AssertionError: expected 'hearts\r\n' to equal 'Bob\r\nBob\r\n'
+      + expected - actual
+
+      -hearts
+      +Bob
+      +Bob
+      
+      at Context.<anonymous> (spec\functions.spec.ts:110:69)
+      at processImmediate (internal/timers.js:439:21)
+
+  33) Functions
+       test function - ...:
+
+      AssertionError: expected 'Joseph\r\nSamuel\r\nLucas\r\nMacKinzie\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -Joseph
+      -Samuel
+      -Lucas
+      -MacKinzie
+      +myString
+      
+      at Context.<anonymous> (spec\functions.spec.ts:170:93)
+      at processImmediate (internal/timers.js:439:21)
+
+  34) Functions
+       test function - ... 2:
+
+      AssertionError: expected '1\r\n2\r\n3\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      -2
+      -3
+      +myString
+      
+      at Context.<anonymous> (spec\functions.spec.ts:181:68)
+      at processImmediate (internal/timers.js:439:21)
+
+  35) Functions
+       test function - union types:
+
+      AssertionError: expected 'myString\r\n' to equal '4Hello world\r\n'
+      + expected - actual
+
+      -myString
+      +4Hello world
+      
+      at Context.<anonymous> (spec\functions.spec.ts:209:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  36) Functions
+       test function - method call by reference:
+
+      AssertionError: expected 'myString\r\n' to equal '[01.000000]:\r\n'
+      + expected - actual
+
+      -myString
+      +[01.000000]:
+      
+      at Context.<anonymous> (spec\functions.spec.ts:219:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  37) Functions
+       function var scope:
+
+      AssertionError: expected 'myString\r\n' to equal '1\r\n2\r\n1\r\nundefined\r\n'
+      + expected - actual
+
+      -myString
+      +1
+      +2
+      +1
+      +undefined
+      
+      at Context.<anonymous> (spec\functions.spec.ts:233:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  38) InstanceOf
+       InstanceOf: number, string, boolean:
+
+      AssertionError: expected 'myString\r\n' to equal 'true\r\ntrue\r\ntrue\r\n'
+      + expected - actual
+
+      -myString
+      +true
+      +true
+      +true
+      
+      at Context.<anonymous> (spec\instanceof.spec.ts:17:30)
+      at processImmediate (internal/timers.js:439:21)
+
+  39) Modules
+       Module 1:
+
+      AssertionError: expected '1\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:7:45)
+      at processImmediate (internal/timers.js:439:21)
+
+  40) Modules
+       Module 2 - nested:
+
+      AssertionError: expected '1\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:20:54)
+      at processImmediate (internal/timers.js:439:21)
+
+  41) Modules
+       Module 3 - <module1>.<module2>:
+
+      AssertionError: expected '1\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:35:67)
+      at processImmediate (internal/timers.js:439:21)
+
+  42) Modules
+       Module - export function:
+
+      AssertionError: expected 'Hi\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -Hi
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:48:62)
+      at processImmediate (internal/timers.js:439:21)
+
+  43) Modules
+       Module - multi blocks:
+
+      AssertionError: expected '1\r\n3\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      -3
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:58:63)
+      at processImmediate (internal/timers.js:439:21)
+
+  44) Modules
+       Module - import only:
+
+      AssertionError: expected '1\r\n3\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -1
+      -3
+      +myString
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:81:62)
+      at processImmediate (internal/timers.js:439:21)
+
+  45) Modules
+       Module - static method call with param:
+
+      AssertionError: expected 'myString\r\n' to equal 'test\r\n'
+      + expected - actual
+
+      -myString
+      +test
+      
+      at Context.<anonymous> (spec\modules_and_namespaces.spec.ts:114:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  46) Objects
+       new:
+
+      AssertionError: expected 'Doe\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -Doe
+      +myString
+      
+      at Context.<anonymous> (spec\object.spec.ts:7:42)
+      at processImmediate (internal/timers.js:439:21)
+
+  47) Objects
+       new class:
+
+      AssertionError: expected 'const\r\nHi\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -const
+      -Hi
+      +myString
+      
+      at Context.<anonymous> (spec\object.spec.ts:19:56)
+      at processImmediate (internal/timers.js:439:21)
+
+  48) Objects
+       object - spread assignment:
+
+      AssertionError: expected '0\r\nfalse\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -0
+      -false
+      +myString
+      
+      at Context.<anonymous> (spec\object.spec.ts:32:72)
+      at processImmediate (internal/timers.js:439:21)
+
+  49) Arithmetic Operators
+       Binary:
+
+      AssertionError: expected '7\r\n3\r\n10\r\n2.5\r\n1\r\n7\r\n3\r\n10\r\n2.5\r\n1\r\n' to equal 'myString\r\n'
+      + expected - actual
+
+      -7
+      -3
+      -10
+      -2.5
+      -1
+      -7
+      -3
+      -10
+      -2.5
+      -1
+      +myString
+      
+      at Context.<anonymous> (spec\operators.spec.ts:7:94)
+      at processImmediate (internal/timers.js:439:21)
+
+  50) Arithmetic Operators
+       String (strict) concat:
+
+      AssertionError: expected 'Good Morning\r\n' to equal 'Good \r\n'
+      + expected - actual
+
+      -Good Morning
+      +Good 
+      
+      at Context.<anonymous> (spec\operators.spec.ts:34:70)
+      at processImmediate (internal/timers.js:439:21)
+
+  51) Arithmetic Operators
+       String (any) concat:
+
+      AssertionError: expected 'Good Morning\r\n' to equal ''
+      + expected - actual
+
+      -Good Morning
+      
+      at Context.<anonymous> (spec\operators.spec.ts:42:67)
+      at processImmediate (internal/timers.js:439:21)
+
+  52) Arithmetic Operators
+       String (strict) op +=:
+
+      AssertionError: expected 'Good Morning\r\n' to equal 'Good \r\n'
+      + expected - actual
+
+      -Good Morning
+      +Good 
+      
+      at Context.<anonymous> (spec\operators.spec.ts:50:69)
+      at processImmediate (internal/timers.js:439:21)
+
+  53) Arithmetic Operators
+       Bitwise:
+
+      AssertionError: expected '1\r\n5\r\n-6\r\n4\r\n10\r\n2\r\n' to equal 'Good \r\n'
+      + expected - actual
+
+      -1
+      -5
+      --6
+      -4
+      -10
+      -2
+      +Good 
+      
+      at Context.<anonymous> (spec\operators.spec.ts:59:71)
+      at processImmediate (internal/timers.js:439:21)
+
+  54) Arithmetic Operators
+       Logical = not on boolean:
+
+      AssertionError: expected 'true\r\n' to equal 'true\r\nfalse\r\n'
+      + expected - actual
+
+       true
+      +false
+      
+      at Context.<anonymous> (spec\operators.spec.ts:83:64)
+      at processImmediate (internal/timers.js:439:21)
+
+  55) Arithmetic Operators
+       Logical (basic 2):
+
+      AssertionError: expected 'false\r\ntrue\r\nfalse\r\ntrue\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\n'
+      + expected - actual
+
+       false
+      +false
+       true
+      +true
+      +true
+      +true
+       false
+      +false
+      +false
+       true
+      +false
+      +true
+      
+      at Context.<anonymous> (spec\operators.spec.ts:106:83)
+      at processImmediate (internal/timers.js:439:21)
+
+  56) Arithmetic Operators
+       Logical (basic 3):
+
+      AssertionError: expected 'false\r\nfalse\r\ntrue\r\ntrue\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\n'
+      + expected - actual
+
+       false
+       false
+       true
+       true
+      +true
+      +true
+      +false
+      +false
+      +false
+      +true
+      +false
+      +true
+      
+      at Context.<anonymous> (spec\operators.spec.ts:118:83)
+      at processImmediate (internal/timers.js:439:21)
+
+  57) Arithmetic Operators
+       Logical (basic 4):
+
+      AssertionError: expected 'true\r\nfalse\r\ntrue\r\nfalse\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\n'
+      + expected - actual
+
+      +false
+      +false
+       true
+      +true
+      +true
+      +true
+       false
+      +false
+      +false
+       true
+       false
+      +true
+      
+      at Context.<anonymous> (spec\operators.spec.ts:130:83)
+      at processImmediate (internal/timers.js:439:21)
+
+  58) Arithmetic Operators
+       In operator:
+
+      AssertionError: expected 'true\r\n' to equal '1\r\n2\r\n'
+      + expected - actual
+
+      -true
+      +1
+      +2
+      
+      at Context.<anonymous> (spec\operators.spec.ts:150:51)
+      at processImmediate (internal/timers.js:439:21)
+
+  59) RegExp
+       Simple RegExp test 1:
+
+      AssertionError: expected '1\r\n' to equal '1\r\n2\r\n'
+      + expected - actual
+
+       1
+      +2
+      
+      at Context.<anonymous> (spec\regexp.spec.ts:21:57)
+      at processImmediate (internal/timers.js:439:21)
+
+  60) RegExp
+       Simple RegExp test 2:
+
+      AssertionError: expected '1\r\n' to equal '1\r\n2\r\n'
+      + expected - actual
+
+       1
+      +2
+      
+      at Context.<anonymous> (spec\regexp.spec.ts:42:57)
+      at processImmediate (internal/timers.js:439:21)
+
+  61) Special cases
+       ? : (special cases 3):
+
+      AssertionError: expected '1\r\n1\r\n1\r\n1\r\n1\r\n1\r\n2\r\n2\r\n' to equal '1\r\n1\r\n1\r\n1\r\n2\r\n2\r\n'
+      + expected - actual
+
+       1
+       1
+       1
+       1
+      -1
+      -1
+       2
+       2
+      
+      at Context.<anonymous> (spec\special_cases.spec.ts:177:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  62) Special cases
+       = || : (local):
+
+      AssertionError: expected 'test\r\n' to equal '1\r\n1\r\n1\r\n1\r\n1\r\n1\r\n2\r\n2\r\n'
+      + expected - actual
+
+      -test
+      +1
+      +1
+      +1
+      +1
+      +1
+      +1
+      +2
+      +2
+      
+      at Context.<anonymous> (spec\special_cases.spec.ts:179:54)
+      at processImmediate (internal/timers.js:439:21)
+
+  63) Statements
+       simple for/of (params):
+
+      AssertionError: expected 'i\r\ns\r\n' to equal '1\r\n2\r\n3\r\n'
+      + expected - actual
+
+      -i
+      -s
+      +1
+      +2
+      +3
+      
+      at Context.<anonymous> (spec\statements.spec.ts:178:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  64) Statements
+       switch (local) 1:
+
+      AssertionError: expected 'Hello!\r\nHello!\r\nHello!\r\nHello!\r\n' to equal 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\statements.spec.ts:180:105)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)'
+      + expected - actual
+
+      -Hello!
+      -Hello!
+      -Hello!
+      -Hello!
+      +Error: spawnSync testapp1 ENOENT
+      +    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      +    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      +    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      +    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      +    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\statements.spec.ts:180:105)
+      +    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      +    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      +    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      +    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      +    at processImmediate (internal/timers.js:439:21)
+      
+      at Context.<anonymous> (spec\statements.spec.ts:180:88)
+      at processImmediate (internal/timers.js:439:21)
+
+  65) Statements
+       switch (string):
+
+      AssertionError: expected 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\statements.spec.ts:227:50)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)' to equal 'Excellent\r\n'
+      + expected - actual
+
+      -Error: spawnSync testapp1 ENOENT
+      -    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      -    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      -    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      -    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      -    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\statements.spec.ts:227:50)
+      -    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      -    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      -    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      -    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      -    at processImmediate (internal/timers.js:439:21)
+      +Excellent
+      
+      at Context.<anonymous> (spec\statements.spec.ts:251:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  66) Statements
+       switch - with for statement:
+
+      AssertionError: expected 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\statements.spec.ts:253:62)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)' to equal 'Excellent\r\n'
+      + expected - actual
+
+      -Error: spawnSync testapp1 ENOENT
+      -    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      -    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      -    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      -    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      -    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\statements.spec.ts:253:62)
+      -    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      -    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      -    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      -    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      -    at processImmediate (internal/timers.js:439:21)
+      +Excellent
+      
+      at Context.<anonymous> (spec\statements.spec.ts:274:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  67) Statements
+       switch - 1, 2, 3:
+
+      AssertionError: expected 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\statements.spec.ts:276:51)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)' to equal 'done\r\n'
+      + expected - actual
+
+      -Error: spawnSync testapp1 ENOENT
+      -    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      -    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      -    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      -    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      -    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\statements.spec.ts:276:51)
+      -    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      -    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      -    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      -    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      -    at processImmediate (internal/timers.js:439:21)
+      +done
+      
+      at Context.<anonymous> (spec\statements.spec.ts:295:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  68) Strings
+       index:
+
+      AssertionError: expected 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\string.spec.ts:7:40)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)' to equal 'B\r\n'
+      + expected - actual
+
+      -Error: spawnSync testapp1 ENOENT
+      -    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      -    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      -    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      -    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      -    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\string.spec.ts:7:40)
+      -    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      -    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      -    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      -    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      -    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      -    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      -    at processImmediate (internal/timers.js:439:21)
+      +B
+      
+      at Context.<anonymous> (spec\string.spec.ts:10:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  69) Undefined/null cases
+       strict equals/not equals:
+
+      AssertionError: expected 'string\r\n' to equal 'true\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\nfalse\r\n'
+      + expected - actual
+
+      -string
+      +true
+      +false
+      +true
+      +false
+      +true
+      +false
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:15:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  70) Undefined/null cases
+       not strict equals/not equals:
+
+      AssertionError: expected 'string\r\n' to equal 'true\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\n'
+      + expected - actual
+
+      -string
+      +true
+      +true
+      +true
+      +false
+      +false
+      +false
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:25:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  71) Undefined/null cases
+       strict 0:
+
+      AssertionError: expected 'string\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\n'
+      + expected - actual
+
+      -string
+      +false
+      +false
+      +true
+      +true
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:33:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  72) Undefined/null cases
+       strict "":
+
+      AssertionError: expected 'string\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\n'
+      + expected - actual
+
+      -string
+      +false
+      +false
+      +true
+      +true
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:41:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  73) Undefined/null cases
+       not strict 0:
+
+      AssertionError: expected 'string\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\n'
+      + expected - actual
+
+      -string
+      +false
+      +false
+      +true
+      +true
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:49:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  74) Undefined/null cases
+       not strict "":
+
+      AssertionError: expected 'string\r\n' to equal 'false\r\nfalse\r\ntrue\r\ntrue\r\n'
+      + expected - actual
+
+      -string
+      +false
+      +false
+      +true
+      +true
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:57:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  75) Undefined/null cases
+       undefined default params with undefined:
+
+      AssertionError: expected 'string\r\n' to equal '10\r\n20\r\nnull\r\n30\r\nundef\r\nundef\r\nundef\r\n1\r\n'
+      + expected - actual
+
+      -string
+      +10
+      +20
+      +null
+      +30
+      +undef
+      +undef
+      +undef
+      +1
+      
+      at Context.<anonymous> (spec\undefined.spec.ts:73:13)
+      at processImmediate (internal/timers.js:439:21)
+
+  76) Variable Declarations
+       var access variables within other functions:
+
+      AssertionError: expected '11\r\n' to equal 'Hello, world!\r\n'
+      + expected - actual
+
+      -11
+      +Hello, world!
+      
+      at Context.<anonymous> (spec\variable_declarations.spec.ts:20:81)
+      at processImmediate (internal/timers.js:439:21)
+
+  77) Variable Declarations
+       var access variables within other functions 3 (multi-level):
+
+      AssertionError: expected '1\r\n2\r\n3\r\n' to equal 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\variable_declarations.spec.ts:51:123)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)'
+      + expected - actual
+
+      -1
+      -2
+      -3
+      +Error: spawnSync testapp1 ENOENT
+      +    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      +    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      +    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      +    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      +    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\variable_declarations.spec.ts:51:123)
+      +    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      +    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      +    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      +    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      +    at processImmediate (internal/timers.js:439:21)
+      
+      at Context.<anonymous> (spec\variable_declarations.spec.ts:51:106)
+      at processImmediate (internal/timers.js:439:21)
+
+  78) Variable Declarations
+       var Re-declarations and Shadowing:
+
+      AssertionError: expected '1\r\n' to equal 'Error: spawnSync testapp1 ENOENT\n    at notFoundError (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:6:26)\n    at Object.verifyENOENTSync (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\lib\\enoent.js:48:16)\n    at Function.spawnSync [as sync] (C:\\Temp\\TypeScript2Cxx\\node_modules\\cross-spawn\\index.js:29:43)\n    at Run.test (C:\\Temp\\TypeScript2Cxx\\src\\compiler.ts:334:43)\n    at Context.<anonymous> (C:\\Temp\\TypeScript2Cxx\\spec\\variable_declarations.spec.ts:76:87)\n    at callFn (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:372:21)\n    at Test.Runnable.run (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runnable.js:364:7)\n    at Runner.runTest (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:455:10)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:573:12\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:369:14)\n    at C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:379:7\n    at next (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:303:14)\n    at Immediate._onImmediate (C:\\Temp\\TypeScript2Cxx\\node_modules\\mocha\\lib\\runner.js:347:5)\n    at processImmediate (internal/timers.js:439:21)'
+      + expected - actual
+
+      -1
+      +Error: spawnSync testapp1 ENOENT
+      +    at notFoundError (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:6:26)
+      +    at Object.verifyENOENTSync (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\lib\enoent.js:48:16)
+      +    at Function.spawnSync [as sync] (C:\Temp\TypeScript2Cxx\node_modules\cross-spawn\index.js:29:43)
+      +    at Run.test (C:\Temp\TypeScript2Cxx\src\compiler.ts:334:43)
+      +    at Context.<anonymous> (C:\Temp\TypeScript2Cxx\spec\variable_declarations.spec.ts:76:87)
+      +    at callFn (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:372:21)
+      +    at Test.Runnable.run (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runnable.js:364:7)
+      +    at Runner.runTest (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:455:10)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:573:12
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:369:14)
+      +    at C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:379:7
+      +    at next (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:303:14)
+      +    at Immediate._onImmediate (C:\Temp\TypeScript2Cxx\node_modules\mocha\lib\runner.js:347:5)
+      +    at processImmediate (internal/timers.js:439:21)
+      
+      at Context.<anonymous> (spec\variable_declarations.spec.ts:76:70)
+      at processImmediate (internal/timers.js:439:21)
+
+  79) Variable Declarations
+       const declarations:
+
+      AssertionError: expected 'Cat\r\n' to equal '10\r\n5\r\n1\r\n5\r\n10\r\n'
+      + expected - actual
+
+      -Cat
+      +10
+      +5
+      +1
+      +5
+      +10
+      
+      at Context.<anonymous> (spec\variable_declarations.spec.ts:98:57)
+      at processImmediate (internal/timers.js:439:21)
+

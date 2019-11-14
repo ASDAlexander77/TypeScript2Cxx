@@ -556,13 +556,13 @@ struct string : public undefined_t {
     string operator+ (number value) {
         string tmp(_value);
         tmp._value.append(value.operator std::string());
-        return *this;
+        return tmp;
     }
 
     string operator+ (string value) {
         string tmp(_value);
         tmp._value.append(value._value);
-        return *this;
+        return tmp;
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>

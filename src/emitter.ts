@@ -1655,6 +1655,7 @@ export class Emitter {
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
         const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
+        let castToFunctionTemplate = false;
 
         if (implementationMode && node.parent && node.parent.kind === ts.SyntaxKind.ClassDeclaration && this.isTemplate(<any>node.parent)) {
             this.processTemplateParams(<any>node.parent);
@@ -1725,7 +1726,13 @@ export class Emitter {
             } else if (isArrowFunction || isFunctionExpression) {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString('js::function_t([&]');
+
+                castToFunctionTemplate = node.parent.kind === ts.SyntaxKind.PropertyAssignment;
+                if (castToFunctionTemplate) {
+                    this.writer.writeString('js::function_t(');
+                }
+
+                this.writer.writeString('[&]');
             }
         }
 
@@ -1853,7 +1860,7 @@ export class Emitter {
 
                 this.writer.EndBlock();
 
-                if (writeAsLambdaCFunction && (isArrowFunction || isFunctionExpression)) {
+                if (writeAsLambdaCFunction && (isArrowFunction || isFunctionExpression) && castToFunctionTemplate) {
                     this.writer.writeString(')');
                 }
             }

@@ -4,6 +4,6 @@
 
 using namespace js;
 
-extern string hello;
+extern object attached;
 
 #endif
