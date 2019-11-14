@@ -2437,7 +2437,6 @@ export class Emitter {
             }
 
             dereference = type.kind !== ts.SyntaxKind.TypeLiteral && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
-
             if (dereference)
             {
                 this.writer.writeString('(*');
