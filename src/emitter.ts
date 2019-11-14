@@ -1727,7 +1727,7 @@ export class Emitter {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
 
-                castToFunctionTemplate = node.parent.kind === ts.SyntaxKind.PropertyAssignment;
+                castToFunctionTemplate = node.parent && node.parent.kind === ts.SyntaxKind.PropertyAssignment;
                 if (castToFunctionTemplate) {
                     this.writer.writeString('js::function_t(');
                 }
@@ -2148,22 +2148,15 @@ export class Emitter {
         const symbolInfo = this.resolver.getSymbolAtLocation(node.expression);
         const typeNode = this.resolver.getOrResolveTypeOf(node.expression);
         const type = this.resolver.typeToTypeNode(typeNode);
-        const dotDotDot = !!(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
-        const dereference = type.kind !== ts.SyntaxKind.TypeLiteral && !dotDotDot;
+        const notDotDotDot = !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
+        const dereference = type.kind !== ts.SyntaxKind.TypeLiteral && notDotDotDot;
 
         this.writer.writeString(' : ');
         if (dereference) {
             this.writer.writeString('*(');
         }
 
-        if (dotDotDot) {
-            this.writer.writeString('{');
-        }
-
         this.processExpression(node.expression);
-        if (dotDotDot) {
-            this.writer.writeString('...}');
-        }
 
         if (dereference) {
             this.writer.writeString(')');

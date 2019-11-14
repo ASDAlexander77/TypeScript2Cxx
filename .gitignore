@@ -25,3 +25,4 @@ __build_win32_release
 *.ipch
 *.bin
 out
+out1
