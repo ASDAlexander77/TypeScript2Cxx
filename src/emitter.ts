@@ -455,7 +455,7 @@ export class Emitter {
         }
 
         for (var element of declaration.parameters) {
-            if (this.isTemplateType(element.type)) {
+            if (element.dotDotDotToken || this.isTemplateType(element.type)) {
                 return true;
             }
         };
@@ -1749,40 +1749,38 @@ export class Emitter {
                 this.writer.writeString(', ');
             }
 
+            const effectiveType = element.type
+                || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer);
             if (element.dotDotDotToken) {
-                // ...
+                this.writer.writeString("Args...");
+            } else if (this.isTemplateType(effectiveType)) {
+                this.writer.writeString("P" + index);
             } else {
-                const effectiveType = element.type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(element.initializer)
-                if (this.isTemplateType(effectiveType)) {
-                    this.writer.writeString("P" + index);
-                } else {
-                    this.processType(effectiveType, isArrowFunction);
-                }
+                this.processType(effectiveType, isArrowFunction);
+            }
 
-                this.writer.writeString(' ');
-                this.processExpression(element.name);
+            this.writer.writeString(' ');
+            this.processExpression(element.name);
 
-                // extra symbol to change parameter name
-                if (node.kind === ts.SyntaxKind.Constructor
-                    && this.hasAccessModifier(element.modifiers)) {
-                    this.writer.writeString('_');
-                }
+            // extra symbol to change parameter name
+            if (node.kind === ts.SyntaxKind.Constructor
+                && this.hasAccessModifier(element.modifiers)) {
+                this.writer.writeString('_');
+            }
 
-                if (!implementationMode) {
-                    if (element.initializer) {
-                        this.writer.writeString(' = ');
-                        this.processExpression(element.initializer);
-                        defaultParams = true;
-                    } else if (element.questionToken || defaultParams) {
-                        switch (element.type && element.type.kind) {
-                            case ts.SyntaxKind.FunctionType:
-                                this.writer.writeString(' = nullptr');
-                                break;
-                            default:
-                                this.writer.writeString(' = undefined');
-                                break;
-                        }
+            if (!implementationMode) {
+                if (element.initializer) {
+                    this.writer.writeString(' = ');
+                    this.processExpression(element.initializer);
+                    defaultParams = true;
+                } else if (element.questionToken || defaultParams) {
+                    switch (element.type && element.type.kind) {
+                        case ts.SyntaxKind.FunctionType:
+                            this.writer.writeString(' = nullptr');
+                            break;
+                        default:
+                            this.writer.writeString(' = undefined');
+                            break;
                     }
                 }
             }
@@ -1921,6 +1919,11 @@ export class Emitter {
                         }
 
                         this.writer.writeString('typename P' + index);
+                        next = true;
+                    }
+
+                    if (element.dotDotDotToken) {
+                        this.writer.writeString('typename ...Args');
                         next = true;
                     }
                 });
