@@ -2631,7 +2631,24 @@ export class Emitter {
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {
-        /* TODO: finish it */
+        if (node.parent && node.parent.kind === ts.SyntaxKind.CallExpression) {
+            const info = this.resolver.getSymbolAtLocation((<ts.CallExpression>node.parent).expression);
+            var parameters = (<ts.FunctionDeclaration>info.valueDeclaration).parameters;
+            if (parameters) {
+                let next = false;
+                parameters.forEach((item, index) => {
+                    if (next) {
+                        this.writer.writeString(', ');
+                    }
+
+                    const elementAccess = ts.createElementAccess(node.expression, index);
+                    this.processExpression(this.fixupParentReferences(elementAccess, node.parent));
+                    next = true;
+                });
+            }
+        } else {
+            this.processExpression(node.expression);
+        }
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {

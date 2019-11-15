@@ -1,6 +1,9 @@
-	function push(...objs: any[]) {                        
-            for (const obj of objs) {                           
-                console.log(obj);                               
-            }                                                   
-        }                                                       
-        push(1, 2, 3);                           
+	function sum(x, y, z) {                                                
+            console.log(x);                                                     
+            console.log(y);                                                     
+            console.log(z);                                                     
+        }                                                                       
+                                                                                
+        const numbers = [1, 2, 3];                                              
+                                                                                
+        sum(...numbers);                                                        

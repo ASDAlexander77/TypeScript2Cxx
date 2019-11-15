@@ -4,18 +4,8 @@
 
 using namespace js;
 
-template <typename ...Args>
-void push(Args... objs_);
+extern Array<js::number>* numbers;
 
-template <typename ...Args>
-void push(Args... objs_)
-{
-    array objs = {objs_...};
-    for (auto& obj : {objs...})
-    {
-        console->log(obj);
-    }
-};
-
+void sum(any x, any y, any z);
 
 #endif
