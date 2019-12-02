@@ -1727,7 +1727,9 @@ export class Emitter {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
 
-                castToFunctionTemplate = node.parent && node.parent.kind === ts.SyntaxKind.PropertyAssignment;
+                castToFunctionTemplate = node.parent 
+                    && (node.parent.kind === ts.SyntaxKind.PropertyAssignment
+                        || node.parent.kind === ts.SyntaxKind.CallExpression);
                 if (castToFunctionTemplate) {
                     this.writer.writeString('js::function_t(');
                 }
