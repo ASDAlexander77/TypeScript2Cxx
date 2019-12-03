@@ -524,6 +524,9 @@ struct string : public undefined_t {
     string (const char* value) : _value(value) {
     }    
 
+    string (const char value) : _value(1, value) {
+    }    
+
     string (const undefined_t& undef) : undefined_t(true) {
     }
 
@@ -536,11 +539,11 @@ struct string : public undefined_t {
     }
 
     template<class T, class = std::enable_if<std::is_integral_v<T>>>
-    string operator[] (T t) {
+    string operator[] (T t) const {
         return string(_value[t]);
     }
 
-    string operator[] (number n) {
+    string operator[] (number n) const {
         return string(_value[n]);
     }
 
