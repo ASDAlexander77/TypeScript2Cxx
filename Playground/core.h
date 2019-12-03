@@ -686,6 +686,14 @@ struct array : public undefined_t {
         return _values[(size_t)t];
     }
 
+    auto begin() -> decltype(_values.begin()) {
+        return _values.begin();
+    }
+
+    auto end() -> decltype(_values.end()) {
+        return _values.end();
+    }
+
     friend std::ostream& operator << (std::ostream& os, array val)
     {
         if (val.isUndefined) {

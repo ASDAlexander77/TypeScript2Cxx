@@ -2438,7 +2438,9 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
-            dereference = type.kind !== ts.SyntaxKind.TypeLiteral && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
+            dereference = type.kind !== ts.SyntaxKind.TypeLiteral 
+                && type.kind !== ts.SyntaxKind.StringKeyword
+                && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
             if (dereference)
             {
                 this.writer.writeString('(*');
