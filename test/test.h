@@ -4,25 +4,18 @@
 
 using namespace js;
 
-class Test;
-class Test2;
-extern Test* t;
-extern std::function<void()> m1;
-extern Test2* t2;
-extern any m2;
+template <typename ...Args>
+void push(Args... objs_);
 
-class Test : public object {
-public:
-    js::number val = 10;
-
-    virtual void testMethod();
+template <typename ...Args>
+void push(Args... objs_)
+{
+    array objs = {objs_...};
+    for (auto& obj : objs)
+    {
+        console->log(obj);
+    }
 };
 
-class Test2 : public object {
-public:
-    js::number val = 20;
-};
-
-void fff(any m3);
 
 #endif

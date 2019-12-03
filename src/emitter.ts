@@ -2151,7 +2151,7 @@ export class Emitter {
         const typeNode = this.resolver.getOrResolveTypeOf(node.expression);
         const type = this.resolver.typeToTypeNode(typeNode);
         const notDotDotDot = !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
-        const dereference = type.kind !== ts.SyntaxKind.TypeLiteral && notDotDotDot;
+        const dereference = type.kind !== ts.SyntaxKind.TypeLiteral && type.kind !== ts.SyntaxKind.StringKeyword && notDotDotDot;
 
         this.writer.writeString(' : ');
         if (dereference) {
