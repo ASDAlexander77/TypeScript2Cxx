@@ -4,6 +4,8 @@
 
 using namespace js;
 
-extern string s;
+extern object deck;
+extern std::function<object()> cardPicker;
+extern object pickedCard;
 
 #endif

@@ -154,12 +154,12 @@ export class Emitter {
 
             const postion = this.writer.newSection();
 
-            sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
-                this.processForwardDeclaration(s);
-            });
-
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processInclude(s);
+            });
+
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
+                this.processForwardDeclaration(s);
             });
 
             if (this.writer.hasAnyContent(postion)) {
