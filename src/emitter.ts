@@ -158,7 +158,7 @@ export class Emitter {
                 this.processInclude(s);
             });
 
-            sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
+            sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processForwardDeclaration(s);
             });
 
@@ -168,9 +168,13 @@ export class Emitter {
 
             sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
-                .filter(s => this.isDeclarationStatement(s) && s.kind !== ts.SyntaxKind.EnumDeclaration)
+                .filter(s => this.isDeclarationStatement(s) && s.kind !== ts.SyntaxKind.EnumDeclaration || this.isVariableStatement(s))
                 .forEach(s => {
-                this.processStatement(s);
+                if (this.isVariableStatement(s)) {
+                    this.processForwardDeclaration(s);
+                } else {
+                    this.processStatement(s);
+                }
             });
 
             sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {

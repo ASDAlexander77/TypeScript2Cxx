@@ -4,8 +4,14 @@
 
 using namespace js;
 
-extern object deck;
-extern std::function<object()> cardPicker;
-extern object pickedCard;
+namespace M {
+    class C : public object {
+    public:
+        static any Y();
+        virtual any X();
+    };
 
+}
+
+extern M::C* c;
 #endif
