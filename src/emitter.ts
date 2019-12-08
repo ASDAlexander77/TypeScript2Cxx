@@ -1444,6 +1444,11 @@ export class Emitter {
                 const isTypeAlias = ((typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
                     || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
+                if ((<any>typeReference.typeName).symbol.parent) {
+                    this.processType((<any>typeReference.typeName).symbol.parent.valueDeclaration);
+                    this.writer.writeString('::');
+                }
+
                 let isEnum = false;
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
@@ -1586,6 +1591,10 @@ export class Emitter {
                     this.processType(unionTypes[0]);
                 }
 
+                break;
+            case ts.SyntaxKind.ModuleDeclaration:
+                const moduleDeclaration = <ts.ModuleDeclaration><any>type;
+                this.writer.writeString(moduleDeclaration.name.text);
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
@@ -2721,7 +2730,7 @@ export class Emitter {
                 return;
             } else if (this.resolver.isStaticAccess(typeInfo)
                 || node.expression.kind === ts.SyntaxKind.SuperKeyword
-                || typeInfo.symbol && typeInfo.symbol.valueDeclaration && typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration) {
+                || typeInfo && typeInfo.symbol && typeInfo.symbol.valueDeclaration && typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration) {
                 this.writer.writeString('::');
             } else {
                 this.writer.writeString('->');
