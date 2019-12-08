@@ -12,6 +12,7 @@ namespace M {
     };
 
 }
-
 extern M::C* c;
+namespace M{
+}
 #endif

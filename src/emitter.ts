@@ -2720,7 +2720,8 @@ export class Emitter {
                 this.writer.writeString('"]');
                 return;
             } else if (this.resolver.isStaticAccess(typeInfo)
-                || node.expression.kind === ts.SyntaxKind.SuperKeyword) {
+                || node.expression.kind === ts.SyntaxKind.SuperKeyword
+                || typeInfo.symbol && typeInfo.symbol.valueDeclaration && typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration) {
                 this.writer.writeString('::');
             } else {
                 this.writer.writeString('->');
