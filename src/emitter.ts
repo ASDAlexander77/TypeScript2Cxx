@@ -495,6 +495,7 @@ export class Emitter {
 
         this.writer.writeString('namespace ');
         this.writer.writeString(node.name.text);
+        this.writer.writeString(' ');
         this.writer.BeginBlock();
 
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
