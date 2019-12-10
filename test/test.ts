@@ -1,10 +1,6 @@
-	module M {                                 
-            export class C {                        
-                static Y() { return 2; }            
-                                                    
-                X() { return 1; }                   
-            }                                       
-        }                                           
-                                                    
-        const c = new M.C();                        
-        console.log(c.X());
+	console.log(null === null);                                             
+        console.log(undefined === null);                                        
+        console.log(undefined === undefined);                                   
+        console.log(null !== null);                                             
+        console.log(undefined !== null);                                        
+        console.log(undefined !== undefined);                             

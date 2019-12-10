@@ -5,7 +5,7 @@ import { describe, it } from 'mocha';
 describe('Undefined/null cases', () => {
 
     it('strict equals/not equals', () => expect(new Run().test([
-        'class undefined {}                                                     \
+        '                                                     \
         console.log(null === null);                                             \
         console.log(undefined === null);                                        \
         console.log(undefined === undefined);                                   \
@@ -15,7 +15,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('true\r\nfalse\r\ntrue\r\nfalse\r\ntrue\r\nfalse\r\n'));
 
     it('not strict equals/not equals', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         console.log(null == null);                                             \
         console.log(undefined == null);                                        \
         console.log(undefined == undefined);                                   \
@@ -25,7 +25,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('true\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\n'));
 
     it('strict 0', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         console.log(null === 0);                                               \
         console.log(undefined === 0);                                          \
         console.log(null !== 0);                                               \
@@ -33,7 +33,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('strict ""', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         console.log(null === "");                                              \
         console.log(undefined === "");                                         \
         console.log(null !== "");                                              \
@@ -41,7 +41,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('not strict 0', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         console.log(null == 0);                                                \
         console.log(undefined == 0);                                           \
         console.log(null != 0);                                                \
@@ -49,7 +49,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('not strict ""', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         console.log(null == "");                                               \
         console.log(undefined == "");                                          \
         console.log(null != "");                                               \
@@ -57,7 +57,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     it('undefined default params with undefined', () => expect(new Run().test([
-        'class undefined {}                                                    \
+        '                                                    \
         function ffff(f1, f2?, f3?, f4?, f5?, f6?, f7?, f8 = 1) {              \
         console.log(f1);                                                       \
         console.log(f2 === undefined ? "<error>" : f2);                        \

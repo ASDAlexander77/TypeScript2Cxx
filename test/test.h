@@ -4,15 +4,4 @@
 
 using namespace js;
 
-namespace M {
-    class C : public object {
-    public:
-        static any Y();
-        virtual any X();
-    };
-
-}
-extern M::C* c;
-namespace M {
-}
 #endif

@@ -135,6 +135,22 @@ static struct undefined_t {
         return nullptr;
     }
 
+    bool operator ==(undefined_t other) {
+        return isUndefined == other.isUndefined;
+    }   
+
+    bool operator !=(undefined_t other) {
+        return isUndefined != other.isUndefined;
+    }       
+
+    bool operator ==(std::nullptr_t) {
+        return !isUndefined;
+    }   
+
+    bool operator !=(std::nullptr_t) {
+        return isUndefined;
+    }       
+
     friend std::ostream& operator << (std::ostream& os, undefined_t val)
     {
         return os << "undefined";
