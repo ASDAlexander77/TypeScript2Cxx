@@ -13,6 +13,6 @@ namespace M {
 
 }
 extern M::C* c;
-namespace M{
+namespace M {
 }
 #endif

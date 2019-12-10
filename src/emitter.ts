@@ -1445,7 +1445,9 @@ export class Emitter {
                 const isTypeAlias = ((typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
                     || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
-                if ((<any>typeReference.typeName).symbol && (<any>typeReference.typeName).symbol.parent) {
+                if ((<any>typeReference.typeName).symbol 
+                    && (<any>typeReference.typeName).symbol.parent
+                    && (<any>typeReference.typeName).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
                     this.processType((<any>typeReference.typeName).symbol.parent.valueDeclaration);
                     this.writer.writeString('::');
                 }
