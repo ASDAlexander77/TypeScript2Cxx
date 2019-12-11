@@ -2321,7 +2321,7 @@ export class Emitter {
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
         this.writer.writeString('(new RegExp(');
-        this.processStringLiteral(node);
+        this.processStringLiteral(<ts.LiteralLikeNode>{text: node.text.substring(1, node.text.length - 2)});
         this.writer.writeString('))');
     }
 
