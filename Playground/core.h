@@ -185,6 +185,14 @@ static struct undefined_t {
         return isUndefined;
     }       
 
+    bool operator ==(int i) {
+        return !isUndefined && i == 0;
+    }   
+
+    bool operator !=(int i) {
+        return isUndefined && i == 0;
+    }       
+
     friend std::ostream& operator << (std::ostream& os, undefined_t val)
     {
         return os << "undefined";
@@ -1875,6 +1883,16 @@ inline bool Equals(std::nullptr_t, undefined_t r) {
 }
 
 template <> 
+inline bool Equals(undefined_t l, int r) {
+	return l.isUndefined && r == 0;
+}
+
+template <> 
+inline bool Equals(int l, undefined_t r) {
+	return  l == 0 && r.isUndefined;
+}
+
+template <> 
 inline bool NotEquals(undefined_t l, undefined_t r) {
 	return l.isUndefined != r.isUndefined;
 }
@@ -1887,6 +1905,16 @@ inline bool NotEquals(undefined_t l, std::nullptr_t) {
 template <> 
 inline bool NotEquals(std::nullptr_t, undefined_t r) {
 	return !r.isUndefined;
+}
+
+template <> 
+inline bool NotEquals(undefined_t l, int r) {
+	return !(l.isUndefined && r == 0);
+}
+
+template <> 
+inline bool NotEquals(int l, undefined_t r) {
+	return  !(l == 0 && r.isUndefined);
 }
 
 template <>
