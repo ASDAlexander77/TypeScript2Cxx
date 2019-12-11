@@ -18,6 +18,7 @@
 #include <cmath>
 #include <algorithm>
 #include <random>
+#include <regex>
 
 namespace js
 {
@@ -1589,12 +1590,23 @@ struct Function {
 
 struct RegExp {
 
-    js::string _pattern;
+    std::regex re;
 
-    RegExp (js::string pattern) : _pattern(pattern) {
+    RegExp (js::string pattern) : re((const char *)pattern) {
     }
 
     js::boolean test(js::string val) {
+        try
+        {
+            if (std::regex_search((const char *)val, re))
+            {
+                return true;
+            }
+        }
+        catch (std::regex_error &e)
+        {
+        }
+
         return false;
     }
 };

@@ -69,7 +69,8 @@
             "xlocmon": "cpp",
             "xloctime": "cpp",
             "random": "cpp",
-            "algorithm": "cpp"
+            "algorithm": "cpp",
+            "regex": "cpp"
         }
     }
 }

@@ -4,4 +4,7 @@
 
 using namespace js;
 
+extern string navigator1;
+extern boolean _badOS;
+extern js::number b;
 #endif

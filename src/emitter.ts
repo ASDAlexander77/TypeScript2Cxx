@@ -1360,7 +1360,7 @@ export class Emitter {
                 const unionTypes = unionType.types
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
 
-                if (unionTypes.length > 1) {
+                if (this.typesAreNotSame(unionTypes)) {
                     unionTypes.forEach((element, i) => {
                         this.processPredefineType(element);
                     });
@@ -1373,6 +1373,16 @@ export class Emitter {
 
                 break;
         }
+    }
+
+    private typesAreNotSame(unionTypes: ts.TypeNode[]): boolean {
+        if (unionTypes.length <= 1) {
+            return false;
+        }
+
+        const firstType = unionTypes[0];
+        const notSame = unionTypes.slice(1).every(t => t.kind !== firstType.kind);
+        return notSame;
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
@@ -1563,7 +1573,7 @@ export class Emitter {
                 const unionTypes = unionType.types
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
 
-                if (unionTypes.length > 1) {
+                if (this.typesAreNotSame(unionTypes)) {
                     const pos = type.pos >= 0 ? type.pos : 0;
                     const end = type.end >= 0 ? type.end : 0;
                     const unionName = `__union${pos}_${end}`;
