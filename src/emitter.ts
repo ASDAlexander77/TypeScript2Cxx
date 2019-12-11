@@ -33,11 +33,11 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
-        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__EQUALS';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__Equals';
         this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
         this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
         this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = '<=';
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '__NOT_EQUALS';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '__NotEquals';
         this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '!=';
         this.opsMap[ts.SyntaxKind.GreaterThanToken] = '>';
         this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';

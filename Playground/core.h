@@ -25,9 +25,6 @@ namespace js
 #define OR(x, y) ((bool)(x) ? (x) : (y))
 #define AND(x, y) ((bool)(x) ? (y) : (x))
 
-#define EQUALS(x, y) ((x) == (y))
-#define NOT_EQUALS(x, y) (!((x) == (y)))
-
 struct any;
 struct object;
 struct string;
@@ -35,6 +32,42 @@ struct string;
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
 {
     return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
+}
+
+std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
+
+template < typename I, typename T> 
+inline bool is(T* t) {
+    return dynamic_cast<I*>(t) != nullptr;
+}
+
+template < typename I, typename T> 
+inline bool __is(T* t) {
+    return std::type_index(typeid(I*)) == std::type_index(typeid(t))
+           || is<I>(t);
+}
+
+template <class T>
+static string typeOf(T value);
+
+template <typename T>
+inline auto isNaN(T t) {
+    return std::isnan(NAN);
+}
+
+template <typename R, typename T> 
+inline R cast(T t) {
+	return (R)t;
+}
+
+template <typename L, typename R> 
+inline bool Equals(L l, R r) {
+	return l == r;
+}
+
+template <typename L, typename R> 
+inline bool NotEquals(L l, R r) {
+	return l != r;
 }
 
 template <typename T> 
@@ -85,6 +118,7 @@ template <typename T>
 constexpr auto keys_(T& t) -> decltype(t->keys()) {
 	return t->keys();
 }
+
 
 namespace bitwise {
     template <typename T> T or(T op1, T op2) {
@@ -1527,65 +1561,6 @@ struct Array : public ReadonlyArray<T> {
     }
 };
 
-template < typename I, typename T> 
-inline bool is(T* t) {
-    return dynamic_cast<I*>(t) != nullptr;
-}
-
-template < typename I, typename T> 
-inline bool __is(T* t) {
-    return std::type_index(typeid(I*)) == std::type_index(typeid(t))
-           || is<I>(t);
-}
-
-template <class T>
-static string typeOf(T value);
-template <>
-static string typeOf(boolean value)
-{
-    return "boolean"_S;
-}
-template <>
-static string typeOf(number value)
-{
-    return "number"_S;
-}
-template <>
-static string typeOf(string value)
-{
-    return "string"_S;
-}
-template <>
-static string typeOf(object value)
-{
-    return "object"_S;
-}
-static string typeOf(any value)
-{
-    return value.typeOf();
-}
-
-template< class T > static any Void(T value);
-template<> 
-static any Void(any value)
-{
-    return any();
-}
-
-struct Finally
-{
-private:    
-	std::function<void()> _dtor;
-public:
-	Finally(std::function<void()> dtor) : _dtor(dtor) {};
-	~Finally() { _dtor(); }
-};
-
-template <typename T>
-inline auto isNaN(T t) {
-    return std::isnan(NAN);
-}
-
 struct Date {
     number getHours() {
         return number(0);
@@ -1785,13 +1760,6 @@ static struct MathImpl
     }
 } Math;
 
-std::ostream& operator << (std::ostream& os, std::nullptr_t ptr);
-
-template <typename R, typename T> 
-inline R cast(T t) {
-	return (R)t;
-}
-
 static struct Console
 {
     Console() {
@@ -1890,6 +1858,82 @@ struct WebGLTexture {
 };
 
 // end of HTML
+
+template <> 
+inline bool Equals(undefined_t l, undefined_t r) {
+	return l.isUndefined == r.isUndefined;
+}
+
+template <> 
+inline bool Equals(undefined_t l, std::nullptr_t) {
+	return l.isUndefined;
+}
+
+template <> 
+inline bool Equals(std::nullptr_t, undefined_t r) {
+	return r.isUndefined;
+}
+
+template <> 
+inline bool NotEquals(undefined_t l, undefined_t r) {
+	return l.isUndefined != r.isUndefined;
+}
+
+template <> 
+inline bool NotEquals(undefined_t l, std::nullptr_t) {
+	return !l.isUndefined;
+}
+
+template <> 
+inline bool NotEquals(std::nullptr_t, undefined_t r) {
+	return !r.isUndefined;
+}
+
+template <>
+static string typeOf(boolean value)
+{
+    return "boolean"_S;
+}
+
+template <>
+static string typeOf(number value)
+{
+    return "number"_S;
+}
+
+template <>
+static string typeOf(string value)
+{
+    return "string"_S;
+}
+
+template <>
+static string typeOf(object value)
+{
+    return "object"_S;
+}
+
+template <>
+static string typeOf(any value)
+{
+    return value.typeOf();
+}
+
+template< class T > static any Void(T value);
+template<> 
+static any Void(any value)
+{
+    return any();
+}
+
+struct Finally
+{
+private:    
+	std::function<void()> _dtor;
+public:
+	Finally(std::function<void()> dtor) : _dtor(dtor) {};
+	~Finally() { _dtor(); }
+};
 
 } // namespace js
 
