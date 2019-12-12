@@ -73,7 +73,7 @@
                 "--colors",
                 "-r",
                 "ts-node/register",
-                "${workspaceFolder}/../spec/**/regexp.spec.ts"
+                "${workspaceFolder}/../spec/**/operators.spec.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"

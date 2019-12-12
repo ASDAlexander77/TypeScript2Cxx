@@ -1,4 +1,6 @@
-	let navigator1 = 'iPad iPhone';                  
-        const _badOS = /iPad/.test(navigator1);             
-        const b = _badOS ? 1 : 0;                           
-        console.log(b);
+	const ok = (<any>1) instanceof Number;      
+        console.log(ok ? "true" : "false");         
+        const ok1 = (<any>"a") instanceof String;   
+        console.log(ok1 ? "true" : "false");        
+        const ok2 = (<any>true) instanceof Boolean; 
+        console.log(ok2 ? "true" : "false"); 

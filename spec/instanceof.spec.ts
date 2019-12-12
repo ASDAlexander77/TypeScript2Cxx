@@ -5,9 +5,7 @@ import { describe, it } from 'mocha';
 describe('InstanceOf', () => {
 
     it('InstanceOf: number, string, boolean', () => expect(new Run().test([
-        'class Number {}                            \
-        class String {}                             \
-        class Boolean {}                            \
+        '                                           \
         const ok = (<any>1) instanceof Number;      \
         console.log(ok ? "true" : "false");         \
         const ok1 = (<any>"a") instanceof String;   \
