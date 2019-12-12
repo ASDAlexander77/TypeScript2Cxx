@@ -4,5 +4,5 @@
 
 using namespace js;
 
-extern any text1, text2, text3;
+extern any x;
 #endif

@@ -27,7 +27,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
         this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
-        this.opsMap[ts.SyntaxKind.AmpersandToken] = '__bitwise::amd';
+        this.opsMap[ts.SyntaxKind.AmpersandToken] = '__bitwise::and';
         this.opsMap[ts.SyntaxKind.BarToken] = '__bitwise::or';
         this.opsMap[ts.SyntaxKind.CaretToken] = '__bitwise::xor';
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
@@ -2504,8 +2504,20 @@ export class Emitter {
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
-        this.writer.writeString(this.opsMap[node.operator]);
+
+        const op = this.opsMap[node.operator];
+        const isFunction = op.substr(0, 2) === '__';
+        if (isFunction) {
+            this.writer.writeString(op.substr(2) + '(');
+        } else {
+            this.writer.writeString(op);
+        }
+
         this.processExpression(node.operand);
+
+        if (isFunction) {
+            this.writer.writeString(')');
+        }
     }
 
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
@@ -2531,7 +2543,6 @@ export class Emitter {
             this.writer.writeString(')');
             return;
         }
-
 
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';

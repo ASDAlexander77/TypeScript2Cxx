@@ -122,28 +122,34 @@ constexpr auto keys_(T& t) -> decltype(t->keys()) {
 
 
 namespace bitwise {
-    template <typename T> T or(T op1, T op2) {
-        return (T)((long)op1 | (long)op1);
+    template <typename T> 
+    inline T or(T op1, T op2) {
+        return (T)((long)op1 | (long)op2);
     }
 
-    template <typename T> T and(T op1, T op2) {
-        return (T)((long)op1 & (long)op1);
+    template <typename T> 
+    inline T and(T op1, T op2) {
+        return (T)((long)op1 & (long)op2);
     }
 
-    template <typename T> T xor(T op1, T op2) {
-        return (T)((long)op1 ^ (long)op1);
+    template <typename T> 
+    inline T xor(T op1, T op2) {
+        return (T)((long)op1 ^ (long)op2);
     }
 
-    template <typename T> T not(T op) {
+    template <typename T> 
+    inline T not(T op) {
         return (T)(~(long)op);
     }
 
-    template <typename T> T rshift(T op1, T op2) {
-        return (T)((long)op1 << (long)op1);
+    template <typename T> 
+    inline T rshift(T op1, T op2) {
+        return (T)((long)op1 << (long)op2);
     }
 
-    template <typename T> T lshift(T op1, T op2) {
-        return (T)((long)op1 >> (long)op1);
+    template <typename T> 
+    inline T lshift(T op1, T op2) {
+        return (T)((long)op1 >> (long)op2);
     }
 }
 
