@@ -1022,6 +1022,12 @@ struct any {
                         return any(_value._number + t._value._number);
                 }
                 break;
+            case anyTypeId::string:
+                switch (t._type) {
+                    case anyTypeId::string:
+                        return any(js::string(std::strcat(mutable_(((js::string*)_value._data)->_value.c_str()), ((js::string*)t._value._data)->_value.c_str())));                
+                }
+                break;
         }
 
         throw "not implemented";
@@ -1090,6 +1096,25 @@ struct any {
         throw "not implemented";        
     }     
 
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any operator *(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number * t);
+        }
+
+        throw "not implemented";
+    }    
+
+    any operator *(const js::number& t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number * t);
+        }
+
+        throw "not implemented";
+    }    
+
     any operator *(any t) {
         switch (_type) {
             case anyTypeId::number:
@@ -1131,6 +1156,16 @@ struct any {
 
         throw "not implemented";        
     }       
+
+    template<class T, class = std::enable_if<std::is_integral_v<T>>>
+    any operator /(T t) {
+        switch (_type) {
+            case anyTypeId::number:
+                return any(_value._number / t);
+        }
+
+        throw "not implemented";
+    }
 
     any operator /(any t) {
         switch (_type) {

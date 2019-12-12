@@ -4,7 +4,5 @@
 
 using namespace js;
 
-extern boolean ok;
-extern boolean ok1;
-extern boolean ok2;
+extern any text1, text2, text3;
 #endif
