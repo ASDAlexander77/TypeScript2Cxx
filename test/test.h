@@ -4,5 +4,5 @@
 
 using namespace js;
 
-extern any r, x, y;
+extern object a;
 #endif

@@ -1,3 +1,3 @@
-	let c = [1, 2, 3];                         
-        let b = 2 in c;                             
-        console.log(b);
+	let a = { obj: "asd" };                    
+        delete a.obj;                               
+        console.log(a.obj);     

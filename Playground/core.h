@@ -841,6 +841,11 @@ struct object : public undefined_t {
 
     any& operator[] (std::string s);
 
+    void Delete(const char *field)
+    {
+        _values.erase(field);
+    }    
+
     friend std::ostream& operator << (std::ostream& os, object val)
     {
         if (val.isUndefined) {
