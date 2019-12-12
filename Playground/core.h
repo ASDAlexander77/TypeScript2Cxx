@@ -144,12 +144,12 @@ namespace bitwise {
 
     template <typename T> 
     inline T rshift(T op1, T op2) {
-        return (T)((long)op1 << (long)op2);
+        return (T)((long)op1 >> (long)op2);
     }
 
     template <typename T> 
     inline T lshift(T op1, T op2) {
-        return (T)((long)op1 >> (long)op2);
+        return (T)((long)op1 << (long)op2);
     }
 }
 
@@ -1234,6 +1234,19 @@ struct any {
         throw "not implemented";        
     }    
 
+    any operator >(any t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number > t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }    
+
     bool operator >=(js::number n) {
         switch (_type) {
             case anyTypeId::number:
@@ -1247,10 +1260,23 @@ struct any {
     bool operator >=(T t) {
         switch (_type) {
             case anyTypeId::number:
-                return _value._number._value > t;
+                return _value._number._value >= t;
         }
 
         throw "not implemented";        
+    }    
+
+    any operator >=(any t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number >= t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
     }    
 
     bool operator <(js::number n) {
@@ -1272,6 +1298,19 @@ struct any {
         throw "not implemented";        
     }    
 
+    any operator <(any t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number < t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }    
+
     bool operator <=(js::number n) {
         switch (_type) {
             case anyTypeId::number:
@@ -1290,6 +1329,19 @@ struct any {
 
         throw "not implemented";        
     }    
+
+    any operator <=(any t) {
+        switch (_type) {
+            case anyTypeId::number:
+                switch (t._type) {
+                    case anyTypeId::number:
+                        return any(_value._number <= t._value._number);
+                }
+                break;
+        }
+
+        throw "not implemented";
+    }
 
     void operator()(void) const {
         switch (_type) {
