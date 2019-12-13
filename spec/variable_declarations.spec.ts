@@ -100,7 +100,7 @@ describe('Variable Declarations', () => {
         const kitty = {                         \
             name: "Aurora",                     \
             numLives: numLivesForCat,           \
-        }                                       \
+        };                                      \
                                                 \
         kitty.name = "Rory";                    \
         kitty.name = "Kitty";                   \

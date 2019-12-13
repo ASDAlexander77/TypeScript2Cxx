@@ -4,5 +4,6 @@
 
 using namespace js;
 
-extern object a;
+void f();
+
 #endif
