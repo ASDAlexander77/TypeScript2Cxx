@@ -847,14 +847,6 @@ export class Emitter {
         this.writer.EndOfStatement();
     }
 
-    private processFunctionForwardDeclaration(node: ts.FunctionDeclaration) {
-        this.scope.push(node);
-        this.processFunctionDeclaration(node, false);
-        this.scope.pop();
-
-        this.writer.EndOfStatement();
-    }
-
     private processClassForwardDeclarationIntenal(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
         let next = false;
         if (node.typeParameters) {
@@ -1674,12 +1666,19 @@ export class Emitter {
         // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         // const noCapture = !this.requireCapture(node);
 
+        // in case of nested function
+        const isNestedFunction = node.parent.kind === ts.SyntaxKind.Block;
+        if (isNestedFunction) {
+            implementationMode = true;
+        }
+
         const isClassMember = this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
         const isFunctionOrMethodDeclaration =
-            node.kind === ts.SyntaxKind.FunctionDeclaration || isClassMember;
+            (node.kind === ts.SyntaxKind.FunctionDeclaration || isClassMember)
+            && !isNestedFunction;
         const isFunctionExpression = node.kind === ts.SyntaxKind.FunctionExpression;
         const isFunction = isFunctionOrMethodDeclaration || isFunctionExpression;
-        const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction;
+        const isArrowFunction = node.kind === ts.SyntaxKind.ArrowFunction || isNestedFunction;
         const writeAsLambdaCFunction = isArrowFunction || isFunction;
         let castToFunctionTemplate = false;
 
@@ -1750,6 +1749,18 @@ export class Emitter {
                     this.writeClassName();
                 }
             } else if (isArrowFunction || isFunctionExpression) {
+
+                if (isNestedFunction) {
+                    this.writer.writeString('auto ');
+                    if (node.name.kind === ts.SyntaxKind.Identifier) {
+                        this.processExpression(node.name);
+                    } else {
+                        throw new Error('Not implemented');
+                    }                    
+
+                    this.writer.writeString(' = ');
+                }
+
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
 
