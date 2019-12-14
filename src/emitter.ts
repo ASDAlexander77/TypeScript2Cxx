@@ -1667,7 +1667,7 @@ export class Emitter {
         // const noCapture = !this.requireCapture(node);
 
         // in case of nested function
-        const isNestedFunction = node.parent.kind === ts.SyntaxKind.Block;
+        const isNestedFunction = node.parent && node.parent.kind === ts.SyntaxKind.Block;
         if (isNestedFunction) {
             implementationMode = true;
         }
