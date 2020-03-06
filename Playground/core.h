@@ -1348,42 +1348,21 @@ struct any {
         throw "not implemented";
     }
 
-    void operator()(void) const {
-        switch (_type) {
-            case anyTypeId::function:
-                _value._function->invoke();
-                return;
-        }
-
-        throw "not implemented";   
-    }
-
-    template < typename ... Args > void operator()(Args... args) const {
-        //invoke({args...});
-    }
-
-    template < typename R, typename ... Args > R operator()(Args... args) const {
-        //invoke({args...});
-    }        
-
-    void operator()(void) {
-        switch (_type) {
-            case anyTypeId::function:
-                _value._function->invoke();
-                return;
-        }
-
-        throw "not implemented";   
-    }
-
+    template < typename ... Args > any operator()(Args... args) const {
 /*
-    template < typename ... Args > void operator()(Args... args) {
-        //invoke({args...});
-    }    
+        switch (_type) {
+            case anyTypeId::function:
+                _value._function->invoke();
+                return;
+        }
 */
+        //invoke({args...});
+	return any();
+    }
 
     template < typename ... Args > any operator()(Args... args) {
         //invoke({args...});
+	return any();
     }    
 
     js::string typeOf()
