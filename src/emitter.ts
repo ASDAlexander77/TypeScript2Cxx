@@ -1766,7 +1766,8 @@ export class Emitter {
 
                 castToFunctionTemplate = node.parent 
                     && (node.parent.kind === ts.SyntaxKind.PropertyAssignment
-                        || node.parent.kind === ts.SyntaxKind.CallExpression);
+                        || node.parent.kind === ts.SyntaxKind.CallExpression
+			|| node.parent.kind === ts.SyntaxKind.ReturnStatement);
                 if (castToFunctionTemplate) {
                     this.writer.writeString('js::function_t(');
                 }

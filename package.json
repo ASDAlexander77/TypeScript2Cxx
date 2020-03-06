@@ -19,7 +19,7 @@
     "exec": "ts-node src/main.ts"
   },
   "bin": {
-    "tsc-lua": "./__out/main.js"
+    "tsc-cxx": "./__out/main.js"
   },
   "private": true,
   "dependencies": {
