@@ -1376,11 +1376,13 @@ struct any {
         throw "not implemented";   
     }
 
+/*
     template < typename ... Args > void operator()(Args... args) {
         //invoke({args...});
-    }
+    }    
+*/
 
-    template < typename R, typename ... Args > R operator()(Args... args) {
+    template < typename ... Args > any operator()(Args... args) {
         //invoke({args...});
     }    
 
