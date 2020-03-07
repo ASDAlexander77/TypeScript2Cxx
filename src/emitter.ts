@@ -170,12 +170,12 @@ export class Emitter {
                 .map(v => this.preprocessor.preprocessStatement(v))
                 .filter(s => this.isDeclarationStatement(s) && s.kind !== ts.SyntaxKind.EnumDeclaration || this.isVariableStatement(s))
                 .forEach(s => {
-                if (this.isVariableStatement(s)) {
-                    this.processForwardDeclaration(s);
-                } else {
-                    this.processStatement(s);
-                }
-            });
+                    if (this.isVariableStatement(s)) {
+                        this.processForwardDeclaration(s);
+                    } else {
+                        this.processStatement(s);
+                    }
+                });
 
             sourceFile.statements.filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)).forEach(s => {
                 this.processImplementation(s, true);
@@ -196,8 +196,8 @@ export class Emitter {
                 .map(v => this.preprocessor.preprocessStatement(v))
                 .filter(s => this.isVariableStatement(s))
                 .forEach(s => {
-                this.processStatement(<ts.Statement>s);
-            });
+                    this.processStatement(<ts.Statement>s);
+                });
 
             const hasVarsContent = this.writer.hasAnyContent(positionBeforeVars);
 
@@ -1066,7 +1066,7 @@ export class Emitter {
         } else if (node.type.kind === ts.SyntaxKind.MappedType) {
             const mappedType = <ts.MappedTypeNode>type;
             if (node.typeParameters && node.typeParameters[0]) {
-                type = <any> { kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier((<any>(node.typeParameters[0])).symbol.name) };
+                type = <any>{ kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier((<any>(node.typeParameters[0])).symbol.name) };
             }
         }
 
@@ -1346,7 +1346,7 @@ export class Emitter {
                     });
                 }
                 break;
-             case ts.SyntaxKind.UnionType:
+            case ts.SyntaxKind.UnionType:
 
                 const unionType = <ts.UnionTypeNode>type;
                 const unionTypes = unionType.types
@@ -1447,7 +1447,7 @@ export class Emitter {
                 const isTypeAlias = ((typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
                     || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
-                if ((<any>typeReference.typeName).symbol 
+                if ((<any>typeReference.typeName).symbol
                     && (<any>typeReference.typeName).symbol.parent
                     && (<any>typeReference.typeName).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
                     this.processType((<any>typeReference.typeName).symbol.parent.valueDeclaration);
@@ -1756,7 +1756,7 @@ export class Emitter {
                         this.processExpression(node.name);
                     } else {
                         throw new Error('Not implemented');
-                    }                    
+                    }
 
                     this.writer.writeString(' = ');
                 }
@@ -1764,10 +1764,10 @@ export class Emitter {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
 
-                castToFunctionTemplate = node.parent 
+                castToFunctionTemplate = node.parent
                     && (node.parent.kind === ts.SyntaxKind.PropertyAssignment
                         || node.parent.kind === ts.SyntaxKind.CallExpression
-			|| node.parent.kind === ts.SyntaxKind.ReturnStatement);
+                        || node.parent.kind === ts.SyntaxKind.ReturnStatement);
                 if (castToFunctionTemplate) {
                     this.writer.writeString('js::function_t(');
                 }
@@ -2333,7 +2333,7 @@ export class Emitter {
 
     private processRegularExpressionLiteral(node: ts.RegularExpressionLiteral): void {
         this.writer.writeString('(new RegExp(');
-        this.processStringLiteral(<ts.LiteralLikeNode>{text: node.text.substring(1, node.text.length - 2)});
+        this.processStringLiteral(<ts.LiteralLikeNode>{ text: node.text.substring(1, node.text.length - 2) });
         this.writer.writeString('))');
     }
 
@@ -2423,8 +2423,7 @@ export class Emitter {
             }
         }
 
-        if (!isTuple)
-        {
+        if (!isTuple) {
             this.writer.writeString('new Array<');
             this.processType(elementsType, undefined, true);
             this.writer.writeString('>(');
@@ -2445,8 +2444,7 @@ export class Emitter {
             this.writer.EndBlockNoIntent();
         }
 
-        if (!isTuple)
-        {
+        if (!isTuple) {
             this.writer.writeString(')');
         }
     }
@@ -2469,20 +2467,18 @@ export class Emitter {
         } else {
             let isWriting = false;
             let dereference = true;
-            if (node.parent.kind === ts.SyntaxKind.BinaryExpression)
-            {
+            if (node.parent.kind === ts.SyntaxKind.BinaryExpression) {
                 const binaryExpression = <ts.BinaryExpression>node.parent;
                 isWriting = binaryExpression.operatorToken.kind === ts.SyntaxKind.EqualsToken
                     && binaryExpression.left === node;
             }
 
-            dereference = type.kind !== ts.SyntaxKind.TypeLiteral 
+            dereference = type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
-                && symbolInfo 
+                && symbolInfo
                 && symbolInfo.valueDeclaration
                 && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
-            if (dereference)
-            {
+            if (dereference) {
                 this.writer.writeString('(*');
             }
 
@@ -2496,8 +2492,7 @@ export class Emitter {
                 this.writer.writeString(')');
             }
 
-            if (dereference)
-            {
+            if (dereference) {
                 this.writer.writeString(')');
             }
 
@@ -2725,8 +2720,8 @@ export class Emitter {
         const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
         const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
         const methodAccess = symbolInfo
-                && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
-                && node.parent.kind !== ts.SyntaxKind.CallExpression;
+            && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
+            && node.parent.kind !== ts.SyntaxKind.CallExpression;
         const getAccess = symbolInfo
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
@@ -2746,14 +2741,13 @@ export class Emitter {
             this.processExpression(node.expression);
             this.writer.writeString(')');
         }
-        else
-        {
+        else {
             if (node.expression.kind === ts.SyntaxKind.NewExpression
                 || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
                 this.writer.writeString('(');
             }
 
-                // field access
+            // field access
             this.processExpression(node.expression);
 
             if (node.expression.kind === ts.SyntaxKind.NewExpression
