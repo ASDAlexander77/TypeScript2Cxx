@@ -1975,7 +1975,7 @@ struct RegExp
                 return true;
             }
         }
-        catch (std::regex_error &e)
+        catch (std::regex_error &)
         {
         }
 
@@ -2425,6 +2425,8 @@ public:
 template <class F>
 any function_t<F>::invoke(std::initializer_list<any> args)
 {
+    // look how applied implemented and do the same with initializer list
+    // https://en.cppreference.com/w/cpp/utility/apply
     return any(std::invoke(_f));
 }
 
