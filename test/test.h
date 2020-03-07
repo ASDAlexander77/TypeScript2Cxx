@@ -4,5 +4,6 @@
 
 using namespace js;
 
-extern js::number i;
+any f();
+
 #endif
