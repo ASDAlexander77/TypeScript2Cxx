@@ -70,7 +70,8 @@
             "xloctime": "cpp",
             "random": "cpp",
             "algorithm": "cpp",
-            "regex": "cpp"
+            "regex": "cpp",
+            "iterator": "cpp"
         }
     }
 }
