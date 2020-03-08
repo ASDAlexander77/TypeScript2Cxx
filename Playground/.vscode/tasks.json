@@ -68,6 +68,41 @@
             ]
         },
         {
+            "label": "Build VS2019 Debug",
+            "type": "shell",
+            "command": "./scripts/build_debug.sh",
+            "windows": {
+                "command": ".\\scripts\\build_vs2019_debug.cmd"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "Build VS2019 Release",
+            "type": "shell",
+            "command": "./scripts/build_release.sh",
+            "windows": {
+                "command": ".\\scripts\\build_vs2019_release.cmd"
+            },
+            "group": "build",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
             "label": "Build (shell) Debug",
             "type": "shell",
             "command": "C:\\WINDOWS\\System32\\bash.exe",

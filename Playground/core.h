@@ -2427,7 +2427,7 @@ any function_t<F>::invoke(std::initializer_list<any> args)
 {
     // look how applied implemented and do the same with initializer list
     // https://en.cppreference.com/w/cpp/utility/apply
-    return any(std::invoke(_f));
+    return any(std::invoke(_f, args[0]));
 }
 
 } // namespace js
