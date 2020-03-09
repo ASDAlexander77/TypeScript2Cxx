@@ -2423,11 +2423,13 @@ public:
 };
 
 template <class F>
-any function_t<F>::invoke(std::initializer_list<any> args)
+any function_t<F>::invoke(std::initializer_list<any> args_)
 {
     // look how applied implemented and do the same with initializer list
     // https://en.cppreference.com/w/cpp/utility/apply
-    switch (args.size)
+    std::vector<any> args(args_);
+    /*
+    switch (args.size())
     {
         case 0: return any(std::invoke(_f, args[0]));
         case 1: return any(std::invoke(_f, args[0], args[1]));
@@ -2452,6 +2454,9 @@ any function_t<F>::invoke(std::initializer_list<any> args)
         case 20: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18], args[19], args[20]));
         default: return any(std::invoke(_f));
     }
+    */
+
+   return any();
 }
 
 } // namespace js

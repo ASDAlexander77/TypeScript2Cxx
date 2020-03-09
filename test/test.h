@@ -4,6 +4,5 @@
 
 using namespace js;
 
-any f();
-
+extern object attached;
 #endif
