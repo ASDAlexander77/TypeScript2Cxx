@@ -1,4 +1,8 @@
-const attached = { type: function() { console.log("works"); } };
-        for (var cam in attached) {                             
-            attached[cam]();                                    
-        }
+var f = function() {
+	const a = 10;
+	return function() {
+		return a;
+	}
+}
+
+f()();

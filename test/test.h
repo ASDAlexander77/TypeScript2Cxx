@@ -4,5 +4,5 @@
 
 using namespace js;
 
-extern object attached;
+extern std::function<std::function<js::number()>()> f;
 #endif
