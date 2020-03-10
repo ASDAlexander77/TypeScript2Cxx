@@ -5,11 +5,10 @@ using namespace js;
 std::function<std::function<js::number()>()> f = [&]()
 {
     js::number a = 10;
-    return js::function_t([&]()
+    return [&]()
     {
-        return cast<any>(a);
-    }
-    );
+        return a;
+    };
 };
 
 void Main(void)
