@@ -1652,6 +1652,8 @@ export class Emitter {
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
         implementationMode?: boolean): void {
 
+        this.scope.push(node);
+    
         let noBody = false;
 
         if (!node.body
@@ -1914,6 +1916,8 @@ export class Emitter {
                 }
             }
         }
+
+        this.scope.pop();
     }
 
     private writeClassName() {
@@ -2072,9 +2076,7 @@ export class Emitter {
             });
         }
 
-        this.scope.push(node);
         this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
-        this.scope.pop();
 
         if (!this.isClassMemberDeclaration(node)) {
             this.writer.EndOfStatement();
@@ -2092,7 +2094,8 @@ export class Emitter {
             this.writer.writeString(' ');
 
             const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
-            const functionReturn = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1])).type;
+            const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
+            const functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
             let theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
                 || this.resolver.typesAreTheSame(typeReturn, functionReturn);
 
@@ -2579,7 +2582,7 @@ export class Emitter {
             const propertyAccess = <ts.PropertyAccessExpression>node.expression;
             this.processExpression(propertyAccess.expression);
             this.writer.writeString('.Delete("');
-            this.processExpression(propertyAccess.name);
+            this.processExpression(<ts.Identifier>propertyAccess.name);
             this.writer.writeString('")');
         } else if (node.expression.kind === ts.SyntaxKind.ElementAccessExpression) {
             const elementAccessExpression = <ts.ElementAccessExpression>node.expression;
@@ -2736,7 +2739,7 @@ export class Emitter {
             }
 
             this.writer.writeString('::');
-            this.processExpression(node.name);
+            this.processExpression(<ts.Identifier>node.name);
             this.writer.writeString(', ');
             this.processExpression(node.expression);
             this.writer.writeString(')');
@@ -2757,7 +2760,7 @@ export class Emitter {
 
             if (this.resolver.isAnyLikeType(typeInfo)) {
                 this.writer.writeString('["');
-                this.processExpression(node.name);
+                this.processExpression(<ts.Identifier>node.name);
                 this.writer.writeString('"]');
                 return;
             } else if (this.resolver.isStaticAccess(typeInfo)
@@ -2776,7 +2779,7 @@ export class Emitter {
                 }
             }
 
-            this.processExpression(node.name);
+            this.processExpression(<ts.Identifier>node.name);
 
             if (getAccess && (<any>node).__set !== true) {
                 this.writer.writeString('()');

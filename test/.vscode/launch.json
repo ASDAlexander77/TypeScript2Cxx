@@ -27,27 +27,7 @@
             "preLaunchTask": "Build VS2019 Debug",
         },
         {
-            "name": "C++ (Windows) Test Launch",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/test.exe",
-            "stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": true
-        },
-        {
-            "name": "C++ (Windows) Test App Launch",
-            "type": "cppvsdbg",
-            "request": "launch",
-            "program": "${workspaceRoot}/testapp1.exe",
-            "stopAtEntry": true,
-            "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": true
-        },
-        {
-            "name": "C++ (MinGW) Launch",
+            "name": "C++ (MinGW/GCC/Clang) Launch",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceRoot}/__build_mingw32_debug/test.exe",

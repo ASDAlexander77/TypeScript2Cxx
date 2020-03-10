@@ -30,13 +30,13 @@
     "source-map": "^0.7.3"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.5",
+    "@types/chai": "^4.2.10",
     "@types/fs-extra": "^5.1.0",
     "@types/mocha": "^5.2.7",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "ts-node": "^7.0.1",
     "tslint": "^5.20.1",
-    "typescript": "^3.7.2"
+    "typescript": "^3.8.3"
   }
 }

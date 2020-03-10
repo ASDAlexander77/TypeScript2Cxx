@@ -1,8 +1,9 @@
-var f = function(f1) {
-	const a = 10;
-	return f1(a);
+var f = function ()
+{
+	const i = 10;
+	return function() {
+		return i;
+	};
 }
 
-f(function(b) {
-	return b;
-})();
+f()();
