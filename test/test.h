@@ -4,5 +4,5 @@
 
 using namespace js;
 
-extern std::function<std::function<js::number()>()> f;
+extern std::function<any(any)> f;
 #endif

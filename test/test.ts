@@ -1,8 +1,8 @@
-var f = function() {
+var f = function(f1) {
 	const a = 10;
-	return function() {
-		return a;
-	}
+	return f1(a);
 }
 
-f()();
+f(function(b) {
+	return b;
+})();

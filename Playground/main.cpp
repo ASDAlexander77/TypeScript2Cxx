@@ -2,18 +2,19 @@
 
 using namespace js;
 
-std::function<std::function<js::number()>()> f = [&]()
+std::function<any(any)> f = [&](any f1)
 {
     js::number a = 10;
-    return [&]()
-    {
-        return a;
-    };
+    return cast<any>(f1(a));
 };
 
 void Main(void)
 {
-    f()();
+    f(js::function_t([&](any b)
+    {
+        return cast<any>(b);
+    }
+    ))();
 }
 
 int main(int argc, char** argv)
