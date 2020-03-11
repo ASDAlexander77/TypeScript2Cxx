@@ -22,6 +22,11 @@ export class IdentifierResolver {
             return true;
         }
 
+        if ((typeReturn.kind === ts.SyntaxKind.NumberKeyword && functionReturn.kind === ts.SyntaxKind.NumericLiteral)
+            || (functionReturn.kind === ts.SyntaxKind.NumberKeyword && typeReturn.kind === ts.SyntaxKind.NumericLiteral)) {
+            return true;
+        }        
+
         if (typeReturn.kind !== functionReturn.kind) {
             return false;
         }
