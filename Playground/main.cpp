@@ -14,14 +14,28 @@ auto conditional_invoke(Args... args)
     return sizeof...(args);
 }
 
-template <class _Ret, class... _Types>            
-inline constexpr auto _Get_function_args_count = sizeof...(_Types);
+
+template<class _Tx>
+struct _Get_function_info;
+
+template<class _Ret, class... _Types> 
+struct _Get_function_info<_Ret (_Types...)> 
+{	
+    inline static constexpr auto _count = sizeof...(_Types);
+};
+
+template<class _Ret, class... _Types> 
+struct _Get_function_info<_Ret (*)(_Types...)> 
+{	
+    inline static constexpr auto _count = sizeof...(_Types);
+};
+
 
 template <class F>
 struct _function_t
 {
     F _f;
-    constexpr static size_t _count = _Get_function_args_count<F>;
+    constexpr static size_t _count = _Get_function_info<F>::_count;
 
     _function_t(const F &f) : _f(f)
     {
@@ -43,16 +57,19 @@ struct _function_t
     }    
 };
 
+void _f_(int a, int b) {
+    
+}
+
 void Main(void)
 {
-    _function_t f([&](int a, int b)
-    {
-        return a + b;
-    });
-
-    auto a = std::function_t<void()>();
-
+    _function_t f(&_f_);
     f(1, 2);
+
+    _function_t f2([] (int a, int b) {
+
+    });
+    f2(1, 2);
 }
 
 int main(int argc, char** argv)
