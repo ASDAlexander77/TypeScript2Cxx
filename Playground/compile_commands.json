@@ -1,0 +1,5 @@
+[
+  { "directory": ".",
+    "command": "ms.bat",
+    "file": "main.cpp" }
+]

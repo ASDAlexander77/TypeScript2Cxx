@@ -1,4 +1,4 @@
-#include "test.h"
+#include "core.h"
 
 using namespace js;
 
@@ -15,15 +15,13 @@ auto conditional_invoke(Args... args)
 }
 
 template <class _Ret, class... _Types>            
-struct _Get_function_args_count {
-    using count = sizeof...(_Types);
-};
+inline constexpr auto _Get_function_args_count = sizeof...(_Types);
 
 template <class F>
 struct _function_t
 {
     F _f;
-    constexpr static size_t _count = _Get_function_args_count<F>::count;
+    constexpr static size_t _count = _Get_function_args_count<F>;
 
     _function_t(const F &f) : _f(f)
     {
@@ -38,24 +36,23 @@ struct _function_t
 
     template <typename... Args>
     auto operator()(Args... args) -> int {
-        return sizeof...(args);
-    }
-    
-    auto invoke() -> void {
 
-    }
+        std::cout << "Hello: " << _count << std::endl;
+
+        return sizeof...(args);
+    }    
 };
 
 void Main(void)
 {
-    _function_t f([&]()
+    _function_t f([&](int a, int b)
     {
-        return 10;
+        return a + b;
     });
 
-    f();
+    auto a = std::function_t<void()>();
 
-    std::function<void()> ff;
+    f(1, 2);
 }
 
 int main(int argc, char** argv)
