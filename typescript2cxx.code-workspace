@@ -71,7 +71,12 @@
             "random": "cpp",
             "algorithm": "cpp",
             "regex": "cpp",
-            "iterator": "cpp"
+            "iterator": "cpp",
+            "any": "cpp",
+            "locale": "cpp",
+            "xlocbuf": "cpp",
+            "xlocmes": "cpp",
+            "concepts": "cpp"
         }
     }
 }
