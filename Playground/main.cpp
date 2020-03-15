@@ -13,16 +13,16 @@ void Main(void)
     std::invoke(std::any_cast<std::function<void(int, int)>>(s), 1, 2);
 
 
-    js::function fff = [] (int x, int y) {
+    auto fff = function_t([] (int x, int y) {
         std::cout << "Hello" << std::endl;
-    };
+    });
 
     fff(1, 2);
 
-    js::function fff2 = [] (int x, int y) -> auto {
+    auto fff2 = js::function_t([] (int x, int y) -> auto {
         std::cout << "Hello 2" << std::endl;
         return x + y;
-    };
+    });
 
     auto fr = fff2(1, 2);
 }

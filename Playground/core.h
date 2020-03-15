@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include <functional>
-#include <any>
 #include <type_traits>
 #include <vector>
 #include <tuple>
@@ -841,18 +840,25 @@ static js::string operator""_S(const char *s, std::size_t size)
 
 struct function
 {
-    std::any _f;
-
-    template<class F> 
-    function(const F &f) : _f(std::function(f))
-    {
-    }
+    virtual any invoke(std::initializer_list<any> args) = 0;
 
     template <typename... Args>
     any operator()(Args... args)
     {
-        return std::invoke(any_cast<std::function<any(Args...)>>(_f), args...);
+        return invoke({args...});
     }
+};
+
+template <class F>
+struct function_t : public function
+{
+    F _f;
+
+    function_t(const F &f) : _f(f)
+    {
+    }
+
+    virtual any invoke(std::initializer_list<any> args) override;
 };
 
 struct array : public undefined_t
@@ -1076,7 +1082,8 @@ struct any
     {
     }
 
-    any(const js::function &value) : _type(anyTypeId::function), _value((js::function *)new js::function(value))
+    template <class F>
+    any(const js::function_t<F> &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
     {
     }
 
@@ -2417,6 +2424,46 @@ public:
     Finally(std::function<void()> dtor) : _dtor(dtor){};
     ~Finally() { _dtor(); }
 };
+
+template <class F>
+any function_t<F>::invoke(std::initializer_list<any> args_)
+{
+    // look how applied implemented and do the same with initializer list
+    // https://en.cppreference.com/w/cpp/utility/apply
+    std::vector<any> args(args_);
+    switch (args.size())
+    {
+    /*
+        case 0: return any(std::invoke(_f, args[0]));
+        case 1: return any(std::invoke(_f, args[0], args[1]));
+        case 2: return any(std::invoke(_f, args[0], args[1], args[2]));
+        case 3: return any(std::invoke(_f, args[0], args[1], args[2], args[3]));
+        case 4: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4]));
+        case 5: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5]));
+        case 6: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6]));
+        case 7: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]));
+        case 8: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]));
+        case 9: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]));
+        case 10: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]));
+        case 11: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]));
+        case 12: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]));
+        case 13: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13]));
+        case 14: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14]));
+        case 15: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15]));
+        case 16: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16]));
+        case 17: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17]));
+        case 18: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18]));
+        case 19: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18], args[19]));
+        case 20: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18], args[19], args[20]));
+    */
+    default:
+        //return any(std::invoke(_f));
+        //auto r = std::invoke(_f);
+        return any();
+    }
+
+    return any();
+}
 
 } // namespace js
 
