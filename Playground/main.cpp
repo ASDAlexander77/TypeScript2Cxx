@@ -3,8 +3,11 @@
 
 using namespace js;
 
-template <typename _type = Rx(*)(Args...), typename Rx=void, typename _Cls=void, typename _Method=void, typename... Args>
-struct _Deduction_MethodPtr
+template <typename Rx, typename _Cls, typename _Method, typename... Args>
+struct _Deduction_MethodPtr;
+
+template <typename Rx, typename _Cls, typename _Method, typename... Args>
+struct _Deduction_MethodPtr<Rx(*)(Args...)>
 {
     using _ReturnType = typename Rx;
 };
