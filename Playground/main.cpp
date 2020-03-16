@@ -7,7 +7,7 @@ template <typename T>
 struct _Deduction_MethodPtr;
 
 template <typename Rx, typename _Cls, typename... Args>
-struct _Deduction_MethodPtr<Rx(_Cls::*)(Args...)>
+struct _Deduction_MethodPtr<Rx(__cdecl _Cls::*)(Args...) const>
 {
     using _ReturnType = typename Rx;
 };
@@ -22,10 +22,10 @@ template <typename F>
 struct func
 {
     using _MethodType = typename _Deduction<F>::type;
-    //using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
+    using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
 
     _MethodType m;
-    //_ReturnType r;
+    _ReturnType r;
 
     func(const F& f)
     {
@@ -34,15 +34,15 @@ struct func
 
 void Main(void)
 {
+    auto f = func([] (int x, int y) {
+        std::cout << "Hello" << std::endl;
+    });
+
     std::any s = std::function([] (int x, int y) {
 
     });
 
     std::invoke(std::any_cast<std::function<void(int, int)>>(s), 1, 2);
-
-    auto f = func([] (int x, int y) {
-        std::cout << "Hello" << std::endl;
-    });
 }
 
 int main(int argc, char** argv)
