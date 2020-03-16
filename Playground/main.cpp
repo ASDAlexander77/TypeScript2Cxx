@@ -12,7 +12,13 @@ struct _Deduction_MethodPtr<Rx(__cdecl _Cls::*)(Args...) const>
     using _ReturnType = typename Rx;
 };
 
-template <typename F, typename _type = decltype(&F::operator())>
+template <typename Rx, typename _Cls, typename... Args>
+struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
+{
+    using _ReturnType = typename Rx;
+};
+
+template <typename F, typename _type = typename std::remove_cv_t<decltype(&F::operator())>>
 struct _Deduction 
 {
     using type = typename _type;
@@ -36,6 +42,7 @@ void Main(void)
 {
     auto f = func([] (int x, int y) {
         std::cout << "Hello" << std::endl;
+        return x + y;
     });
 
     std::any s = std::function([] (int x, int y) {
