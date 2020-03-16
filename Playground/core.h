@@ -815,10 +815,25 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
-struct function;
+struct function
+{
+    virtual any invoke(std::initializer_list<any> args) = 0;
+
+    template <typename... Args>
+    any operator()(Args... args);
+};
 
 template <class F>
-struct function_t;
+struct function_t : public function
+{
+    F _f;
+
+    function_t(const F &f) : _f(f)
+    {
+    }
+
+    virtual any invoke(std::initializer_list<any> args) override;
+};
 
 struct array : public undefined_t
 {
@@ -1698,29 +1713,6 @@ struct any
     }
 };
 
-struct function
-{
-    virtual any invoke(std::initializer_list<any> args) = 0;
-
-    template <typename... Args>
-    any operator()(Args... args)
-    {
-        return invoke({args...});
-    }
-};
-
-template <class F>
-struct function_t : public function
-{
-    F _f;
-
-    function_t(const F &f) : _f(f)
-    {
-    }
-
-    virtual any invoke(std::initializer_list<any> args) override;
-};
-
 // End of Object
 /*
 template < typename T >
@@ -1859,6 +1851,8 @@ struct ReadonlyArray
 template <typename T>
 struct Array : public ReadonlyArray<T>
 {
+    typedef ReadonlyArray<T> super__;    
+    using super__::_values;
 
     Array() : ReadonlyArray<T>()
     {
@@ -1909,12 +1903,12 @@ struct Array : public ReadonlyArray<T>
         return _values.pop_back();
     }
 
-    auto begin() -> decltype(__super::_values.begin())
+    auto begin() -> decltype(_values.begin())
     {
         return _values.begin();
     }
 
-    auto end() -> decltype(__super::_values.end())
+    auto end() -> decltype(_values.end())
     {
         return _values.end();
     }
@@ -2406,6 +2400,12 @@ public:
     Finally(std::function<void()> dtor) : _dtor(dtor){};
     ~Finally() { _dtor(); }
 };
+
+template <typename... Args>
+any function::operator()(Args... args)
+{
+    return invoke({args...});
+}
 
 template <class F>
 any function_t<F>::invoke(std::initializer_list<any> args_)
