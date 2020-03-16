@@ -134,40 +134,17 @@ constexpr auto keys_(T &t) -> decltype(t->keys())
 
 namespace bitwise
 {
-template <typename T>
-    inline T or (T op1, T op2)
-{
-    return (T)((long)op1 | (long)op2);
-}
-
-template <typename T>
-    inline T and (T op1, T op2)
-{
-    return (T)((long)op1 & (long)op2);
-}
-
-template <typename T>
-    inline T xor (T op1, T op2) {
-        return (T)((long)op1 ^ (long)op2);
+    template <typename T>
+    inline T rshift(T op1, T op2)
+    {
+        return (T)((long)op1 >> (long)op2);
     }
 
     template <typename T>
-    inline T not(T op)
-{
-    return (T)(~(long)op);
-}
-
-template <typename T>
-inline T rshift(T op1, T op2)
-{
-    return (T)((long)op1 >> (long)op2);
-}
-
-template <typename T>
-inline T lshift(T op1, T op2)
-{
-    return (T)((long)op1 << (long)op2);
-}
+    inline T lshift(T op1, T op2)
+    {
+        return (T)((long)op1 << (long)op2);
+    }
 } // namespace bitwise
 
 static struct undefined_t

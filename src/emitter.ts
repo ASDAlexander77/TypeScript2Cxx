@@ -27,9 +27,9 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
         this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
-        this.opsMap[ts.SyntaxKind.AmpersandToken] = '__bitwise::and';
-        this.opsMap[ts.SyntaxKind.BarToken] = '__bitwise::or';
-        this.opsMap[ts.SyntaxKind.CaretToken] = '__bitwise::xor';
+        this.opsMap[ts.SyntaxKind.AmpersandToken] = '__std::bit_and';
+        this.opsMap[ts.SyntaxKind.BarToken] = '__std::bit_or';
+        this.opsMap[ts.SyntaxKind.CaretToken] = '__std::bit_xor';
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
@@ -55,7 +55,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanEqualsToken] = '>>=';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanEqualsToken] = '__StrictNotEqualsAssign';
 
-        this.opsMap[ts.SyntaxKind.TildeToken] = '__bitwise::not';
+        this.opsMap[ts.SyntaxKind.TildeToken] = '__std::bit_not';
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';
@@ -1653,7 +1653,7 @@ export class Emitter {
         implementationMode?: boolean): void {
 
         this.scope.push(node);
-    
+
         let noBody = false;
 
         if (!node.body
@@ -2094,7 +2094,7 @@ export class Emitter {
 
             const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
             const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
-            let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);            
+            let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
             if (functionReturn.kind === ts.SyntaxKind.FunctionType) {
                 functionReturn = (<ts.FunctionTypeNode>functionReturn).type;
             }
