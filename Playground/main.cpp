@@ -3,6 +3,32 @@
 
 using namespace js;
 
+template <typename _type = Rx(*)(Args...), typename Rx=void, typename _Cls=void, typename _Method=void, typename... Args>
+struct _Deduction_MethodPtr
+{
+    using _ReturnType = typename Rx;
+};
+
+
+template <typename F, typename _type = decltype(&F::operator())>
+struct _Deduction 
+{
+    using type = typename _type;
+};
+
+template <typename F>
+struct func
+{
+    using _MethodType = typename _Deduction<F>::type;
+    using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
+
+    _MethodType m;
+    _ReturnType r;
+
+    func(const F& f)
+    {
+    }
+};        
 
 void Main(void)
 {
@@ -12,19 +38,9 @@ void Main(void)
 
     std::invoke(std::any_cast<std::function<void(int, int)>>(s), 1, 2);
 
-
-    auto fff = function_t([] (int x, int y) {
+    auto f = func([] (int x, int y) {
         std::cout << "Hello" << std::endl;
     });
-
-    fff(1, 2);
-
-    auto fff2 = js::function_t([] (int x, int y) -> auto {
-        std::cout << "Hello 2" << std::endl;
-        return x + y;
-    });
-
-    auto fr = fff2(1, 2);
 }
 
 int main(int argc, char** argv)
