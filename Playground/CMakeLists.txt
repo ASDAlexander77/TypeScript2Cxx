@@ -29,12 +29,5 @@ file(GLOB Tsc2cxx_SRC
 include_directories("${PROJECT_SOURCE_DIR}/")
 link_directories("${PROJECT_SOURCE_DIR}/")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-    SET(BUILD_TYPE "debug")
-else()
-    SET(BUILD_TYPE "release")
-endif()
-
 add_executable (${PROJECT_NAME} "${Tsc2cxx_SRC}")
-
-target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})
+target_link_libraries (${PROJECT_NAME})
