@@ -1,8 +1,7 @@
 [
     {
-        "directory": ".",
+        "directory": "${workspaceFolder}/Playground/",
         "command": "ms.bat",
-        "file": "main.cpp",
-        "includePath": ["${workspaceFolder}/**"]
+        "file": "main.cpp"
     }
 ]
