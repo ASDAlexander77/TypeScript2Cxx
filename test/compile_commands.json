@@ -1,5 +1,8 @@
 [
-  { "directory": ".",
-    "command": "ms.bat",
-    "file": "test.cpp" }
+    {
+        "directory": ".",
+        "command": "ms.bat",
+        "file": "test.cpp",
+        "includePath": ["${workspaceFolder}/**"]
+    }
 ]
