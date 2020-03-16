@@ -3,15 +3,14 @@
 
 using namespace js;
 
-template <typename Rx, typename _Cls, typename _Method, typename... Args>
+template <typename T>
 struct _Deduction_MethodPtr;
 
-template <typename Rx, typename _Cls, typename _Method, typename... Args>
-struct _Deduction_MethodPtr<Rx(*)(Args...)>
+template <typename Rx, typename _Cls, typename... Args>
+struct _Deduction_MethodPtr<Rx(_Cls::*)(Args...)>
 {
     using _ReturnType = typename Rx;
 };
-
 
 template <typename F, typename _type = decltype(&F::operator())>
 struct _Deduction 
@@ -23,10 +22,10 @@ template <typename F>
 struct func
 {
     using _MethodType = typename _Deduction<F>::type;
-    using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
+    //using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
 
     _MethodType m;
-    _ReturnType r;
+    //_ReturnType r;
 
     func(const F& f)
     {
