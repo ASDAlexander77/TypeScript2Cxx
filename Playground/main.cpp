@@ -9,14 +9,14 @@ struct _Deduction_MethodPtr;
 template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
 {
-    using _ReturnType = typename Rx;
+    using _ReturnType = Rx;
     const static size_t _CountArgs = sizeof...(Args);
 };
 
 template <typename F, typename _type = decltype(&F::operator())>
 struct _Deduction 
 {
-    using type = typename _type;
+    using type = _type;
 };
 
 template <typename F>

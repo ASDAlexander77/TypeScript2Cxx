@@ -815,28 +815,10 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
-struct function
-{
-    virtual any invoke(std::initializer_list<any> args) = 0;
-
-    template <typename... Args>
-    any operator()(Args... args)
-    {
-        return invoke({args...});
-    }
-};
+struct function;
 
 template <class F>
-struct function_t : public function
-{
-    F _f;
-
-    function_t(const F &f) : _f(f)
-    {
-    }
-
-    virtual any invoke(std::initializer_list<any> args) override;
-};
+struct function_t;
 
 struct array : public undefined_t
 {
@@ -1636,7 +1618,7 @@ struct any
         }
     }
 
-    int hash(void) const noexcept
+    size_t hash(void) const noexcept
     {
         size_t const h1(std::hash<int>{}((int)_type));
         size_t h2;
@@ -1714,6 +1696,29 @@ struct any
 
         return os << "[any]";
     }
+};
+
+struct function
+{
+    virtual any invoke(std::initializer_list<any> args) = 0;
+
+    template <typename... Args>
+    any operator()(Args... args)
+    {
+        return invoke({args...});
+    }
+};
+
+template <class F>
+struct function_t : public function
+{
+    F _f;
+
+    function_t(const F &f) : _f(f)
+    {
+    }
+
+    virtual any invoke(std::initializer_list<any> args) override;
 };
 
 // End of Object
@@ -1904,12 +1909,12 @@ struct Array : public ReadonlyArray<T>
         return _values.pop_back();
     }
 
-    auto begin() -> decltype(_values.begin())
+    auto begin() -> decltype(__super::_values.begin())
     {
         return _values.begin();
     }
 
-    auto end() -> decltype(_values.end())
+    auto end() -> decltype(__super::_values.end())
     {
         return _values.end();
     }
@@ -2355,31 +2360,31 @@ inline bool NotEquals(int l, undefined_t r)
 }
 
 template <>
-static string typeOf(boolean value)
+string typeOf(boolean value)
 {
     return "boolean"_S;
 }
 
 template <>
-static string typeOf(number value)
+string typeOf(number value)
 {
     return "number"_S;
 }
 
 template <>
-static string typeOf(string value)
+string typeOf(string value)
 {
     return "string"_S;
 }
 
 template <>
-static string typeOf(object value)
+string typeOf(object value)
 {
     return "object"_S;
 }
 
 template <>
-static string typeOf(any value)
+string typeOf(any value)
 {
     return value.typeOf();
 }
@@ -2387,7 +2392,7 @@ static string typeOf(any value)
 template <class T>
 static any Void(T value);
 template <>
-static any Void(any value)
+any Void(any value)
 {
     return any();
 }
