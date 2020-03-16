@@ -13,8 +13,8 @@ cmake_policy(SET CMP0020 NEW)
 cmake_policy(SET CMP0054 NEW)
 
 # SETUP FOR CPP FILES
-#set(CMAKE_CXX_STANDARD 17)
-#set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_CXX_EXTENSIONS Off)
 set(CMAKE_EXPORT_COMPILE_COMMANDS On)
 
@@ -23,11 +23,11 @@ message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 
 # files
 file(GLOB Tsc2cxx_SRC
-    "*.cpp"
+    "${PROJECT_SOURCE_DIR}/*.cpp"
 )
 
-include_directories("./")
-link_directories("./")
+include_directories("${PROJECT_SOURCE_DIR}/")
+link_directories("${PROJECT_SOURCE_DIR}/")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     SET(BUILD_TYPE "debug")
@@ -35,21 +35,6 @@ else()
     SET(BUILD_TYPE "release")
 endif()
 
-if (MSVC)
-    SET(BUILD_ARCH "win32")
-
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /std:c++latest /Od /Zi /EHsc /DDEBUG /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /std:c++latest /Ox /EHsc /wd4250 /wd4200 /wd4291 /wd4996 /wd4800 /MP8")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ignore:4006 /ignore:4049 /ignore:4217")
-else()
-    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -std=c++2a -O0 -ggdb -DDEBUG ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
-    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -std=c++2a -O2 ${EXTRA_CXX_FLAGS} -Wno-invalid-offsetof")
-endif()
-
 add_executable (${PROJECT_NAME} "${Tsc2cxx_SRC}")
 
-if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})
-else()
-target_link_libraries (${PROJECT_NAME} "stdc++" ${EXTRA_LIBS})
-endif()

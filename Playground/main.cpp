@@ -10,15 +10,10 @@ template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx(__cdecl _Cls::*)(Args...) const>
 {
     using _ReturnType = typename Rx;
+    constexpr static size_t _CountArgs = sizeof...(Args);
 };
 
-template <typename Rx, typename _Cls, typename... Args>
-struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
-{
-    using _ReturnType = typename Rx;
-};
-
-template <typename F, typename _type = typename std::remove_cv_t<decltype(&F::operator())>>
+template <typename F, typename _type = decltype(&F::operator())>
 struct _Deduction 
 {
     using type = typename _type;
@@ -28,13 +23,17 @@ template <typename F>
 struct func
 {
     using _MethodType = typename _Deduction<F>::type;
-    using _ReturnType = typename _Deduction_MethodPtr<_MethodType>::_ReturnType;
+    using _MethodPtr = _Deduction_MethodPtr<_MethodType>;
+    using _ReturnType = typename _MethodPtr::_ReturnType;
+    size_t _count;
 
     _MethodType m;
     _ReturnType r;
 
     func(const F& f)
     {
+        _count = typename _MethodPtr::_CountArgs;
+        std::cout << "Args" << _count << std::endl;
     }
 };        
 
