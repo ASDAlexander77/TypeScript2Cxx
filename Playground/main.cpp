@@ -10,7 +10,7 @@ template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
 {
     using _ReturnType = typename Rx;
-    constexpr static size_t _CountArgs = sizeof...(Args);
+    const static size_t _CountArgs = sizeof...(Args);
 };
 
 template <typename F, typename _type = decltype(&F::operator())>
@@ -32,7 +32,7 @@ struct func
 
     func(const F& f)
     {
-        _count = typename _MethodPtr::_CountArgs;
+        _count = _Deduction_MethodPtr<_MethodType>::_CountArgs;
         std::cout << "Args" << _count << std::endl;
     }
 };        
