@@ -7,7 +7,7 @@ template <typename T>
 struct _Deduction_MethodPtr;
 
 template <typename Rx, typename _Cls, typename... Args>
-struct _Deduction_MethodPtr<Rx(__cdecl _Cls::*)(Args...) const>
+struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
 {
     using _ReturnType = typename Rx;
     constexpr static size_t _CountArgs = sizeof...(Args);
