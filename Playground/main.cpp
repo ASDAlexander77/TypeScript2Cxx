@@ -23,7 +23,7 @@ struct _Deduction
 template<typename F, typename Array, std::size_t... I>
 auto invoke_seq_impl(const F& f, const Array& a, std::index_sequence<I...>)
 {
-    return std::invoke(f, a[I]...);
+    return std::invoke(f, ((int)mutable__(a[I]))...);
 }
 
 template<std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
@@ -69,7 +69,7 @@ struct func_t : func
 
 void Main(void)
 {
-    func& f = func_t([] (int x, int y) {
+    func& f = func_t([] (int x, int y) -> int {
         std::cout << "Hello" << std::endl;
         return x + y;
     });

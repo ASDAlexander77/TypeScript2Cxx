@@ -107,12 +107,10 @@ constexpr T *mutable_(const T *t)
     return const_cast<T *>(t);
 }
 
-/*
 template <typename T> 
-constexpr T mutable_(const T t) {
-	return const_cast<T>(t);
+constexpr T mutable__(const T t) {
+    return T(t);
 }
-*/
 
 template <typename T>
 constexpr T &deref_(T *t)
@@ -1025,6 +1023,10 @@ struct any
 
     any() : _type(anyTypeId::undefined)
     {
+    }    
+
+    any(const js::any &value) : _type(value._type), _value(value._value)
+    {
     }
 
     any(const undefined_t &undef) : _type(anyTypeId::undefined)
@@ -1105,6 +1107,16 @@ struct any
     {
         return _type != anyTypeId::undefined;
     }
+
+    operator int()
+    {
+        if (_type == anyTypeId::number)
+        {
+            return (int)_value._number._value;
+        }
+
+        throw "wrong type";
+    }    
 
     operator double()
     {
