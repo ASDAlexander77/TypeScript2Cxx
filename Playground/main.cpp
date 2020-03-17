@@ -34,7 +34,13 @@ auto invoke_seq(const F& f, const Array& a)
 
 struct func
 {
-    virtual int invoke(std::initializer_list<int> args_) = 0;
+    virtual any invoke(std::initializer_list<any> args_) = 0;
+
+    template <typename... Args>
+    auto operator()(Args... args)
+    {
+        return invoke({args...});
+    }
 };
 
 template <typename F>
@@ -55,18 +61,20 @@ struct func_t : func
         std::cout << "Args " << _count << std::endl;
     }
 
-    virtual int invoke(std::initializer_list<int> args_) override
+    virtual any invoke(std::initializer_list<any> args_) override
     {
-        return invoke_seq<_Deduction_MethodPtr<_MethodType>::_CountArgs>(_f, std::vector<int>(args_));
+        return invoke_seq<_Deduction_MethodPtr<_MethodType>::_CountArgs>(_f, std::vector<any>(args_));
     }
 };        
 
 void Main(void)
 {
-    auto f = func_t([] (int x, int y) {
+    func& f = func_t([] (int x, int y) {
         std::cout << "Hello" << std::endl;
         return x + y;
     });
+
+    auto r = f(1, 2);
 
     std::any s = std::function([] (int x, int y) {
 
