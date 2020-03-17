@@ -1,5 +1,6 @@
 #include "core.h"
 #include <any>
+#include <utility>
 
 using namespace js;
 
@@ -19,27 +20,50 @@ struct _Deduction
     using type = _type;
 };
 
-template <typename F>
+template<typename F, typename Array, std::size_t... I>
+auto invoke_seq_impl(const F& f, const Array& a, std::index_sequence<I...>)
+{
+    return std::invoke(f, a[I]...);
+}
+
+template<std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
+auto invoke_seq(const F& f, const Array& a)
+{
+    return invoke_seq_impl(f, a, Indices{});
+}
+
 struct func
+{
+    virtual int invoke(std::initializer_list<int> args_) = 0;
+};
+
+template <typename F>
+struct func_t : func
 {
     using _MethodType = typename _Deduction<F>::type;
     using _MethodPtr = _Deduction_MethodPtr<_MethodType>;
     using _ReturnType = typename _MethodPtr::_ReturnType;
+    
+    F _f;
     size_t _count;
 
     _MethodType m;
     _ReturnType r;
 
-    func(const F& f)
+    func_t(const F& f) : _f{f}, _count{_Deduction_MethodPtr<_MethodType>::_CountArgs}
     {
-        _count = _Deduction_MethodPtr<_MethodType>::_CountArgs;
-        std::cout << "Args" << _count << std::endl;
+        std::cout << "Args " << _count << std::endl;
+    }
+
+    virtual int invoke(std::initializer_list<int> args_) override
+    {
+        return invoke_seq<_Deduction_MethodPtr<_MethodType>::_CountArgs>(_f, std::vector<int>(args_));
     }
 };        
 
 void Main(void)
 {
-    auto f = func([] (int x, int y) {
+    auto f = func_t([] (int x, int y) {
         std::cout << "Hello" << std::endl;
         return x + y;
     });
