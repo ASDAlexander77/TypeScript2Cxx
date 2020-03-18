@@ -2450,7 +2450,15 @@ auto function::operator()(Args... args)
 template <class F>
 any function_t<F>::invoke(std::initializer_list<any> args_)
 {
-    return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
+    if constexpr (std::is_void_v<decltype(invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_)))>)
+    {
+        invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
+        return any();
+    }
+    else
+    {
+        return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
+    }
 }
 
 } // namespace js
