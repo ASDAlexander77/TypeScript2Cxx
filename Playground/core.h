@@ -107,11 +107,6 @@ constexpr T *mutable_(const T *t)
     return const_cast<T *>(t);
 }
 
-template <typename T> 
-constexpr T mutable__(const T t) {
-    return T(t);
-}
-
 template <typename T>
 constexpr T &deref_(T *t)
 {
@@ -813,24 +808,57 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
-struct function
-{
-    virtual any invoke(std::initializer_list<any> args) = 0;
 
-    template <typename... Args>
-    any operator()(Args... args);
+template <typename T>
+struct _Deduction_MethodPtr;
+
+template <typename Rx, typename _Cls, typename... Args>
+struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
+{
+    using _ReturnType = Rx;
+    const static size_t _CountArgs = sizeof...(Args);
 };
 
-template <class F>
-struct function_t : public function
+template <typename F, typename _type = decltype(&F::operator())>
+struct _Deduction 
 {
+    using type = _type;
+};
+
+template<typename F, typename Array, std::size_t... I>
+auto invoke_seq_impl(const F& f, Array& a, std::index_sequence<I...>)
+{
+    return std::invoke(f, a[I]...);
+}
+
+template<std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
+auto invoke_seq(const F& f, Array& a)
+{
+    return invoke_seq_impl(f, a, Indices{});
+}
+
+struct function
+{
+    virtual any invoke(std::initializer_list<any> args_) = 0;
+
+    template <typename... Args>
+    auto operator()(Args... args);
+};
+
+template <typename F>
+struct function_t : function
+{
+    using _MethodType = typename _Deduction<F>::type;
+    using _MethodPtr = _Deduction_MethodPtr<_MethodType>;
+    using _ReturnType = typename _MethodPtr::_ReturnType;
+    
     F _f;
 
-    function_t(const F &f) : _f(f)
+    function_t(const F& f) : _f{f}
     {
     }
 
-    virtual any invoke(std::initializer_list<any> args) override;
+    virtual any invoke(std::initializer_list<any> args_) override;
 };
 
 struct array : public undefined_t
@@ -2414,7 +2442,7 @@ public:
 };
 
 template <typename... Args>
-any function::operator()(Args... args)
+auto function::operator()(Args... args)
 {
     return invoke({args...});
 }
@@ -2422,40 +2450,7 @@ any function::operator()(Args... args)
 template <class F>
 any function_t<F>::invoke(std::initializer_list<any> args_)
 {
-    // look how applied implemented and do the same with initializer list
-    // https://en.cppreference.com/w/cpp/utility/apply
-    std::vector<any> args(args_);
-    switch (args.size())
-    {
-    /*
-        case 0: return any(std::invoke(_f, args[0]));
-        case 1: return any(std::invoke(_f, args[0], args[1]));
-        case 2: return any(std::invoke(_f, args[0], args[1], args[2]));
-        case 3: return any(std::invoke(_f, args[0], args[1], args[2], args[3]));
-        case 4: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4]));
-        case 5: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5]));
-        case 6: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6]));
-        case 7: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7]));
-        case 8: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8]));
-        case 9: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9]));
-        case 10: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10]));
-        case 11: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11]));
-        case 12: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12]));
-        case 13: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13]));
-        case 14: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14]));
-        case 15: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15]));
-        case 16: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16]));
-        case 17: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17]));
-        case 18: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18]));
-        case 19: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18], args[19]));
-        case 20: return any(std::invoke(_f, args[0], args[1], args[2], args[3], args[4], args[5], args[6], args[7], args[8], args[9], args[10], args[11], args[12], args[13], args[14], args[15], args[16], args[17], args[18], args[19], args[20]));
-    */
-    default:
-        std::invoke(_f);
-        return any();
-    }
-
-    return any();
+    return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
 }
 
 } // namespace js

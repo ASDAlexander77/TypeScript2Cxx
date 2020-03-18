@@ -4,34 +4,6 @@
 
 using namespace js;
 
-template <typename T>
-struct _Deduction_MethodPtr;
-
-template <typename Rx, typename _Cls, typename... Args>
-struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
-{
-    using _ReturnType = Rx;
-    const static size_t _CountArgs = sizeof...(Args);
-};
-
-template <typename F, typename _type = decltype(&F::operator())>
-struct _Deduction 
-{
-    using type = _type;
-};
-
-template<typename F, typename Array, std::size_t... I>
-auto invoke_seq_impl(const F& f, const Array& a, std::index_sequence<I...>)
-{
-    return std::invoke(f, ((int)mutable__(a[I]))...);
-}
-
-template<std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
-auto invoke_seq(const F& f, const Array& a)
-{
-    return invoke_seq_impl(f, a, Indices{});
-}
-
 struct func
 {
     virtual any invoke(std::initializer_list<any> args_) = 0;
