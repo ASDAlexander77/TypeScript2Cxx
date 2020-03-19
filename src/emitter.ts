@@ -1766,12 +1766,15 @@ export class Emitter {
                 // lambda or noname function
                 //const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
 
+                /*
+                // TODO: delete after tests as it is been implemented in js::any()
                 castToFunctionTemplate = node.parent
                     && (node.parent.kind === ts.SyntaxKind.PropertyAssignment
-                        /*|| node.parent.kind === ts.SyntaxKind.CallExpression*/);
+                        || node.parent.kind === ts.SyntaxKind.CallExpression);
                 if (castToFunctionTemplate) {
                     this.writer.writeString('function_t(');
                 }
+                */
 
                 this.writer.writeString('[&]');
             }
