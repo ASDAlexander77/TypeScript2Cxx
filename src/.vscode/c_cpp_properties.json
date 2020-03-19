@@ -11,8 +11,7 @@
                 "_UNICODE"
             ],
             "windowsSdkVersion": "10.0.18362.0",
-            "intelliSenseMode": "msvc-x64",
-            "compileCommands": "${workspaceFolder}/Playground/compile_commands.json"
+            "intelliSenseMode": "msvc-x64"
         }
     ],
     "version": 4

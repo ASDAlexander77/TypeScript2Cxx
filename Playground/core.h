@@ -223,7 +223,12 @@ struct boolean : public undefined_t
     {
     }
 
-    constexpr operator bool() const
+    constexpr operator const bool() const
+    {
+        return !isUndefined && _value;
+    }
+
+    constexpr operator bool()
     {
         return !isUndefined && _value;
     }
@@ -259,7 +264,7 @@ struct number : public undefined_t
         _value = static_cast<double>(reinterpret_cast<unsigned long long>(initValue));
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number(T initValue)
     {
         _value = static_cast<double>(initValue);
@@ -301,7 +306,7 @@ struct number : public undefined_t
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator+(T t)
+    number operator+(const T t)
     {
         return number(_value + t);
     }
@@ -312,9 +317,14 @@ struct number : public undefined_t
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator+(T t, number value)
+    friend number operator+(const T t, number value)
     {
         return number(t + value._value);
+    }
+
+    friend number operator+(const number n, number value)
+    {
+        return number(n._value + value._value);
     }
 
     number operator+()
@@ -687,7 +697,7 @@ struct string : public undefined_t
         return this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string operator[](T t) const
     {
         return string(_value[t]);
@@ -698,7 +708,7 @@ struct string : public undefined_t
         return string(_value[n]);
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string operator+(T t)
     {
         string tmp(_value);
@@ -720,7 +730,7 @@ struct string : public undefined_t
         return tmp;
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string &operator+=(T t)
     {
         _value.append(std::to_string(t));
@@ -771,7 +781,7 @@ struct string : public undefined_t
         return string(result);
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string substring(T begin, T end)
     {
         return string(_value.substr(begin, end - begin));
@@ -874,7 +884,7 @@ struct array : public undefined_t
     {
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T> || std::is_same_v<T, number>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     const any &operator[](T t) const
     {
         return _values[(size_t)t];
@@ -962,7 +972,7 @@ struct object : public undefined_t
         return this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T> || std::is_same_v<T, number>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     const any &operator[](T t) const
     {
         return mutable_(_values)[std::to_string(t)];
@@ -972,7 +982,7 @@ struct object : public undefined_t
 
     const any &operator[](std::string s) const;
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T> || std::is_same_v<T, number>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     any &operator[](T t)
     {
         return _values[std::to_string(t)];
@@ -1024,12 +1034,11 @@ struct any
         {
         }
 
-        inline anyType(bool value) : _boolean(value)
+        inline anyType(js::boolean value) : _boolean(value)
         {
         }
 
-        template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
-        constexpr anyType(T t) : _number(t)
+        inline anyType(js::number t) : _number(t)
         {
         }
 
@@ -1061,16 +1070,16 @@ struct any
     {
     }
 
-    any(std::nullptr_t) : _type(anyTypeId::object), _value(nullptr)
+    any(std::nullptr_t v) : _type(anyTypeId::object), _value(v)
     {
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
-    any(T initValue) : _type(anyTypeId::number), _value((T)initValue)
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    any(T initValue) : _type(anyTypeId::number), _value(js::number(initValue))
     {
     }
 
-    any(bool value) : _type(anyTypeId::boolean), _value(value)
+    any(bool value) : _type(anyTypeId::boolean), _value(js::boolean(value))
     {
     }
 
@@ -1163,7 +1172,7 @@ struct any
         throw "wrong type";
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t) const
     {
         switch (_type)
@@ -1212,7 +1221,7 @@ struct any
         return !(*this == other);
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     any operator+(T t)
     {
         switch (_type)
@@ -1283,7 +1292,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     any operator-(T t)
     {
         switch (_type)
@@ -1323,7 +1332,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     any operator*(T t)
     {
         switch (_type)
@@ -1397,7 +1406,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     any operator/(T t)
     {
         switch (_type)
@@ -1879,7 +1888,7 @@ struct ReadonlyArray
         return ArrayKeys<std::size_t>(_values.size());
     }
 
-    template <class I, class = std::enable_if_t<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     const T &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
@@ -1909,7 +1918,7 @@ struct Array : public ReadonlyArray<T>
     {
     }
 
-    template <class I, class = std::enable_if_t<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     const T &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
@@ -1920,7 +1929,7 @@ struct Array : public ReadonlyArray<T>
         return _values[(size_t)i];
     }
 
-    template <class I, class = std::enable_if_t<std::is_integral_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     T &operator[](I i)
     {
         while ((size_t)i >= _values.size())

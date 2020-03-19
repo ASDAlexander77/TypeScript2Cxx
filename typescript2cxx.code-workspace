@@ -14,7 +14,7 @@
 		},
 		{
 			"name": "Cxx Playground",
-			"path": "./playground"
+			"path": "./Playground"
 		}
 	],
     "settings": {

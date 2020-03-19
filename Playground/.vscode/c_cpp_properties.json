@@ -19,7 +19,7 @@
             ],
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++20"
         },
         {
             "name": "Linux",
@@ -36,7 +36,7 @@
             "intelliSenseMode": "clang-x64",
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
-            "cppStandard": "c++17"
+            "cppStandard": "c++20"
         },
         {
             "name": "Win32",
@@ -61,28 +61,8 @@
             "intelliSenseMode": "msvc-x64",
             "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
             "cStandard": "c11",
-            "cppStandard": "c++17",
-            "configurationProvider": "vector-of-bool.cmake-tools",
-            "compileCommands": "${workspaceFolder}/compile_commands.json"
-        },
-        {
-            "name": "Win32",
-            "includePath": [
-                "C:/tools/mingw64/i686-w64-mingw32/include",
-                "${workspaceRoot}"
-            ],
-            "browse": {
-                "limitSymbolsToIncludedHeaders": true,
-                "databaseFilename": "",
-                "path": [
-                    "C:/tools/mingw64/i686-w64-mingw32/include"
-                ]
-            },
-            "intelliSenseMode": "clang-x64",
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/bin/Hostx64/x64/cl.exe",
-            "cStandard": "c11",
-            "cppStandard": "c++17",
-            "compileCommands": "${workspaceFolder}/compile_commands.json"
+            "cppStandard": "c++20",
+            "configurationProvider": "vector-of-bool.cmake-tools"
         }
     ],
     "version": 4
