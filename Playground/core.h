@@ -1095,7 +1095,7 @@ struct any
     {
     }
 
-    template <typename F, class = std::enable_if_t<std::is_function_v<F>>>
+    template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
     any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
     {
     }
