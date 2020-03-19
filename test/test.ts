@@ -1,36 +1,26 @@
-	class Vector3 {                                    
-            constructor(                                    
-                public x: number = 0,                       
-                public y: number = 0,                       
-                public z: number = 0                        
-            ) {                                             
-            }                                               
-                                                            
-            public static Zero(): Vector3 {                 
-                return new Vector3(0.0, 0.0, 0.0);          
-            }                                               
-        }                                                   
-                                                            
-        class Matrix {                                      
-            public static LookAtLHToRef(eye: Vector3, target: Vector3, up: Vector3, view: Matrix): void {
-                console.log(up.x);                          
-                console.log(up.y);                          
-                console.log(up.z);                          
-                                                            
-                const t = this;                             
-            }                                               
-        }                                                   
-                                                            
-        class Camera {                                      
-            protected _globalPosition = Vector3.Zero();     
-            protected _globalCurrentTarget = Vector3.Zero();
-            protected _globalCurrentUpVector = Vector3.Zero();
-            protected _view = new Matrix();                 
-                                                            
-            public _computeViewMatrix(): void {             
-                Matrix.LookAtLHToRef(this._globalPosition, this._globalCurrentTarget, this._globalCurrentUpVector, this._view);
-            }                                               
-        }                                                   
-                                                            
-        let c = new Camera();                               
-        c._computeViewMatrix();
+	class Test {                           
+            val = 10;                           
+                                                
+            public testMethod() {               
+                console.log(this.val);          
+            }                                   
+        }                                       
+                                                
+        class Test2 {                           
+            val = 20;                           
+        }                                       
+                                                
+        const t = new Test();                   
+                                                
+        const m1 = t.testMethod;                
+        m1();                                   
+                                                
+        const t2 = new Test2();                 
+                                                
+        const m2 = t.testMethod.bind(t2);       
+        m2();                                   
+        function fff(m3) {                      
+            m3();                               
+        }                                       
+                                                
+        fff(t.testMethod.bind(t2));
