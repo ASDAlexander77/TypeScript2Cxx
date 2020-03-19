@@ -1086,6 +1086,11 @@ struct any
     {
     }
 
+    template <typename F>
+    any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
+    {
+    }
+
     template <class F>
     any(const js::function_t<F> &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
     {
