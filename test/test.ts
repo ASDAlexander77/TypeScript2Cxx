@@ -1,15 +1,14 @@
-	 function padLeft(value: string, padding: number)                       
-         function padLeft(value: string, padding: string)                       
-         function padLeft(value: string, padding: any) {                        
-            if (typeof padding == "number") {                                   
-                return padding + value;                                         
-            }                                                                   
-                                                                                
-            if (typeof padding == "string") {                                   
-                return padding + value;                                         
-            }                                                                   
-                                                                                
-            return null;                                                        
-        }                                                                       
-                                                                                
-        console.log(padLeft("Hello world", 4)); 
+	export class Test {                                                
+            constructor(t1: any, t2?: any, t3?: any) {                      
+                console.log(t1);                                            
+                console.log(t2);                                            
+                console.log(t3);                                            
+            }                                                               
+        }                                                                   
+        function getValue(val) {                                            
+            return val + 1;                                                 
+        }                                                                   
+        function run(val) {                                                 
+            new Test(getValue(val));                                        
+        }                                                                   
+        run(10);

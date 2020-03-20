@@ -1661,11 +1661,6 @@ export class Emitter {
         implementationMode?: boolean): boolean | void {
 
         // skip function declaration as union
-        if ((<any>node).nextContainer
-            && node.kind === (<any>node).nextContainer.kind) {
-            return true;
-        }
-
         this.scope.push(node);
 
         let noBody = false;
@@ -1674,6 +1669,11 @@ export class Emitter {
                 && (<any>node).body.statements.length === 0
                 && ((<any>node).body.statements).isMissingList)) {
             // function without body;
+            if ((<any>node).nextContainer
+                && node.kind === (<any>node).nextContainer.kind) {
+                return true;
+            }
+
             noBody = true;
         }
 
