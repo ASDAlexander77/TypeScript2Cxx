@@ -1169,6 +1169,19 @@ struct any
         throw "wrong type";
     }
 
+    template <typename Rx, typename... Args>
+    operator std::function<Rx(Args...)>()
+    {
+        if (_type == anyTypeId::function)
+        {
+            return std::function<Rx(Args...)>([&] (Args... args) -> Rx {
+                return _value._function->invoke({args...});
+            });
+        }
+
+        throw "wrong type";
+    }    
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t) const
     {
