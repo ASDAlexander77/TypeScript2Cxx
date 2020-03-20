@@ -24,7 +24,7 @@ describe('Classes', () => {
         Class1.show("Hello");                           \
     '])));
 
-    it('new instance of Class with parametered member', () => expect('Hello\r\n').to.equals(new Run().test([
+    it('new instance of Class with parametrized member', () => expect('Hello\r\n').to.equals(new Run().test([
         'class Class1 {                                 \
             public show(s:string) {                     \
                 console.log(s);                         \
@@ -34,7 +34,7 @@ describe('Classes', () => {
         new Class1().show("Hello");                     \
     '])));
 
-    it('new instance of Class with parametered member into local', () => expect('Hello\r\n').to.equals(new Run().test([
+    it('new instance of Class with parametrized member into local', () => expect('Hello\r\n').to.equals(new Run().test([
         'class Class1 {                                 \
             public show(s:string) {                     \
                 console.log(s);                         \
@@ -686,7 +686,8 @@ describe('Classes', () => {
         run(10);                                                            \
     '])));
 
-    it('Class - constructor with Optional Parameters - 3',  () => expect('undefined\r\nundefined\r\nundefined\r\n').to.equals(new Run().test([
+    it('Class - constructor with Optional Parameters - 3',
+        () => expect('undefined\r\nundefined\r\nundefined\r\n').to.equals(new Run().test([
         'export class Test {                                                \
             constructor(t1?: any, t2?: any, t3?: any) {                     \
                 console.log(t1);                                            \
@@ -1025,7 +1026,8 @@ describe('Classes', () => {
     '])));
 
     // this (without method) in static method is not supported
-    it.skip('Class - BUG (class static method should not have "this" as in param)',  () => expect('0\r\n0\r\n0\r\n').to.equals(new Run().test([
+    it.skip('Class - BUG (class static method should not have "this" as in param)',
+        () => expect('0\r\n0\r\n0\r\n').to.equals(new Run().test([
         'class Vector3 {                                    \
             constructor(                                    \
                 public x: number = 0,                       \
@@ -1256,7 +1258,7 @@ describe('Classes', () => {
     '])).to.equals('10\r\n'));
 
 
-    it('Class - calling chain of lamdas with this', () => expect(new Run().test([
+    it('Class - calling chain of lambdas with this', () => expect(new Run().test([
         'class Test {                           \
         public run() {                          \
             const s = "20";                     \
