@@ -1120,7 +1120,7 @@ struct any
         return this;
     }
 
-    template <class T>
+    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
     any &operator[](T t)
     {
         if (_type == anyTypeId::array)
@@ -1128,6 +1128,12 @@ struct any
             return (*(js::array *)_value._data)[t];
         }
 
+        throw "wrong type";
+    }
+
+    template <class T>
+    any &operator[](T t)
+    {
         if (_type == anyTypeId::object)
         {
             return (*(js::object *)_value._data)[t];
