@@ -1158,21 +1158,12 @@ struct any
         return _type != anyTypeId::undefined;
     }
 
-    operator int()
+    template <class T, class=std::enable_if_t<std::is_arithmetic_v<T>>>
+    operator T()
     {
         if (_type == anyTypeId::number)
         {
-            return (int)_value._number._value;
-        }
-
-        throw "wrong type";
-    }    
-
-    operator double()
-    {
-        if (_type == anyTypeId::number)
-        {
-            return _value._number._value;
+            return static_cast<T>(_value._number._value);
         }
 
         throw "wrong type";
