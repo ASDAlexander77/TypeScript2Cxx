@@ -25,7 +25,7 @@ export class IdentifierResolver {
         if ((typeReturn.kind === ts.SyntaxKind.NumberKeyword && functionReturn.kind === ts.SyntaxKind.NumericLiteral)
             || (functionReturn.kind === ts.SyntaxKind.NumberKeyword && typeReturn.kind === ts.SyntaxKind.NumericLiteral)) {
             return true;
-        }        
+        }
 
         if (typeReturn.kind !== functionReturn.kind) {
             return false;
@@ -35,7 +35,7 @@ export class IdentifierResolver {
             return this.typesAreTheSame((<any>typeReturn).elementType, (<any>functionReturn).elementType);
         }
 
-        if ((<any>typeReturn).typeName == (<any>functionReturn).typeName) {
+        if ((<any>typeReturn).typeName === (<any>functionReturn).typeName) {
             return true;
         }
 
@@ -52,7 +52,7 @@ export class IdentifierResolver {
 
         const isAnonymousObject = ((<ts.ObjectType>typeInfo).objectFlags & ts.ObjectFlags.Anonymous) === ts.ObjectFlags.Anonymous;
         return (isAnonymousObject
-            && (!typeInfo.symbol.name || typeInfo.symbol.name === "__type" || typeInfo.symbol.name === "__object"))
+            && (!typeInfo.symbol.name || typeInfo.symbol.name === '__type' || typeInfo.symbol.name === '__object'))
             || (<any>typeInfo).intrinsicName === 'any';
     }
 
@@ -76,7 +76,7 @@ export class IdentifierResolver {
         if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
             const type = (<any>typeInfo.symbol.valueDeclaration).type;
             if (type && type.kind === ts.SyntaxKind.TypeReference) {
-                return typeInfo.symbol.name === "Date" || typeInfo.symbol.name === "RegExp";
+                return typeInfo.symbol.name === 'Date' || typeInfo.symbol.name === 'RegExp';
             }
         }
 
@@ -161,7 +161,8 @@ export class IdentifierResolver {
     public checkUnionType(type: ts.TypeNode): boolean {
         if  (type && type.kind === ts.SyntaxKind.UnionType) {
             const unionType = <ts.UnionTypeNode>(type);
-            return unionType.types.filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword).length > 1
+            return unionType.types.filter(f => f.kind !== ts.SyntaxKind.NullKeyword
+                && f.kind !== ts.SyntaxKind.UndefinedKeyword).length > 1;
         }
 
         return false;

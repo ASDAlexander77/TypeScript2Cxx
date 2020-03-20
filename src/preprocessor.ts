@@ -52,17 +52,20 @@ export class Preprocessor {
         const baseClassDeclaration = <ts.ClassDeclaration>type.symbol.valueDeclaration;
 
         const constructors = <ts.ConstructorDeclaration[]>node.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
-        const baseConstructors = <ts.ConstructorDeclaration[]>baseClassDeclaration.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
+        const baseConstructors = <ts.ConstructorDeclaration[]>baseClassDeclaration
+            .members.filter(m => m.kind === ts.SyntaxKind.Constructor);
 
         baseConstructors
-            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) => this.compareTypesOfParameters(e.parameters[index], p))) == -1)
+            .filter(e => constructors.findIndex(c => c.parameters.every((p, index) =>
+                this.compareTypesOfParameters(e.parameters[index], p))) === -1)
             .forEach(element => {
             const c = ts.createConstructor(
                 null,
                 null,
                 element.parameters.map(p => ts.createParameter(
                     p.decorators,
-                    p.modifiers && p.modifiers.filter(m => m.kind !== ts.SyntaxKind.PrivateKeyword && m.kind !== ts.SyntaxKind.ProtectedKeyword && m.kind !== ts.SyntaxKind.PublicKeyword),
+                    p.modifiers && p.modifiers.filter(m => m.kind !== ts.SyntaxKind.PrivateKeyword
+                        && m.kind !== ts.SyntaxKind.ProtectedKeyword && m.kind !== ts.SyntaxKind.PublicKeyword),
                     p.dotDotDotToken,
                     p.name,
                     p.questionToken,
@@ -82,8 +85,8 @@ export class Preprocessor {
     }
 
     private preprocessVariableStatement(variableStatement: ts.VariableStatement): ts.Statement {
-        const declr0 = variableStatement.declarationList.declarations[0];
-        const init = declr0.initializer;
+        const declaration0 = variableStatement.declarationList.declarations[0];
+        const init = declaration0.initializer;
         if (init && init.kind === ts.SyntaxKind.FunctionExpression) {
             const funcExpr = <ts.FunctionExpression>init;
             if (this.emitter.isTemplate(funcExpr)) {
@@ -91,7 +94,7 @@ export class Preprocessor {
                     funcExpr.decorators,
                     funcExpr.modifiers,
                     undefined,
-                    <ts.Identifier>declr0.name,
+                    <ts.Identifier>declaration0.name,
                     funcExpr.typeParameters,
                     funcExpr.parameters,
                     funcExpr.type,
@@ -129,7 +132,7 @@ export class Preprocessor {
                 break;
         }
 
-        return node
+        return node;
     }
 
     private fixupParentReferences<T extends ts.Node>(rootNode: T, setParent?: ts.Node): T {
@@ -144,7 +147,7 @@ export class Preprocessor {
 
         function visitNode(n: ts.Node): void {
             // walk down setting parents that differ from the parent we think it should be.  This
-            // allows us to quickly bail out of setting parents for subtrees during incremental
+            // allows us to quickly bail out of setting parents for sub-trees during incremental
             // parsing
             if (n.parent !== parent) {
                 n.parent = parent;

@@ -14,7 +14,7 @@ export class CodeWriter {
             if (rollbackPosition) {
                 this.parts.length = rollbackPosition;
             }
-            
+
             return false;
         }
 

@@ -249,9 +249,9 @@ export class Run {
             emitterSource.SourceMode = true;
             emitterSource.processNode(s);
 
-            const fileNamnNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
-            const fileNameHeader = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'h'));
-            const fileNameCpp = Helpers.correctFileNameForCxx(fileNamnNoExt.concat('.', 'cpp'));
+            const fileNameNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+            const fileNameHeader = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'h'));
+            const fileNameCpp = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'cpp'));
 
             console.log(
                 ForegroundColorEscapeSequences.Cyan
