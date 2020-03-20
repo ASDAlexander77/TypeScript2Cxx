@@ -1658,12 +1658,17 @@ export class Emitter {
     private processFunctionExpression(
         node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
-        implementationMode?: boolean): void {
+        implementationMode?: boolean): boolean | void {
+
+        // skip function declaration as union
+        if ((<any>node).nextContainer
+            && node.kind === (<any>node).nextContainer.kind) {
+            return true;
+        }
 
         this.scope.push(node);
 
         let noBody = false;
-
         if (!node.body
             || ((<any>node).body.statements
                 && (<any>node).body.statements.length === 0
@@ -2074,9 +2079,8 @@ export class Emitter {
             });
         }
 
-        this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
-
-        if (!this.isClassMemberDeclaration(node)) {
+        const skip = this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
+        if (!skip && !this.isClassMemberDeclaration(node)) {
             this.writer.EndOfStatement();
             this.writer.writeStringNewLine();
         }
