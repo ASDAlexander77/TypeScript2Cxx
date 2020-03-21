@@ -1144,12 +1144,23 @@ struct any
         throw "wrong type";
     }
 
-    using js_object = js::object;
-    operator js_object()
+    using js_boolean = js::boolean;
+    operator js_boolean()
     {
-        if (_type == anyTypeId::object)
+        if (_type == anyTypeId::boolean)
         {
-            return *(js::object *)_value._data;
+            return _value._boolean;
+        }
+
+        throw "wrong type";
+    }
+
+    using js_number = js::number;
+    operator js_number()
+    {
+        if (_type == anyTypeId::number)
+        {
+            return _value._number;
         }
 
         throw "wrong type";
@@ -1161,6 +1172,17 @@ struct any
         if (_type == anyTypeId::string)
         {
             return *(js::string *)_value._data;
+        }
+
+        throw "wrong type";
+    }
+
+    using js_object = js::object;
+    operator js_object()
+    {
+        if (_type == anyTypeId::object)
+        {
+            return *(js::object *)_value._data;
         }
 
         throw "wrong type";

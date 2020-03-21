@@ -1779,8 +1779,8 @@ export class Emitter {
                 }
 
                 // lambda or noname function
-                // const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString('[&]');
+                const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
+                this.writer.writeString(`[${byReference}]`);
             }
         }
 
