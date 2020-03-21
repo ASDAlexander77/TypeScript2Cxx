@@ -2110,7 +2110,8 @@ export class Emitter {
                 theSame = false;
             }
 
-            if (!theSame) {
+            // cast only if we have provided type
+            if (!theSame && functionDeclaration.type) {
                 this.writer.writeString('cast<');
 
                 if (this.isTemplateType(functionReturn)) {
@@ -2124,7 +2125,7 @@ export class Emitter {
 
             this.processExpression(node.expression);
 
-            if (!theSame) {
+            if (!theSame && functionDeclaration.type) {
                 this.writer.writeString(')');
             }
         }

@@ -1275,6 +1275,8 @@ struct any
             {
             case anyTypeId::number:
                 return any(_value._number + t._value._number);
+            case anyTypeId::string:
+                return any(js::string(std::strcat(mutable_(static_cast<std::string>(_value._number).c_str()), ((js::string *)t._value._data)->_value.c_str())));
             }
             break;
         case anyTypeId::string:
