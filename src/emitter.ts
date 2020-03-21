@@ -2097,9 +2097,12 @@ export class Emitter {
 
             const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
             const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
-            let functionReturn = functionDeclaration.type /*|| this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration)*/;
-            if (functionReturn && functionReturn.kind === ts.SyntaxKind.FunctionType) {
+            let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
+            if (functionReturn.kind === ts.SyntaxKind.FunctionType) {
                 functionReturn = (<ts.FunctionTypeNode>functionReturn).type;
+            } else if (!functionDeclaration.type) {
+                // if it is not function then use "any"
+                functionReturn = null;
             }
 
             let theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
