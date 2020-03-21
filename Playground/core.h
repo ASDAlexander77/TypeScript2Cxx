@@ -1174,8 +1174,9 @@ struct any
     {
         if (_type == anyTypeId::function)
         {
-            return std::function<Rx(Args...)>([=_value] (Args... args) -> Rx {
-                return _value._function->invoke({args...});
+            auto func = _value._function; 
+            return std::function<Rx(Args...)>([=] (Args... args) -> Rx {
+                return func->invoke({args...});
             });
         }
 
