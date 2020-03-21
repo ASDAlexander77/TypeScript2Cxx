@@ -889,7 +889,7 @@ struct array : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     any &operator[](T t) const
     {
-        return mutable_(_values[(size_t)t]);
+        return mutable_(_values)[(size_t)t];
     }
 
     auto begin() -> decltype(_values.begin())
