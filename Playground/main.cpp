@@ -21,20 +21,7 @@ struct Arr
 
 void Main(void)
 {
-    /*
-    auto f = any([] (int x, int y) -> int {
-        std::cout << "Hello" << std::endl;
-        return x + y;
-    });
-
-    auto r = f(1, 2);
-
-    std::function<int(int, int)> f2 = f;
-    auto r2 = f2(1, 2);
-    */
-   Arr a;
-   auto r = static_cast<const Arr&>(a)[1];
-   a[1] = 10;
+    auto r = std::bit_and()(1,2);
 }
 
 int main(int argc, char** argv)
