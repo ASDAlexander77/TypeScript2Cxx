@@ -1142,12 +1142,34 @@ struct any
         throw "wrong type";
     }
 
+    using js_object = js::object;
+    operator js_object()
+    {
+        if (_type == anyTypeId::object)
+        {
+            return *(js::object *)_value._data;
+        }
+
+        throw "wrong type";
+    }
+
     using js_string = js::string;
     operator js_string()
     {
         if (_type == anyTypeId::string)
         {
             return *(js::string *)_value._data;
+        }
+
+        throw "wrong type";
+    }
+
+    using js_array = js::array;
+    operator js_array()
+    {
+        if (_type == anyTypeId::array)
+        {
+            return *(js::array *)_value._data;
         }
 
         throw "wrong type";
