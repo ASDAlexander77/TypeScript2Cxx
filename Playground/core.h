@@ -289,7 +289,7 @@ struct number : public undefined_t
     {
         return (size_t)_value;
     }
-
+ 
     constexpr operator bool() const
     {
         return !isUndefined && _value != 0;

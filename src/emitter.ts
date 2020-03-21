@@ -2097,7 +2097,7 @@ export class Emitter {
 
             const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
             const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
-            let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
+            let functionReturn = functionDeclaration.type /*|| this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration)*/;
             if (functionReturn.kind === ts.SyntaxKind.FunctionType) {
                 functionReturn = (<ts.FunctionTypeNode>functionReturn).type;
             }
@@ -2111,7 +2111,7 @@ export class Emitter {
             }
 
             // cast only if we have provided type
-            if (!theSame && functionDeclaration.type) {
+            if (!theSame) {
                 this.writer.writeString('cast<');
 
                 if (this.isTemplateType(functionReturn)) {
@@ -2125,7 +2125,7 @@ export class Emitter {
 
             this.processExpression(node.expression);
 
-            if (!theSame && functionDeclaration.type) {
+            if (!theSame) {
                 this.writer.writeString(')');
             }
         }
