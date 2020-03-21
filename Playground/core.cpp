@@ -47,11 +47,11 @@ ObjectKeys<decltype(object::_values.begin())> object::keys() {
     return ObjectKeys<decltype(object::_values.begin())>(begin(_values), end(_values));
 }
 
-const any& object::operator[] (const char* s) const {
+any& object::operator[] (const char* s) const {
     return mutable_(_values)[std::string(s)];
 }
 
-const any& object::operator[] (std::string s) const {
+any& object::operator[] (std::string s) const {
     return mutable_(_values)[s];
 }
 

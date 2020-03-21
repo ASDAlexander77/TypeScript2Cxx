@@ -1,12 +1,8 @@
-	let deck = {                                                           
-            createCardPicker: function() {                                      
-                return function() {                                             
-                    return {suit: "spades"};                                    
-                };                                                              
-            }                                                                   
-        };                                                                      
-                                                                                
-        let cardPicker = deck.createCardPicker();                               
-        let pickedCard = cardPicker();                                          
-                                                                                
-        console.log(pickedCard.suit);
+	let person = {};                                       
+                                                                
+        let text = "";                                          
+        let x;                                                  
+        for (x in person) {                                     
+            text += person[x] + " ";                            
+        }                                                       
+        console.log(text);
