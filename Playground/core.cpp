@@ -17,7 +17,9 @@ number parseFloat(const js::string& value) {
 
 // Number
 js::string number::toString() {
-    return js::string(std::to_string(_value));
+    std::ostringstream streamObj2;
+    streamObj2 << _value;
+    return streamObj2.str();
 } 
 
 js::string number::toString(js::number radix) {

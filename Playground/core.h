@@ -280,11 +280,6 @@ struct number : public undefined_t
         return static_cast<T>(_value);
     }
 
-    inline operator std::string() const
-    {
-        return std::to_string(_value);
-    }
-
     constexpr operator size_t() const
     {
         return (size_t)_value;
@@ -303,6 +298,13 @@ struct number : public undefined_t
     constexpr number *operator->()
     {
         return this;
+    }
+
+    operator std::string() const
+    {
+        std::ostringstream streamObj2;
+        streamObj2 << _value;
+        return streamObj2.str();        
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
