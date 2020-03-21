@@ -79,7 +79,8 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    it('this in function', () => expect('37\r\n').to.equals(new Run().test([
+    // not planning to implement for now
+    it.skip('this in function', () => expect('37\r\n').to.equals(new Run().test([
         'var o = {                                                              \
         prop: 37,                                                               \
         f: function() {                                                         \
@@ -107,7 +108,8 @@ describe('Functions', () => {
         console.log(pickedCard.suit);                                           \
     '])));
 
-    it('this - in an arrow function', () => expect('hearts\r\n').to.equals(new Run().test([
+    // not planning to implement for now
+    it.skip('this - in an arrow function', () => expect('hearts\r\n').to.equals(new Run().test([
         'let deck = {                                                           \
             suits: ["hearts"],                                                  \
             createCardPicker: function() {                                      \

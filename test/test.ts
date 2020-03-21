@@ -1,10 +1,8 @@
-	function f() {                         
-            var a = 10;                         
-            return function g() {               
-                var b = a + 1;                  
-                return b;                       
-            }                                   
-        }                                       
-                                                
-        var g = f();                            
-        console.log(g());
+function buildName(firstName: string, ...restOfName: string[]) {       
+            console.log(firstName);                                             
+            console.log(restOfName[0]);                                         
+            console.log(restOfName[1]);                                         
+            console.log(restOfName[2]);                                         
+        }                                                                       
+                                                                                
+        buildName("Joseph", "Samuel", "Lucas", "MacKinzie");  
