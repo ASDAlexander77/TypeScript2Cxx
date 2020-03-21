@@ -48,7 +48,7 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
 
     it('Template Strings', () => expect(
         'Hello, my name is Bob Bobbington.                                                                                \
-I\'ll be 38.000000 years old next month.\r\n').to.equals(new Run().test([
+I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         'let fullName: string = `Bob Bobbington`;                   \
         let age: number = 37;                                       \
         let sentence: string = `Hello, my name is ${ fullName }.    \
