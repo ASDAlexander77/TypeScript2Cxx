@@ -1,13 +1,3 @@
-	let x;                                     
-        x = 5 & 1;                                  
-        console.log(x);                             
-        x = 5 | 1;                                  
-        console.log(x);                             
-        x = ~ 5;                                    
-        console.log(x);                             
-        x = 5 ^ 1;                                  
-        console.log(x);                             
-        x = 5 << 1;                                 
-        console.log(x);                             
-        x = 5 >> 1;                                 
-        console.log(x);
+	let r;                                     
+        r = ~ false;                                
+        console.log(r)
