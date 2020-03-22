@@ -751,6 +751,8 @@ struct string : public undefined_t
         return *this;
     }
 
+    string &operator+=(any value);
+
     bool operator==(const js::string &other)
     {
         return _value.compare(other._value) == 0;
@@ -1227,7 +1229,13 @@ struct any
         }
 
         throw "wrong type";
-    }    
+    }
+
+    operator std::string() {
+        std::ostringstream streamObj2;
+        streamObj2 << *this;
+        return streamObj2.str();
+    }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t) const

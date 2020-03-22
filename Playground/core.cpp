@@ -24,7 +24,13 @@ js::string number::toString() {
 
 js::string number::toString(js::number radix) {
     return js::string(std::to_string(_value));
-} 
+}
+
+// String
+js::string &string::operator+=(any value) {
+    _value.append(value);
+    return *this;    
+}
 
 // Array
 array::array() : _values(), undefined_t(false) {
