@@ -1,12 +1,6 @@
-    function ffff(f1, f2?, f3?, f4?, f5?, f6?, f7?, f8 = 1) {              
-        console.log(f1);                                                       
-        console.log(f2 === undefined ? "<error>" : f2);                        
-        console.log(f3 === null ? "null" : "<error>");                         
-        console.log(f4 === undefined ? "<error>" : f4);                        
-        console.log(f5 === undefined ? "undef" : "<error>");                   
-        console.log(f6 === undefined ? "undef" : "<error>");                   
-        console.log(f7 === undefined ? "undef" : "<error>");                   
-        console.log(f8 === undefined ? "<error>" : f8);                        
-    }                                                                          
-                                                                               
-    ffff(10, 20, null, 30);     
+	const ok = (<any>1) instanceof Number;      
+        console.log(ok ? "true" : "false");         
+        const ok1 = (<any>"a") instanceof String;   
+        console.log(ok1 ? "true" : "false");        
+        const ok2 = (<any>true) instanceof Boolean; 
+        console.log(ok2 ? "true" : "false");

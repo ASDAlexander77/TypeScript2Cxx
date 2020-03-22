@@ -563,91 +563,91 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t)
     {
-        return _value == t;
+        return !isUndefined && _value == t;
     }
 
     bool operator==(number n)
     {
-        return _value == n._value;
+        return isUndefined == n.isUndefined && _value == n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator!=(T t)
     {
-        return _value != t;
+        return !isUndefined && _value != t;
     }
 
     bool operator!=(number n)
     {
-        return _value != n._value;
+        return isUndefined != n.isUndefined && _value != n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator<(T t)
     {
-        return _value < t;
+        return !isUndefined && _value < t;
     }
 
     bool operator<(number n)
     {
-        return _value < n._value;
+        return isUndefined == n.isUndefined && _value < n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator<=(T t)
     {
-        return _value <= t;
+        return !isUndefined && _value <= t;
     }
 
     bool operator<=(number n)
     {
-        return _value <= n._value;
+        return isUndefined == n.isUndefined && _value <= n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator<(T t, number value)
     {
-        return t < value._value;
+        return !isUndefined && t < value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator<=(T t, number value)
     {
-        return t <= value._value;
+        return !isUndefined && t <= value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator>(T t)
     {
-        return _value > t;
+        return !isUndefined && _value > t;
     }
 
     bool operator>(number n)
     {
-        return _value > n._value;
+        return isUndefined == n.isUndefined && _value > n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator>=(T t)
     {
-        return _value >= t;
+        return !isUndefined && _value >= t;
     }
 
     bool operator>=(number n)
     {
-        return _value >= n._value;
+        return isUndefined == n.isUndefined && _value >= n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator>(T t, number value)
     {
-        return t > value._value;
+        return !isUndefined && t > value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator>=(T t, number value)
     {
-        return t >= value._value;
+        return !isUndefined && t >= value._value;
     }
 
     js::string toString();
