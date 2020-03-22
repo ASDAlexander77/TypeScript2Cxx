@@ -1165,6 +1165,11 @@ struct any
             return _value._number;
         }
 
+        if (_type == anyTypeId::string)
+        {
+            return js::number(std::atof((*(js::string *)_value._data).operator const char *()));
+        }
+
         throw "wrong type";
     }
 
@@ -1175,6 +1180,11 @@ struct any
         {
             return *(js::string *)_value._data;
         }
+
+        if (_type == anyTypeId::number)
+        {
+            return js::string(_value._number.operator std::string());
+        }        
 
         throw "wrong type";
     }
