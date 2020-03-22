@@ -2559,7 +2559,24 @@ export class Emitter {
     private processBinaryExpression(node: ts.BinaryExpression): void {
         if (node.operatorToken.kind === ts.SyntaxKind.InstanceOfKeyword) {
             this.writer.writeString('is<');
-            this.processExpression(node.right);
+
+            if (node.right.kind === ts.SyntaxKind.Identifier) {
+                const identifier = <ts.Identifier>node.right;
+                switch (identifier.text) {
+                    case 'Number':
+                    case 'String':
+                    case 'Boolean':
+                        this.writer.writeString('js::');
+                        this.writer.writeString(identifier.text.toLocaleLowerCase());
+                        break;
+                    default:
+                        this.processExpression(node.right);
+                        break;
+                }
+            } else {
+                this.processExpression(node.right);
+            }
+
             this.writer.writeString('>(');
             this.processExpression(node.left);
             this.writer.writeString(')');
