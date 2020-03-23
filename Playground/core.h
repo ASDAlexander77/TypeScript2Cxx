@@ -2518,10 +2518,29 @@ string typeOf(any value)
 
 template <class T>
 static any Void(T value);
+
 template <>
 any Void(any value)
 {
     return any();
+}
+
+template <typename I>
+inline bool is(js::any t);
+
+template <>
+inline bool is<js::boolean>(js::any t) {
+    return t && t._type == any::boolean;
+}
+
+template <>
+inline bool is<js::number>(js::any t) {
+    return t && t._type == any::number;
+}
+
+template <>
+inline bool is<js::string>(js::any t) {
+    return t && t._type == any::string;
 }
 
 struct Finally
