@@ -1,5 +1,8 @@
-	function f(events: { name: string; handler: any; }[]) { 
-            console.log(events[0].name);                                              
-            if (events[1]) console.log("failed");                                     
-        }                                                                             
-        f([{ name: "blur", handler: 1 }]);
+let a = [10, 20, 30, 40];              
+        let count = 0;                          
+        for (let i in a) {                      
+            count++;                            
+            console.log(count);                 
+            if (count == 1) continue;           
+            break;                              
+        } 

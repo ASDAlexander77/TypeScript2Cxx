@@ -875,6 +875,46 @@ struct function_t : function
     virtual any invoke(std::initializer_list<any> args_) override;
 };
 
+
+template <typename T>
+struct ArrayKeys
+{
+    typedef ArrayKeys<T> iterator;
+
+    T _index;
+    T _end;
+
+    ArrayKeys(T end_) : _index(0), _end(end_)
+    {
+    }
+
+    iterator &begin()
+    {
+        return *this;
+    }
+
+    iterator &end()
+    {
+        return *this;
+    }
+
+    const T &operator*() const
+    {
+        return _index;
+    }
+
+    bool operator!=(const iterator &rhs) const
+    {
+        return _index != rhs._end;
+    }
+
+    iterator &operator++()
+    {
+        _index++;
+        return *this;
+    }
+};
+
 struct array : public undefined_t
 {
 
@@ -888,10 +928,20 @@ struct array : public undefined_t
     {
     }
 
+    constexpr array *operator->()
+    {
+        return this;
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     any &operator[](T t) const
     {
         return mutable_(_values)[(size_t)t];
+    }
+
+    ArrayKeys<std::size_t> keys()
+    {
+        return ArrayKeys<std::size_t>(_values.size());
     }
 
     auto begin() -> decltype(_values.begin())
@@ -1934,45 +1984,6 @@ struct ElementReference {
     }    
 };
 */
-
-template <typename T>
-struct ArrayKeys
-{
-    typedef ArrayKeys<T> iterator;
-
-    T _index;
-    T _end;
-
-    ArrayKeys(T end_) : _index(0), _end(end_)
-    {
-    }
-
-    iterator &begin()
-    {
-        return *this;
-    }
-
-    iterator &end()
-    {
-        return *this;
-    }
-
-    const T &operator*() const
-    {
-        return _index;
-    }
-
-    bool operator!=(const iterator &rhs) const
-    {
-        return _index != rhs._end;
-    }
-
-    iterator &operator++()
-    {
-        _index++;
-        return *this;
-    }
-};
 
 template <typename T>
 struct ReadonlyArray
