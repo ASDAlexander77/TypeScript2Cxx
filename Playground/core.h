@@ -913,6 +913,18 @@ struct array : public undefined_t
 
         return os << "[array]";
     }
+
+    template <class I>
+    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return (size_t)i < _values.size();
+    }
+
+    template <class I>
+    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return false;
+    }
 };
 
 template <typename T>
@@ -986,6 +998,8 @@ struct object : public undefined_t
 
     any &operator[](std::string s) const;
 
+    any &operator[](string s) const;
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     any &operator[](T t)
     {
@@ -996,9 +1010,23 @@ struct object : public undefined_t
 
     any &operator[](std::string s);
 
+    any &operator[](string s);
+
     void Delete(const char *field)
     {
         _values.erase(field);
+    }
+
+    template <class I>
+    std::enable_if_t<std::is_same_v<I, const char*> || std::is_same_v<I, std::string> || std::is_same_v<I, string> || std::is_same_v<I, any> || std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return _values.find(std::to_string(i)) != _values.end();
+    }
+
+    template <class I>
+    std::enable_if_t<!std::is_same_v<I, const char*> && !std::is_same_v<I, std::string> && !std::is_same_v<I, string> && !std::is_same_v<I, any> && !std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return false;
     }
 
     friend std::ostream &operator<<(std::ostream &os, object val)
@@ -2583,6 +2611,16 @@ any function_t<F>::invoke(std::initializer_list<any> args_)
     {
         return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
     }
+}
+
+template <typename V>
+bool IN(V v, const array& a) {
+    return a.exists(v);
+}
+
+template <typename V>
+bool IN(V v, const object& o) {
+    return o.exists(v);
 }
 
 template <typename V, class F>
