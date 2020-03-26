@@ -154,9 +154,15 @@ describe('Arithmetic Operators', () => {
         console.log(r);                             \
     '])));
 
-    it('In operator', () => expect('true\r\n').to.equals(new Run().test([
+    it('In operator (array)', () => expect('true\r\n').to.equals(new Run().test([
         'let c = [1, 2, 3];                         \
         let b = 2 in c;                             \
+        console.log(b);                             \
+    '])));
+
+    it('In operator (object)', () => expect('true\r\n').to.equals(new Run().test([
+        'let c = {1: 2};                            \
+        let b = 1 in c;                             \
         console.log(b);                             \
     '])));
 

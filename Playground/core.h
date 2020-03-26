@@ -2045,6 +2045,18 @@ struct Array : public ReadonlyArray<T>
     {
         return _values.end();
     }
+
+    template <class I>
+    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return (size_t)i < _values.size();
+    }
+
+    template <class I>
+    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return false;
+    }
 };
 
 struct Date
@@ -2571,6 +2583,16 @@ any function_t<F>::invoke(std::initializer_list<any> args_)
     {
         return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
     }
+}
+
+template <typename V, class F>
+bool IN(V v, Array<F>* a) {
+    return a->exists(v);
+}
+
+template <typename V, class O>
+bool IN(V v, O o) {
+    return false;
 }
 
 } // namespace js
