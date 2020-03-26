@@ -1418,19 +1418,7 @@ export class Emitter {
                 this.writer.writeString('object');
                 break;
             case ts.SyntaxKind.ArrayType:
-                const arrayType = <ts.ArrayTypeNode>type;
-                this.writer.writeString('Array<');
-                if (arrayType.elementType.kind === ts.SyntaxKind.UndefinedKeyword) {
-                    this.writer.writeString('any');
-                } else {
-                    this.processType(arrayType.elementType, false);
-                }
-
-                this.writer.writeString('>');
-                if (!skipPointerInType) {
-                    this.writer.writeString('*');
-                }
-
+                this.writer.writeString('array');
                 break;
             case ts.SyntaxKind.TupleType:
                 const tupleType = <ts.TupleTypeNode>type;
@@ -2437,9 +2425,7 @@ export class Emitter {
         }
 
         if (!isTuple) {
-            this.writer.writeString('new Array<');
-            this.processType(elementsType, undefined, true);
-            this.writer.writeString('>(');
+           this.writer.writeString('array');
         }
 
         if (node.elements.length !== 0) {
@@ -2455,10 +2441,6 @@ export class Emitter {
             });
 
             this.writer.EndBlockNoIntent();
-        }
-
-        if (!isTuple) {
-            this.writer.writeString(')');
         }
     }
 

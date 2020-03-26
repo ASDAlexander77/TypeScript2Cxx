@@ -1,4 +1,3 @@
-	//let a = [1, 2, "asd"];  
-	let c = {1: 2};                            
-        let b = 1 in c;                             
-        console.log(b);
+	let c = [1, 2, 3];                         
+        let b = 2 in c;                             
+        console.log(b); 
