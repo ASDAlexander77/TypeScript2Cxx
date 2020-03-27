@@ -936,6 +936,11 @@ struct array : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
     any &operator[](T t) const
     {
+        if ((size_t)t >= _values.size())
+        {
+            return any(undefined);
+        }
+
         return mutable_(_values)[(size_t)t];
     }
 
