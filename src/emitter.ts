@@ -2441,6 +2441,8 @@ export class Emitter {
             });
 
             this.writer.EndBlockNoIntent();
+        } else {
+            this.writer.writeString('()');
         }
     }
 
