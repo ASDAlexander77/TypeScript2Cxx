@@ -952,7 +952,7 @@ struct array : public undefined_t
             _values.push_back(undefined_t());
         }
 
-        return mutable_(_values)[(size_t)i];
+        return _values[(size_t)i];
     }    
 
     ArrayKeys<std::size_t> keys()

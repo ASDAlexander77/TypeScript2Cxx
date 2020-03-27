@@ -63,12 +63,20 @@ any& object::operator[] (std::string s) const {
     return mutable_(_values)[s];
 }
 
+any& object::operator[] (string s) const {
+    return mutable_(_values)[(std::string)s];
+}
+
 any& object::operator[] (const char* s) {
     return _values[std::string(s)];
 }
 
 any& object::operator[] (std::string s) {
     return _values[s];
+}
+
+any& object::operator[] (string s) {
+    return _values[(std::string)s];
 }
 
 // Math
