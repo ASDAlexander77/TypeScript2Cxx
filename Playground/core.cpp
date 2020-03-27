@@ -32,15 +32,6 @@ js::string &string::operator+=(any value) {
     return *this;    
 }
 
-// Array
-array::array() : _values(), undefined_t(false) {
-}
-
-array::array (std::initializer_list<any> values) : _values(values) {
-}
-
-// End of Array
-
 // Object
 object::object() : _values(), undefined_t(false) {
 }

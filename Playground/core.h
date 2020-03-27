@@ -915,83 +915,92 @@ struct ArrayKeys
     }
 };
 
-struct array : public undefined_t
+namespace tmpl
 {
-
-    std::vector<any> _values;
-
-    array();
-
-    array(std::initializer_list<any> values);
-
-    array(const undefined_t &undef) : undefined_t(true)
+    template <typename E>
+    struct array : public undefined_t
     {
-    }
+        std::vector<E> _values;
 
-    constexpr array *operator->()
-    {
-        return this;
-    }
-
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    any &operator[](I i) const
-    {
-        if ((size_t)i >= _values.size())
+        array() : _values(), undefined_t(false) 
         {
-            return any(undefined);
         }
 
-        return mutable_(_values)[(size_t)i];
-    }
-
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    any &operator[](I i)
-    {
-        while ((size_t)i >= _values.size())
+        array (std::initializer_list<E> values) : _values(values) 
         {
-            _values.push_back(undefined_t());
         }
 
-        return _values[(size_t)i];
-    }    
-
-    ArrayKeys<std::size_t> keys()
-    {
-        return ArrayKeys<std::size_t>(_values.size());
-    }
-
-    auto begin() -> decltype(_values.begin())
-    {
-        return _values.begin();
-    }
-
-    auto end() -> decltype(_values.end())
-    {
-        return _values.end();
-    }
-
-    friend std::ostream &operator<<(std::ostream &os, array val)
-    {
-        if (val.isUndefined)
+        array(const undefined_t &undef) : undefined_t(true)
         {
-            return os << "undefined";
         }
 
-        return os << "[array]";
-    }
+        constexpr array *operator->()
+        {
+            return this;
+        }
 
-    template <class I>
-    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
-    {
-        return (size_t)i < _values.size();
-    }
+        template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+        E &operator[](I i) const
+        {
+            if ((size_t)i >= _values.size())
+            {
+                return E(undefined);
+            }
 
-    template <class I>
-    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
-    {
-        return false;
-    }
-};
+            return mutable_(_values)[(size_t)i];
+        }
+
+        template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+        E &operator[](I i)
+        {
+            while ((size_t)i >= _values.size())
+            {
+                _values.push_back(undefined_t());
+            }
+
+            return _values[(size_t)i];
+        }    
+
+        ArrayKeys<std::size_t> keys()
+        {
+            return ArrayKeys<std::size_t>(_values.size());
+        }
+
+        auto begin() -> decltype(_values.begin())
+        {
+            return _values.begin();
+        }
+
+        auto end() -> decltype(_values.end())
+        {
+            return _values.end();
+        }
+
+        friend std::ostream &operator<<(std::ostream &os, array val)
+        {
+            if (val.isUndefined)
+            {
+                return os << "undefined";
+            }
+
+            return os << "[array]";
+        }
+
+        template <class I>
+        std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+        {
+            return (size_t)i < _values.size();
+        }
+
+        template <class I>
+        std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+        {
+            return false;
+        }
+    };
+}
+
+typedef tmpl::array<any> array;
 
 template <typename T>
 struct ObjectKeys
@@ -2021,14 +2030,14 @@ struct ReadonlyArray
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    const T &operator[](I i) const
+    T &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
         {
             return T(undefined);
         }
 
-        return _values[(size_t)i];
+        return mutable_(_values)[(size_t)i];
     }
 
     void forEach(std::function<void(T, size_t)> callback)
@@ -2051,14 +2060,14 @@ struct Array : public ReadonlyArray<T>
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    const T &operator[](I i) const
+    T &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
         {
             return T(undefined);
         }
 
-        return _values[(size_t)i];
+        return mutable_(_values)[(size_t)i];
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
