@@ -2186,26 +2186,9 @@ export class Emitter {
         initVar.__ignore_type = true;
         this.processExpression(initVar);
 
-        const symbolInfo = this.resolver.getSymbolAtLocation(node.expression);
-        const typeNode = this.resolver.getOrResolveTypeOf(node.expression);
-        const type = this.resolver.typeToTypeNode(typeNode);
-        const notDotDotDot = !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;
-        const dereference = 
-            type.kind !== ts.SyntaxKind.TypeLiteral 
-            && type.kind !== ts.SyntaxKind.StringKeyword 
-            && type.kind !== ts.SyntaxKind.ArrayType 
-            && notDotDotDot;
-
         this.writer.writeString(' : ');
-        if (dereference) {
-            this.writer.writeString('*(');
-        }
 
         this.processExpression(node.expression);
-
-        if (dereference) {
-            this.writer.writeString(')');
-        }
 
         this.writer.writeStringNewLine(')');
         this.processStatement(node.statement);
