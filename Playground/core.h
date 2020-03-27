@@ -934,14 +934,14 @@ struct array : public undefined_t
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    const any &operator[](I i) const
+    any &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
         {
             return any(undefined);
         }
 
-        return _values[(size_t)i];
+        return mutable_(_values)[(size_t)i];
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
@@ -952,7 +952,7 @@ struct array : public undefined_t
             _values.push_back(undefined_t());
         }
 
-        return _values[(size_t)i];
+        return mutable_(_values)[(size_t)i];
     }    
 
     ArrayKeys<std::size_t> keys()
