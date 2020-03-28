@@ -1,15 +1,6 @@
-	let options = {                                                    
-            b1: false                                                       
-        };                                                                  
-                                                                            
-        let mergedOptions = {                                               
-            bilinearFiltering: false,                                       
-            comparisonFunction: 0,                                          
-            generateStencil: false,                                         
-            ...options                                                      
-        };                                                                  
-                                                                            
-for (let i in options)
-{
-	mergedOptions[i] = options[i];
-}
+	let person = {fname:"John", lname:"Doe", age:25};      
+                                                                
+        let x;                                                  
+        for (x in person) {                                     
+            console.log(person[x]);                             
+        } 

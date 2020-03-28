@@ -120,13 +120,7 @@ constexpr T deref_(T t)
 }
 
 template <typename T>
-constexpr auto keys_(const T &t) -> decltype(t->keys())
-{
-    return t->keys();
-}
-
-template <typename T>
-constexpr auto keys_(T t) -> decltype(t->keys())
+constexpr auto keys_(T &t) -> decltype(t->keys())
 {
     return t->keys();
 }
@@ -1008,15 +1002,15 @@ namespace tmpl
 
 typedef tmpl::array<any> array;
 
-template <typename T>
+template <typename V, typename T = decltype(V().begin())>
 struct ObjectKeys
 {
-    typedef ObjectKeys<T> iterator;
+    typedef ObjectKeys<V> iterator;
 
     T _index;
-    T _end;
+    const T _end;
 
-    ObjectKeys(T begin_, T end_) : _index(begin_), _end(end_)
+    ObjectKeys(V& values_) : _index(values_.begin()), _end(values_.end())
     {
     }
 
@@ -1062,7 +1056,7 @@ struct object : public undefined_t
     {
     }
 
-    ObjectKeys<decltype(_values.begin())> keys();
+    ObjectKeys<decltype(_values)> keys();
 
     constexpr object *operator->()
     {
