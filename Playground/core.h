@@ -2625,6 +2625,21 @@ inline bool is<js::string>(js::any t) {
     return t && t._type == any::string;
 }
 
+template <>
+inline bool is<js::array>(js::any t) {
+    return t && t._type == any::array;
+}
+
+template <>
+inline bool is<js::object>(js::any t) {
+    return t && t._type == any::object;
+}
+
+template <>
+inline bool is<js::function>(js::any t) {
+    return t && t._type == any::function;
+}
+
 struct Finally
 {
 private:
