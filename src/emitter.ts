@@ -2328,18 +2328,21 @@ export class Emitter {
     private processObjectLiteralExpression(node: ts.ObjectLiteralExpression): void {
         let next = false;
 
+        const hasSpreadAssignment = node.properties.some(e => e.kind === ts.SyntaxKind.SpreadAssignment);
+
+        if (hasSpreadAssignment) {
+            this.writer.writeString('Utils::assign(');
+        }
+
         this.writer.writeString('object');
         if (node.properties.length !== 0) {
             this.writer.BeginBlock();
             node.properties.forEach(element => {
-                if (next) {
+                if (next && element.kind !== ts.SyntaxKind.SpreadAssignment) {
                     this.writer.writeStringNewLine(', ');
                 }
 
-                if (element.kind === ts.SyntaxKind.SpreadAssignment) {
-                    const spreadAssignment = <ts.SpreadAssignment>element;
-                    this.processExpression(spreadAssignment.expression);
-                } else if (element.kind === ts.SyntaxKind.PropertyAssignment) {
+                if (element.kind === ts.SyntaxKind.PropertyAssignment) {
                     const property = <ts.PropertyAssignment>element;
 
                     this.writer.writeString('object::pair{');
@@ -2386,6 +2389,17 @@ export class Emitter {
             this.writer.EndBlock(true);
         } else {
             this.writer.writeString('{}');
+        }
+
+        if (hasSpreadAssignment) {
+            node.properties.forEach(element => {
+                if (element.kind === ts.SyntaxKind.SpreadAssignment) {
+                    this.writer.writeString(', ');
+                    const spreadAssignment = <ts.SpreadAssignment>element;
+                    this.processExpression(spreadAssignment.expression);
+                }
+            });
+            this.writer.writeString(')');
         }
     }
 
