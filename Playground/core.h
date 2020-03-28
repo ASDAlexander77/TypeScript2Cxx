@@ -120,6 +120,12 @@ constexpr T deref_(T t)
 }
 
 template <typename T>
+constexpr auto keys_(const T &t) -> decltype(t->keys())
+{
+    return t->keys();
+}
+
+template <typename T>
 constexpr auto keys_(T &t) -> decltype(t->keys())
 {
     return t->keys();
@@ -2634,7 +2640,7 @@ struct Utils
     template <typename... Args>
     static object assign(object& dst, const Args& ...args)
     {
-        for (auto& src : {args...})
+        for (auto src : {args...})
         {
             for (auto& k : keys_(src))
             {
