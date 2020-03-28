@@ -1356,7 +1356,7 @@ struct any
         return streamObj2.str();
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t) const
     {
         switch (_type)
@@ -2539,6 +2539,18 @@ inline bool Equals(int l, undefined_t r)
 }
 
 template <>
+inline bool Equals(any l, int r)
+{
+    return l.operator==(r);
+}
+
+template <>
+inline bool Equals(int l, any r)
+{
+    return r.operator==(l);
+}
+
+template <>
 inline bool NotEquals(undefined_t l, undefined_t r)
 {
     return l.isUndefined != r.isUndefined;
@@ -2566,6 +2578,18 @@ template <>
 inline bool NotEquals(int l, undefined_t r)
 {
     return !(l == 0 && r.isUndefined);
+}
+
+template <>
+inline bool NotEquals(any l, int r)
+{
+    return !(l.operator==(r));
+}
+
+template <>
+inline bool NotEquals(int l, any r)
+{
+    return !(r.operator==(l));
 }
 
 template <>
