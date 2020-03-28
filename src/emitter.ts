@@ -1355,6 +1355,7 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.UnionType:
 
+                /*
                 const unionType = <ts.UnionTypeNode>type;
                 const unionTypes = unionType.types
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
@@ -1369,9 +1370,15 @@ export class Emitter {
                 } else {
                     this.processPredefineType(unionTypes[0]);
                 }
-
+                */
                 break;
         }
+    }
+
+    private compareTypes(t1: ts.TypeNode, t2: ts.TypeNode): boolean {
+        const kind1 = t1.kind === ts.SyntaxKind.LiteralType ? (<ts.LiteralTypeNode>t1).literal.kind : t1.kind;
+        const kind2 = t2.kind === ts.SyntaxKind.LiteralType ? (<ts.LiteralTypeNode>t2).literal.kind : t2.kind;
+        return kind1 === kind2;
     }
 
     private typesAreNotSame(unionTypes: ts.TypeNode[]): boolean {
@@ -1380,8 +1387,8 @@ export class Emitter {
         }
 
         const firstType = unionTypes[0];
-        const notSame = unionTypes.slice(1).every(t => t.kind !== firstType.kind);
-        return notSame;
+        const same = unionTypes.slice(1).every(t => this.compareTypes(t, firstType));
+        return !same;
     }
 
     private processType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
@@ -1557,6 +1564,7 @@ export class Emitter {
                 break;
             case ts.SyntaxKind.UnionType:
 
+                /*
                 const unionType = <ts.UnionTypeNode>type;
                 const unionTypes = unionType.types
                     .filter(f => f.kind !== ts.SyntaxKind.NullKeyword && f.kind !== ts.SyntaxKind.UndefinedKeyword);
@@ -1591,6 +1599,8 @@ export class Emitter {
                 } else {
                     this.processType(unionTypes[0]);
                 }
+                */
+                this.writer.writeString(auto ? 'auto' : 'any');
 
                 break;
             case ts.SyntaxKind.ModuleDeclaration:
@@ -2534,12 +2544,32 @@ export class Emitter {
     }
 
     private processConditionalExpression(node: ts.ConditionalExpression): void {
+
+        const whenTrueType = this.resolver.getOrResolveTypeOfAsTypeNode(node.whenTrue);
+        const whenFalseType = this.resolver.getOrResolveTypeOfAsTypeNode(node.whenFalse);
+        const equals = this.compareTypes(whenTrueType, whenFalseType);
+
         this.writer.writeString('(');
         this.processExpression(node.condition);
         this.writer.writeString(') ? ');
+        if (!equals) {
+            this.writer.writeString('any(');
+        }
+
         this.processExpression(node.whenTrue);
+        if (!equals) {
+            this.writer.writeString(')');
+        }
+
         this.writer.writeString(' : ');
+        if (!equals) {
+            this.writer.writeString('any(');
+        }
+
         this.processExpression(node.whenFalse);
+        if (!equals) {
+            this.writer.writeString(')');
+        }
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
