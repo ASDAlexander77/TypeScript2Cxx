@@ -2,26 +2,33 @@
 
 using namespace js;
 
-struct Arr
+struct B;
+
+struct A
 {
-    int v;
-
-    int operator [](int i) const
+    union U
     {
-        std::cout << "Read only" << std::endl;
-        return 1;
-    }
+        std::reference_wrapper<B> b;
 
-    int& operator [](int i)
-    {
-        std::cout << "Write" << std::endl;
-        return v;
+        U(B& b_) : b(b_) {
+        }
+
+    } u;
+
+    A(B& b_) : u(b_) {
+
     }
+};
+
+struct B
+{
+    
 };
 
 void Main(void)
 {
-    auto r = std::bit_and()(1,2);
+    B b;
+    A a(b);
 }
 
 int main(int argc, char** argv)
