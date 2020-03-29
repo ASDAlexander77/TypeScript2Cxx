@@ -104,7 +104,7 @@ Employee::Employee(string name, string department) : Person(name) {
 
 any Employee::get_ElevatorPitch()
 {
-    return cast<any>("Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S);
+    return "Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S;
 }
 
 Employee::Employee(string name) : Person(name) {

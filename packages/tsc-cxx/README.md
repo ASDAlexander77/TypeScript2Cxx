@@ -50,7 +50,7 @@ tsc-cxx test.ts
 Now you have test.cpp and test.h
 
 test.h:
-```
+```C++
 #ifndef TEST_H
 #define TEST_H
 #include "core.h"
@@ -81,7 +81,7 @@ extern Employee* howard;
 ```
 
 test.cpp:
-```
+```C++
 #include "test.h"
 
 using namespace js;
@@ -96,7 +96,7 @@ Employee::Employee(string name, string department) : Person(name) {
 
 any Employee::get_ElevatorPitch()
 {
-    return cast<any>("Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S);
+    return "Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S;
 }
 
 Employee::Employee(string name) : Person(name) {
