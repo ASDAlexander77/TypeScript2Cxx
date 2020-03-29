@@ -25,7 +25,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.MinusToken] = '-';
         this.opsMap[ts.SyntaxKind.AsteriskToken] = '*';
         this.opsMap[ts.SyntaxKind.PercentToken] = '%';
-        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__POW';
+        this.opsMap[ts.SyntaxKind.AsteriskAsteriskToken] = '__std::pow';
         this.opsMap[ts.SyntaxKind.SlashToken] = '/';
         this.opsMap[ts.SyntaxKind.AmpersandToken] = '__std::bit_and()';
         this.opsMap[ts.SyntaxKind.BarToken] = '__std::bit_or()';
