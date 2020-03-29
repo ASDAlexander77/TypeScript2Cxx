@@ -58,7 +58,7 @@ node __out\maian.js test.ts
 Now you have test.cpp and test.h
 
 test.h:
-```
+```C++
 #ifndef TEST_H
 #define TEST_H
 #include "core.h"
@@ -89,7 +89,7 @@ extern Employee* howard;
 ```
 
 test.cpp:
-```
+```C++
 #include "test.h"
 
 using namespace js;
