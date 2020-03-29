@@ -2126,7 +2126,7 @@ export class Emitter {
             }
 
             // cast only if we have provided type
-            if (!theSame) {
+            if (!theSame && functionReturn) {
                 this.writer.writeString('cast<');
 
                 if (this.isTemplateType(functionReturn)) {
