@@ -2573,7 +2573,8 @@ export class Emitter {
     }
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
-        if (node.operatorToken.kind === ts.SyntaxKind.InstanceOfKeyword) {
+        const opCode = node.operatorToken.kind;
+        if (opCode === ts.SyntaxKind.InstanceOfKeyword) {
             this.writer.writeString('is<');
 
             if (node.right.kind === ts.SyntaxKind.Identifier) {
@@ -2599,13 +2600,24 @@ export class Emitter {
             return;
         }
 
+        const wrapIntoRoundBrackets =
+            opCode === ts.SyntaxKind.AmpersandAmpersandToken
+            || opCode === ts.SyntaxKind.BarBarToken;
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
             this.writer.writeString(op.substr(2) + '(');
         }
 
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString('(');
+        }
+
         this.processExpression(node.left);
+
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString(')');
+        }
 
         if (isFunction) {
             this.writer.writeString(', ');
@@ -2613,7 +2625,15 @@ export class Emitter {
             this.writer.writeString(' ' + op + ' ');
         }
 
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString('(');
+        }
+
         this.processExpression(node.right);
+
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString(')');
+        }
 
         if (isFunction) {
             this.writer.writeString(')');

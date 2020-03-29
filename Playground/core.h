@@ -25,8 +25,8 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x, y) ([&] () { auto vx = x; return (bool)(vx) ? vx : y; })()
-#define AND(x, y) ([&] () { auto vx = x; return (bool)(vx) ? y : vx; })()
+#define OR(x,y) ([&](){ auto vx = (x); return ((bool)(vx) ? (vx) : (y));})()
+#define AND(x,y) ([&](){ auto vx = (x); return ((bool)(vx) ? (y) : (vx));})()
 
 struct any;
 struct object;
