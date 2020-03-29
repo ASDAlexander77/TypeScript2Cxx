@@ -1,6 +1,8 @@
 /build
 /node_modules
+/typings
 /__out
+package-lock.json
 ipch
 __build_debug
 __build_mingw32_debug
@@ -26,3 +28,6 @@ __build_win32_release
 *.bin
 out
 out1
+/packages/tsc-cxx/lib
+/packages/tsc-cxx/cpplib
+/packages/tsc-cxx/node_modules

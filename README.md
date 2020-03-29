@@ -1,0 +1,142 @@
+TypeScript to C++
+===========================
+
+License
+-------
+
+TypeScriptCxx is licensed under the MIT license.
+
+Chat Room
+---------
+
+Want to chat with other members of the TypeScript to C++ community?
+
+[![Join the chat at https://gitter.im/ASDAlexander77/TypeScript2Cxx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptCpp/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+
+Quick Start
+-----------
+
+0) install
+
+```
+node -i typescript-cxx
+```
+
+
+1) Compile test.ts
+
+create file test.ts
+
+```TypeScript
+class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}
+
+class Employee extends Person {
+    private department: string;
+
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+
+    public get ElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}
+
+let howard = new Employee("Howard", "Sales");
+console.log(howard.ElevatorPitch);
+```
+
+```
+node __out\maian.js test.ts
+```
+
+Now you have test.cpp and test.h
+
+test.h:
+```
+#ifndef TEST_H
+#define TEST_H
+#include "core.h"
+
+using namespace js;
+
+class Person;
+class Employee;
+
+class Person : public object {
+public:
+    string name;
+
+    Person(string name);
+};
+
+class Employee : public Person {
+public:
+    string department;
+
+    Employee(string name, string department);
+    virtual any get_ElevatorPitch();
+    Employee(string name);
+};
+
+extern Employee* howard;
+#endif
+```
+
+test.cpp:
+```
+#include "test.h"
+
+using namespace js;
+
+Person::Person(string name) {
+    this->name = name;
+}
+
+Employee::Employee(string name, string department) : Person(name) {
+    this->department = department;
+}
+
+any Employee::get_ElevatorPitch()
+{
+    return cast<any>("Hello, my name is "_S + this->name + " and I work in "_S + this->department + "."_S);
+}
+
+Employee::Employee(string name) : Person(name) {
+}
+
+Employee* howard = new Employee("Howard"_S, "Sales"_S);
+
+void Main(void)
+{
+    console->log(howard->get_ElevatorPitch());
+}
+
+int main(int argc, char** argv)
+{
+    Main();
+    return 0;
+}
+```
+
+2) Compile it.
+
+cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib ../cpplib/core.cpp test.cpp
+
+3) Run it.
+
+```
+test.exe
+```
+
+Result:
+```
+Hello, my name is Howard and I work in Sales.
+```
+
+Enjoy it. 

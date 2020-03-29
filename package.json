@@ -16,7 +16,8 @@
     "watch": "tsc -w -p ./",
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc -p tsconfig.json",
-    "exec": "ts-node src/main.ts"
+    "exec": "ts-node src/main.ts",
+    "prepublish": "prepublish_npm.cmd"
   },
   "bin": {
     "tsc-cxx": "./__out/main.js"

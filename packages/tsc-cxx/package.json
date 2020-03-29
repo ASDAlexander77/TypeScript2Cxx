@@ -1,0 +1,39 @@
+{
+  "name": "typescript-cxx",
+  "version": "1.0.0",
+  "description": "TypeScript to C++ transpiler",
+  "keywords": [
+    "typescript",
+    "c++",
+    "tsc-cxx",
+    "transpiler"
+  ],
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "tsc-cxx": "./bin/tsc-cxx"
+  },
+  "dependencies": {
+    "cross-spawn": "^6.0.5",
+    "fs-extra": "^7.0.1",
+    "path": "^0.12.7",
+    "source-map": "^0.7.3",
+    "typescript": "^3.3.3333"
+  },
+  "engines": {
+    "node": ">=4.2.0"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "README.md"
+  ],
+  "author": "Alexander Duzhar",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ASDAlexander77/TypeScriptCxx/issues"
+  },
+  "homepage": "https://github.com/ASDAlexander77/TypeScriptCxx/#readme"
+}
