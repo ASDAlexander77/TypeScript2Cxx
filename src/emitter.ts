@@ -1450,6 +1450,32 @@ export class Emitter {
                 const isTypeAlias = ((typeInfo && this.resolver.checkTypeAlias(typeInfo.aliasSymbol))
                     || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
+                // detect if pointer
+                let isEnum = false;
+                const entityProcessCheck = (entity: ts.EntityName) => {
+                    if (entity.kind === ts.SyntaxKind.QualifiedName) {
+                        entityProcessCheck(entity.left);
+                        isEnum = this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration);
+                    }
+                };
+
+                entityProcessCheck(typeReference.typeName);
+
+                const skipPointerIf =
+                    (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === '__type')
+                    || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
+                    || (typeInfo && (<any>typeInfo).intrinsicName === 'number')
+                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)
+                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumMember)
+                    || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
+                    || isEnum
+                    || skipPointerInType
+                    || isTypeAlias;
+
+                if (!skipPointerIf) {
+                    this.writer.writeString('std::shared_ptr<');
+                }
+
                 if ((<any>typeReference.typeName).symbol
                     && (<any>typeReference.typeName).symbol.parent
                     && (<any>typeReference.typeName).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
@@ -1457,7 +1483,6 @@ export class Emitter {
                     this.writer.writeString('::');
                 }
 
-                let isEnum = false;
                 const entityProcess = (entity: ts.EntityName) => {
                     if (entity.kind === ts.SyntaxKind.Identifier) {
                         this.writer.writeString(entity.text);
@@ -1491,19 +1516,8 @@ export class Emitter {
                     this.writer.writeString(' >');
                 }
 
-                // make it pointer
-                const skipPointerIf =
-                    (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === '__type')
-                    || (typeInfo && (<any>typeInfo).primitiveTypesOnly)
-                    || (typeInfo && (<any>typeInfo).intrinsicName === 'number')
-                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)
-                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumMember)
-                    || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
-                    || isEnum
-                    || skipPointerInType
-                    || isTypeAlias;
                 if (!skipPointerIf) {
-                    this.writer.writeString('*');
+                    this.writer.writeString('>');
                 }
 
                 break;
@@ -2663,7 +2677,6 @@ export class Emitter {
             this.writer.writeString('(');
         }
 
-        this.writer.writeString('new ');
         this.processCallExpression(node);
 
         if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
@@ -2672,9 +2685,19 @@ export class Emitter {
     }
 
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
+
+        if (node.kind === ts.SyntaxKind.NewExpression) {
+            this.writer.writeString('std::make_shared<');
+        }
+
         this.processExpression(node.expression);
 
         this.processTemplateArguments(node);
+
+        if (node.kind === ts.SyntaxKind.NewExpression) {
+            // closing template
+            this.writer.writeString('>');
+        }
 
         this.writer.writeString('(');
 
