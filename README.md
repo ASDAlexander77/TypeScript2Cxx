@@ -17,14 +17,14 @@ Want to chat with other members of the TypeScript to C++ community?
 Quick Start
 -----------
 
-0) install
+1) Build Project
 
 ```
-node -i typescript-cxx
+npm install
+npm run build
 ```
 
-
-1) Compile test.ts
+2) Compile test.ts
 
 create file test.ts
 
@@ -47,7 +47,7 @@ class Employee extends Person {
     }
 }
 
-let howard = new Employee("Howard", "Sales");
+const howard = new Employee("Howard", "Sales");
 console.log(howard.ElevatorPitch);
 ```
 
@@ -124,11 +124,11 @@ int main(int argc, char** argv)
 }
 ```
 
-2) Compile it.
+3) Compile it.
 
 cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib ../cpplib/core.cpp test.cpp
 
-3) Run it.
+4) Run it.
 
 ```
 test.exe
