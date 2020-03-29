@@ -4,7 +4,7 @@ TypeScript to C++
 License
 -------
 
-TypeScriptCxx is licensed under the MIT license.
+TypeScript2Cxx is licensed under the MIT license.
 
 Quick Start
 -----------
