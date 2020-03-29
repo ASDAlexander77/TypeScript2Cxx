@@ -11,20 +11,20 @@ Chat Room
 
 Want to chat with other members of the TypeScript to C++ community?
 
-[![Join the chat at https://gitter.im/ASDAlexander77/TypeScript2Cxx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScript2Cpp/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/ASDAlexander77/TypeScript2Cxx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ASDAlexander77/TypeScript2Cxx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 Quick Start
 -----------
 
-0) install
+1) Build Project
 
 ```
-node -i typescript-cxx
+npm install
+npm run build
 ```
 
-
-1) Compile test.ts
+2) Compile test.ts
 
 create file test.ts
 
@@ -47,7 +47,7 @@ class Employee extends Person {
     }
 }
 
-let howard = new Employee("Howard", "Sales");
+const howard = new Employee("Howard", "Sales");
 console.log(howard.ElevatorPitch);
 ```
 
@@ -58,7 +58,7 @@ node __out\maian.js test.ts
 Now you have test.cpp and test.h
 
 test.h:
-```
+```C++
 #ifndef TEST_H
 #define TEST_H
 #include "core.h"
@@ -89,7 +89,7 @@ extern Employee* howard;
 ```
 
 test.cpp:
-```
+```C++
 #include "test.h"
 
 using namespace js;
@@ -124,11 +124,11 @@ int main(int argc, char** argv)
 }
 ```
 
-2) Compile it.
+3) Compile it.
 
 cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib ../cpplib/core.cpp test.cpp
 
-3) Run it.
+4) Run it.
 
 ```
 test.exe
