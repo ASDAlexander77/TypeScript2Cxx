@@ -11,7 +11,7 @@ Chat Room
 
 Want to chat with other members of the TypeScript to C++ community?
 
-[![Join the chat at https://gitter.im/ASDAlexander77/TypeScript2Cxx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/TypeScriptCpp/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/ASDAlexander77/TypeScript2Cxx](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/ASDAlexander77/TypeScript2Cxx?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 Quick Start
