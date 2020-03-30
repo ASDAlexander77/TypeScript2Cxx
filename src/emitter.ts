@@ -2140,7 +2140,7 @@ export class Emitter {
 
             this.processExpression(node.expression);
 
-            if (!theSame) {
+            if (!theSame && functionReturn) {
                 this.writer.writeString(')');
             }
         }
