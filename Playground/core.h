@@ -1341,7 +1341,7 @@ struct any
         case anyTypeId::string:
             return ((js::string *)_value._data)->_value.length() > 0;
         case anyTypeId::object:
-            return ((js::object *)_value._data)->_values.size() > 0;
+            return _value._data != nullptr && ((js::object *)_value._data)->_values.size() > 0;
         case anyTypeId::array:
             return ((js::array *)_value._data)->_values.size() > 0;
         default:
