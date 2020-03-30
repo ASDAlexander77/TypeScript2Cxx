@@ -46,6 +46,12 @@ inline bool is(T *t)
 }
 
 template <typename I, typename T>
+inline bool is(const std::shared_ptr<T>& t)
+{
+    return std::dynamic_pointer_cast<I>(t) != nullptr;
+}
+
+template <typename I, typename T>
 inline bool __is(T *t)
 {
     return std::type_index(typeid(I *)) == std::type_index(typeid(t)) || is<I>(t);
