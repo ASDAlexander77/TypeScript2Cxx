@@ -933,6 +933,7 @@ export class Emitter {
 
         this.writer.writeString(', std::enable_shared_from_this<');
         this.processIdentifier(node.name);
+        this.processTemplateParameters(<ts.ClassDeclaration>node);
         this.writer.writeString('>');
 
         this.writer.writeString(' ');
@@ -2019,7 +2020,7 @@ export class Emitter {
                 this.processType(type, undefined, undefined, true);
                 next = true;
             });
-            this.writer.writeString(' >');
+            this.writer.writeString('>');
         }
 
         return next;
@@ -2038,7 +2039,7 @@ export class Emitter {
                 this.processType(element, undefined, skipPointerInType);
                 next = true;
             });
-            this.writer.writeString(' >');
+            this.writer.writeString('>');
         } else {
             const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
             const templateParametersInfoFromType: ts.TypeParameter[] = typeInfo
