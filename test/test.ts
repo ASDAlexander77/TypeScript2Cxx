@@ -1,10 +1,14 @@
-	class GenericNumber<T> {                                           
-            zeroValue: T;                                                   
-            add: (x: T, y: T) => T;                                         
-        }                                                                   
-                                                                            
-        let stringNumeric = new GenericNumber<string>();                    
-        stringNumeric.zeroValue = "";                                       
-        stringNumeric.add = function(x: string, y: string) { return x + y; }; 
-                                                                            
-        console.log(stringNumeric.add(stringNumeric.zeroValue, "test"));
+	class Class1 {                                 
+            private val: string;                        
+                                                        
+            public set(s: string): Class1 {             
+                this.val = s;                           
+                return this;                            
+            }                                           
+                                                        
+            public show() {                             
+                console.log(this.val);                  
+            }                                           
+        }                                               
+                                                        
+        new Class1().set("Hello").show();

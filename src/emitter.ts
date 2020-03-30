@@ -931,7 +931,7 @@ export class Emitter {
             this.writer.writeString(' : public object');
         }
 
-        this.writer.writeString(', std::enable_shared_from_this<');
+        this.writer.writeString(', public std::enable_shared_from_this<');
         this.processIdentifier(node.name);
         this.processTemplateParameters(<ts.ClassDeclaration>node);
         this.writer.writeString('>');
