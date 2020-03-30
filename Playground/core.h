@@ -1354,9 +1354,20 @@ struct any
     template <class T, class=std::enable_if_t<std::is_arithmetic_v<T>>>
     operator T()
     {
-        if (_type == anyTypeId::number)
+        switch (_type)
         {
+        case anyTypeId::undefined:
+            return T{0};
+        case anyTypeId::boolean:
+            return static_cast<T>(_value._boolean._value);
+        case anyTypeId::number:
             return static_cast<T>(_value._number._value);
+        case anyTypeId::string:
+            return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
+        case anyTypeId::object:
+            return static_cast<T>(_value._data == nullptr ? 1 : 0);
+        default:
+            break;
         }
 
         throw "wrong type";
