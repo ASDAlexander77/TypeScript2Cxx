@@ -931,6 +931,10 @@ export class Emitter {
             this.writer.writeString(' : public object');
         }
 
+        this.writer.writeString(', std::enable_shared_from_this<');
+        this.processIdentifier(node.name);
+        this.writer.writeString('>');
+
         this.writer.writeString(' ');
         this.writer.BeginBlock();
         this.writer.DecreaseIntent();
@@ -2117,6 +2121,7 @@ export class Emitter {
                 functionReturn = null;
             }
 
+            /*
             let theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
                 || this.resolver.typesAreTheSame(typeReturn, functionReturn);
 
@@ -2137,12 +2142,19 @@ export class Emitter {
 
                 this.writer.writeString('>(');
             }
+            */
 
-            this.processExpression(node.expression);
+            if (node.expression.kind === ts.SyntaxKind.ThisKeyword) {
+                this.writer.writeString('shared_from_this()');
+            } else {
+                this.processExpression(node.expression);
+            }
 
+            /*
             if (!theSame && functionReturn) {
                 this.writer.writeString(')');
             }
+            */
         }
 
         this.writer.EndOfStatement();

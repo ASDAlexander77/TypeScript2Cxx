@@ -1,52 +1,46 @@
-	export interface IBehaviorAware<T> {                   
-            init(): void;                                       
+	class Vector3 {                                        
+            constructor(                                        
+                public x: number = 0,                           
+                public y: number = 0,                           
+                public z: number = 0                            
+            ) {                                                 
+            }                                                   
+                                                                
+            public addInPlace(otherVector: Vector3): Vector3 {  
+                this.x += otherVector.x;                        
+                this.y += otherVector.y;                        
+                this.z += otherVector.z;                        
+                return this;                                    
+            }                                                   
+                                                                
+            public scaleInPlace(scale: number): Vector3 {       
+                this.x *= scale;                                
+                this.y *= scale;                                
+                this.z *= scale;                                
+                return this;                                    
+            }                                                   
+                                                                
+            public copyFrom(source: Vector3): Vector3 {         
+                this.x = source.x;                              
+                this.y = source.y;                              
+                this.z = source.z;                              
+                return this;                                    
+            }                                                   
+                                                                
+            public get isNonUniform(): boolean {                
+                let absX = Math.abs(this.x);                    
+                let absY = Math.abs(this.y);                    
+                if (absX !== absY) {                            
+                    return true;                                
+                }                                               
+                                                                
+                return false;                                   
+            }                                                   
         }                                                       
                                                                 
-        class Node implements IBehaviorAware<Node> {            
-        public metadata: any = null;                            
-                                                                
-        public animations = [];                                 
-                                                                
-        constructor(scene: any = null) {                        
-            this.init();                                        
-        }                                                       
-                                                                
-        public init() {                                         
-        }                                                       
-                                                                
-        public set x(v) {                                       
-        }                                                       
-                                                                
-        public get x() {                                        
-            return 0;                                           
-        }                                                       
-    }                                                           
-                                                                
-    class TargetCamera extends Node {                           
-        constructor() {                                         
-            super();                                            
-        }                                                       
-                                                                
-        public set x1(v) {                                      
-        }                                                       
-                                                                
-        public get x1() {                                       
-            return 1;                                           
-        }                                                       
-    }                                                           
-                                                                
-    class ArcCamera extends TargetCamera {                      
-        constructor() {                                         
-            super();                                            
-        }                                                       
-                                                                
-        public set x2(v) {                                      
-        }                                                       
-                                                                
-        public get x2() {                                       
-            return 2;                                           
-        }                                                       
-    }                                                           
-                                                                
-    new ArcCamera();                                            
-    console.log("Run");  
+        const center: Vector3 = new Vector3();                  
+        const maximum: Vector3 = new Vector3();                 
+        const minimum: Vector3 = new Vector3();                 
+        center.copyFrom(maximum).addInPlace(minimum).scaleInPlace(0.5); 
+                                                               
+        console.log("Run1");

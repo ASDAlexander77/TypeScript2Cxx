@@ -17,6 +17,13 @@ export class IdentifierResolver {
             functionReturn = (<any>functionReturn).literal;
         }
 
+        if ((typeReturn.kind === ts.SyntaxKind.BooleanKeyword && (functionReturn.kind === ts.SyntaxKind.TrueKeyword
+                || functionReturn.kind === ts.SyntaxKind.FalseKeyword))
+            || (functionReturn.kind === ts.SyntaxKind.BooleanKeyword && (typeReturn.kind === ts.SyntaxKind.TrueKeyword
+                || typeReturn.kind === ts.SyntaxKind.FalseKeyword))) {
+            return true;
+        }
+
         if ((typeReturn.kind === ts.SyntaxKind.StringKeyword && functionReturn.kind === ts.SyntaxKind.StringLiteral)
             || (functionReturn.kind === ts.SyntaxKind.StringKeyword && typeReturn.kind === ts.SyntaxKind.StringLiteral)) {
             return true;
