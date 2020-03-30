@@ -1334,10 +1334,12 @@ struct any
         {
         case anyTypeId::undefined:
             return false;
+        case anyTypeId::boolean:
+            return _value._boolean._value;        
         case anyTypeId::number:
-            return _value._number._value != 0.0;        
+            return _value._number._value != 0.0;
         case anyTypeId::string:
-            return ((js::string *)_value._data)->_value.length() > 0;  
+            return ((js::string *)_value._data)->_value.length() > 0;
         case anyTypeId::object:
             return ((js::object *)_value._data)->_values.size() > 0;
         case anyTypeId::array:
