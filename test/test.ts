@@ -1,14 +1,12 @@
-	class Class1 {                                 
-            private val: string;                        
+	var i:any;                                     
+        i = null; console.log(i || null);               
+        i = 0; console.log(i || null);                  
+        i = 1; console.log(i || null);                  
                                                         
-            public set(s: string): Class1 {             
-                this.val = s;                           
-                return this;                            
-            }                                           
+        i = null; console.log(i || 0);                  
+        i = 0; console.log(i || 0);                     
+        i = 1; console.log(i || 0);                     
                                                         
-            public show() {                             
-                console.log(this.val);                  
-            }                                           
-        }                                               
-                                                        
-        new Class1().set("Hello").show();
+        i = null; console.log(i || 1);                  
+        i = 0; console.log(i || 1);                     
+        i = 1; console.log(i || 1); 

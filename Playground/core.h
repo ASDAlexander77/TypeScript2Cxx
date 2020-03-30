@@ -1330,7 +1330,23 @@ struct any
 
     operator bool()
     {
-        return _type != anyTypeId::undefined;
+        switch (_type)
+        {
+        case anyTypeId::undefined:
+            return false;
+        case anyTypeId::number:
+            return _value._number._value != 0.0;        
+        case anyTypeId::string:
+            return ((js::string *)_value._data)->_value.length() > 0;  
+        case anyTypeId::object:
+            return ((js::object *)_value._data)->_values.size() > 0;
+        case anyTypeId::array:
+            return ((js::array *)_value._data)->_values.size() > 0;
+        default:
+            break;
+        }
+
+        return false;
     }
 
     template <class T, class=std::enable_if_t<std::is_arithmetic_v<T>>>
