@@ -1365,7 +1365,7 @@ struct any
         case anyTypeId::string:
             return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
         default:
-            return static_cast<T>(_value._data);
+            return (T)(_value._data);
         }
 
         throw "wrong type";
