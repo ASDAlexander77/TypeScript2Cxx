@@ -1365,7 +1365,7 @@ struct any
         case anyTypeId::string:
             return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
         case anyTypeId::object:
-            return static_cast<T>(_value._data == nullptr ? 1 : 0);
+            return static_cast<T>(_value._data == nullptr ? 0 : 1);
         default:
             break;
         }
