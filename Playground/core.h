@@ -1364,10 +1364,8 @@ struct any
             return static_cast<T>(_value._number._value);
         case anyTypeId::string:
             return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
-        case anyTypeId::object:
-            return static_cast<T>(_value._data == nullptr ? 0 : 1);
         default:
-            break;
+            return static_cast<T>(_value._data);
         }
 
         throw "wrong type";
