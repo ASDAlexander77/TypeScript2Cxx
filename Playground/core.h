@@ -1070,6 +1070,9 @@ struct object : public undefined_t
     {
     }
 
+    virtual ~object() {
+    }
+
     ObjectKeys<decltype(_values)> keys();
 
     constexpr object *operator->()
@@ -1127,8 +1130,6 @@ struct object : public undefined_t
 
         return os << "[object]";
     }
-
-    virtual void __dummy__(){};
 };
 
 struct any
@@ -1142,7 +1143,8 @@ struct any
         string,
         function,
         array,
-        object
+        object,
+        object_class
     };
 
     union anyType {
@@ -1204,15 +1206,23 @@ struct any
     {
     }
 
-    any(js::boolean value) : _type(anyTypeId::boolean), _value(value)
+    any(const js::boolean &value) : _type(anyTypeId::boolean), _value(value)
     {
     }
 
-    any(js::number value) : _type(anyTypeId::number), _value(value)
+    any(const js::number &value) : _type(anyTypeId::number), _value(value)
     {
     }
 
     any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value))
+    {
+    }
+
+    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value))
+    {
+    }
+
+    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value))
     {
     }
 
@@ -1228,11 +1238,8 @@ struct any
     }
 */
 
-    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value))
-    {
-    }
-
-    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value))
+    template <class C>
+    any(const std::shared_ptr<C> &value) : _type(anyTypeId::object_class), _value((void *)value.get())
     {
     }
 
