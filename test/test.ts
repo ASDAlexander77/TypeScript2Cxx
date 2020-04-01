@@ -1,2 +1,3 @@
-	var i:any;                                    
-        i = null; console.log(i && 1);                        
+	var i:any;
+        i = "asd";
+	console.log(i);                        

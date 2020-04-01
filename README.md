@@ -52,7 +52,7 @@ console.log(howard.ElevatorPitch);
 ```
 
 ```
-node __out\maian.js test.ts
+node __out\main.js test.ts
 ```
 
 Now you have test.cpp and test.h
@@ -126,7 +126,9 @@ int main(int argc, char** argv)
 
 3) Compile it.
 
+```
 cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib ../cpplib/core.cpp test.cpp
+```
 
 4) Run it.
 
