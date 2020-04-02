@@ -25,8 +25,8 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x,y) ([&](){ auto vx = (x); return ((bool)(vx) ? (vx) : (y));})()
-#define AND(x,y) ([&](){ auto vx = (x); return ((bool)(vx) ? (y) : (vx));})()
+#define OR(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (vx) : (y)); })()
+#define AND(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (y) : (vx)); })()
 
 struct any;
 struct object;
@@ -46,7 +46,7 @@ inline bool is(T *t)
 }
 
 template <typename I, typename T>
-inline bool is(const std::shared_ptr<T>& t)
+inline bool is(const std::shared_ptr<T> &t)
 {
     return std::dynamic_pointer_cast<I>(t) != nullptr;
 }
@@ -141,17 +141,17 @@ constexpr auto keys_(T &t) -> decltype(t->keys())
 
 namespace bitwise
 {
-    template <typename T>
-    inline T rshift(T op1, T op2)
-    {
-        return (T)((long)op1 >> (long)op2);
-    }
+template <typename T>
+inline T rshift(T op1, T op2)
+{
+    return (T)((long)op1 >> (long)op2);
+}
 
-    template <typename T>
-    inline T lshift(T op1, T op2)
-    {
-        return (T)((long)op1 << (long)op2);
-    }
+template <typename T>
+inline T lshift(T op1, T op2)
+{
+    return (T)((long)op1 << (long)op2);
+}
 } // namespace bitwise
 
 static struct undefined_t
@@ -298,7 +298,7 @@ struct number : public undefined_t
     {
         return (size_t)_value;
     }
- 
+
     constexpr operator bool() const
     {
         return !isUndefined && _value != 0;
@@ -318,7 +318,7 @@ struct number : public undefined_t
     {
         std::ostringstream streamObj2;
         streamObj2 << _value;
-        return streamObj2.str();        
+        return streamObj2.str();
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -836,31 +836,30 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
-
 template <typename T>
 struct _Deduction_MethodPtr;
 
 template <typename Rx, typename _Cls, typename... Args>
-struct _Deduction_MethodPtr<Rx(__thiscall _Cls::*)(Args...) const>
+struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
 {
     using _ReturnType = Rx;
     const static size_t _CountArgs = sizeof...(Args);
 };
 
 template <typename F, typename _type = decltype(&F::operator())>
-struct _Deduction 
+struct _Deduction
 {
     using type = _type;
 };
 
-template<typename F, typename Array, std::size_t... I>
-auto invoke_seq_impl(const F& f, Array& a, std::index_sequence<I...>)
+template <typename F, typename Array, std::size_t... I>
+auto invoke_seq_impl(const F &f, Array &a, std::index_sequence<I...>)
 {
     return std::invoke(f, a[I]...);
 }
 
-template<std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
-auto invoke_seq(const F& f, Array& a)
+template <std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
+auto invoke_seq(const F &f, Array &a)
 {
     return invoke_seq_impl(f, a, Indices{});
 }
@@ -879,16 +878,15 @@ struct function_t : function
     using _MethodType = typename _Deduction<F>::type;
     using _MethodPtr = _Deduction_MethodPtr<_MethodType>;
     using _ReturnType = typename _MethodPtr::_ReturnType;
-    
+
     F _f;
 
-    function_t(const F& f) : _f{f}
+    function_t(const F &f) : _f{f}
     {
     }
 
     virtual any invoke(std::initializer_list<any> args_) override;
 };
-
 
 template <typename T>
 struct ArrayKeys
@@ -931,88 +929,88 @@ struct ArrayKeys
 
 namespace tmpl
 {
-    template <typename E>
-    struct array : public undefined_t
+template <typename E>
+struct array : public undefined_t
+{
+    std::vector<E> _values;
+
+    array() : _values(), undefined_t(false)
     {
-        std::vector<E> _values;
+    }
 
-        array() : _values(), undefined_t(false) 
+    array(std::initializer_list<E> values) : _values(values)
+    {
+    }
+
+    array(const undefined_t &undef) : undefined_t(true)
+    {
+    }
+
+    constexpr array *operator->()
+    {
+        return this;
+    }
+
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+    E &operator[](I i) const
+    {
+        if ((size_t)i >= _values.size())
         {
+            return E(undefined);
         }
 
-        array (std::initializer_list<E> values) : _values(values) 
+        return mutable_(_values)[(size_t)i];
+    }
+
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+    E &operator[](I i)
+    {
+        while ((size_t)i >= _values.size())
         {
+            _values.push_back(undefined_t());
         }
 
-        array(const undefined_t &undef) : undefined_t(true)
+        return _values[(size_t)i];
+    }
+
+    ArrayKeys<std::size_t> keys()
+    {
+        return ArrayKeys<std::size_t>(_values.size());
+    }
+
+    auto begin() -> decltype(_values.begin())
+    {
+        return _values.begin();
+    }
+
+    auto end() -> decltype(_values.end())
+    {
+        return _values.end();
+    }
+
+    friend std::ostream &operator<<(std::ostream &os, array val)
+    {
+        if (val.isUndefined)
         {
+            return os << "undefined";
         }
 
-        constexpr array *operator->()
-        {
-            return this;
-        }
+        return os << "[array]";
+    }
 
-        template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-        E &operator[](I i) const
-        {
-            if ((size_t)i >= _values.size())
-            {
-                return E(undefined);
-            }
+    template <class I>
+    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return (size_t)i < _values.size();
+    }
 
-            return mutable_(_values)[(size_t)i];
-        }
-
-        template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-        E &operator[](I i)
-        {
-            while ((size_t)i >= _values.size())
-            {
-                _values.push_back(undefined_t());
-            }
-
-            return _values[(size_t)i];
-        }    
-
-        ArrayKeys<std::size_t> keys()
-        {
-            return ArrayKeys<std::size_t>(_values.size());
-        }
-
-        auto begin() -> decltype(_values.begin())
-        {
-            return _values.begin();
-        }
-
-        auto end() -> decltype(_values.end())
-        {
-            return _values.end();
-        }
-
-        friend std::ostream &operator<<(std::ostream &os, array val)
-        {
-            if (val.isUndefined)
-            {
-                return os << "undefined";
-            }
-
-            return os << "[array]";
-        }
-
-        template <class I>
-        std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
-        {
-            return (size_t)i < _values.size();
-        }
-
-        template <class I>
-        std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
-        {
-            return false;
-        }
-    };
-}
+    template <class I>
+    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    {
+        return false;
+    }
+};
+} // namespace tmpl
 
 typedef tmpl::array<any> array;
 
@@ -1024,7 +1022,7 @@ struct ObjectKeys
     T _index;
     const T _end;
 
-    ObjectKeys(V& values_) : _index(values_.begin()), _end(values_.end())
+    ObjectKeys(V &values_) : _index(values_.begin()), _end(values_.end())
     {
     }
 
@@ -1070,7 +1068,8 @@ struct object : public undefined_t
     {
     }
 
-    virtual ~object() {
+    virtual ~object()
+    {
     }
 
     ObjectKeys<decltype(_values)> keys();
@@ -1110,13 +1109,13 @@ struct object : public undefined_t
     }
 
     template <class I>
-    std::enable_if_t<std::is_same_v<I, const char*> || std::is_same_v<I, std::string> || std::is_same_v<I, string> || std::is_same_v<I, any> || std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    std::enable_if_t<std::is_same_v<I, const char *> || std::is_same_v<I, std::string> || std::is_same_v<I, string> || std::is_same_v<I, any> || std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
     {
         return _values.find(std::to_string(i)) != _values.end();
     }
 
     template <class I>
-    std::enable_if_t<!std::is_same_v<I, const char*> && !std::is_same_v<I, std::string> && !std::is_same_v<I, string> && !std::is_same_v<I, any> && !std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    std::enable_if_t<!std::is_same_v<I, const char *> && !std::is_same_v<I, std::string> && !std::is_same_v<I, string> && !std::is_same_v<I, any> && !std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
     {
         return false;
     }
@@ -1183,10 +1182,14 @@ struct any
 
     any() : _type(anyTypeId::undefined)
     {
-    }    
+    }
 
     any(const js::any &value) : _type(value._type), _value(value._value)
     {
+    }
+
+    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value))  
+    { 
     }
 
     any(const undefined_t &undef) : _type(anyTypeId::undefined)
@@ -1231,21 +1234,53 @@ struct any
     {
     }
 
-/*
-    template <class F>
-    any(const js::function_t<F> &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
+    template <typename C>
+    any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value))
     {
     }
-*/
 
-    template <class C>
-    any(const std::shared_ptr<C> &value) : _type(anyTypeId::object_class), _value((void *)value.get())
+    ~any()
     {
+        switch (_type)
+        {
+            case anyTypeId::undefined:
+            case anyTypeId::boolean:
+            case anyTypeId::number:
+                break;
+            case anyTypeId::string:
+                delete (js::string*)_value._data;
+                break;
+            case anyTypeId::object:
+                delete (js::object*)_value._data;
+                break;
+            case anyTypeId::array:
+                delete (js::array*)_value._data;
+                break;
+            case anyTypeId::object_class:
+                delete (std::shared_ptr<js::object>*)_value._data;
+                break;
+            default:
+                break;
+        }
     }
 
     constexpr any *operator->()
     {
         return this;
+    }
+
+    any& operator=(const any& other)
+    {
+        _type = other._type;
+        _value = other._value;  
+        return *this;
+    }
+
+    any& operator=(any&& other)
+    {
+        _type = std::move(other._type);
+        _value = std::move(other._value);  
+        return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
@@ -1308,7 +1343,7 @@ struct any
         if (_type == anyTypeId::number)
         {
             return js::string(_value._number.operator std::string());
-        }        
+        }
 
         throw "wrong type";
     }
@@ -1342,7 +1377,7 @@ struct any
         case anyTypeId::undefined:
             return false;
         case anyTypeId::boolean:
-            return _value._boolean._value;        
+            return _value._boolean._value;
         case anyTypeId::number:
             return _value._number._value != 0.0;
         case anyTypeId::string:
@@ -1351,6 +1386,8 @@ struct any
             return _value._data != nullptr && ((js::object *)_value._data)->_values.size() > 0;
         case anyTypeId::array:
             return ((js::array *)_value._data)->_values.size() > 0;
+        case anyTypeId::object_class:
+            return _value._data != nullptr;
         default:
             break;
         }
@@ -1358,7 +1395,7 @@ struct any
         return false;
     }
 
-    template <class T, class=std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     operator T()
     {
         switch (_type)
@@ -1378,13 +1415,26 @@ struct any
         throw "wrong type";
     }
 
+    template <typename T>
+    using std_shared_ptr = std::shared_ptr<T>;
+    template <typename T>
+    operator std_shared_ptr<T>()
+    {
+        if (_type == anyTypeId::object_class)
+        {
+            return std::shared_ptr<T>(*(std::shared_ptr<js::object> *)_value._data);
+        }
+
+        throw "wrong type";
+    }
+
     template <typename Rx, typename... Args>
     operator std::function<Rx(Args...)>()
     {
         if (_type == anyTypeId::function)
         {
-            auto func = _value._function; 
-            return std::function<Rx(Args...)>([=] (Args... args) -> Rx {
+            auto func = _value._function;
+            return std::function<Rx(Args...)>([=](Args... args) -> Rx {
                 return func->invoke({args...});
             });
         }
@@ -1392,7 +1442,8 @@ struct any
         throw "wrong type";
     }
 
-    operator std::string() {
+    operator std::string()
+    {
         std::ostringstream streamObj2;
         streamObj2 << *this;
         return streamObj2.str();
@@ -2096,7 +2147,7 @@ struct ReadonlyArray
 template <typename T>
 struct Array : public ReadonlyArray<T>
 {
-    typedef ReadonlyArray<T> super__;    
+    typedef ReadonlyArray<T> super__;
     using super__::_values;
 
     Array() : ReadonlyArray<T>()
@@ -2677,32 +2728,38 @@ template <typename I>
 inline bool is(js::any t);
 
 template <>
-inline bool is<js::boolean>(js::any t) {
+inline bool is<js::boolean>(js::any t)
+{
     return t && t._type == any::boolean;
 }
 
 template <>
-inline bool is<js::number>(js::any t) {
+inline bool is<js::number>(js::any t)
+{
     return t && t._type == any::number;
 }
 
 template <>
-inline bool is<js::string>(js::any t) {
+inline bool is<js::string>(js::any t)
+{
     return t && t._type == any::string;
 }
 
 template <>
-inline bool is<js::array>(js::any t) {
+inline bool is<js::array>(js::any t)
+{
     return t && t._type == any::array;
 }
 
 template <>
-inline bool is<js::object>(js::any t) {
+inline bool is<js::object>(js::any t)
+{
     return t && t._type == any::object;
 }
 
 template <>
-inline bool is<js::function>(js::any t) {
+inline bool is<js::function>(js::any t)
+{
     return t && t._type == any::function;
 }
 
@@ -2719,11 +2776,11 @@ public:
 struct Utils
 {
     template <typename... Args>
-    static object assign(object& dst, const Args& ...args)
+    static object assign(object &dst, const Args &... args)
     {
         for (auto src : {args...})
         {
-            for (auto& k : keys_(src))
+            for (auto &k : keys_(src))
             {
                 dst[k] = const_(src)[k];
             }
@@ -2754,22 +2811,26 @@ any function_t<F>::invoke(std::initializer_list<any> args_)
 }
 
 template <typename V>
-bool IN(V v, const array& a) {
+bool IN(V v, const array &a)
+{
     return a.exists(v);
 }
 
 template <typename V>
-bool IN(V v, const object& o) {
+bool IN(V v, const object &o)
+{
     return o.exists(v);
 }
 
 template <typename V, class F>
-bool IN(V v, Array<F>* a) {
+bool IN(V v, Array<F> *a)
+{
     return a->exists(v);
 }
 
 template <typename V, class O>
-bool IN(V v, O o) {
+bool IN(V v, O o)
+{
     return false;
 }
 
