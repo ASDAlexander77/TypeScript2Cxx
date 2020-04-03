@@ -60,14 +60,14 @@ using namespace js;
 class Person;
 class Employee;
 
-class Person : public object {
+class Person : public object, public std::enable_shared_from_this<Person> {
 public:
     string name;
 
     Person(string name);
 };
 
-class Employee : public Person {
+class Employee : public Person, public std::enable_shared_from_this<Employee> {
 public:
     string department;
 
@@ -76,7 +76,7 @@ public:
     Employee(string name);
 };
 
-extern Employee* howard;
+extern std::shared_ptr<Employee> howard;
 #endif
 ```
 
@@ -102,7 +102,7 @@ any Employee::get_ElevatorPitch()
 Employee::Employee(string name) : Person(name) {
 }
 
-Employee* howard = new Employee("Howard"_S, "Sales"_S);
+std::shared_ptr<Employee> howard = std::make_shared<Employee>("Howard"_S, "Sales"_S);
 
 void Main(void)
 {
