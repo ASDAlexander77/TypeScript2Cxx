@@ -1179,70 +1179,78 @@ struct any
 
     anyTypeId _type;
     anyType _value;
-    bool _const;
+    long* _counter;
 
-    any() : _type(anyTypeId::undefined), _value(nullptr), _const(false)
+    any() : _type(anyTypeId::undefined), _value(nullptr), _counter(nullptr)
     {
     }
 
-    any(const js::any &value) : _type(value._type), _value(value._value), _const(true)
+    any(const js::any &value) : _type(value._type), _value(value._value), _counter(value._counter)
     {
+        if (_counter != nullptr) 
+        {
+            ++(*_counter);
+        }
     }
 
-    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value)), _const(false)
+    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value)), _counter(value._counter)
     { 
+        if (_counter != nullptr) 
+        {
+            ++(*_counter);
+        }
     }
 
-    any(const undefined_t &undef) : _type(anyTypeId::undefined), _const(false)
+    any(const undefined_t &undef) : _type(anyTypeId::undefined), _counter(nullptr)
     {
     }
 
-    any(std::nullptr_t v) : _type(anyTypeId::object), _value(v), _const(false)
+    any(std::nullptr_t v) : _type(anyTypeId::object), _value(v), _counter(nullptr)
     {
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    any(T initValue) : _type(anyTypeId::number), _value(js::number(initValue)), _const(false)
+    any(T initValue) : _type(anyTypeId::number), _value(js::number(initValue)), _counter(nullptr)
     {
     }
 
-    any(bool value) : _type(anyTypeId::boolean), _value(js::boolean(value)), _const(false)
+    any(bool value) : _type(anyTypeId::boolean), _value(js::boolean(value)), _counter(nullptr)
     {
     }
 
-    any(const js::boolean &value) : _type(anyTypeId::boolean), _value(value), _const(false)
+    any(const js::boolean &value) : _type(anyTypeId::boolean), _value(value), _counter(nullptr)
     {
     }
 
-    any(const js::number &value) : _type(anyTypeId::number), _value(value), _const(false)
+    any(const js::number &value) : _type(anyTypeId::number), _value(value), _counter(nullptr)
     {
     }
 
-    any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value)), _const(false)
+    any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value)), _counter(new long)
     {
     }
 
-    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value)), _const(false)
+    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value)), _counter(new long)
     {
     }
 
-    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value)), _const(false)
+    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value)), _counter(new long)
     {
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
-    any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value)), _const(false)
+    any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value)), _counter(new long)
     {
     }
 
     template <typename C>
-    any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value)), _const(false)
+    any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value)), _counter(new long)
     {
     }
 
     ~any()
     {
-        if (_const || _value._data == nullptr) 
+        if (_value._data == nullptr || _counter == nullptr || --(*_counter) > 0)
         {
             return;
         }
@@ -1281,7 +1289,12 @@ struct any
     {
         _type = other._type;
         _value = other._value;  
-        _const = true;
+        _counter = other._counter;
+        if (_counter != nullptr) 
+        {
+            ++(*_counter);
+        }
+
         return *this;
     }
 
