@@ -1193,14 +1193,6 @@ struct any
         }
     }
 
-    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value)), _counter(value._counter)
-    { 
-        if (_counter != nullptr) 
-        {
-            ++(*_counter);
-        }
-    }
-
     any(const undefined_t &undef) : _type(anyTypeId::undefined), _counter(nullptr)
     {
     }
@@ -1277,6 +1269,8 @@ struct any
                 break;
         }
 
+        delete _counter;
+        _counter = nullptr;
         _value._data = nullptr;
     }
 
@@ -1295,13 +1289,6 @@ struct any
             ++(*_counter);
         }
 
-        return *this;
-    }
-
-    any& operator=(any&& other)
-    {
-        _type = std::move(other._type);
-        _value = std::move(other._value);  
         return *this;
     }
 
