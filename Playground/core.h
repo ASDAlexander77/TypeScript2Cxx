@@ -1179,68 +1179,74 @@ struct any
 
     anyTypeId _type;
     anyType _value;
+    bool _const;
 
-    any() : _type(anyTypeId::undefined)
+    any() : _type(anyTypeId::undefined), _value(nullptr), _const(false)
     {
     }
 
-    any(const js::any &value) : _type(value._type), _value(value._value)
+    any(const js::any &value) : _type(value._type), _value(value._value), _const(true)
     {
     }
 
-    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value))  
+    any(any&& value) : _type(std::move(value._type)), _value(std::move(value._value)), _const(false)
     { 
     }
 
-    any(const undefined_t &undef) : _type(anyTypeId::undefined)
+    any(const undefined_t &undef) : _type(anyTypeId::undefined), _const(false)
     {
     }
 
-    any(std::nullptr_t v) : _type(anyTypeId::object), _value(v)
+    any(std::nullptr_t v) : _type(anyTypeId::object), _value(v), _const(false)
     {
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    any(T initValue) : _type(anyTypeId::number), _value(js::number(initValue))
+    any(T initValue) : _type(anyTypeId::number), _value(js::number(initValue)), _const(false)
     {
     }
 
-    any(bool value) : _type(anyTypeId::boolean), _value(js::boolean(value))
+    any(bool value) : _type(anyTypeId::boolean), _value(js::boolean(value)), _const(false)
     {
     }
 
-    any(const js::boolean &value) : _type(anyTypeId::boolean), _value(value)
+    any(const js::boolean &value) : _type(anyTypeId::boolean), _value(value), _const(false)
     {
     }
 
-    any(const js::number &value) : _type(anyTypeId::number), _value(value)
+    any(const js::number &value) : _type(anyTypeId::number), _value(value), _const(false)
     {
     }
 
-    any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value))
+    any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value)), _const(false)
     {
     }
 
-    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value))
+    any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value)), _const(false)
     {
     }
 
-    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value))
+    any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value)), _const(false)
     {
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
-    any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value))
+    any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value)), _const(false)
     {
     }
 
     template <typename C>
-    any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value))
+    any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value)), _const(false)
     {
     }
 
     ~any()
     {
+        if (_const || _value._data == nullptr) 
+        {
+            return;
+        }
+
         switch (_type)
         {
             case anyTypeId::undefined:
@@ -1262,6 +1268,8 @@ struct any
             default:
                 break;
         }
+
+        _value._data = nullptr;
     }
 
     constexpr any *operator->()
@@ -1273,6 +1281,7 @@ struct any
     {
         _type = other._type;
         _value = other._value;  
+        _const = true;
         return *this;
     }
 
