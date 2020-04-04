@@ -2887,17 +2887,29 @@ struct hash<js::any>
 } // namespace std
 
 #define MAIN \
-try \
+int main(int argc, char** argv) \
 {   \
-    Main(); \
-}   \
-catch (std::string& s)  \
-{   \
-std::cout << s << std::endl;    \
-}   \
-catch (char* s) \
-{   \
-std::cout << s << std::endl;    \
+    try \
+    {   \
+        Main(); \
+    }   \
+    catch (std::exception& exception)   \
+    {   \
+        std::cout << exception.what() << std::endl; \
+    }   \
+    catch (std::string& s)  \
+    {   \
+        std::cout << s << std::endl;    \
+    }   \
+    catch (char* s) \
+    {   \
+        std::cout << s << std::endl;    \
+    }   \
+    catch (...) \
+    {   \
+        std::cout << "General failure." << std::endl;    \
+    }   \
+    return 0;   \
 }
 
 #endif // CORE_H
