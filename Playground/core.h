@@ -1220,29 +1220,34 @@ struct any
 
     any(const js::string &value) : _type(anyTypeId::string), _value((void *)new js::string(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(const js::array &value) : _type(anyTypeId::array), _value((void *)new js::array(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(const js::object &value) : _type(anyTypeId::object), _value((void *)new js::object(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
     any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     template <typename C>
     any(std::shared_ptr<C> value) : _type(anyTypeId::object_class), _value((void *)new std::shared_ptr<js::object>(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     ~any()
     {
-        if (_value._data == nullptr || _counter == nullptr || --(*_counter) > 0)
+        if (_value._data == nullptr || _counter == nullptr || !*_counter || --(*_counter) > 0)
         {
             return;
         }
@@ -1292,12 +1297,34 @@ struct any
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_integral_v<T>>>
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, js::number>>>
+    any &operator[](T t) const
+    {
+        if (_type == anyTypeId::array)
+        {
+            return mutable_(*(js::array *)_value._data)[t];
+        }
+
+        throw "wrong type";        
+    }    
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, js::number>>>
     any &operator[](T t)
     {
         if (_type == anyTypeId::array)
         {
             return (*(js::array *)_value._data)[t];
+        }
+
+        throw "wrong type";
+    }
+
+    template <class T>
+    any &operator[](T t) const
+    {
+        if (_type == anyTypeId::object)
+        {
+            return mutable_(*(js::object *)_value._data)[t];
         }
 
         throw "wrong type";
