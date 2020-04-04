@@ -1,7 +1,8 @@
-class Test1 {
-	
+function f(a)
+{
+	console.log("asd");
 }
 
-const t = new Test1();
 var c;
-c = t;
+c=f;
+c(1);

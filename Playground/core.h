@@ -2886,4 +2886,18 @@ struct hash<js::any>
 };
 } // namespace std
 
+#define MAIN \
+try \
+{   \
+    Main(); \
+}   \
+catch (std::string& s)  \
+{   \
+std::cout << s << std::endl;    \
+}   \
+catch (char* s) \
+{   \
+std::cout << s << std::endl;    \
+}
+
 #endif // CORE_H
