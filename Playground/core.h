@@ -846,6 +846,13 @@ struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
     const static size_t _CountArgs = sizeof...(Args);
 };
 
+template <typename Rx, typename... Args>
+struct _Deduction_MethodPtr<Rx (__cdecl *)(Args...)>
+{
+    using _ReturnType = Rx;
+    const static size_t _CountArgs = sizeof...(Args);
+};
+
 template <typename F, typename _type = decltype(&F::operator())>
 struct _Deduction
 {
@@ -872,10 +879,9 @@ struct function
     auto operator()(Args... args);
 };
 
-template <typename F>
+template <typename F, typename _MethodType = typename _Deduction<F>::type>
 struct function_t : function
 {
-    using _MethodType = typename _Deduction<F>::type;
     using _MethodPtr = _Deduction_MethodPtr<_MethodType>;
     using _ReturnType = typename _MethodPtr::_ReturnType;
 
@@ -1235,6 +1241,12 @@ struct any
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
     any(const F &value) : _type(anyTypeId::function), _value((js::function *)new js::function_t<F>(value)), _counter(new long)
+    {
+        *_counter = 1;
+    }
+
+    template <typename Rx, typename... Args>
+    any(Rx (__cdecl *value)(Args...)) : _type(anyTypeId::function), _value((js::function *)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)), _counter(new long)
     {
         *_counter = 1;
     }
@@ -2832,8 +2844,8 @@ auto function::operator()(Args... args)
     return invoke({args...});
 }
 
-template <class F>
-any function_t<F>::invoke(std::initializer_list<any> args_)
+template <typename F, typename _MethodType>
+any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
 {
     if constexpr (std::is_void_v<_ReturnType>)
     {
