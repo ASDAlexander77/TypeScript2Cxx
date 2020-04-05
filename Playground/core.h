@@ -2847,14 +2847,15 @@ auto function::operator()(Args... args)
 template <typename F, typename _MethodType>
 any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
 {
+    auto args_vector = std::vector<any>(args_);
     if constexpr (std::is_void_v<_ReturnType>)
     {
-        invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
+        invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
         return any();
     }
     else
     {
-        return invoke_seq<_MethodPtr::_CountArgs>(_f, std::vector<any>(args_));
+        return invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
     }
 }
 
