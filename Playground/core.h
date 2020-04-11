@@ -757,13 +757,13 @@ struct string : public undefined_t
 
     string &operator+=(number value)
     {
-        _value.append(value);
+        _value.append(value.operator std::string().c_str());
         return *this;
     }
 
     string &operator+=(string value)
     {
-        _value.append(value._value);
+        _value.append(value._value.c_str());
         return *this;
     }
 
