@@ -848,6 +848,13 @@ struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
     const static size_t _CountArgs = sizeof...(Args);
 };
 
+template <typename Rx, typename _Cls, typename... Args>
+struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...)>
+{
+    using _ReturnType = Rx;
+    const static size_t _CountArgs = sizeof...(Args);
+};
+
 template <typename Rx, typename... Args>
 struct _Deduction_MethodPtr<Rx (__cdecl *)(Args...)>
 {
