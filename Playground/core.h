@@ -880,6 +880,19 @@ auto invoke_seq(const F &f, Array &a)
     return invoke_seq_impl(f, a, Indices{});
 }
 
+template <typename F, typename Array, std::size_t... I>
+auto invoke_seq_impl(F &f, Array &a, std::index_sequence<I...>)
+{
+    return std::invoke(f, a[I]...);
+}
+
+template <std::size_t N, typename F, typename Array, typename Indices = std::make_index_sequence<N>>
+auto invoke_seq(F &f, Array &a)
+{
+    return invoke_seq_impl(f, a, Indices{});
+}
+
+
 struct function
 {
     virtual any invoke(std::initializer_list<any> args_) = 0;

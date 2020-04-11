@@ -18,4 +18,4 @@ function main2() {
     return g;
   }
 }
-main2()();
+console.log(main2()());

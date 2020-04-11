@@ -1850,7 +1850,11 @@ export class Emitter {
             next = true;
         });
 
-        this.writer.writeStringNewLine(')');
+        if (isArrowFunction || isFunctionExpression) {
+            this.writer.writeStringNewLine(') mutable');
+        } else {
+            this.writer.writeStringNewLine(')');
+        }
 
         // constructor init
         let skipped = 0;
@@ -2504,7 +2508,7 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
-            dereference = type 
+            dereference = type
                 && type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
                 && type.kind !== ts.SyntaxKind.ArrayType
