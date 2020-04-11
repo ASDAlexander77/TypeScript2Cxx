@@ -2484,7 +2484,7 @@ export class Emitter {
 
         const symbolInfo = this.resolver.getSymbolAtLocation(node.expression);
         const type = this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node.expression));
-        if (type.kind === ts.SyntaxKind.TupleType) {
+        if (type && type.kind === ts.SyntaxKind.TupleType) {
             // tuple
             if (node.argumentExpression.kind !== ts.SyntaxKind.NumericLiteral) {
                 throw new Error('Not implemented');
@@ -2504,7 +2504,8 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
-            dereference = type.kind !== ts.SyntaxKind.TypeLiteral
+            dereference = type 
+                && type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
                 && type.kind !== ts.SyntaxKind.ArrayType
                 && type.kind !== ts.SyntaxKind.AnyKeyword
