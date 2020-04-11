@@ -27,8 +27,15 @@ js::string number::toString(js::number radix) {
 }
 
 // String
+js::string string::operator+(any value)
+{
+    string tmp(_value);
+    tmp._value.append(value.operator std::string().c_str());
+    return tmp;
+}    
+
 js::string &string::operator+=(any value) {
-    _value.append(value);
+    _value.append(value.operator std::string().c_str());
     return *this;    
 }
 

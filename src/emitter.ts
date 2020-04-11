@@ -2507,6 +2507,7 @@ export class Emitter {
             dereference = type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
                 && type.kind !== ts.SyntaxKind.ArrayType
+                && type.kind !== ts.SyntaxKind.AnyKeyword
                 && symbolInfo
                 && symbolInfo.valueDeclaration
                 && !(<ts.ParameterDeclaration>symbolInfo.valueDeclaration).dotDotDotToken;

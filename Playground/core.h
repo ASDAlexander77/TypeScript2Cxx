@@ -746,6 +746,8 @@ struct string : public undefined_t
         return tmp;
     }
 
+    string operator+(any value);
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string &operator+=(T t)
     {
@@ -755,7 +757,7 @@ struct string : public undefined_t
 
     string &operator+=(number value)
     {
-        _value.append(value.operator std::string());
+        _value.append(value);
         return *this;
     }
 
