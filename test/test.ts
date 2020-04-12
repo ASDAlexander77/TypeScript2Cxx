@@ -1,21 +1,14 @@
-// basic performance accessing mutable closure state.
+function fibonacci(num){
+  var a = 1, b = 0, temp;
 
-function main1() {
-  var g = 0;
-  function foo() {
-    for (var i = 0; i < 20000000; i++)
-      g++;
+  while (num >= 0){
+    temp = a;
+    a = a + b;
+    b = temp;
+    num--;
   }
-  foo();
-}
-main1();
 
-function main2() {
-  var g = 0;
-  return function () {
-    for (var i = 0; i < 20000000; i++)
-      g++;
-    return g;
-  }
+  return b;
 }
-console.log(main2()());
+
+console.log(fibonacci(10));

@@ -1669,6 +1669,25 @@ struct any
         throw "not implemented";
     }
 
+    any &operator--()
+    {
+        switch (_type)
+        {
+        case anyTypeId::number:
+            _value._number -= 1;
+            return *this;
+        }
+
+        throw "not implemented";
+    }
+
+    any operator--(int)
+    {
+        any tmp(*this);
+        operator--();
+        return tmp;
+    }
+
     any &operator-=(js::number other)
     {
         switch (_type)
