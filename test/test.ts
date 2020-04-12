@@ -4,4 +4,4 @@ function fibonacci(num:number):number {
   return fibonacci(num - 1) + fibonacci(num - 2);
 }
 
-console.log(fibonacci(10));
+console.log(fibonacci(40));
