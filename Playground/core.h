@@ -327,10 +327,12 @@ struct number : public undefined_t
         return number(_value + t);
     }
 
+/*
     number operator+(number n)
     {
         return number(_value + n._value);
     }
+*/
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number operator+(const T t, number value)
