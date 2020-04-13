@@ -2350,25 +2350,31 @@ any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
 }
 
 template <typename V>
-bool IN(V v, const array &a)
+constexpr bool IN(V v, const array &a)
 {
     return a.exists(v);
 }
 
 template <typename V>
-bool IN(V v, const object &o)
+constexpr bool IN(V v, const object &a)
 {
-    return o.exists(v);
+    return a.exists(v);
 }
 
-template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists())>>>
-bool IN(V v, Ax *a)
+template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+constexpr bool IN(V v, const Ax &a)
+{
+    return a.exists(v);
+}
+
+template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+constexpr bool IN(V v, Ax *a)
 {
     return a->exists(v);
 }
 
 template <typename V, class O>
-bool IN(V v, O o)
+constexpr bool IN(V v, O o)
 {
     return false;
 }
