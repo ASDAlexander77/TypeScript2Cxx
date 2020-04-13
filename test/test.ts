@@ -1,4 +1,4 @@
-function assert(cond: boolean, msg: string) { if (cond) throw msg; }
+function assert(cond: boolean, msg: string) { if (!cond) throw msg; }
 function defaultArgs(x: number, y = 3, z = 7) {
     return x + y + z;
 }

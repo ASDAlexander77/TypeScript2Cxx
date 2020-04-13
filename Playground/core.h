@@ -776,22 +776,22 @@ struct string : public undefined_t
 
     bool operator==(const js::string &other)
     {
-        return _value.compare(other._value) == 0;
+        return isUndefined && _value.compare(other._value) == 0;
     }
 
     bool operator==(std::nullptr_t)
     {
-        return _value.c_str() == nullptr;
+        return isUndefined && _value.c_str() == nullptr;
     }
 
     bool operator!=(const js::string &other)
     {
-        return _value.compare(other._value) != 0;
+        return isUndefined && _value.compare(other._value) != 0;
     }
 
     bool operator!=(std::nullptr_t)
     {
-        return _value.c_str() != nullptr;
+        return isUndefined && _value.c_str() != nullptr;
     }    
 
     string toUpperCase()
