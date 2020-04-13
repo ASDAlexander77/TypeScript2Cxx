@@ -281,7 +281,7 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number(T initValue)
     {
-        _value = static_cast<double>(initValue);
+        _value = static_cast<V>(initValue);
     }
 
     number(const undefined_t &undef) : undefined_t(true)
@@ -2683,9 +2683,15 @@ struct ArrayBufferView
 {
 };
 
-number parseInt(const js::string &value, int base = 10);
+static number parseInt(const js::string &value, int base = 10)
+{
+    return number(std::stoi(value._value, 0, base));
+}
 
-number parseFloat(const js::string &value);
+static number parseFloat(const js::string &value)
+{
+    return number(std::stod(value._value, 0));
+}
 
 template <typename T>
 struct Promise

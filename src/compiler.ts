@@ -289,7 +289,7 @@ export class Run {
             sources.forEach((s: string, index: number) => {
                 if (fs.existsSync(s)) {
                     s = fs.readFileSync(s).toString();
-                    s = 'function assert(cond: boolean, msg: string) { if (cond) throw msg; }\r\n' + s.replace(/msg\(/g, 'console.log(');
+                    s = 'function assert(cond: boolean, msg: string) { if (!cond) throw msg; }\r\n' + s.replace(/msg\(/g, 'console.log(');
                 }
 
                 // fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));

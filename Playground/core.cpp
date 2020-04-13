@@ -9,16 +9,6 @@ std::ostream &operator<<(std::ostream &os, std::nullptr_t ptr)
 
 namespace js
 {
-number parseInt(const js::string &value, int base)
-{
-    return number(std::stoi(value._value, 0, base));
-}
-
-number parseFloat(const js::string &value)
-{
-    return number(std::stod(value._value, 0));
-}
-
 // String
 js::string string::operator+(any value)
 {
