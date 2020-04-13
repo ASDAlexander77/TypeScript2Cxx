@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Lang tests', () => {
 
-    it('01 arguments', () => expect('testDefaultArgs').to.equals(new Run().test(['lang-test0/01arguments.ts'], null)));
+    it('01 arguments', () => expect('testDefaultArgs\r\n').to.equals(new Run().test(['lang-test0/01arguments.ts'], null)));
     it('02 numbers', () => expect('').to.equals(new Run().test(['lang-test0/02numbers.ts'], null)));
     it('05 strings', () => expect('').to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
     it('06 numbercollections', () => expect('').to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));

@@ -2448,6 +2448,16 @@ int main(int argc, char** argv) \
 
 // JS Core classes
 namespace js {
+    
+static number parseInt(const js::string &value, int base = 10)
+{
+    return number(std::stoi(value._value, 0, base));
+}
+
+static number parseFloat(const js::string &value)
+{
+    return number(std::stod(value._value, 0));
+}
 
 template <typename T>
 struct ReadonlyArray
@@ -2682,16 +2692,6 @@ struct ArrayBuffer
 struct ArrayBufferView
 {
 };
-
-static number parseInt(const js::string &value, int base = 10)
-{
-    return number(std::stoi(value._value, 0, base));
-}
-
-static number parseFloat(const js::string &value)
-{
-    return number(std::stod(value._value, 0));
-}
 
 template <typename T>
 struct Promise
