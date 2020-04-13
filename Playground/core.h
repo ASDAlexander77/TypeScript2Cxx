@@ -32,6 +32,9 @@ struct any;
 struct object;
 struct string;
 
+template <typename T>
+struct _Deduction_MethodPtr;
+
 inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
 {
     return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
@@ -263,19 +266,16 @@ struct boolean : public undefined_t
     }
 };
 
+namespace tmpl
+{
+template <typename V>
 struct number : public undefined_t
 {
-
-    double _value;
+    using number_t = number<V>;
+    V _value;
 
     number() : _value(0), undefined_t(true)
     {
-    }
-
-    template <class T>
-    number(T *initValue)
-    {
-        _value = static_cast<double>(reinterpret_cast<unsigned long long>(initValue));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -309,7 +309,7 @@ struct number : public undefined_t
         return _value;
     }
 
-    constexpr number *operator->()
+    constexpr number_t *operator->()
     {
         return this;
     }
@@ -322,258 +322,258 @@ struct number : public undefined_t
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator+(const T t)
+    number_t operator+(const T t)
     {
-        return number(_value + t);
+        return number_t(_value + t);
     }
 
 /*
-    number operator+(number n)
+    number_t operator+(number_t n)
     {
-        return number(_value + n._value);
+        return number_t(_value + n._value);
     }
 */
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator+(const T t, number value)
+    friend number_t operator+(const T t, number_t value)
     {
-        return number(t + value._value);
+        return number_t(t + value._value);
     }
 
-    friend number operator+(const number n, number value)
+    friend number_t operator+(const number_t n, number_t value)
     {
-        return number(n._value + value._value);
+        return number_t(n._value + value._value);
     }
 
-    number operator+()
+    number_t operator+()
     {
-        return number(+_value);
+        return number_t(+_value);
     }
 
-    number &operator++()
+    number_t &operator++()
     {
         _value += 1;
         return *this;
     }
 
-    number operator++(int)
+    number_t operator++(int)
     {
-        number tmp(*this);
+        number_t tmp(*this);
         operator++();
         return tmp;
     }
 
-    number &operator+=(number other)
+    number_t &operator+=(number_t other)
     {
         _value += other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator+=(T &t, number other)
+    friend T &operator+=(T &t, number_t other)
     {
         t += other._value;
         return t;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator-(T t)
+    number_t operator-(T t)
     {
-        return number(_value - t);
+        return number_t(_value - t);
     }
 
-    number operator-(number n)
+    number_t operator-(number_t n)
     {
-        return number(_value - n._value);
+        return number_t(_value - n._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator-(T t, number value)
+    friend number_t operator-(T t, number_t value)
     {
-        return number(t - value._value);
+        return number_t(t - value._value);
     }
 
-    number operator-()
+    number_t operator-()
     {
-        return number(-_value);
+        return number_t(-_value);
     }
 
-    number &operator--()
+    number_t &operator--()
     {
         _value -= 1;
         return *this;
     }
 
-    number operator--(int)
+    number_t operator--(int)
     {
-        number tmp(*this);
+        number_t tmp(*this);
         operator--();
         return tmp;
     }
 
-    number &operator-=(number other)
+    number_t &operator-=(number_t other)
     {
         _value -= other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator-=(T &t, number other)
+    friend T &operator-=(T &t, number_t other)
     {
         t -= other._value;
         return t;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator*(T t)
+    number_t operator*(T t)
     {
-        return number(_value * t);
+        return number_t(_value * t);
     }
 
-    number operator*(number n)
+    number_t operator*(number_t n)
     {
-        return number(_value * n._value);
+        return number_t(_value * n._value);
     }
 
-    number &operator*=(number other)
+    number_t &operator*=(number_t other)
     {
         _value *= other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator*=(T &t, number other)
+    friend T &operator*=(T &t, number_t other)
     {
         t *= other._value;
         return t;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator*(T t, number value)
+    friend number_t operator*(T t, number_t value)
     {
-        return number(t * value._value);
+        return number_t(t * value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator/(T t)
+    number_t operator/(T t)
     {
-        return number(_value / t);
+        return number_t(_value / t);
     }
 
-    number operator/(number n)
+    number_t operator/(number_t n)
     {
-        return number(_value / n._value);
+        return number_t(_value / n._value);
     }
 
-    number &operator/=(number other)
+    number_t &operator/=(number_t other)
     {
         _value /= other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator/=(T &t, number other)
+    friend T &operator/=(T &t, number_t other)
     {
         t /= other._value;
         return t;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator/(T t, number value)
+    friend number_t operator/(T t, number_t value)
     {
-        return number(t / value._value);
+        return number_t(t / value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator^(T t)
+    number_t operator^(T t)
     {
-        return number((long)_value ^ (long)t);
+        return number_t((long)_value ^ (long)t);
     }
 
-    number operator^(number n)
+    number_t operator^(number_t n)
     {
-        return number((long)_value ^ (long)n._value);
+        return number_t((long)_value ^ (long)n._value);
     }
 
-    number &operator^=(number other)
+    number_t &operator^=(number_t other)
     {
         _value = (long)_value ^ (long)other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator^(T t, number value)
+    friend number_t operator^(T t, number_t value)
     {
-        return number((long)t ^ (long)value._value);
+        return number_t((long)t ^ (long)value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator|(T t)
+    number_t operator|(T t)
     {
-        return number((long)_value | (long)t);
+        return number_t((long)_value | (long)t);
     }
 
-    number operator|(number n)
+    number_t operator|(number_t n)
     {
-        return number((long)_value | (long)n._value);
+        return number_t((long)_value | (long)n._value);
     }
 
-    number &operator|=(number other)
+    number_t &operator|=(number_t other)
     {
         _value = (long)_value | (long)other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator|(T t, number value)
+    friend number_t operator|(T t, number_t value)
     {
-        return number((long)t | (long)value._value);
+        return number_t((long)t | (long)value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator&(T t)
+    number_t operator&(T t)
     {
-        return number((long)_value & (long)t);
+        return number_t((long)_value & (long)t);
     }
 
-    number operator&(number n)
+    number_t operator&(number_t n)
     {
-        return number((long)_value & (long)n._value);
+        return number_t((long)_value & (long)n._value);
     }
 
-    number &operator&=(number other)
+    number_t &operator&=(number_t other)
     {
         _value = (long)_value & (long)other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number operator%(T t)
+    number_t operator%(T t)
     {
-        return number((long)_value % (long)t);
+        return number_t((long)_value % (long)t);
     }
 
-    number operator%(number n)
+    number_t operator%(number_t n)
     {
-        return number((long)_value % (long)n._value);
+        return number_t((long)_value % (long)n._value);
     }
 
-    number &operator%=(number other)
+    number_t &operator%=(number_t other)
     {
         _value = (long)_value % (long)other._value;
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator%(T t, number value)
+    friend number_t operator%(T t, number_t value)
     {
-        return number((long)t % (long)value._value);
+        return number_t((long)t % (long)value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number operator&(T t, number value)
+    friend number_t operator&(T t, number_t value)
     {
-        return number((long)t & (long)value._value);
+        return number_t((long)t & (long)value._value);
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -582,7 +582,7 @@ struct number : public undefined_t
         return !isUndefined && _value == t;
     }
 
-    bool operator==(number n)
+    bool operator==(number_t n)
     {
         return isUndefined == n.isUndefined && _value == n._value;
     }
@@ -593,7 +593,7 @@ struct number : public undefined_t
         return !isUndefined && _value != t;
     }
 
-    bool operator!=(number n)
+    bool operator!=(number_t n)
     {
         return isUndefined != n.isUndefined && _value != n._value;
     }
@@ -604,7 +604,7 @@ struct number : public undefined_t
         return !isUndefined && _value < t;
     }
 
-    bool operator<(number n)
+    bool operator<(number_t n)
     {
         return isUndefined == n.isUndefined && _value < n._value;
     }
@@ -615,19 +615,19 @@ struct number : public undefined_t
         return !isUndefined && _value <= t;
     }
 
-    bool operator<=(number n)
+    bool operator<=(number_t n)
     {
         return isUndefined == n.isUndefined && _value <= n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator<(T t, number value)
+    friend bool operator<(T t, number_t value)
     {
         return !isUndefined && t < value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator<=(T t, number value)
+    friend bool operator<=(T t, number_t value)
     {
         return !isUndefined && t <= value._value;
     }
@@ -638,7 +638,7 @@ struct number : public undefined_t
         return !isUndefined && _value > t;
     }
 
-    bool operator>(number n)
+    bool operator>(number_t n)
     {
         return isUndefined == n.isUndefined && _value > n._value;
     }
@@ -649,27 +649,27 @@ struct number : public undefined_t
         return !isUndefined && _value >= t;
     }
 
-    bool operator>=(number n)
+    bool operator>=(number_t n)
     {
         return isUndefined == n.isUndefined && _value >= n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator>(T t, number value)
+    friend bool operator>(T t, number_t value)
     {
         return !isUndefined && t > value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator>=(T t, number value)
+    friend bool operator>=(T t, number_t value)
     {
         return !isUndefined && t >= value._value;
     }
 
     js::string toString();
-    js::string toString(js::number radix);
+    js::string toString(number_t radix);
 
-    friend std::ostream &operator<<(std::ostream &os, number val)
+    friend std::ostream &operator<<(std::ostream &os, number_t val)
     {
         if (val.isUndefined)
         {
@@ -679,6 +679,9 @@ struct number : public undefined_t
         return os << val._value;
     }
 };
+}
+
+typedef tmpl::number<double> number;
 
 struct string : public undefined_t
 {
@@ -840,9 +843,6 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
-template <typename T>
-struct _Deduction_MethodPtr;
-
 template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
 {
@@ -981,7 +981,7 @@ struct array : public undefined_t
         return this;
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i) const
     {
         if ((size_t)i >= _values.size())
@@ -992,7 +992,7 @@ struct array : public undefined_t
         return mutable_(_values)[(size_t)i];
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i)
     {
         while ((size_t)i >= _values.size())
@@ -1029,13 +1029,13 @@ struct array : public undefined_t
     }
 
     template <class I>
-    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>, bool> exists(I i) const
     {
         return (size_t)i < _values.size();
     }
 
     template <class I>
-    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, js::number>, bool> exists(I i) const
     {
         return false;
     }
@@ -2139,66 +2139,299 @@ struct any
     }
 };
 
-// End of Object
-/*
-template < typename T >
-struct Element {
-    bool _undefined;
-    T _t;
-    Element() : _undefined(true), _t(T())  {}
-    Element(const T t) : _undefined(false), _t(t)  {}
+template <>
+inline bool Equals(undefined_t l, undefined_t r)
+{
+    return l.isUndefined == r.isUndefined;
+}
 
-    inline operator bool() {
-        return !_undefined;
-    }
+template <>
+inline bool Equals(undefined_t l, std::nullptr_t)
+{
+    return l.isUndefined;
+}
 
-    template<class I>
-    inline decltype(_t[I()]) operator[] (I i) {
-        return _t[i];
-    }     
+template <>
+inline bool Equals(std::nullptr_t, undefined_t r)
+{
+    return r.isUndefined;
+}
 
-    friend std::ostream& operator << (std::ostream& os, Element<T> val)
-    {
-        os << "item:"; 
-        if (_undefined) {
-            return os << "undefined";    
-        }
+template <>
+inline bool Equals(undefined_t l, int r)
+{
+    return l.isUndefined && r == 0;
+}
 
-        return os << val._t;
-    }        
+template <>
+inline bool Equals(int l, undefined_t r)
+{
+    return l == 0 && r.isUndefined;
+}
+
+template <>
+inline bool Equals(any l, int r)
+{
+    return l.operator==(r);
+}
+
+template <>
+inline bool Equals(int l, any r)
+{
+    return r.operator==(l);
+}
+
+template <>
+inline bool NotEquals(undefined_t l, undefined_t r)
+{
+    return l.isUndefined != r.isUndefined;
+}
+
+template <>
+inline bool NotEquals(undefined_t l, std::nullptr_t)
+{
+    return !l.isUndefined;
+}
+
+template <>
+inline bool NotEquals(std::nullptr_t, undefined_t r)
+{
+    return !r.isUndefined;
+}
+
+template <>
+inline bool NotEquals(undefined_t l, int r)
+{
+    return !(l.isUndefined && r == 0);
+}
+
+template <>
+inline bool NotEquals(int l, undefined_t r)
+{
+    return !(l == 0 && r.isUndefined);
+}
+
+template <>
+inline bool NotEquals(any l, int r)
+{
+    return !(l.operator==(r));
+}
+
+template <>
+inline bool NotEquals(int l, any r)
+{
+    return !(r.operator==(l));
+}
+
+template <>
+string typeOf(boolean value)
+{
+    return "boolean"_S;
+}
+
+template <>
+string typeOf(number value)
+{
+    return "number"_S;
+}
+
+template <>
+string typeOf(string value)
+{
+    return "string"_S;
+}
+
+template <>
+string typeOf(object value)
+{
+    return "object"_S;
+}
+
+template <>
+string typeOf(any value)
+{
+    return value.typeOf();
+}
+
+template <class T>
+static any Void(T value);
+
+template <>
+any Void(any value)
+{
+    return any();
+}
+
+template <typename I>
+inline bool is(js::any t);
+
+template <>
+inline bool is<js::boolean>(js::any t)
+{
+    return t && t._type == any::boolean;
+}
+
+template <>
+inline bool is<js::number>(js::any t)
+{
+    return t && t._type == any::number;
+}
+
+template <>
+inline bool is<js::string>(js::any t)
+{
+    return t && t._type == any::string;
+}
+
+template <>
+inline bool is<js::array>(js::any t)
+{
+    return t && t._type == any::array;
+}
+
+template <>
+inline bool is<js::object>(js::any t)
+{
+    return t && t._type == any::object;
+}
+
+template <>
+inline bool is<js::function>(js::any t)
+{
+    return t && t._type == any::function;
+}
+
+struct Finally
+{
+private:
+    std::function<void()> _dtor;
+
+public:
+    Finally(std::function<void()> dtor) : _dtor(dtor){};
+    ~Finally() { _dtor(); }
 };
 
-template < typename T >
-struct ElementReference {
-    bool _undefined;
-    T& _t;
-    ElementReference() : _undefined(true), _t(T())  {}
-    ElementReference(const T& t) : _undefined(false), _t(t)  {}
-
-    inline operator bool() {
-        return !_undefined;
-    }
-
-    inline operator T&() {
-        return _t;
-    }
-
-    template<class I>
-    inline decltype(_t[I()])& operator[] (I i) {
-        return _t[i];
-    }     
-
-    friend std::ostream& operator << (std::ostream& os, ElementReference<T> val)
+struct Utils
+{
+    template <typename... Args>
+    static object assign(object &dst, const Args &... args)
     {
-        os << "ref:"; 
-        if (_undefined) {
-            return os << "undefined";    
+        for (auto src : {args...})
+        {
+            for (auto &k : keys_(src))
+            {
+                dst[k] = const_(src)[k];
+            }
         }
 
-        return os << val._t;
-    }    
+        return dst;
+    }
 };
-*/
+
+template <typename... Args>
+auto function::operator()(Args... args)
+{
+    return invoke({args...});
+}
+
+template <typename F, typename _MethodType>
+any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
+{
+    auto args_vector = std::vector<any>(args_);
+    if constexpr (std::is_void_v<_ReturnType>)
+    {
+        invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
+        return any();
+    }
+    else
+    {
+        return invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
+    }
+}
+
+template <typename V>
+bool IN(V v, const array &a)
+{
+    return a.exists(v);
+}
+
+template <typename V>
+bool IN(V v, const object &o)
+{
+    return o.exists(v);
+}
+
+template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists())>>>
+bool IN(V v, Ax *a)
+{
+    return a->exists(v);
+}
+
+template <typename V, class O>
+bool IN(V v, O o)
+{
+    return false;
+}
+
+// Number
+namespace tmpl {
+template <typename V>
+js::string number<V>::toString() {
+    std::ostringstream streamObj2;
+    streamObj2 << _value;
+    return streamObj2.str();
+} 
+
+template <typename V>
+js::string number<V>::toString(number_t radix) {
+    return js::string(std::to_string(_value));
+}
+} // namespace tmpl
+
+} // namespace js
+
+namespace std
+{
+template <>
+struct hash<js::any>
+{
+    typedef js::any argument_type;
+    typedef std::size_t result_type;
+    result_type operator()(argument_type const &value) const
+    {
+        return value.hash();
+    }
+};
+} // namespace std
+
+#define MAIN \
+int main(int argc, char** argv) \
+{   \
+    try \
+    {   \
+        Main(); \
+    }   \
+    catch (std::exception& exception)   \
+    {   \
+        std::cout << exception.what() << std::endl; \
+    }   \
+    catch (std::string& s)  \
+    {   \
+        std::cout << s << std::endl;    \
+    }   \
+    catch (char* s) \
+    {   \
+        std::cout << s << std::endl;    \
+    }   \
+    catch (...) \
+    {   \
+        std::cout << "General failure." << std::endl;    \
+    }   \
+    return 0;   \
+}
+
+// JS Core classes
+namespace js {
 
 template <typename T>
 struct ReadonlyArray
@@ -2472,14 +2705,14 @@ struct Promise
 
 static struct MathImpl
 {
-    static js::number E;
-    static js::number LN10;
-    static js::number LN2;
-    static js::number LOG2E;
-    static js::number LOG10E;
-    static js::number PI;
-    static js::number SQRT1_2;
-    static js::number SQRT2;
+    static number E;
+    static number LN10;
+    static number LN2;
+    static number LOG2E;
+    static number LOG10E;
+    static number PI;
+    static number SQRT1_2;
+    static number SQRT2;
 
     constexpr MathImpl *operator->()
     {
@@ -2691,281 +2924,6 @@ struct WebGLTexture
 };
 
 // end of HTML
-
-template <>
-inline bool Equals(undefined_t l, undefined_t r)
-{
-    return l.isUndefined == r.isUndefined;
-}
-
-template <>
-inline bool Equals(undefined_t l, std::nullptr_t)
-{
-    return l.isUndefined;
-}
-
-template <>
-inline bool Equals(std::nullptr_t, undefined_t r)
-{
-    return r.isUndefined;
-}
-
-template <>
-inline bool Equals(undefined_t l, int r)
-{
-    return l.isUndefined && r == 0;
-}
-
-template <>
-inline bool Equals(int l, undefined_t r)
-{
-    return l == 0 && r.isUndefined;
-}
-
-template <>
-inline bool Equals(any l, int r)
-{
-    return l.operator==(r);
-}
-
-template <>
-inline bool Equals(int l, any r)
-{
-    return r.operator==(l);
-}
-
-template <>
-inline bool NotEquals(undefined_t l, undefined_t r)
-{
-    return l.isUndefined != r.isUndefined;
-}
-
-template <>
-inline bool NotEquals(undefined_t l, std::nullptr_t)
-{
-    return !l.isUndefined;
-}
-
-template <>
-inline bool NotEquals(std::nullptr_t, undefined_t r)
-{
-    return !r.isUndefined;
-}
-
-template <>
-inline bool NotEquals(undefined_t l, int r)
-{
-    return !(l.isUndefined && r == 0);
-}
-
-template <>
-inline bool NotEquals(int l, undefined_t r)
-{
-    return !(l == 0 && r.isUndefined);
-}
-
-template <>
-inline bool NotEquals(any l, int r)
-{
-    return !(l.operator==(r));
-}
-
-template <>
-inline bool NotEquals(int l, any r)
-{
-    return !(r.operator==(l));
-}
-
-template <>
-string typeOf(boolean value)
-{
-    return "boolean"_S;
-}
-
-template <>
-string typeOf(number value)
-{
-    return "number"_S;
-}
-
-template <>
-string typeOf(string value)
-{
-    return "string"_S;
-}
-
-template <>
-string typeOf(object value)
-{
-    return "object"_S;
-}
-
-template <>
-string typeOf(any value)
-{
-    return value.typeOf();
-}
-
-template <class T>
-static any Void(T value);
-
-template <>
-any Void(any value)
-{
-    return any();
-}
-
-template <typename I>
-inline bool is(js::any t);
-
-template <>
-inline bool is<js::boolean>(js::any t)
-{
-    return t && t._type == any::boolean;
-}
-
-template <>
-inline bool is<js::number>(js::any t)
-{
-    return t && t._type == any::number;
-}
-
-template <>
-inline bool is<js::string>(js::any t)
-{
-    return t && t._type == any::string;
-}
-
-template <>
-inline bool is<js::array>(js::any t)
-{
-    return t && t._type == any::array;
-}
-
-template <>
-inline bool is<js::object>(js::any t)
-{
-    return t && t._type == any::object;
-}
-
-template <>
-inline bool is<js::function>(js::any t)
-{
-    return t && t._type == any::function;
-}
-
-struct Finally
-{
-private:
-    std::function<void()> _dtor;
-
-public:
-    Finally(std::function<void()> dtor) : _dtor(dtor){};
-    ~Finally() { _dtor(); }
-};
-
-struct Utils
-{
-    template <typename... Args>
-    static object assign(object &dst, const Args &... args)
-    {
-        for (auto src : {args...})
-        {
-            for (auto &k : keys_(src))
-            {
-                dst[k] = const_(src)[k];
-            }
-        }
-
-        return dst;
-    }
-};
-
-template <typename... Args>
-auto function::operator()(Args... args)
-{
-    return invoke({args...});
-}
-
-template <typename F, typename _MethodType>
-any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
-{
-    auto args_vector = std::vector<any>(args_);
-    if constexpr (std::is_void_v<_ReturnType>)
-    {
-        invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
-        return any();
-    }
-    else
-    {
-        return invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
-    }
-}
-
-template <typename V>
-bool IN(V v, const array &a)
-{
-    return a.exists(v);
-}
-
-template <typename V>
-bool IN(V v, const object &o)
-{
-    return o.exists(v);
-}
-
-template <typename V, class F>
-bool IN(V v, Array<F> *a)
-{
-    return a->exists(v);
-}
-
-template <typename V, class O>
-bool IN(V v, O o)
-{
-    return false;
-}
-
 } // namespace js
-
-namespace std
-{
-template <>
-struct hash<js::any>
-{
-    typedef js::any argument_type;
-    typedef std::size_t result_type;
-    result_type operator()(argument_type const &value) const
-    {
-        return value.hash();
-    }
-};
-} // namespace std
-
-#define MAIN \
-int main(int argc, char** argv) \
-{   \
-    try \
-    {   \
-        Main(); \
-    }   \
-    catch (std::exception& exception)   \
-    {   \
-        std::cout << exception.what() << std::endl; \
-    }   \
-    catch (std::string& s)  \
-    {   \
-        std::cout << s << std::endl;    \
-    }   \
-    catch (char* s) \
-    {   \
-        std::cout << s << std::endl;    \
-    }   \
-    catch (...) \
-    {   \
-        std::cout << "General failure." << std::endl;    \
-    }   \
-    return 0;   \
-}
 
 #endif // CORE_H

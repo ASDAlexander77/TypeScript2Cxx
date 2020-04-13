@@ -1,7 +1,5 @@
-function fibonacci(num:number):number {
-  if (num <= 1) return 1;
-
-  return fibonacci(num - 1) + fibonacci(num - 2);
-}
-
-console.log(fibonacci(40));
+function f(events: { name: string; handler: any; }[]) { 
+            console.log(events[0].name);                                              
+            if (events[1]) console.log("failed");                                     
+        }                                                                             
+        f([{ name: "blur", handler: 1 }]);
