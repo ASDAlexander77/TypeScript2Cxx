@@ -77,6 +77,24 @@
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Mocha Tests - Lang (STS)",
+            "program": "${workspaceFolder}/../node_modules/mocha/bin/_mocha",
+            "args": [
+                "-u",
+                "tdd",
+                "--timeout",
+                "999999",
+                "--colors",
+                "-r",
+                "ts-node/register",
+                "${workspaceFolder}/../spec/**/lang.spec.ts"
+            ],
+            "internalConsoleOptions": "openOnSessionStart",
+            "cwd": "${workspaceFolder}/../"
         }
     ]
 }

@@ -287,7 +287,12 @@ export class Run {
 
         try {
             sources.forEach((s: string, index: number) => {
-                //// fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
+                if (fs.existsSync(s)) {
+                    s = fs.readFileSync(s).toString();
+                    s = 'function assert(cond: boolean, msg: string) { if (cond) throw msg; }\r\n' + s.replace(/msg\(/g, 'console.log(');
+                }
+
+                // fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
                 fs.writeFileSync('test' + index + '.ts', s);
             });
 
