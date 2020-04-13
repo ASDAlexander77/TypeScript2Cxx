@@ -78,13 +78,13 @@ inline R cast(T t)
 template <typename L, typename R>
 constexpr bool Equals(L l, R r)
 {
-    return l == r;
+    return (bool)l == (bool)r && l == r;
 }
 
 template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
-    return l != r;
+    return (bool)l != (bool)r && l != r;
 }
 
 template <typename T>
@@ -776,22 +776,22 @@ struct string : public undefined_t
 
     bool operator==(const js::string &other)
     {
-        return isUndefined && _value.compare(other._value) == 0;
+        return !isUndefined && _value.compare(other._value) == 0;
     }
 
     bool operator==(std::nullptr_t)
     {
-        return isUndefined && _value.c_str() == nullptr;
+        return !isUndefined && _value.c_str() == nullptr;
     }
 
     bool operator!=(const js::string &other)
     {
-        return isUndefined && _value.compare(other._value) != 0;
+        return !isUndefined && _value.compare(other._value) != 0;
     }
 
     bool operator!=(std::nullptr_t)
     {
-        return isUndefined && _value.c_str() != nullptr;
+        return !isUndefined && _value.c_str() != nullptr;
     }    
 
     string toUpperCase()
