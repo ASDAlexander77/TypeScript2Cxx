@@ -178,7 +178,7 @@ function testComma() {
     assert(y.length == 4, "y")
 }
 
-function isnan(x: number) {
+function isnan_(x: number) {
     return typeof x == "number" && (x !== x)
 }
 
@@ -187,12 +187,12 @@ function mydiv(x: number, y: number) {
 }
 
 function testNaN() {
-    assert(isnan(mydiv(0, 0)))
-    //assert(isnan(0 / 0))
-    assert(isnan(parseFloat("foobar")))
-    assert(isnan(NaN))
-    assert(!isnan(0))
-    assert(!isnan(Infinity))
+    assert(isnan_(mydiv(0, 0)))
+    //assert(isnan_(0 / 0))
+    assert(isnan_(parseFloat("foobar")))
+    assert(isnan_(NaN))
+    assert(!isnan_(0))
+    assert(!isnan_(Infinity))
     let inf = Infinity
     assert(1 / Infinity == 0)
     assert(1 / inf == 0)

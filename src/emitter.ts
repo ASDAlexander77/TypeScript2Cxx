@@ -2324,7 +2324,16 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        this.writer.writeString(`${node.text}`);
+        const val = parseInt(node.text, 10);
+        const isNegative = node.parent
+            && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
+            && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
+        let suffix = '';
+        if (isNegative && val >= 2147483648) {
+            suffix = 'll';
+        }
+
+        this.writer.writeString(`${node.text}${suffix}`);
     }
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode

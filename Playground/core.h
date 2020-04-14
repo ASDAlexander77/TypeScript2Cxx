@@ -76,19 +76,19 @@ inline auto isNaN(T t)
 template <typename R, typename T>
 inline R cast(T t)
 {
-    return (R)t;
+    return static_cast<R>(t);
 }
 
 template <typename L, typename R>
 constexpr bool Equals(L l, R r)
 {
-    return (bool)l == (bool)r && l == r;
+    return static_cast<bool>(l) == static_cast<bool>(r) && l == r;
 }
 
 template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
-    return (bool)l != (bool)r && l != r;
+    return static_cast<bool>(l) != static_cast<bool>(r) && l != r;
 }
 
 template <typename T>
@@ -151,19 +151,19 @@ namespace bitwise
 template <typename T1, typename T2>
 inline auto rshift(T1 op1, T2 op2)
 {
-    return (long)op1 >> (long)op2;
+    return op1 >> op2;
 }
 
 template <typename T1, typename T2>
 inline auto rshift_nosign(T1 op1, T2 op2)
 {
-    return (long)op1 >> (long)op2;
+    return unsigned(op1) >> op2;
 }
 
 template <typename T1, typename T2>
 inline auto lshift(T1 op1, T2 op2)
 {
-    return (long)op1 << (long)op2;
+    return op1 << op2;
 }
 
 } // namespace bitwise
@@ -286,7 +286,7 @@ struct boolean : public undefined_t
             return os << "undefined";
         }
 
-        return os << ((bool)val ? "true" : "false");
+        return os << (static_cast<bool>(val) ? "true" : "false");
     }
 };
 
@@ -320,7 +320,7 @@ struct number : public undefined_t
 
     constexpr operator size_t() const
     {
-        return (size_t)_value;
+        return static_cast<size_t>(_value);
     }
 
     constexpr operator bool() const
@@ -511,93 +511,139 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator^(T t)
     {
-        return number_t((long)_value ^ (long)t);
+        return number_t(static_cast<long>(_value) ^ static_cast<long>(t));
     }
 
     number_t operator^(number_t n)
     {
-        return number_t((long)_value ^ (long)n._value);
+        return number_t(static_cast<long>(_value) ^ static_cast<long>(n._value));
     }
 
     number_t &operator^=(number_t other)
     {
-        _value = (long)_value ^ (long)other._value;
+        _value = static_cast<long>(_value) ^ static_cast<long>(other._value);
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator^(T t, number_t value)
     {
-        return number_t((long)t ^ (long)value._value);
+        return number_t(static_cast<long>(t) ^ static_cast<long>(value._value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator|(T t)
     {
-        return number_t((long)_value | (long)t);
+        return number_t(static_cast<long>(_value) | static_cast<long>(t));
     }
 
     number_t operator|(number_t n)
     {
-        return number_t((long)_value | (long)n._value);
+        return number_t(static_cast<long>(_value) | static_cast<long>(n._value));
     }
 
     number_t &operator|=(number_t other)
     {
-        _value = (long)_value | (long)other._value;
+        _value = static_cast<long>(_value) | static_cast<long>(other._value);
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator|(T t, number_t value)
     {
-        return number_t((long)t | (long)value._value);
+        return number_t(static_cast<long>(t) | static_cast<long>(value._value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator&(T t)
     {
-        return number_t((long)_value & (long)t);
+        return number_t(static_cast<long>(_value) & static_cast<long>(t));
     }
 
     number_t operator&(number_t n)
     {
-        return number_t((long)_value & (long)n._value);
+        return number_t(static_cast<long>(_value) & static_cast<long>(n._value));
     }
 
     number_t &operator&=(number_t other)
     {
-        _value = (long)_value & (long)other._value;
+        _value = static_cast<long>(_value) & static_cast<long>(other._value);
         return *this;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend number_t operator&(T t, number_t value)
+    {
+        return number_t(static_cast<long>(t) & static_cast<long>(value._value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator%(T t)
     {
-        return number_t((long)_value % (long)t);
+        return number_t(static_cast<long>(_value) % static_cast<long>(t));
     }
 
     number_t operator%(number_t n)
     {
-        return number_t((long)_value % (long)n._value);
+        return number_t(static_cast<long>(_value) % static_cast<long>(n._value));
     }
 
     number_t &operator%=(number_t other)
     {
-        _value = (long)_value % (long)other._value;
+        _value = static_cast<long>(_value) % static_cast<long>(other._value);
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator%(T t, number_t value)
     {
-        return number_t((long)t % (long)value._value);
+        return number_t(static_cast<long>(t) % static_cast<long>(value._value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator&(T t, number_t value)
+    number_t operator>>(T t)
     {
-        return number_t((long)t & (long)value._value);
+        return number_t(static_cast<long>(_value) >> static_cast<long>(t));
+    }
+
+    number_t operator>>(number_t n)
+    {
+        return number_t(static_cast<long>(_value) >> static_cast<long>(n._value));
+    }
+
+    number_t &operator>>=(number_t other)
+    {
+        _value = static_cast<long>(_value) >> static_cast<long>(other._value);
+        return *this;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend number_t operator>>(T t, number_t value)
+    {
+        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    number_t operator<<(T t)
+    {
+        return number_t(static_cast<long>(_value) << static_cast<long>(t));
+    }
+
+    number_t operator<<(number_t n)
+    {
+        return number_t(static_cast<long>(_value) << static_cast<long>(n._value));
+    }
+
+    number_t &operator<<=(number_t other)
+    {
+        _value = static_cast<long>(_value) << static_cast<long>(other._value);
+        return *this;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend number_t operator<<(T t, number_t value)
+    {
+        return number_t(static_cast<long>(t) << static_cast<long>(value._value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -913,7 +959,7 @@ static js::string operator""_S(const char *s, std::size_t size)
 
 static js::number operator+(const string& v)
 {
-    return number((double)v);
+    return number(static_cast<double>(v));
 }
 
 template <typename Rx, typename _Cls, typename... Args>
@@ -1056,23 +1102,23 @@ struct array : public undefined_t
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i) const
     {
-        if ((size_t)i >= _values.size())
+        if (static_cast<size_t>(i) >= _values.size())
         {
             return E(undefined);
         }
 
-        return mutable_(_values)[(size_t)i];
+        return mutable_(_values)[static_cast<size_t>(i)];
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i)
     {
-        while ((size_t)i >= _values.size())
+        while (static_cast<size_t>(i) >= _values.size())
         {
             _values.push_back(undefined_t());
         }
 
-        return _values[(size_t)i];
+        return _values[static_cast<size_t>(i)];
     }
 
     ArrayKeys<std::size_t> keys()
@@ -1103,7 +1149,7 @@ struct array : public undefined_t
     template <class I>
     std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>, bool> exists(I i) const
     {
-        return (size_t)i < _values.size();
+        return static_cast<size_t>(i) < _values.size();
     }
 
     template <class I>
@@ -1601,7 +1647,7 @@ struct any
         case anyTypeId::undefined_type:
             return false;
         case anyTypeId::boolean_type:
-            return _value._boolean._value == (bool)t;
+            return _value._boolean._value == static_cast<bool>(t);
         case anyTypeId::number_type:
             return _value._number._value == t;
         case anyTypeId::string_type:
@@ -2133,7 +2179,7 @@ struct any
 
     size_t hash(void) const noexcept
     {
-        size_t const h1(std::hash<int>{}((int)_type));
+        size_t const h1(std::hash<int>{}(static_cast<int>(_type)));
         size_t h2;
 
         switch (_type)
@@ -2548,12 +2594,12 @@ struct ReadonlyArray
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     T &operator[](I i) const
     {
-        if ((size_t)i >= _values.size())
+        if (static_cast<size_t>(i) >= _values.size())
         {
             return T(undefined);
         }
 
-        return mutable_(_values)[(size_t)i];
+        return mutable_(_values)[static_cast<size_t>(i)];
     }
 
     void forEach(std::function<void(T, size_t)> callback)
@@ -2578,23 +2624,23 @@ struct Array : public ReadonlyArray<T>
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     T &operator[](I i) const
     {
-        if ((size_t)i >= _values.size())
+        if (static_cast<size_t>(i) >= _values.size())
         {
             return T(undefined);
         }
 
-        return mutable_(_values)[(size_t)i];
+        return mutable_(_values)[static_cast<size_t>(i)];
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
     T &operator[](I i)
     {
-        while ((size_t)i >= _values.size())
+        while (static_cast<size_t>(i) >= _values.size())
         {
             _values.push_back(undefined_t());
         }
 
-        return _values[(size_t)i];
+        return _values[static_cast<size_t>(i)];
     }
 
     void push(T t)
@@ -2629,7 +2675,7 @@ struct Array : public ReadonlyArray<T>
     template <class I>
     std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
     {
-        return (size_t)i < _values.size();
+        return static_cast<size_t>(i) < _values.size();
     }
 
     template <class I>
@@ -2810,83 +2856,83 @@ static struct MathImpl
 
     static number pow(number op, number op2)
     {
-        return number(std::pow((double)op, (double)op2));
+        return number(std::pow(static_cast<double>(op), static_cast<double>(op2)));
     }
 
     static number min(number op, number op2)
     {
-        return number(std::min((double)op, (double)op2));
+        return number(std::min(static_cast<double>(op), static_cast<double>(op2)));
     }
 
     static number max(number op, number op2)
     {
-        return number(std::max((double)op, (double)op2));
+        return number(std::max(static_cast<double>(op), static_cast<double>(op2)));
     }
 
     static number sin(number op)
     {
-        return number(std::sin((double)op));
+        return number(std::sin(static_cast<double>(op)));
     }
 
     static number cos(number op)
     {
-        return number(std::cos((double)op));
+        return number(std::cos(static_cast<double>(op)));
     }
 
     static number asin(number op)
     {
-        return number(std::asin((double)op));
+        return number(std::asin(static_cast<double>(op)));
     }
 
     static number acos(number op)
     {
-        return number(std::acos((double)op));
+        return number(std::acos(static_cast<double>(op)));
     }
 
     static number abs(number op)
     {
-        return number(std::abs((double)op));
+        return number(std::abs(static_cast<double>(op)));
     }
 
     static number floor(number op)
     {
-        return number(std::floor((double)op));
+        return number(std::floor(static_cast<double>(op)));
     }
 
     static number round(number op, int numDecimalPlaces = 0)
     {
         const auto mult = 10 ^ (numDecimalPlaces);
-        return number(std::floor((double)op * mult + 0.5) / mult);
+        return number(std::floor(static_cast<double>(op) * mult + 0.5) / mult);
     }
 
     static number sqrt(number op)
     {
-        return number(std::sqrt((double)op));
+        return number(std::sqrt(static_cast<double>(op)));
     }
 
     static number tan(number op)
     {
-        return number(std::tan((double)op));
+        return number(std::tan(static_cast<double>(op)));
     }
 
     static number atan(number op)
     {
-        return number(std::atan((double)op));
+        return number(std::atan(static_cast<double>(op)));
     }
 
     static number atan2(number op1, number op2)
     {
-        return number(std::atan2((double)op1, (double)op2));
+        return number(std::atan2(static_cast<double>(op1), static_cast<double>(op2)));
     }
 
     static number log(number op)
     {
-        return number(std::log((double)op));
+        return number(std::log(static_cast<double>(op)));
     }
 
     static number exp(number op)
     {
-        return number(std::exp((double)op));
+        return number(std::exp(static_cast<double>(op)));
     }
 
     static number random()
@@ -2899,7 +2945,7 @@ static struct MathImpl
 
     static number sign(number op)
     {
-        auto d = (double)op;
+        auto d = static_cast<double>(op);
         return number(d < 0 ? -1 : d > 0 ? 1 : 0);
     }
 } Math;
