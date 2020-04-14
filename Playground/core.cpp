@@ -2,11 +2,6 @@
 
 using namespace js;
 
-std::ostream &operator<<(std::ostream &os, std::nullptr_t ptr)
-{
-    return os << "null";
-}
-
 namespace js
 {
 // String

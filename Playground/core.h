@@ -44,7 +44,10 @@ inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lov
     return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
 }
 
-std::ostream &operator<<(std::ostream &os, std::nullptr_t ptr);
+static std::ostream &operator<<(std::ostream &os, std::nullptr_t ptr)
+{
+    return os << "null";
+}
 
 template <typename I, typename T>
 inline bool is(T *t)
@@ -241,12 +244,12 @@ static struct undefined_t
         return isUndefined != other.isUndefined;
     }
 
-    bool operator==(std::nullptr_t)
+    bool operator==(null_t)
     {
         return !isUndefined;
     }
 
-    bool operator!=(std::nullptr_t)
+    bool operator!=(null_t)
     {
         return isUndefined;
     }
@@ -751,10 +754,13 @@ struct string : public undefined_t
     std::string _value;
     size_t length;
 
-    string() : _value(), undefined_t(true)
+    string() : _value(), undefined_t(true), length(0)
     {
-        length = 0;
     }
+
+    string(null_t v) : _value(nullptr), length(0)
+    {
+    }    
 
     string(std::string value) : _value(value)
     {
@@ -766,7 +772,7 @@ struct string : public undefined_t
         length = (size_t)*this;
     }
 
-    string(const char value) : _value(1, value), length(0)
+    string(const char value) : _value(1, value), length(1)
     {
     }
 
@@ -822,7 +828,7 @@ struct string : public undefined_t
         return string(_value + value._value);
     }
 
-    string operator+(std::nullptr_t)
+    string operator+(null_t)
     {
         return string(_value + "null");
     }    
@@ -858,7 +864,7 @@ struct string : public undefined_t
         return !isUndefined && _value.compare(other._value) == 0;
     }
 
-    bool operator==(std::nullptr_t)
+    bool operator==(null_t)
     {
         return !isUndefined && _value.c_str() == nullptr;
     }
@@ -868,7 +874,7 @@ struct string : public undefined_t
         return !isUndefined && _value.compare(other._value) != 0;
     }
 
-    bool operator!=(std::nullptr_t)
+    bool operator!=(null_t)
     {
         return !isUndefined && _value.c_str() != nullptr;
     }    
@@ -1287,6 +1293,10 @@ struct any
         {
         }
 
+        constexpr anyType(null_t) : _data(nullptr)
+        {
+        }
+
         constexpr anyType(std::nullptr_t) : _data(nullptr)
         {
         }
@@ -1320,7 +1330,7 @@ struct any
     {
     }
 
-    any(std::nullptr_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
+    any(null_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
     {
     }
 
@@ -2244,13 +2254,13 @@ inline bool Equals(undefined_t l, undefined_t r)
 }
 
 template <>
-inline bool Equals(undefined_t l, std::nullptr_t)
+inline bool Equals(undefined_t l, null_t)
 {
     return l.isUndefined;
 }
 
 template <>
-inline bool Equals(std::nullptr_t, undefined_t r)
+inline bool Equals(null_t, undefined_t r)
 {
     return r.isUndefined;
 }
@@ -2286,13 +2296,13 @@ inline bool NotEquals(undefined_t l, undefined_t r)
 }
 
 template <>
-inline bool NotEquals(undefined_t l, std::nullptr_t)
+inline bool NotEquals(undefined_t l, null_t)
 {
     return !l.isUndefined;
 }
 
 template <>
-inline bool NotEquals(std::nullptr_t, undefined_t r)
+inline bool NotEquals(null_t, undefined_t r)
 {
     return !r.isUndefined;
 }
