@@ -943,6 +943,11 @@ static js::number operator+(const string& v)
     return number(static_cast<double>(v));
 }
 
+static js::number operator+(null_t)
+{
+    return number(0);
+}
+
 template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
 {
