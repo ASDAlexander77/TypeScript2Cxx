@@ -151,19 +151,40 @@ namespace bitwise
 template <typename T1, typename T2>
 inline auto rshift(T1 op1, T2 op2)
 {
-    return signed(static_cast<long>(op1) >> (static_cast<long long>(op2) & 31) & 0xffffffff);
+    auto op1ll = static_cast<long long>(op1);
+    auto op1l = static_cast<long>(op1ll);
+    auto op2ll = static_cast<long long>(op2);
+    auto op2ul = static_cast<unsigned long>(op2ll);
+    auto op2ul32 = op2ul & 0x1f;
+    auto r = op1l >> op2ul32;
+    auto rl = static_cast<long>(r);
+    return rl;    
 }
 
 template <typename T1, typename T2>
 inline auto rshift_nosign(T1 op1, T2 op2)
 {
-    return unsigned(static_cast<unsigned long>(op1) >> (static_cast<long long>(op2) & 31) & 0xffffffff);
+    auto op1ll = static_cast<long long>(op1);
+    auto op1ul = static_cast<unsigned long>(op1ll);
+    auto op2ll = static_cast<long long>(op2);
+    auto op2ul = static_cast<unsigned long>(op2ll);
+    auto op2ul32 = op2ul & 0x1f;
+    auto r = op1ul >> op2ul32;
+    auto rul = static_cast<unsigned long>(r);
+    return rul;    
 }
 
 template <typename T1, typename T2>
 inline auto lshift(T1 op1, T2 op2)
 {
-    return signed(static_cast<long long>(op1) << (static_cast<long long>(op2) & 31) & 0xffffffff);
+    auto op1ll = static_cast<long long>(op1);
+    auto op1l = static_cast<long>(op1ll);
+    auto op2ll = static_cast<long long>(op2);
+    auto op2ul = static_cast<unsigned long>(op2ll);
+    auto op2ul32 = op2ul & 0x1f;
+    auto r = op1l << op2ul32;
+    auto rl = static_cast<long>(r);
+    return rl;
 }
 
 } // namespace bitwise
