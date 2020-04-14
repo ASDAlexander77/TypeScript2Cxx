@@ -2320,7 +2320,7 @@ export class Emitter {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.writer.writeString('nullptr');
+        this.writer.writeString('null');
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {

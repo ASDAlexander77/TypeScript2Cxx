@@ -646,7 +646,7 @@ struct number : public undefined_t
 
     bool operator!=(number_t n)
     {
-        return isUndefined != n.isUndefined && _value != n._value;
+        return isUndefined != n.isUndefined || _value != n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -2548,7 +2548,16 @@ static number parseInt(const js::string &value, int base = 10)
 
 static number parseFloat(const js::string &value)
 {
-    return number(std::stod(value._value, 0));
+    auto r = NaN;
+    try
+    {
+        r = number(std::stod(value._value, 0));
+    }
+    catch(const std::exception&)
+    {
+    }
+
+    return r;    
 }
 
 template <typename T>

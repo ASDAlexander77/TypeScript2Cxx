@@ -5,7 +5,8 @@ import { describe, it } from 'mocha';
 describe('Lang tests', () => {
 
     it('01 arguments', () => expect('testDefaultArgs\r\n').to.equals(new Run().test(['lang-test0/01arguments.ts'], null)));
-    it('02 numbers', () => expect('').to.equals(new Run().test(['lang-test0/02numbers.ts'], null)));
+    it('02 numbers', () => expect('TN\r\nZZ12\r\nnums#0\r\nnums#1\r\nnums#3\r\nnums#4\r\nFB\r\nFIB987\r\nnums#5\r\nv:0\r\nv: 0\r\nv:0\r\nv:null\r\nv:0\r\n').to.equals(
+        new Run().test(['lang-test0/02numbers.ts'], null)));
     /*
     it('05 strings', () => expect('').to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
     it('06 numbercollections', () => expect('').to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));
