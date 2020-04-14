@@ -788,30 +788,22 @@ struct string : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string operator+(T t)
     {
-        string tmp(_value);
-        tmp._value.append(std::to_string(t));
-        return tmp;
+        return string(_value + std::to_string(t));
     }
 
     string operator+(number value)
     {
-        string tmp(_value);
-        tmp._value.append(value.operator std::string());
-        return tmp;
+        return string(_value + value.operator std::string());
     }
 
     string operator+(string value)
     {
-        string tmp(_value);
-        tmp._value.append(value._value);
-        return tmp;
+        return string(_value + value._value);
     }
 
     string operator+(std::nullptr_t)
     {
-        string tmp(_value);
-        tmp._value.append("null");
-        return tmp;
+        return string(_value + "null");
     }    
 
     string operator+(any value);
