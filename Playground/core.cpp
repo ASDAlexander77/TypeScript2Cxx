@@ -20,6 +20,7 @@ js::string string::operator+(any value)
 js::string &string::operator+=(any value)
 {
     _value.append(value.operator std::string().c_str());
+    length = (size_t)*this;
     return *this;
 }
 

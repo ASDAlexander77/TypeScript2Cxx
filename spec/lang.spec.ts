@@ -5,6 +5,7 @@ import { describe, it } from 'mocha';
 describe('Lang tests', () => {
 
     it('01 arguments', () => expect('testDefaultArgs\r\n').to.equals(new Run().test(['lang-test0/01arguments.ts'], null)));
+    /*
     it('02 numbers', () => expect('').to.equals(new Run().test(['lang-test0/02numbers.ts'], null)));
     it('05 strings', () => expect('').to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
     it('06 numbercollections', () => expect('').to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));
@@ -55,5 +56,5 @@ describe('Lang tests', () => {
     it('50 indexedtypes', () => expect('').to.equals(new Run().test(['lang-test0/50indexedtypes.ts'], null)));
     it('51 exceptions', () => expect('').to.equals(new Run().test(['lang-test0/51exceptions.ts'], null)));
     it('99 final', () => expect('').to.equals(new Run().test(['lang-test0/99final.ts'], null)));
-
+    */
 });

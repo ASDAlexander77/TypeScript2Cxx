@@ -716,24 +716,28 @@ struct string : public undefined_t
 {
 
     std::string _value;
+    size_t length;
 
     string() : _value(), undefined_t(true)
     {
+        length = 0;
     }
 
     string(std::string value) : _value(value)
     {
+        length = (size_t)*this;
     }
 
     string(const char *value) : _value(value)
     {
+        length = (size_t)*this;
     }
 
-    string(const char value) : _value(1, value)
+    string(const char value) : _value(1, value), length(0)
     {
     }
 
-    string(const undefined_t &undef) : undefined_t(true)
+    string(const undefined_t &undef) : undefined_t(true), length(0)
     {
     }
 
@@ -741,6 +745,11 @@ struct string : public undefined_t
     {
         return _value.c_str();
     }
+
+    inline operator size_t() const
+    {
+        return _value.size();
+    }    
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     constexpr operator T() const
@@ -799,18 +808,21 @@ struct string : public undefined_t
     string &operator+=(T t)
     {
         _value.append(std::to_string(t));
+        length = (size_t)*this;
         return *this;
     }
 
     string &operator+=(number value)
     {
         _value.append(value.operator std::string().c_str());
+        length = (size_t)*this;
         return *this;
     }
 
     string &operator+=(string value)
     {
         _value.append(value._value.c_str());
+        length = (size_t)*this;
         return *this;
     }
 
