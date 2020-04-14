@@ -70,7 +70,7 @@ static string typeOf(T value);
 template <typename T>
 inline auto isNaN(T t)
 {
-    return std::isnan(NAN);
+    return std::isnan(t);
 }
 
 template <typename R, typename T>
@@ -167,6 +167,19 @@ inline auto lshift(T1 op1, T2 op2)
 }
 
 } // namespace bitwise
+
+static struct null_t
+{
+    constexpr operator bool() const
+    {
+        return false;
+    }
+
+    constexpr operator std::nullptr_t() const
+    {
+        return nullptr;
+    }
+} null;
 
 static struct undefined_t
 {
@@ -694,6 +707,11 @@ struct number : public undefined_t
 
 typedef tmpl::number<double> number;
 
+static js::number operator+(const undefined_t& v)
+{
+    return number(NAN);
+}
+
 struct string : public undefined_t
 {
 
@@ -722,6 +740,12 @@ struct string : public undefined_t
     inline operator const char *()
     {
         return _value.c_str();
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    constexpr operator T() const
+    {
+        return static_cast<T>(std::stold(_value.c_str()));
     }
 
     constexpr string *operator->()
@@ -761,6 +785,13 @@ struct string : public undefined_t
         tmp._value.append(value._value);
         return tmp;
     }
+
+    string operator+(std::nullptr_t)
+    {
+        string tmp(_value);
+        tmp._value.append("null");
+        return tmp;
+    }    
 
     string operator+(any value);
 
@@ -862,6 +893,11 @@ struct string : public undefined_t
 static js::string operator""_S(const char *s, std::size_t size)
 {
     return js::string(s);
+}
+
+static js::number operator+(const string& v)
+{
+    return number((double)v);
 }
 
 template <typename Rx, typename _Cls, typename... Args>
@@ -2462,7 +2498,7 @@ namespace js {
     
 static number parseInt(const js::string &value, int base = 10)
 {
-    return number(std::stoi(value._value, 0, base));
+    return number(std::stol(value._value, 0, base));
 }
 
 static number parseFloat(const js::string &value)

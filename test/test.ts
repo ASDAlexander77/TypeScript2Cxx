@@ -1,4 +1,6 @@
+function assert(cond: boolean) { if (!cond) throw "error"; }
 function assert(cond: boolean, msg: string) { if (!cond) throw msg; }
+function msg(t) { console.log(t); }
 
 let glb1: number;
 
@@ -47,27 +49,27 @@ function testRightU(a: number, b: number, c: number) {
 }
 
 function testNums(): void {
-    console.log("TN")
+    msg("TN")
     let z = 12
-    console.log("ZZ" + z);
+    msg("ZZ" + z);
     let tt = 2;
     let x = 40 + tt;
     assert(x == 42, "add");
     x = 40 / tt;
     assert(x == 20, "div");
     let x3 = doStuff(x, 2);
-    console.log("nums#0")
+    msg("nums#0")
     assert(x3 == 10, "call order");
     glb1 = 5;
     incrBy_2();
     assert(glb1 == 7, "glb1");
     incrBy_2();
-    console.log("nums#1")
+    msg("nums#1")
     assert(glb1 == 9, "glb2");
     assert(Math.abs(-42) == 42, "abs");
     assert(Math.abs(42) == 42, "abs");
     assert(Math.sign(42) == 1, "abs");
-    console.log("nums#3")
+    msg("nums#3")
     testIf();
 
     tt = 3;
@@ -119,7 +121,7 @@ function testNums(): void {
     assert(-tt * 3 == -6, "-2*3")
     assert(tt * 3 == 6, "2*3")
     assert(tt * -3 == -6, "2*-3")
-    console.log("nums#4")
+    msg("nums#4")
 
     tt = 100
     assert(105 % tt == 5, "perc")
@@ -135,11 +137,11 @@ function testNums(): void {
     }
 
     let r = fib(15);
-    console.log("FB")
-    console.log("FIB" + r);
+    msg("FB")
+    msg("FIB" + r);
     assert(r == 987, "fib");
 
-    console.log("nums#5")
+    msg("nums#5")
 
     tt = 1
 
@@ -201,7 +203,7 @@ function testUnaryPlus() {
         assert(+v + 1 == 2, "t1")
     }
     function testZero(v: any) {
-        console.log("v:" + v)
+        msg("v:" + v)
         assert(+v + 1 == 1, "t0")
     }
     function test35(v: any) {
