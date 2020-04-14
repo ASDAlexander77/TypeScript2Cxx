@@ -70,7 +70,7 @@ static string typeOf(T value);
 template <typename T>
 inline auto isNaN(T t)
 {
-    return std::isnan(t);
+    return std::isnan(static_cast<double>(t));
 }
 
 template <typename R, typename T>
