@@ -603,47 +603,47 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator>>(T t)
     {
-        return number_t(static_cast<long>(_value) >> static_cast<long>(t));
+        return number_t(static_cast<long>(_value) >> (static_cast<long>(t) & 31));
     }
 
     number_t operator>>(number_t n)
     {
-        return number_t(static_cast<long>(_value) >> static_cast<long>(n._value));
+        return number_t(static_cast<long>(_value) >> (static_cast<long>(n._value) & 31));
     }
 
     number_t &operator>>=(number_t other)
     {
-        _value = static_cast<long>(_value) >> static_cast<long>(other._value);
+        _value = static_cast<long>(_value) >> (static_cast<long>(other._value) & 31);
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator>>(T t, number_t value)
     {
-        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));
+        return number_t(static_cast<long>(t) >> (static_cast<long>(value._value) & 31));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number_t operator<<(T t)
     {
-        return number_t(static_cast<long>(_value) << static_cast<long>(t));
+        return number_t(signed((static_cast<long long>(_value) << (static_cast<long long>(t) & 31)) & 0xffffffff));
     }
 
     number_t operator<<(number_t n)
     {
-        return number_t(static_cast<long>(_value) << static_cast<long>(n._value));
+        return number_t(signed((static_cast<long long>(_value) << (static_cast<long long>(n._value) & 31)) & 0xffffffff));
     }
 
     number_t &operator<<=(number_t other)
     {
-        _value = static_cast<long>(_value) << static_cast<long>(other._value);
+        _value = signed((static_cast<long long>(_value) << (static_cast<long long>(other._value) & 31)) & 0xffffffff);
         return *this;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator<<(T t, number_t value)
     {
-        return number_t(static_cast<long>(t) << static_cast<long>(value._value));
+        return number_t(signed((static_cast<long long>(t) << (static_cast<long long>(value._value) & 31)) & 0xffffffff));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -2540,15 +2540,19 @@ int main(int argc, char** argv) \
     {   \
         Main(); \
     }   \
-    catch (std::exception& exception)   \
-    {   \
-        std::cout << exception.what() << std::endl; \
-    }   \
-    catch (std::string& s)  \
+    catch (const js::string& s)  \
     {   \
         std::cout << s << std::endl;    \
     }   \
-    catch (char* s) \
+    catch (const std::exception& exception)   \
+    {   \
+        std::cout << exception.what() << std::endl; \
+    }   \
+    catch (const std::string& s)  \
+    {   \
+        std::cout << s << std::endl;    \
+    }   \
+    catch (const char* s) \
     {   \
         std::cout << s << std::endl;    \
     }   \
@@ -2784,14 +2788,14 @@ struct Uint32Array : TypedArray<unsigned int>
     }
 };
 
-struct Int64Array : TypedArray<long>
+struct Int64Array : TypedArray<long long>
 {
     Int64Array(js::number length_) : TypedArray(length_)
     {
     }
 };
 
-struct Uint64Array : TypedArray<unsigned long>
+struct Uint64Array : TypedArray<unsigned long long>
 {
     Uint64Array(js::number length_) : TypedArray(length_)
     {
