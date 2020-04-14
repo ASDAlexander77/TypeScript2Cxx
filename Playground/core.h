@@ -151,19 +151,19 @@ namespace bitwise
 template <typename T1, typename T2>
 inline auto rshift(T1 op1, T2 op2)
 {
-    return op1 >> op2;
+    return signed(static_cast<long>(op1) >> (static_cast<long long>(op2) & 31) & 0xffffffff);
 }
 
 template <typename T1, typename T2>
 inline auto rshift_nosign(T1 op1, T2 op2)
 {
-    return unsigned(op1) >> op2;
+    return unsigned(static_cast<unsigned long>(op1) >> (static_cast<long long>(op2) & 31) & 0xffffffff);
 }
 
 template <typename T1, typename T2>
 inline auto lshift(T1 op1, T2 op2)
 {
-    return op1 << op2;
+    return signed(static_cast<long long>(op1) << (static_cast<long long>(op2) & 31) & 0xffffffff);
 }
 
 } // namespace bitwise
@@ -598,52 +598,6 @@ struct number : public undefined_t
     friend number_t operator%(T t, number_t value)
     {
         return number_t(static_cast<long>(t) % static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator>>(T t)
-    {
-        return number_t(static_cast<long>(_value) >> (static_cast<long>(t) & 31));
-    }
-
-    number_t operator>>(number_t n)
-    {
-        return number_t(static_cast<long>(_value) >> (static_cast<long>(n._value) & 31));
-    }
-
-    number_t &operator>>=(number_t other)
-    {
-        _value = static_cast<long>(_value) >> (static_cast<long>(other._value) & 31);
-        return *this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator>>(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) >> (static_cast<long>(value._value) & 31));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator<<(T t)
-    {
-        return number_t(signed((static_cast<long long>(_value) << (static_cast<long long>(t) & 31)) & 0xffffffff));
-    }
-
-    number_t operator<<(number_t n)
-    {
-        return number_t(signed((static_cast<long long>(_value) << (static_cast<long long>(n._value) & 31)) & 0xffffffff));
-    }
-
-    number_t &operator<<=(number_t other)
-    {
-        _value = signed((static_cast<long long>(_value) << (static_cast<long long>(other._value) & 31)) & 0xffffffff);
-        return *this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator<<(T t, number_t value)
-    {
-        return number_t(signed((static_cast<long long>(t) << (static_cast<long long>(value._value) & 31)) & 0xffffffff));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
