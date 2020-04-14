@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <random>
 #include <regex>
+#include <limits>
 
 namespace js
 {
@@ -27,6 +28,9 @@ namespace js
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
 #define OR(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (vx) : (y)); })()
 #define AND(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (y) : (vx)); })()
+
+#define Infinity std::numeric_limits<double>::infinity()
+#define NaN nan("")
 
 struct any;
 struct object;
@@ -144,17 +148,24 @@ constexpr auto keys_(T &t) -> decltype(t->keys())
 
 namespace bitwise
 {
-template <typename T>
-inline T rshift(T op1, T op2)
+template <typename T1, typename T2>
+inline auto rshift(T1 op1, T2 op2)
 {
-    return (T)((long)op1 >> (long)op2);
+    return (long)op1 >> (long)op2;
 }
 
-template <typename T>
-inline T lshift(T op1, T op2)
+template <typename T1, typename T2>
+inline auto rshift_nosign(T1 op1, T2 op2)
 {
-    return (T)((long)op1 << (long)op2);
+    return (long)op1 >> (long)op2;
 }
+
+template <typename T1, typename T2>
+inline auto lshift(T1 op1, T2 op2)
+{
+    return (long)op1 << (long)op2;
+}
+
 } // namespace bitwise
 
 static struct undefined_t
@@ -2828,6 +2839,12 @@ static struct MathImpl
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
         auto rnd = distribution(generator);
         return number(rnd);
+    }
+
+    static number sign(number op)
+    {
+        auto d = (double)op;
+        return number(d < 0 ? -1 : d > 0 ? 1 : 0);
     }
 } Math;
 

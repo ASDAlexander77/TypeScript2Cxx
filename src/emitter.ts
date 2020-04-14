@@ -32,7 +32,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.CaretToken] = '__std::bit_xor()';
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
-        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__ShiftRightInt';
+        this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__bitwise::rshift_nosign';
         this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__Equals';
         this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
         this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
