@@ -1104,6 +1104,7 @@ template <typename E>
 struct array : public undefined_t
 {
     std::vector<E> _values;
+    size_t length;
 
     array() : _values(), undefined_t(false)
     {
@@ -1112,6 +1113,10 @@ struct array : public undefined_t
     array(std::initializer_list<E> values) : _values(values)
     {
     }
+
+    array(std::vector<E> values) : _values(values)
+    {
+    }    
 
     array(const undefined_t &undef) : undefined_t(true)
     {
@@ -1147,6 +1152,35 @@ struct array : public undefined_t
     ArrayKeys<std::size_t> keys()
     {
         return ArrayKeys<std::size_t>(_values.size());
+    }
+
+    void push(E t)
+    {
+        _values.push_back(t);
+    }
+
+    template <typename... Args>
+    void push(Args... args)
+    {
+        for (const auto &item : {args...})
+        {
+            _values.push_back(item);
+        }
+    }
+
+    E pop()
+    {
+        return _values.pop_back();
+    }
+
+    array splice(size_t first, size_t last) 
+    {
+        return array(std::vector<E>(_values.cbegin() + first, _values.cbegin() + last + 1));
+    }
+
+    void removeElement(E e) 
+    {
+        _values.erase(std::find(_values.cbegin(), _values.cend(), e));
     }
 
     auto begin() -> decltype(_values.begin())
@@ -2615,10 +2649,14 @@ static number parseFloat(const js::string &value)
 template <typename T>
 struct ReadonlyArray
 {
-    number length;
     std::vector<T> _values;
+    number length;
 
     ReadonlyArray() : _values()
+    {
+    }
+    
+    ReadonlyArray(js::number length_) : length(length_)
     {
     }
 
@@ -2652,8 +2690,13 @@ struct Array : public ReadonlyArray<T>
 {
     typedef ReadonlyArray<T> super__;
     using super__::_values;
+    using super__::length;
 
     Array() : ReadonlyArray<T>()
+    {
+    }
+
+    Array(js::number length_) : super__(length_)
     {
     }
 
@@ -2776,8 +2819,10 @@ struct RegExp
 template <typename T>
 struct TypedArray : public Array<T>
 {
-    js::number length;
-    TypedArray(js::number length_) : length(length_)
+    typedef Array<T> super__;
+    using super__::length;
+
+    TypedArray(js::number length_) : super__(length_)
     {
     }
 };
