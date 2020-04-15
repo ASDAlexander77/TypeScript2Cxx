@@ -2333,7 +2333,30 @@ export class Emitter {
             suffix = 'll';
         }
 
+        // find if you need to box value
+        let currentNode: ts.Expression = node;
+        if (isNegative) {
+            currentNode = <ts.Expression>currentNode.parent;
+        }
+
+        while (currentNode && currentNode.parent && currentNode.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            currentNode = <ts.Expression>currentNode.parent;
+        }
+
+        let boxing = false;
+        if (currentNode && currentNode.parent && currentNode.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            boxing = true;
+        }
+
+        if (boxing) {
+            this.writer.writeString('number(');
+        }
+
         this.writer.writeString(`${node.text}${suffix}`);
+
+        if (boxing) {
+            this.writer.writeString(')');
+        }
     }
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
