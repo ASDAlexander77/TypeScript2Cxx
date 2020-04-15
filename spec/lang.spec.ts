@@ -9,8 +9,9 @@ describe('Lang tests', () => {
         .to.equals(new Run().test(['lang-test0/02numbers.ts'], null)));
     it('05 strings', () => expect('testStrings\r\nts0x\r\nts0y\r\nts0\r\nts0\r\nY\r\n0\r\nY\r\n01\r\nY\r\n012\r\nY\r\n0123\r\nY\r\n01234\r\nY\r\n012345\r\nY\r\n0123456\r\nY\r\n01234567\r\nY\r\n012345678\r\nY\r\n0123456789\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\n109876543210\r\nlive4OK\r\nXtrue\r\ntestStrings DONE\r\n')
         .to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
+    it('06 numbercollections', () => expect('test num coll\r\n#1\r\n#2\r\n#2\r\n#2\r\n#2\r\nloop\r\nloop done')
+        .to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));
     /*
-    it('06 numbercollections', () => expect('').to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));
     it('07 stringcollections', () => expect('').to.equals(new Run().test(['lang-test0/07stringcollections.ts'], null)));
     it('08 stringopertations', () => expect('').to.equals(new Run().test(['lang-test0/08stringopertations.ts'], null)));
     it('09 postprefix', () => expect('').to.equals(new Run().test(['lang-test0/09postprefix.ts'], null)));

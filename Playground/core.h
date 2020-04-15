@@ -1106,19 +1106,19 @@ struct array : public undefined_t
     std::vector<E> _values;
     size_t length;
 
-    array() : _values(), undefined_t(false)
+    array() : _values(), undefined_t(false), length(0)
     {
     }
 
-    array(std::initializer_list<E> values) : _values(values)
+    array(std::initializer_list<E> values) : _values(values), length(values.size())
     {
     }
 
-    array(std::vector<E> values) : _values(values)
+    array(std::vector<E> values) : _values(values), length(values.size())
     {
     }    
 
-    array(const undefined_t &undef) : undefined_t(true)
+    array(const undefined_t &undef) : undefined_t(true), length(0)
     {
     }
 
@@ -1144,6 +1144,7 @@ struct array : public undefined_t
         while (static_cast<size_t>(i) >= _values.size())
         {
             _values.push_back(undefined_t());
+            length++;
         }
 
         return _values[static_cast<size_t>(i)];
@@ -1157,6 +1158,7 @@ struct array : public undefined_t
     void push(E t)
     {
         _values.push_back(t);
+        length++;
     }
 
     template <typename... Args>
@@ -1165,15 +1167,25 @@ struct array : public undefined_t
         for (const auto &item : {args...})
         {
             _values.push_back(item);
+            length++;
         }
     }
 
     E pop()
     {
+        length--;
         return _values.pop_back();
     }
 
-    array splice(size_t first, size_t last) 
+    template <typename... Args>
+    void splice(size_t position, size_t size, Args... args) 
+    {
+        _values.erase(_values.cbegin() + position, _values.cbegin() + position + size);
+        _values.insert(_values.cbegin() + position, {args...});
+        length = _values.size();
+    }
+
+    array slice(size_t first, size_t last) 
     {
         return array(std::vector<E>(_values.cbegin() + first, _values.cbegin() + last + 1));
     }
@@ -1181,6 +1193,7 @@ struct array : public undefined_t
     void removeElement(E e) 
     {
         _values.erase(std::find(_values.cbegin(), _values.cend(), e));
+        length = _values.size();
     }
 
     auto begin() -> decltype(_values.begin())
