@@ -2316,7 +2316,26 @@ export class Emitter {
     }
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
+        // find if you need to box value
+        let currentNode: ts.Expression = node;
+        while (currentNode && currentNode.parent && currentNode.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            currentNode = <ts.Expression>currentNode.parent;
+        }
+
+        let boxing = false;
+        if (currentNode && currentNode.parent && currentNode.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+            boxing = true;
+        }
+
+        if (boxing) {
+            this.writer.writeString('boolean(');
+        }
+
         this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'}`);
+
+        if (boxing) {
+            this.writer.writeString(')');
+        }
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
