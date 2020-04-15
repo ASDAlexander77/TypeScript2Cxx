@@ -874,6 +874,11 @@ struct string : public undefined_t
         return !isUndefined && _value.c_str() == nullptr;
     }
 
+    friend bool operator==(null_t, const js::string& other)
+    {
+        return !other.isUndefined && other._value.c_str() == nullptr;
+    }    
+
     bool operator!=(const js::string &other)
     {
         return !isUndefined && _value.compare(other._value) != 0;
@@ -883,6 +888,11 @@ struct string : public undefined_t
     {
         return !isUndefined && _value.c_str() != nullptr;
     }    
+
+    friend bool operator!=(null_t, const js::string& other)
+    {
+        return !other.isUndefined && other._value.c_str() != nullptr;
+    }   
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string charAt(T t) const
