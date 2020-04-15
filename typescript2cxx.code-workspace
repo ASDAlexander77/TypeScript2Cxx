@@ -76,7 +76,8 @@
             "locale": "cpp",
             "xlocbuf": "cpp",
             "xlocmes": "cpp",
-            "concepts": "cpp"
+            "concepts": "cpp",
+            "bitset": "cpp"
         }
     }
 }

@@ -5,9 +5,10 @@ import { describe, it } from 'mocha';
 describe('Lang tests', () => {
 
     it('01 arguments', () => expect('testDefaultArgs\r\n').to.equals(new Run().test(['lang-test0/01arguments.ts'], null)));
-    it('02 numbers', () => expect('TN\r\nZZ12\r\nnums#0\r\nnums#1\r\nnums#3\r\nnums#4\r\nFB\r\nFIB987\r\nnums#5\r\nv:0\r\nv: 0\r\nv:0\r\nv:null\r\nv:0\r\n').to.equals(
-        new Run().test(['lang-test0/02numbers.ts'], null)));
-    it('05 strings', () => expect('').to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
+    it('02 numbers', () => expect('TN\r\nZZ12\r\nnums#0\r\nnums#1\r\nnums#3\r\nnums#4\r\nFB\r\nFIB987\r\nnums#5\r\nv:0\r\nv: 0\r\nv:0\r\nv:null\r\nv:false\r\n')
+        .to.equals(new Run().test(['lang-test0/02numbers.ts'], null)));
+    it('05 strings', () => expect('testStrings\r\nts0x\r\nts0y\r\nts0\r\nts0\r\nY\r\n0\r\nY\r\n01\r\nY\r\n012\r\nY\r\n0123\r\nY\r\n01234\r\nY\r\n012345\r\nY\r\n0123456\r\nY\r\n01234567\r\nY\r\n012345678\r\nY\r\n0123456789\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\n109876543210\r\nlive4OK\r\nXtrue\r\ntestStrings DONE\r\n')
+        .to.equals(new Run().test(['lang-test0/05strings.ts'], null)));
     /*
     it('06 numbercollections', () => expect('').to.equals(new Run().test(['lang-test0/06numbercollections.ts'], null)));
     it('07 stringcollections', () => expect('').to.equals(new Run().test(['lang-test0/07stringcollections.ts'], null)));

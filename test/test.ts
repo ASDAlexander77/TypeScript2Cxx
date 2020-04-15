@@ -1,56 +1,45 @@
-function assert(cond: boolean, msg?: string = "error") { if (!cond) throw msg; }
+function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(t: any) { console.log(t); }
-function pause(t: number) {}
+function pause(t: number) { void(t); }
 
-function testStrings(): void {
-    msg("testStrings")
-    assert((42).toString() == "42", "42");
-
-    msg("ts0x")
-    let s = "live";
-    assert(s == "live", "hello eq");
-    msg("ts0y")
-
-    s = s + "4OK";
-    let s2 = s;
-    msg("ts0")
-    assert(s.charCodeAt(4) == 52, "hello eq2");
-    assert(s.charAt(4) == "4", "hello eq2X");
-    assert(s[4] == "4", "hello eq2X");
-    assert(s.length == 7, "len7");
-    msg("ts0")
-    s = "";
-
-    pause(3)
-    for (let i = 0; i < 10; i++) {
-        msg("Y")
-        s = s + i;
-        msg(s)
-    }
-    assert(s == "0123456789", "for");
-    let x = 10;
-    s = "";
-    while (x >= 0) {
-        msg("X")
-        s = s + x;
-        x = x - 1;
-    }
-    assert(s == "109876543210", "while");
-    msg(s);
-    msg(s2);
-
-    s2 = "";
-    // don't leak ref
-
-    x = 21
-    s = "foo"
-    s = `a${x * 2}X${s}X${s}Z`
-    assert(s == "a42XfooXfoo" + "Z", "`")
-
-    msg("X" + true)
-
-    assert("X" + true == "Xt" + "rue", "boolStr")
-    msg("testStrings DONE")
+function defaultArgs(x: number, y = 3, z = 7) {
+    return x + y + z;
 }
 
-testStrings();
+function testDefaultArgs() {
+    msg("testDefaultArgs");
+    assert(defaultArgs(1) == 11, "defl0")
+    assert(defaultArgs(1, 4) == 12, "defl1")
+    assert(defaultArgs(1, 4, 8) == 13, "defl2")
+
+    assert(optargs(1) == 1, "opt0");
+    assert(optargs(1, 2) == 3, "opt1");
+    assert(optargs(1, 2, 3) == 3, "opt2");
+
+    assert(optstring(3) == 6, "os0")
+    assert(optstring(3, "7") == 10, "os1")
+    assert(optstring2(3) == 6, "os0")
+    assert(optstring2(3, "7") == 10, "os1")
+}
+
+function optargs(x: number, y?: number, z?: number) {
+    if (y == undefined)
+        y = 0
+    return x + y;
+}
+
+function optstring(x: number, s?: string) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
+}
+
+function optstring2(x: number, s: string = null) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
+}
+
+testDefaultArgs();

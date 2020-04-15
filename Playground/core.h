@@ -812,6 +812,11 @@ struct string : public undefined_t
         return string(_value[n]);
     }
 
+    string operator+(bool b)
+    {
+        return string(_value + (b ? "true" : "false"));
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string operator+(T t)
     {
@@ -2389,11 +2394,7 @@ string typeOf(any value)
 }
 
 template <class T>
-static any Void(T value);
-
-template <>
-any Void(any value)
-{
+static any Void(T value) {
     return any();
 }
 
