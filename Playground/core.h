@@ -879,6 +879,28 @@ struct string : public undefined_t
         return !isUndefined && _value.c_str() != nullptr;
     }    
 
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    string charAt(T t) const
+    {
+        return string(_value[t]);
+    }
+
+    string charAt(number n) const
+    {
+        return string(_value[n]);
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    number charCodeAt(T t) const
+    {
+        return number(_value[t]);
+    }
+
+    number charCodeAt(number n) const
+    {
+        return number(_value[n]);
+    }
+
     string toUpperCase()
     {
         std::string result(*this);

@@ -1,6 +1,6 @@
-function assert(cond: boolean) { if (!cond) throw "error"; }
-function assert(cond: boolean, msg: string) { if (!cond) throw msg; }
-function msg(t) { console.log(t); }
+function assert(cond: boolean, msg?: string = "error") { if (!cond) throw msg; }
+function msg(t: any) { console.log(t); }
+function pause(t: number) {}
 
 function testStrings(): void {
     msg("testStrings")
