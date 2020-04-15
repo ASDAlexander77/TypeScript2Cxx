@@ -731,8 +731,9 @@ export class Emitter {
     private processThrowStatement(node: ts.ThrowStatement): void {
         this.writer.writeString('throw');
         if (node.expression) {
-            this.writer.writeString(' ');
+            this.writer.writeString(' any(');
             this.processExpression(node.expression);
+            this.writer.writeString(')');
         }
 
         this.writer.EndOfStatement();

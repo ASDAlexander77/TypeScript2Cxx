@@ -2555,19 +2555,23 @@ int main(int argc, char** argv) \
     }   \
     catch (const js::string& s)  \
     {   \
-        std::cout << s << std::endl;    \
+        std::cout << "Exception: " << s << std::endl;    \
+    }   \
+    catch (const js::any& a)  \
+    {   \
+        std::cout << "Exception: " << a << std::endl;    \
     }   \
     catch (const std::exception& exception)   \
     {   \
-        std::cout << exception.what() << std::endl; \
+        std::cout << "Exception: " << exception.what() << std::endl; \
     }   \
     catch (const std::string& s)  \
     {   \
-        std::cout << s << std::endl;    \
+        std::cout << "Exception: " << s << std::endl;    \
     }   \
     catch (const char* s) \
     {   \
-        std::cout << s << std::endl;    \
+        std::cout << "Exception: " << s << std::endl;    \
     }   \
     catch (...) \
     {   \
@@ -2864,7 +2868,7 @@ struct Promise
     }
 };
 
-static struct MathImpl
+static struct math_t
 {
     static number E;
     static number LN10;
@@ -2875,7 +2879,7 @@ static struct MathImpl
     static number SQRT1_2;
     static number SQRT2;
 
-    constexpr MathImpl *operator->()
+    constexpr math_t *operator->()
     {
         return this;
     }
