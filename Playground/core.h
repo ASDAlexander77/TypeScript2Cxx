@@ -194,6 +194,10 @@ inline auto lshift(T1 op1, T2 op2)
 
 static struct null_t
 {
+    constexpr null_t() = default;
+
+    constexpr null_t(std::nullptr_t) {};
+
     constexpr operator bool() const
     {
         return false;
@@ -825,6 +829,8 @@ struct string : public undefined_t
     string(const undefined_t &undef) : undefined_t(true), length(0)
     {
     }
+
+    string(any val);
 
     inline operator const char *()
     {
@@ -1625,6 +1631,21 @@ struct any
         throw "wrong type";
     }
 
+    operator std::nullptr_t()
+    {
+        if (_type == anyTypeId::string_type && (*(js::string *)_value._data).operator const char *() == nullptr)
+        {
+            return nullptr;
+        }
+
+        if (_type == anyTypeId::object_type && _value._data == nullptr)
+        {
+            return nullptr;
+        }
+
+        throw "wrong type";
+    }
+
     using js_boolean = js::boolean;
     operator js_boolean()
     {
@@ -1663,6 +1684,11 @@ struct any
         if (_type == anyTypeId::number_type)
         {
             return js::string(_value._number.operator std::string());
+        }
+
+        if (_type == anyTypeId::object_type && _value._data == nullptr)
+        {
+            return js::string(nullptr);
         }
 
         throw "wrong type";

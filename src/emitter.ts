@@ -2047,6 +2047,7 @@ export class Emitter {
             });
             this.writer.writeString('>');
         } else {
+            /*
             const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
             const templateParametersInfoFromType: ts.TypeParameter[] = typeInfo
                 && typeInfo.symbol
@@ -2056,6 +2057,7 @@ export class Emitter {
             if (templateParametersInfoFromType) {
                 this.writer.writeString('<void>');
             }
+            */
         }
     }
 

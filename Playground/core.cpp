@@ -5,6 +5,11 @@ using namespace js;
 namespace js
 {
 // String
+string::string(any val) : _value(val.operator js::string())
+{
+    length = (size_t)*this;
+}    
+
 js::string string::operator+(any value)
 {
     string tmp(_value);
