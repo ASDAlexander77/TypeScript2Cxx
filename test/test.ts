@@ -1,42 +1,15 @@
-type SmallNumber = (0 | 1) | (1 | 2) | 2;
-
 function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(m: any) { console.log(m); }
 function pause(t: number) { void(t); }
 
-function testStringCollection(): void {
-    let coll = (<string[]>[]);
-    coll.push("foobar");
-    coll.push((12).toString());
-    coll.push(coll[0] + "xx");
-    assert(coll.indexOf("12") == 1, "idx");
-    coll = [
-        "a" + "b",
-        coll[2],
-    ]
-    assert(coll[0] == "ab", "")
-    assert(coll[1] == "foob" + "arxx", "")
-    assert(coll.length == 2, "")
+function testStringOps(): void {
+    assert("foo".concat1("bar") == "foobar", "concat");
+    assert("xAb".charCodeAt(1) == 65, "code at");
+    assert("B".charCodeAt(0) == 66, "tcc");
+    assert(parseInt("-123") == -123, "tonum");
+    assert("fo"[1] == "o", "at");
+    assert("fo".length == 2, "count");
+    assert(!"fo".charCodeAt(17), "nan");
 }
 
-function testUnionIndexer(): void {
-    type SmallNumber = (0 | 1) | (1 | 2) | 2;
-    const arr: string[] = ["foo", "bar", "baz"];
-
-    let index: SmallNumber = 0;
-    assert(arr[index] === arr[0]);
-
-    index = 1;
-    assert(arr[index] === arr[1]);
-
-    // need to cast to get past typescript narrowing without randomness
-    index = 2 as SmallNumber;
-    if (index === 0) {
-        return;
-    }
-
-    assert(arr[index] === arr[2]);
-}
-
-testStringCollection();
-testUnionIndexer();
+testStringOps();

@@ -894,6 +894,11 @@ struct string : public undefined_t
         return !other.isUndefined && other._value.c_str() != nullptr;
     }   
 
+    string concat(string value)
+    {
+        return string(_value + value._value);
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string charAt(T t) const
     {

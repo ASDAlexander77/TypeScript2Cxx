@@ -276,12 +276,16 @@ export class Run {
 
         const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
         const tempCxxFiles = sources.map((s: string, index: number) => 'test' + index + '.cpp');
+        const tempHFiles = sources.map((s: string, index: number) => 'test' + index + '.h');
 
         // clean up
         tempSourceFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
         tempCxxFiles.forEach(f => {
+            if (fs.existsSync(f)) { fs.unlinkSync(f); }
+        });
+        tempHFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
 
@@ -334,7 +338,21 @@ export class Run {
             const result_compile: any = spawn.sync('ms_test.bat', lastCxxFiles);
             if (result_compile.error) {
                 actualOutput = result_compile.error.stack;
-            } else {
+            } else if (result_compile.stdout.length) {
+                actualOutput = result_compile.stdout.toString();
+                if (actualOutput.indexOf(': error') === -1) {
+                    actualOutput = '';
+                }
+            }
+
+            if (!actualOutput && result_compile.stderr.length) {
+                actualOutput = result_compile.stderr.toString();
+                if (actualOutput.indexOf(': error') === -1) {
+                    actualOutput = '';
+                }
+            }
+
+            if (!actualOutput) {
                 // start program and test it to
                 const result: any = spawn.sync('testapp1', []);
                 if (result.error) {
