@@ -1190,6 +1190,11 @@ struct array : public undefined_t
         return array(std::vector<E>(_values.cbegin() + first, _values.cbegin() + last + 1));
     }
 
+    js::number indexOf(E e) 
+    {
+        return js::number(_values.cend() - std::find(_values.cbegin(), _values.cend(), e) - 1);
+    }
+
     void removeElement(E e) 
     {
         _values.erase(std::find(_values.cbegin(), _values.cend(), e));

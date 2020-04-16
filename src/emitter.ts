@@ -257,7 +257,7 @@ export class Emitter {
         this.processStatementInternal(node);
     }
 
-    private processStatementInternal(nodeIn: ts.Statement | ts.Declaration): void {
+    private processStatementInternal(nodeIn: ts.Statement | ts.Declaration, enableTypeAliases = false): void {
         const node = this.preprocessor.preprocessStatement(nodeIn);
 
         switch (node.kind) {
@@ -289,7 +289,12 @@ export class Emitter {
             case ts.SyntaxKind.ImportDeclaration:
                 /*done in forward declaration*/ /*this.processImportDeclaration(<ts.ImportDeclaration>node);*/ return;
             case ts.SyntaxKind.TypeAliasDeclaration:
-                /*done in forward Declaration*/ /*this.processTypeAliasDeclaration(<ts.TypeAliasDeclaration>node);*/ return;
+                /*done in forward Declaration*/
+                if (enableTypeAliases) {
+                    this.processTypeAliasDeclaration(<ts.TypeAliasDeclaration>node);
+                }
+
+                return;
             case ts.SyntaxKind.ExportAssignment: /*nothing to do*/ return;
         }
 
@@ -1929,7 +1934,7 @@ export class Emitter {
                     });
 
                 (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
-                    this.processStatement(element);
+                    this.processStatementInternal(element, true);
                 });
 
                 this.writer.EndBlock();

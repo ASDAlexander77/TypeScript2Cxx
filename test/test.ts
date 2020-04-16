@@ -1,35 +1,42 @@
+type SmallNumber = (0 | 1) | (1 | 2) | 2;
+
 function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(m: any) { console.log(m); }
 function pause(t: number) { void(t); }
 
-function testNumCollection(): void {
-    msg("test num coll")
-    let collXYZ: number[] = [];
-    assert(collXYZ.length == 0, "");
-    collXYZ.push(42);
-    msg("#1")
-    assert(collXYZ.length == 1, "");
-    collXYZ.push(22);
-    assert(collXYZ[1] == 22, "");
-    msg("#2")
-    collXYZ.splice(0, 1);
-    msg("#2")
-    assert(collXYZ[0] == 22, "");
-    msg("#2")
-    collXYZ.removeElement(22);
-    msg("#2")
-    assert(collXYZ.length == 0, "");
-    msg("loop")
-    for (let i = 0; i < 100; i++) {
-        collXYZ.push(i);
-    }
-    assert(collXYZ.length == 100, "");
-
-    collXYZ = [1, 2, 3];
-    assert(collXYZ.length == 3, "cons");
-    assert(collXYZ[0] == 1, "cons0");
-    assert(collXYZ[1] == 2, "cons1");
-    assert(collXYZ[2] == 3, "cons2");
-    msg("loop done")
+function testStringCollection(): void {
+    let coll = (<string[]>[]);
+    coll.push("foobar");
+    coll.push((12).toString());
+    coll.push(coll[0] + "xx");
+    assert(coll.indexOf("12") == 1, "idx");
+    coll = [
+        "a" + "b",
+        coll[2],
+    ]
+    assert(coll[0] == "ab", "")
+    assert(coll[1] == "foob" + "arxx", "")
+    assert(coll.length == 2, "")
 }
-testNumCollection();
+
+function testUnionIndexer(): void {
+    type SmallNumber = (0 | 1) | (1 | 2) | 2;
+    const arr: string[] = ["foo", "bar", "baz"];
+
+    let index: SmallNumber = 0;
+    assert(arr[index] === arr[0]);
+
+    index = 1;
+    assert(arr[index] === arr[1]);
+
+    // need to cast to get past typescript narrowing without randomness
+    index = 2 as SmallNumber;
+    if (index === 0) {
+        return;
+    }
+
+    assert(arr[index] === arr[2]);
+}
+
+testStringCollection();
+testUnionIndexer();
