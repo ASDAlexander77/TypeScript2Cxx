@@ -733,13 +733,13 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator<(T t, number_t value)
     {
-        return !isUndefined && t < value._value;
+        return !value.isUndefined && t < value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator<=(T t, number_t value)
     {
-        return !isUndefined && t <= value._value;
+        return !value.isUndefined && t <= value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -767,13 +767,13 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator>(T t, number_t value)
     {
-        return !isUndefined && t > value._value;
+        return !value.isUndefined && t > value._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator>=(T t, number_t value)
     {
-        return !isUndefined && t >= value._value;
+        return !value.isUndefined && t >= value._value;
     }
 
     js::string toString();
