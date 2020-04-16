@@ -1,3 +1,11 @@
+class Testrec
+{
+	num: number;
+	str: string;
+	str2: string;
+}
+
+
 function testRec0(): Testrec {
     let testrec = new Testrec();
     testrec.str2 = "Hello" + " world";
