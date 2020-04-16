@@ -2,14 +2,45 @@ function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(m: any) { console.log(m); }
 function pause(t: number) { void(t); }
 
-function testStringOps(): void {
-    assert("foo".concat1("bar") == "foobar", "concat");
-    assert("xAb".charCodeAt(1) == 65, "code at");
-    assert("B".charCodeAt(0) == 66, "tcc");
-    assert(parseInt("-123") == -123, "tonum");
-    assert("fo"[1] == "o", "at");
-    assert("fo".length == 2, "count");
-    assert(!"fo".charCodeAt(17), "nan");
+function defaultArgs(x: number, y = 3, z = 7) {
+    return x + y + z;
 }
 
-testStringOps();
+
+function optargs(x: number, y?: number, z?: number) {
+    if (y == undefined)
+        y = 0
+    return x + y;
+}
+
+function optstring(x: number, s?: string) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
+}
+
+function optstring2(x: number, s: string = null) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
+}
+
+function testDefaultArgs() {
+    msg("testDefaultArgs");
+    assert(defaultArgs(1) == 11, "defl0")
+    assert(defaultArgs(1, 4) == 12, "defl1")
+    assert(defaultArgs(1, 4, 8) == 13, "defl2")
+
+    assert(optargs(1) == 1, "opt0");
+    assert(optargs(1, 2) == 3, "opt1");
+    assert(optargs(1, 2, 3) == 3, "opt2");
+
+    assert(optstring(3) == 6, "os0")
+    assert(optstring(3, "7") == 10, "os1")
+    assert(optstring2(3) == 6, "os0")
+    assert(optstring2(3, "7") == 10, "os1")
+}
+
+testDefaultArgs();

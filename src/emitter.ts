@@ -1728,10 +1728,11 @@ export class Emitter {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
                 if (node.kind !== ts.SyntaxKind.Constructor) {
-                    if (isClassMember
+                    const isVirtual = isClassMember
                         && !this.isStatic(node)
                         && !this.isTemplate(<ts.MethodDeclaration>node)
-                        && implementationMode !== true) {
+                        && implementationMode !== true;
+                    if (isVirtual) {
                         this.writer.writeString('virtual ');
                     }
 

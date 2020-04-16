@@ -9,8 +9,8 @@ describe('Lang tests', () => {
     it('06 numbercollections', () => expect(new Run().test(['lang-test0/06numbercollections.ts'])).to.equals('test num coll\r\n#1\r\n#2\r\n#2\r\n#2\r\n#2\r\nloop\r\nloop done\r\n'));
     it('07 stringcollections', () => expect(new Run().test(['lang-test0/07stringcollections.ts'])).to.equals(''));
     it('08 stringopertations', () => expect(new Run().test(['lang-test0/08stringopertations.ts'])).to.equals(''));
-    /*
     it('09 postprefix', () => expect(new Run().test(['lang-test0/09postprefix.ts'])).to.equals(''));
+    /*
     it('10 arrayincrement', () => expect(new Run().test(['lang-test0/10arrayincrement.ts'])).to.equals(''));
     it('11 equalsoperator', () => expect(new Run().test(['lang-test0/11equalsoperator.ts'])).to.equals(''));
     it('12 referencecollection', () => expect(new Run().test(['lang-test0/12referencecollection.ts'])).to.equals(''));
