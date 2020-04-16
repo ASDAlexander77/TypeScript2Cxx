@@ -2,45 +2,34 @@ function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(m: any) { console.log(m); }
 function pause(t: number) { void(t); }
 
-function defaultArgs(x: number, y = 3, z = 7) {
-    return x + y + z;
+let lazyAcc: number;
+
+class Testrec
+{
+	num: number;
 }
 
-
-function optargs(x: number, y?: number, z?: number) {
-    if (y == undefined)
-        y = 0
-    return x + y;
+function recordId(x: Testrec): Testrec {
+    lazyAcc++
+    return x
 }
 
-function optstring(x: number, s?: string) {
-    if (s != null) {
-        return parseInt(s) + x;
-    }
-    return x * 2;
+function postPreFix() {
+    msg("postPref")
+    let x = new Testrec()
+    lazyAcc = 0
+    recordId(x).num = 12
+    assert(x.num == 12 && lazyAcc == 1, "X0-")
+    let y = recordId(x).num++
+    assert(x.num == 13 && lazyAcc == 2, "X1")
+    assert(y == 12, "X2")
+    y = ++recordId(x).num
+    assert(y == 14 && x.num == 14 && lazyAcc == 3, "X2")
+
+    recordId(x).num >>= 1
+    assert(x.num == 7, "X3")
+    assert(lazyAcc == 4, "X4")
+    lazyAcc = 0
 }
 
-function optstring2(x: number, s: string = null) {
-    if (s != null) {
-        return parseInt(s) + x;
-    }
-    return x * 2;
-}
-
-function testDefaultArgs() {
-    msg("testDefaultArgs");
-    assert(defaultArgs(1) == 11, "defl0")
-    assert(defaultArgs(1, 4) == 12, "defl1")
-    assert(defaultArgs(1, 4, 8) == 13, "defl2")
-
-    assert(optargs(1) == 1, "opt0");
-    assert(optargs(1, 2) == 3, "opt1");
-    assert(optargs(1, 2, 3) == 3, "opt2");
-
-    assert(optstring(3) == 6, "os0")
-    assert(optstring(3, "7") == 10, "os1")
-    assert(optstring2(3) == 6, "os0")
-    assert(optstring2(3, "7") == 10, "os1")
-}
-
-testDefaultArgs();
+postPreFix()

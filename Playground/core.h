@@ -625,6 +625,52 @@ struct number : public undefined_t
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    number_t operator<<(T t)
+    {
+        return number_t(static_cast<long>(_value) << static_cast<long>(t));
+    }
+
+    number_t operator<<(number_t n)
+    {
+        return number_t(static_cast<long>(_value) << static_cast<long>(n._value));
+    }
+
+    number_t &operator<<=(number_t other)
+    {
+        _value = static_cast<long>(_value) << static_cast<long>(other._value);
+        return *this;
+    }    
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend number_t operator<<(T t, number_t value)
+    {
+        return number_t(static_cast<long>(t) << static_cast<long>(value._value));
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    number_t operator>>(T t)
+    {
+        return number_t(static_cast<long>(_value) >> static_cast<long>(t));
+    }
+
+    number_t operator>>(number_t n)
+    {
+        return number_t(static_cast<long>(_value) >> static_cast<long>(n._value));
+    }    
+
+    number_t &operator>>=(number_t other)
+    {
+        _value = static_cast<long>(_value) >> static_cast<long>(other._value);
+        return *this;
+    }    
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend number_t operator>>(T t, number_t value)
+    {
+        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     bool operator==(T t)
     {
         return !isUndefined && _value == t;
