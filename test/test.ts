@@ -2,19 +2,38 @@ function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }
 function msg(m: any) { console.log(m); }
 function pause(t: number) { void(t); }
 
-function testArrIncr() {
-    let arr = [1]
-    let glb1 = 0
-    function getarr() {
-        glb1++
-        return arr
-    }
-    getarr()[0]++
-    assert(glb1 == 1)
-    assert(arr[0] == 2, "t")
-    function getarr2() {
-        return [1]
-    }
-    getarr2()[0]++ // make sure it doesn't crash
+function eqOp() {
+    msg("eqOp")
+    let x = 12
+    assert((x += 10) == 22, "Y0")
+    assert(x == 22, "Y1")
+    x /= 2
+    assert(x == 11, "Y2")
+
+    let s = ("fo" + 1)
+    let t = ("ba" + 2)
+    s += t
+    assert(s == "fo1b" + "a2", "fb")
 }
-testArrIncr()
+
+function eqOpString() {
+    msg("eqOpStr")
+    let x = "fo"
+    assert((x += "ba") == "foba", "SY0")
+    assert(x == "foba", "SY1")
+}
+
+eqOp()
+eqOpString()
+
+function eq<A, B>(a: A, b: B) { return a == b as any as A }
+
+function eqG() {
+    assert(eq("2", 2), "2")
+    assert(eq(2, "2"), "2'")
+    assert(!eq("null", null), "=1")
+    assert(!eq(null, "null"), "=2")
+    assert(!eq("2", 3), "=3")
+}
+
+eqG()
