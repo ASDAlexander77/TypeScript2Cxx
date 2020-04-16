@@ -1,6 +1,6 @@
 function testArrIncr() {
     let arr = [1]
-    glb1 = 0
+    let glb1 = 0
     function getarr() {
         glb1++
         return arr
