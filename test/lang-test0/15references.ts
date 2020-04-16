@@ -62,9 +62,9 @@ function refparamWrite(s: string): void {
 function refparamWrite2(testrec: Testrec): void {
     testrec = new Testrec();
     if (hasFloat)
-        assert(testrec.bool === undefined, "rw2f");
+        assert(testrec._bool === undefined, "rw2f");
     else
-        assert(testrec.bool == false, "rw2");
+        assert(testrec._bool == false, "rw2");
 }
 
 function refparamWrite3(testrecX: Testrec): void {

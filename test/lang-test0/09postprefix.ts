@@ -1,10 +1,3 @@
-let lazyAcc: number;
-
-class Testrec
-{
-	num: number;
-}
-
 function recordId(x: Testrec): Testrec {
     lazyAcc++
     return x

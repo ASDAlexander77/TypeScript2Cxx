@@ -6,6 +6,23 @@
 //
 
 // pause(2000)
+type Action any;
+type uint8 number;
+type int8 number;
+type uint16 number;
+type int16 number;
+
+namespace control {
+	function runInBackground(f: ()=>void): void {
+		f();
+	}
+
+	function dmesg(s: string): void {
+	}
+}
+
+function pause(t: number) {
+}
 
 function msg(s: string): void {
     console.log(s)
@@ -53,7 +70,7 @@ if ((1 / 10) == 0) {
 class Testrec {
     str: string;
     num: number;
-    bool: boolean;
+    _bool: boolean;
     str2: string;
 }
 

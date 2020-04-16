@@ -268,7 +268,7 @@ export class Run {
         console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
     }
 
-    public test(sources: string[], cmdLineOptions?: any): string {
+    public test(sources: string[], cmdLineOptions?: any, header?: string): string {
         let actualOutput = '';
 
         // change folder
@@ -293,7 +293,13 @@ export class Run {
             sources.forEach((s: string, index: number) => {
                 if (fs.existsSync(s)) {
                     s = fs.readFileSync(s).toString();
-                    s = 'function assert(cond: boolean, msg: string = "error") { if (!cond) throw msg; }\r\nfunction msg(m: any) { console.log(m); }\r\nfunction pause(t: number) { void(t); }\r\n' + s;
+                    if (header) {
+                        if (fs.existsSync(header)) {
+                            s = fs.readFileSync(header).toString() + s;
+                        } else {
+                            s = header + s;
+                        }
+                    }
                 }
 
                 // fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
@@ -380,6 +386,9 @@ export class Run {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
         tempCxxFiles.forEach(f => {
+            if (fs.existsSync(f)) { fs.unlinkSync(f); }
+        });
+        tempHFiles.forEach(f => {
             if (fs.existsSync(f)) { fs.unlinkSync(f); }
         });
 

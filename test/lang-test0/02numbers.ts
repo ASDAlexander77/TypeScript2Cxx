@@ -1,5 +1,3 @@
-let glb1: number;
-
 function testIf(): void {
     let b = false;
     if (!b) {
