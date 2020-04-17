@@ -37,9 +37,6 @@ function assert(cond: boolean, m?: string) {
         msg("assertion failed: ")
         if (m)
             msg(m)
-        while (1) {
-            pause(1000)
-        }
     }
 }
 
@@ -99,7 +96,6 @@ function clean() {
 
 
 testFloat()
-
 
 function testIf(): void {
     let b = false;
