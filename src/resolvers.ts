@@ -117,6 +117,10 @@ export class IdentifierResolver {
             return true;
         }
         
+        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) == "string") {
+            return true;
+        } 
+
         return this.isArrayOrStringTypeFromSymbol(typeInfo.symbol);
     }
 

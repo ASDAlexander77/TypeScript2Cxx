@@ -10,7 +10,7 @@ describe('Lang tests', () => {
     it('07 stringcollections', () => expect(new Run().test(['lang-test0/07stringcollections.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('08 stringopertations', () => expect(new Run().test(['lang-test0/08stringopertations.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('09 postprefix', () => expect(new Run().test(['lang-test0/09postprefix.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\npostPref\r\n'));
-    // to fix you need to have "auto getarr = [&]() mutable -> auto&" or array should pass the pointer to array
+    // to fix you need to have "auto getarr = [=, &glb1]() mutable"
     it('10 arrayincrement', () => expect(new Run().test(['lang-test0/10arrayincrement.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('11 equalsoperator', () => expect(new Run().test(['lang-test0/11equalsoperator.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\neqOp\r\neqOpStr\r\n'));
     it('12 referencecollection', () => expect(new Run().test(['lang-test0/12referencecollection.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\nHello world\r\nin reccoll\r\n'));

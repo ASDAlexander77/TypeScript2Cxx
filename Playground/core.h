@@ -699,7 +699,7 @@ struct number : public undefined_t
 
     bool operator!=(number_t n)
     {
-        return isUndefined == n.isUndefined ? false : isUndefined == true ? true : _value != n._value;
+        return isUndefined != n.isUndefined ? true : isUndefined == true ? true : _value != n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -1169,11 +1169,11 @@ struct array : public undefined_t
     {
     }
 
-    array(std::initializer_list<E> values) : std::make_shared<array_type>(values)
+    array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), undefined_t(false)
     {
     }
 
-    array(std::vector<E> values) : _values(std::make_shared<array_type>(values))
+    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), undefined_t(false)
     {
     }    
 

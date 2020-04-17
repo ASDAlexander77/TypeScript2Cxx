@@ -37,8 +37,9 @@ function assert(cond: boolean, m?: string) {
         msg("assertion failed: ")
         if (m) {
             msg(m)
-	    throw;
 	}
+
+        throw;
     }
 }
 
