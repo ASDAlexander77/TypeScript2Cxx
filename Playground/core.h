@@ -697,6 +697,11 @@ struct number : public undefined_t
         return !isUndefined && _value != t;
     }
 
+    bool operator!=(number_t n)
+    {
+        return isUndefined == n.isUndefined ? false : isUndefined == true ? true : _value != n._value;
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend bool operator!=(const T t, number_t value)
     {

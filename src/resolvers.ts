@@ -113,6 +113,10 @@ export class IdentifierResolver {
     }
 
     public isArrayOrStringType(typeInfo: ts.Type) {
+        if (typeInfo && (<any>typeInfo).intrinsicName === "string") {
+            return true;
+        }
+        
         return this.isArrayOrStringTypeFromSymbol(typeInfo.symbol);
     }
 
