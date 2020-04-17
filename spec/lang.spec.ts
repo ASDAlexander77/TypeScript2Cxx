@@ -3,7 +3,6 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
 describe('Lang tests', () => {
-    /*
     it('01 arguments', () => expect(new Run().test(['lang-test0/01arguments.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\ntestDefaultArgs\r\n'));
     it('02 numbers', () => expect(new Run().test(['lang-test0/02numbers.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\nTN\r\nZZ12\r\nnums#0\r\nnums#1\r\nnums#3\r\nnums#4\r\nFB\r\nFIB987\r\nnums#5\r\nv:0\r\nv: 0\r\nv:0\r\nv:null\r\nv:false\r\n'));
     it('05 strings', () => expect(new Run().test(['lang-test0/05strings.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\ntestStrings\r\nts0x\r\nts0y\r\nts0\r\nts0\r\nY\r\n0\r\nY\r\n01\r\nY\r\n012\r\nY\r\n0123\r\nY\r\n01234\r\nY\r\n012345\r\nY\r\n0123456\r\nY\r\n01234567\r\nY\r\n012345678\r\nY\r\n0123456789\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\n109876543210\r\nlive4OK\r\nXtrue\r\ntestStrings DONE\r\n'));
@@ -15,8 +14,7 @@ describe('Lang tests', () => {
     it.skip('10 arrayincrement', () => expect(new Run().test(['lang-test0/10arrayincrement.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('11 equalsoperator', () => expect(new Run().test(['lang-test0/11equalsoperator.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\neqOp\r\neqOpStr\r\n'));
     it('12 referencecollection', () => expect(new Run().test(['lang-test0/12referencecollection.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\nHello world\r\nin reccoll\r\n'));
-    */
-    it('13 actions', () => expect(new Run().test(['lang-test0/13actions.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
+    it('13 actions', () => expect(new Run().test(['lang-test0/13actions.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\ntestActionStart\r\nr2 start\r\nhello145\r\nhello148\r\nr2 stop\r\ntestActionDone\r\ntestActionStart\r\nr2 start\r\nhello163\r\nhello184\r\nr2 stop\r\ntestActionDone\r\nsaveAct\r\nr2 start\r\nr2 stop\r\nsaveActDONE\r\nfoo42foo42\r\ntestFunDecl\r\nr2 start\r\nr2 stop\r\ntestAdd10\r\nr2 start\r\nr2 stop\r\nend-testAdd10\r\nr2 start\r\nr2 stop\r\n'));
     /*
     it('14 lazyoperations', () => expect(new Run().test(['lang-test0/14lazyoperations.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('15 references', () => expect(new Run().test(['lang-test0/15references.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
