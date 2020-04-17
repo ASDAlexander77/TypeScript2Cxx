@@ -39,7 +39,7 @@ function assert(cond: boolean, m?: string) {
             msg(m)
 	}
 
-        throw;
+        throw m;
     }
 }
 

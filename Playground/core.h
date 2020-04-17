@@ -258,14 +258,16 @@ static struct undefined_t
         return isUndefined;
     }
 
-    bool operator==(int i)
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator==(T t)
     {
-        return !isUndefined && i == 0;
+        return !isUndefined && t == 0;
     }
 
-    bool operator!=(int i)
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator!=(T t)
     {
-        return isUndefined && i == 0;
+        return isUndefined && t == 0;
     }
 
     friend std::ostream &operator<<(std::ostream &os, undefined_t val)
