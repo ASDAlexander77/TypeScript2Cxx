@@ -1160,18 +1160,22 @@ namespace tmpl
 template <typename E>
 struct array : public undefined_t
 {
-    std::vector<E> _values;
+    using array_type = std::vector<E>;
+    using array_type_ptr = std::shared_ptr<array_type>;
+    using array_type_ref = array_type&;
+
+    array_type_ptr _values;
     size_t length;
 
-    array() : _values(), undefined_t(false), length(0)
+    array() : _values(std::make_shared<array_type>()), undefined_t(false), length(0)
     {
     }
 
-    array(std::initializer_list<E> values) : _values(values), length(values.size())
+    array(std::initializer_list<E> values) : std::make_shared<array_type>(values), length(values.size())
     {
     }
 
-    array(std::vector<E> values) : _values(values), length(values.size())
+    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), length(values.size())
     {
     }    
 
@@ -1184,37 +1188,41 @@ struct array : public undefined_t
         return this;
     }
 
+    inline array_type_ref get() const {
+        return *_values.get();
+    }
+
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i) const
     {
-        if (static_cast<size_t>(i) >= _values.size())
+        if (static_cast<size_t>(i) >= get().size())
         {
             return E(undefined);
         }
 
-        return mutable_(_values)[static_cast<size_t>(i)];
+        return mutable_(get())[static_cast<size_t>(i)];
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
     E &operator[](I i)
     {
-        while (static_cast<size_t>(i) >= _values.size())
+        while (static_cast<size_t>(i) >= get().size())
         {
-            _values.push_back(undefined_t());
+            get().push_back(undefined_t());
             length++;
         }
 
-        return _values[static_cast<size_t>(i)];
+        return get()[static_cast<size_t>(i)];
     }
 
     ArrayKeys<std::size_t> keys()
     {
-        return ArrayKeys<std::size_t>(_values.size());
+        return ArrayKeys<std::size_t>(get().size());
     }
 
     void push(E t)
     {
-        _values.push_back(t);
+        get().push_back(t);
         length++;
     }
 
@@ -1223,7 +1231,7 @@ struct array : public undefined_t
     {
         for (const auto &item : {args...})
         {
-            _values.push_back(item);
+            get().push_back(item);
             length++;
         }
     }
@@ -1231,41 +1239,41 @@ struct array : public undefined_t
     E pop()
     {
         length--;
-        return _values.pop_back();
+        return get().pop_back();
     }
 
     template <typename... Args>
     void splice(size_t position, size_t size, Args... args) 
     {
-        _values.erase(_values.cbegin() + position, _values.cbegin() + position + size);
-        _values.insert(_values.cbegin() + position, {args...});
-        length = _values.size();
+        get().erase(get().cbegin() + position, get().cbegin() + position + size);
+        get().insert(get().cbegin() + position, {args...});
+        length = get().size();
     }
 
     array slice(size_t first, size_t last) 
     {
-        return array(std::vector<E>(_values.cbegin() + first, _values.cbegin() + last + 1));
+        return array(std::vector<E>(get().cbegin() + first, get().cbegin() + last + 1));
     }
 
     js::number indexOf(E e) 
     {
-        return js::number(_values.cend() - std::find(_values.cbegin(), _values.cend(), e) - 1);
+        return js::number(get().cend() - std::find(get().cbegin(), get().cend(), e) - 1);
     }
 
     void removeElement(E e) 
     {
-        _values.erase(std::find(_values.cbegin(), _values.cend(), e));
-        length = _values.size();
+        get().erase(std::find(get().cbegin(), get().cend(), e));
+        length = get().size();
     }
 
-    auto begin() -> decltype(_values.begin())
+    auto begin() -> decltype(get().begin())
     {
-        return _values.begin();
+        return get().begin();
     }
 
-    auto end() -> decltype(_values.end())
+    auto end() -> decltype(get().end())
     {
-        return _values.end();
+        return get().end();
     }
 
     friend std::ostream &operator<<(std::ostream &os, array val)
@@ -1281,7 +1289,7 @@ struct array : public undefined_t
     template <class I>
     std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>, bool> exists(I i) const
     {
-        return static_cast<size_t>(i) < _values.size();
+        return static_cast<size_t>(i) < get().get().size();
     }
 
     template <class I>
@@ -1731,7 +1739,7 @@ struct any
         case anyTypeId::object_type:
             return _value._data != nullptr && ((js::object *)_value._data)->_values.size() > 0;
         case anyTypeId::array_type:
-            return ((js::array *)_value._data)->_values.size() > 0;
+            return ((js::array *)_value._data)->get().size() > 0;
         case anyTypeId::class_type:
             return _value._data != nullptr;
         default:
