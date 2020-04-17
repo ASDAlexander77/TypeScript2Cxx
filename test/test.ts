@@ -39,7 +39,7 @@ function assert(cond: boolean, m?: string) {
             msg(m)
 	}
 
-        throw;
+        throw m;
     }
 }
 
@@ -102,117 +102,77 @@ testFloat()
 
 
 
-function testRefLocals(): void {
-    msg("start test ref locals");
-    let s = "";
-    for (let i of [3, 2, 1]) {
-        let copy = i;
-        control.runInBackground(() => {
-            pause(10 * i);
-            copy = copy + 10;
-        });
-        control.runInBackground(() => {
-            pause(20 * i);
-            s = s + copy;
-        });
+class XFoo {
+    pin: number;
+    buf: number[];
+
+    constructor(k: number, l: number) {
+        this.pin = k - l
     }
-    pause(200);
-    assert(s == "111213", "reflocals");
-}
 
-function byRefParam_0(p: number): void {
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + p;
-    });
-    p = p + 1;
-}
+    setPin(p: number) {
+        this.pin = p
+    }
 
-function byRefParam_2(pxx: number): void {
-    pxx = pxx + 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + pxx;
-    });
-}
+    getPin() {
+        return this.pin
+    }
 
-function testByRefParams(): void {
-    msg("testByRefParams");
-    refparamWrite("a" + "b");
-    refparamWrite2(new Testrec());
-    refparamWrite3(new Testrec());
-    sum = 0;
-    let x = 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + x;
-    });
-    x = 2;
-    byRefParam_0(4);
-    byRefParam_2(10);
-    pause(330);
-    assert(sum == 18, "by ref");
-    sum = 0
-    msg("byref done")
-}
+    init() {
+        this.buf = [1, 2]
+    }
 
-function refparamWrite(s: string): void {
-    s = s + "c";
-    assert(s == "abc", "abc");
-}
-
-function refparamWrite2(testrec: Testrec): void {
-    testrec = new Testrec();
-    if (hasFloat)
-        assert(testrec._bool === undefined, "rw2f");
-    else
-        assert(testrec._bool == false, "rw2");
-}
-
-function refparamWrite3(testrecX: Testrec): void {
-    control.runInBackground(() => {
-        pause(1);
-        assert(testrecX.str == "foo", "ff");
-        testrecX.str = testrecX.str + "x";
-    });
-    testrecX = new Testrec();
-    testrecX.str = "foo";
-    pause(130);
-    assert(testrecX.str == "foox", "ff2");
-}
-
-function allocImage(): void {
-    let tmp = createObj();
-}
-
-function runOnce(fn: Action): void {
-    fn();
-}
-
-function createObj() {
-    return new Testrec();
-}
-
-function testMemoryFreeHOF(): void {
-    msg("testMemoryFreeHOF");
-    for (let i = 0; i < 1000; i++) {
-        runOnce(() => {
-            let tmp = createObj();
-        });
+    toString() {
+        return `Foo${this.getPin()}`
     }
 }
 
-testMemoryFreeHOF();
+function testClass() {
+    let f = new XFoo(272, 100);
+    assert(f.getPin() == 172, "ctor")
+    f.setPin(42)
+    assert(f.getPin() == 42, "getpin")
+}
+
+function testToString() {
+    msg("testToString")
+    let f = new XFoo(44, 2)
+    let s = "" + f
+    assert(s == "Foo42", "ts")
+}
+
+testToString()
+testClass()
 
 
-function testMemoryFree(): void {
-    msg("testMemoryFree");
-    for (let i = 0; i < 1000; i++) {
-        allocImage();
+class CtorOptional {
+    constructor(opts?: string) {
+    }
+}
+function testCtorOptional() {
+    let co = new CtorOptional();
+    let co2 = new CtorOptional("");
+}
+testCtorOptional();
+
+namespace ClassInit {
+    const seven = 7
+    class FooInit {
+        baz: number
+        qux = seven
+        constructor(public foo: number, public bar: string) {
+            this.baz = this.foo + 1
+        }
+        semicolonTest() { };
+    }
+
+    export function classInit() {
+        let f = new FooInit(13, "blah" + "baz")
+        assert(f.foo == 13, "i0")
+        assert(f.bar == "blahbaz", "i1")
+        assert(f.baz == 14, "i2")
+        assert(f.qux == 7, "i3")
     }
 }
 
-
-testRefLocals();
-testByRefParams();
-testMemoryFree();
+ClassInit.classInit()

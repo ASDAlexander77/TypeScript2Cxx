@@ -365,6 +365,7 @@ export class Emitter {
             case ts.SyntaxKind.GetAccessor: this.processMethodDeclaration(<ts.MethodDeclaration>node); return;
             case ts.SyntaxKind.FunctionDeclaration: this.processFunctionDeclaration(<ts.FunctionDeclaration>node); return;
             case ts.SyntaxKind.IndexSignature: /*TODO: index*/ return;
+            case ts.SyntaxKind.SemicolonClassElement: /*TODO: index*/ return;
         }
 
         // TODO: finish it

@@ -17,10 +17,10 @@ describe('Lang tests', () => {
     it('12 referencecollection', () => expect(new Run().test(['lang-test0/12referencecollection.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\nHello world\r\nin reccoll\r\n'));
     it('13 actions', () => expect(new Run().test(['lang-test0/13actions.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\ntestActionStart\r\nr2 start\r\nhello145\r\nhello148\r\nr2 stop\r\ntestActionDone\r\ntestActionStart\r\nr2 start\r\nhello163\r\nhello184\r\nr2 stop\r\ntestActionDone\r\nsaveAct\r\nr2 start\r\nr2 stop\r\nsaveActDONE\r\nfoo42foo42\r\ntestFunDecl\r\nr2 start\r\nr2 stop\r\ntestAdd10\r\nr2 start\r\nr2 stop\r\nend-testAdd10\r\nr2 start\r\nr2 stop\r\n'));
     it('14 lazyoperations', () => expect(new Run().test(['lang-test0/14lazyoperations.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\ntesting lazy\r\ntesting lazy done\r\n'));
-    */
     it('15 references', () => expect(new Run().test(['lang-test0/15references.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
-    /*
+    */
     it('17 classes', () => expect(new Run().test(['lang-test0/17classes.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
+    /*
     it('18 enums', () => expect(new Run().test(['lang-test0/18enums.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('19 forof', () => expect(new Run().test(['lang-test0/19forof.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
     it('20 maps', () => expect(new Run().test(['lang-test0/20maps.ts'], undefined, 'lang-test0/lang-test0.ts')).to.equals('start!\r\n'));
