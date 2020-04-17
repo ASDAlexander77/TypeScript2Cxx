@@ -2889,7 +2889,8 @@ export class Emitter {
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
             && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
-                || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor);
+                || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor)
+            || node.name.text === 'length' && this.resolver.isArrayOrStringType(typeInfo);
 
         if (methodAccess) {
             this.writer.writeString('std::bind(&');

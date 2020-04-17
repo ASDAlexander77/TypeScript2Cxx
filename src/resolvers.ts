@@ -90,6 +90,43 @@ export class IdentifierResolver {
         return false;
     }
 
+    public isArrayType(typeInfo: ts.Type) {
+        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
+            const type = (<any>typeInfo.symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return typeInfo.symbol.name === 'Array';
+            }
+        }
+
+        return false;
+    }
+
+    public isObjectType(typeInfo: ts.Type) {
+        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
+            const type = (<any>typeInfo.symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return typeInfo.symbol.name === 'Object';
+            }
+        }
+
+        return false;
+    }
+
+    public isArrayOrStringType(typeInfo: ts.Type) {
+        return this.isArrayOrStringTypeFromSymbol(typeInfo.symbol);
+    }
+
+    public isArrayOrStringTypeFromSymbol(symbol: ts.Symbol) {
+        if (symbol && symbol.valueDeclaration) {
+            const type = (<any>symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return symbol.name === 'Array' || symbol.name === 'String';
+            }
+        }
+
+        return false;
+    }
+
     public isStaticAccess(typeInfo: ts.Type): boolean {
         if (this.isThisType(typeInfo)) {
             return false;

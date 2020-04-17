@@ -119,8 +119,8 @@ export class Preprocessor {
                     const getAccess = symbolInfo
                         && symbolInfo.declarations
                         && symbolInfo.declarations.length > 0
-                        && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
-                            || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor);
+                        && symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
+                        || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo);
 
                     if (getAccess) {
                         const newCall = ts.createCall(node.left, null, [node.right]);

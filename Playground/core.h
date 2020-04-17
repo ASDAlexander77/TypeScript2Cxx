@@ -802,31 +802,28 @@ struct string : public undefined_t
 {
 
     std::string _value;
-    size_t length;
 
-    string() : _value(), undefined_t(true), length(0)
+    string() : _value(), undefined_t(true)
     {
     }
 
-    string(null_t v) : _value(nullptr), length(0)
+    string(null_t v) : _value(nullptr)
     {
     }    
 
     string(std::string value) : _value(value)
     {
-        length = (size_t)*this;
     }
 
     string(const char *value) : _value(value)
     {
-        length = (size_t)*this;
     }
 
-    string(const char value) : _value(1, value), length(1)
+    string(const char value) : _value(1, value)
     {
     }
 
-    string(const undefined_t &undef) : undefined_t(true), length(0)
+    string(const undefined_t &undef) : undefined_t(true)
     {
     }
 
@@ -841,6 +838,11 @@ struct string : public undefined_t
     {
         return _value.size();
     }    
+
+    size_t get_length()
+    {
+        return _value.size();
+    }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     constexpr operator T() const
@@ -896,21 +898,18 @@ struct string : public undefined_t
     string &operator+=(T t)
     {
         _value.append(std::to_string(t));
-        length = (size_t)*this;
         return *this;
     }
 
     string &operator+=(number value)
     {
         _value.append(value.operator std::string().c_str());
-        length = (size_t)*this;
         return *this;
     }
 
     string &operator+=(string value)
     {
         _value.append(value._value.c_str());
-        length = (size_t)*this;
         return *this;
     }
 
@@ -1165,21 +1164,20 @@ struct array : public undefined_t
     using array_type_ref = array_type&;
 
     array_type_ptr _values;
-    size_t length;
 
-    array() : _values(std::make_shared<array_type>()), undefined_t(false), length(0)
+    array() : _values(std::make_shared<array_type>()), undefined_t(false)
     {
     }
 
-    array(std::initializer_list<E> values) : std::make_shared<array_type>(values), length(values.size())
+    array(std::initializer_list<E> values) : std::make_shared<array_type>(values)
     {
     }
 
-    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), length(values.size())
+    array(std::vector<E> values) : _values(std::make_shared<array_type>(values))
     {
     }    
 
-    array(const undefined_t &undef) : undefined_t(true), length(0)
+    array(const undefined_t &undef) : undefined_t(true)
     {
     }
 
@@ -1190,6 +1188,10 @@ struct array : public undefined_t
 
     inline array_type_ref get() const {
         return *_values.get();
+    }
+
+    size_t get_length() {
+        return get().size();
     }
 
     template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
@@ -1209,7 +1211,6 @@ struct array : public undefined_t
         while (static_cast<size_t>(i) >= get().size())
         {
             get().push_back(undefined_t());
-            length++;
         }
 
         return get()[static_cast<size_t>(i)];
@@ -1223,7 +1224,6 @@ struct array : public undefined_t
     void push(E t)
     {
         get().push_back(t);
-        length++;
     }
 
     template <typename... Args>
@@ -1232,14 +1232,12 @@ struct array : public undefined_t
         for (const auto &item : {args...})
         {
             get().push_back(item);
-            length++;
         }
     }
 
     E pop()
     {
-        length--;
-        return get().pop_back();
+        return get().pop_back(); 
     }
 
     template <typename... Args>
@@ -1247,7 +1245,6 @@ struct array : public undefined_t
     {
         get().erase(get().cbegin() + position, get().cbegin() + position + size);
         get().insert(get().cbegin() + position, {args...});
-        length = get().size();
     }
 
     array slice(size_t first, size_t last) 
@@ -1263,7 +1260,6 @@ struct array : public undefined_t
     void removeElement(E e) 
     {
         get().erase(std::find(get().cbegin(), get().cend(), e));
-        length = get().size();
     }
 
     auto begin() -> decltype(get().begin())
