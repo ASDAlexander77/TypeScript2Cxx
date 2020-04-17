@@ -682,7 +682,7 @@ struct number : public undefined_t
 
     bool operator==(number_t n)
     {
-        return isUndefined == n.isUndefined && _value == n._value;
+        return isUndefined |= n.isUndefined ? false : isUndefined == true ? true : _value == n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -695,11 +695,6 @@ struct number : public undefined_t
     bool operator!=(T t)
     {
         return !isUndefined && _value != t;
-    }
-
-    bool operator!=(number_t n)
-    {
-        return isUndefined != n.isUndefined || _value != n._value;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
