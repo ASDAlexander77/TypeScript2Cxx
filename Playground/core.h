@@ -802,30 +802,30 @@ static js::number operator+(const undefined_t& v)
 
 struct string : public undefined_t
 {
-
+    bool isNull;
     std::string _value;
 
-    string() : _value(), undefined_t(true)
+    string() : _value(), undefined_t(true), isNull(true)
     {
     }
 
-    string(null_t v) : _value(nullptr)
+    string(null_t v) : _value(), isNull(true)
     {
     }    
 
-    string(std::string value) : _value(value)
+    string(std::string value) : _value(value), isNull(false)
     {
     }
 
-    string(const char *value) : _value(value)
+    string(const char *value) : _value(value), isNull(false)
     {
     }
 
-    string(const char value) : _value(1, value)
+    string(const char value) : _value(1, value), isNull(false)
     {
     }
 
-    string(const undefined_t &undef) : undefined_t(true)
+    string(const undefined_t &undef) : undefined_t(true), isNull(true)
     {
     }
 
@@ -924,12 +924,12 @@ struct string : public undefined_t
 
     bool operator==(null_t)
     {
-        return !isUndefined && _value.c_str() == nullptr;
+        return !isUndefined && isNull;
     }
 
     friend bool operator==(null_t, const js::string& other)
     {
-        return !other.isUndefined && other._value.c_str() == nullptr;
+        return !other.isUndefined && other.isNull;
     }    
 
     bool operator!=(const js::string &other)
@@ -939,12 +939,12 @@ struct string : public undefined_t
 
     bool operator!=(null_t)
     {
-        return !isUndefined && _value.c_str() != nullptr;
+        return !isUndefined && !isNull;
     }    
 
     friend bool operator!=(null_t, const js::string& other)
     {
-        return !other.isUndefined && other._value.c_str() != nullptr;
+        return !other.isUndefined && !other.isNull;
     }   
 
     string concat(string value)
@@ -1404,6 +1404,13 @@ struct object : public undefined_t
     std::enable_if_t<!std::is_same_v<I, const char *> && !std::is_same_v<I, std::string> && !std::is_same_v<I, string> && !std::is_same_v<I, any> && !std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
     {
         return false;
+    }
+
+    virtual js::string toString()
+    {
+        std::ostringstream streamObj2;
+        streamObj2 << *this;
+        return streamObj2.str();
     }
 
     friend std::ostream &operator<<(std::ostream &os, object val)
@@ -2417,7 +2424,7 @@ struct any
 
         if (val._type == anyTypeId::class_type)
         {
-            return os << "[object]";
+            return os << ((std::shared_ptr<js::object> *)val._value._data)->get()->toString();
         }
 
         return os << "[any]";

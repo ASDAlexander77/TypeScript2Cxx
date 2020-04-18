@@ -100,79 +100,46 @@ function clean() {
 
 testFloat()
 
-
-
-class XFoo {
-    pin: number;
-    buf: number[];
-
-    constructor(k: number, l: number) {
-        this.pin = k - l
-    }
-
-    setPin(p: number) {
-        this.pin = p
-    }
-
-    getPin() {
-        return this.pin
-    }
-
-    init() {
-        this.buf = [1, 2]
-    }
-
-    toString() {
-        return `Foo${this.getPin()}`
-    }
+function defaultArgs(x: number, y = 3, z = 7) {
+    return x + y + z;
 }
 
-function testClass() {
-    let f = new XFoo(272, 100);
-    assert(f.getPin() == 172, "ctor")
-    f.setPin(42)
-    assert(f.getPin() == 42, "getpin")
+function optargs(x: number, y?: number, z?: number) {
+    if (y == undefined)
+        y = 0
+    return x + y;
 }
 
-function testToString() {
-    msg("testToString")
-    let f = new XFoo(44, 2)
-    let s = "" + f
-    assert(s == "Foo42", "ts")
-}
-
-testToString()
-testClass()
-
-
-class CtorOptional {
-    constructor(opts?: string) {
+function optstring(x: number, s?: string) {
+    if (s != null) {
+        return parseInt(s) + x;
     }
+    return x * 2;
 }
-function testCtorOptional() {
-    let co = new CtorOptional();
-    let co2 = new CtorOptional("");
-}
-testCtorOptional();
 
-namespace ClassInit {
-    const seven = 7
-    class FooInit {
-        baz: number
-        qux = seven
-        constructor(public foo: number, public bar: string) {
-            this.baz = this.foo + 1
-        }
-        semicolonTest() { };
+function optstring2(x: number, s: string = null) {
+    if (s != null) {
+        return parseInt(s) + x;
     }
-
-    export function classInit() {
-        let f = new FooInit(13, "blah" + "baz")
-        assert(f.foo == 13, "i0")
-        assert(f.bar == "blahbaz", "i1")
-        assert(f.baz == 14, "i2")
-        assert(f.qux == 7, "i3")
-    }
+    return x * 2;
 }
 
-ClassInit.classInit()
+function testDefaultArgs() {
+    msg("testDefaultArgs");
+    assert(defaultArgs(1) == 11, "defl0")
+    assert(defaultArgs(1, 4) == 12, "defl1")
+    assert(defaultArgs(1, 4, 8) == 13, "defl2")
+
+    assert(optargs(1) == 1, "opt0");
+    assert(optargs(1, 2) == 3, "opt1");
+    assert(optargs(1, 2, 3) == 3, "opt2");
+
+    assert(optstring(3) == 6, "os0")
+    assert(optstring(3, "7") == 10, "os1")
+    assert(optstring2(3) == 6, "os0")
+    assert(optstring2(3, "7") == 10, "os1")
+}
+
+testDefaultArgs();
+clean()
+msg("test OK!")

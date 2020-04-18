@@ -268,7 +268,7 @@ export class Run {
         console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
     }
 
-    public test(sources: string[], cmdLineOptions?: any, header?: string): string {
+    public test(sources: string[], cmdLineOptions?: any, header?: string, footer?: string): string {
         let actualOutput = '';
 
         // change folder
@@ -298,6 +298,13 @@ export class Run {
                             s = fs.readFileSync(header).toString() + s;
                         } else {
                             s = header + s;
+                        }
+                    }
+                    if (footer) {
+                        if (fs.existsSync(footer)) {
+                            s = s + fs.readFileSync(footer).toString();
+                        } else {
+                            s = s + footer;
                         }
                     }
                 }

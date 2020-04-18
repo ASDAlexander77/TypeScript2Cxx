@@ -5,7 +5,7 @@ using namespace js;
 namespace js
 {
 // String
-string::string(any val) : _value(val.operator js::string())
+string::string(any val) : _value(val.operator js::string()), isNull(false)
 {
 }    
 

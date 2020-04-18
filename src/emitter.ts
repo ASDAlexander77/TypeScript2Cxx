@@ -1747,7 +1747,11 @@ export class Emitter {
                         if (noReturn) {
                             this.writer.writeString('void');
                         } else {
-                            this.writer.writeString('any');
+                            if (isClassMember && (<ts.Identifier>node.name).text === 'toString') {
+                                this.writer.writeString('string');
+                            } else {
+                                this.writer.writeString('any');
+                            }
                         }
                     }
 
