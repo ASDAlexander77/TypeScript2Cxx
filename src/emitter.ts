@@ -1019,7 +1019,7 @@ export class Emitter {
         }
 
         const isStatic = this.isStatic(node);
-        if (implementationMode && isStatic || node.initializer && !isStatic) {
+        if (node.initializer && (implementationMode && isStatic || !isStatic)) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
