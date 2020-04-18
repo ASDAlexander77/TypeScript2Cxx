@@ -118,8 +118,8 @@ export class Preprocessor {
                     const symbolInfo = this.resolver.getSymbolAtLocation(propertyAccess.name);
                     const getAccess = symbolInfo
                         && symbolInfo.declarations
-                        && symbolInfo.declarations.length > 0
-                        && symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
+                        && (symbolInfo.declarations.length > 0 && symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
+                            || symbolInfo.declarations.length > 1 && symbolInfo.declarations[1].kind === ts.SyntaxKind.SetAccessor)
                         || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo);
 
                     if (getAccess) {
