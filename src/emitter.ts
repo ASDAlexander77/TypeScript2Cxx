@@ -1707,7 +1707,7 @@ export class Emitter {
     }
 
     private processFunctionExpressionInternal(
-        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
         implementationMode?: boolean): boolean {
 
@@ -1727,7 +1727,7 @@ export class Emitter {
         }
 
         const isAbstract = this.isAbstract(node)
-            || node.kind === ts.SyntaxKind.MethodSignature && node.parent.kind === ts.SyntaxKind.InterfaceDeclaration;
+            || (<any>node).kind === ts.SyntaxKind.MethodSignature && node.parent.kind === ts.SyntaxKind.InterfaceDeclaration;
         if (implementationMode && isAbstract) {
             // ignore declarations
             return true;
