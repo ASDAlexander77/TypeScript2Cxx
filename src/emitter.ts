@@ -1331,6 +1331,20 @@ export class Emitter {
         return createThis;
     }
 
+    private hasThisAsShared(location: ts.Node): boolean {
+        let createThis = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ThisKeyword && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+                createThis = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return createThis;
+    }
+
     private processPredefineType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
         auto: boolean = false): void {
 
@@ -1981,7 +1995,7 @@ export class Emitter {
                     this.writer.writeStringNewLine('_...};');
                 });
 
-            if (node.kind === ts.SyntaxKind.Constructor) {
+            if (node.kind === ts.SyntaxKind.Constructor && this.hasThisAsShared(node)) {
                 // adding header to constructor
                 this.processType(this.resolver.getOrResolveTypeOfAsTypeNode(node.parent));
                 this.writer.writeStringNewLine(' _this(this);');
@@ -2209,11 +2223,7 @@ export class Emitter {
             }
             */
 
-            if (node.expression.kind === ts.SyntaxKind.ThisKeyword) {
-                this.writer.writeString('shared_from_this()');
-            } else {
-                this.processExpression(node.expression);
-            }
+            this.processExpression(node.expression);
 
             /*
             if (!theSame && functionReturn) {
@@ -2862,6 +2872,8 @@ export class Emitter {
 
         if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
             this.writer.writeString('this');
+        } else if (method.kind === ts.SyntaxKind.Constructor) {
+            this.writer.writeString('_this');
         } else {
             this.writer.writeString('shared_from_this()');
         }

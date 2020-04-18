@@ -1,4 +1,4 @@
-class Node1 {                                      
+    class Node1 {                                      
         public _scene: Scene;                               
                                                             
         constructor(scene: Scene) {                         
