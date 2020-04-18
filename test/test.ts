@@ -48,4 +48,4 @@ class Node1 {
                                                             
     let s = new Scene();                                    
     let c = new Camera(s);                                  
-    console.log("Run");
+    console.log("Run"); 

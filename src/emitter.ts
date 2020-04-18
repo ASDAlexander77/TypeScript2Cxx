@@ -1981,6 +1981,12 @@ export class Emitter {
                     this.writer.writeStringNewLine('_...};');
                 });
 
+            if (node.kind === ts.SyntaxKind.Constructor) {
+                // adding header to constructor
+                this.processType(this.resolver.getOrResolveTypeOfAsTypeNode(node.parent));
+                this.writer.writeStringNewLine(' _this(this);');
+            }
+
             (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
                 this.processStatementInternal(element, true);
             });
@@ -2854,12 +2860,9 @@ export class Emitter {
             }
         }
 
-        if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression)
-        {
+        if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
             this.writer.writeString('this');
-        }
-        else
-        {
+        } else {
             this.writer.writeString('shared_from_this()');
         }
     }
