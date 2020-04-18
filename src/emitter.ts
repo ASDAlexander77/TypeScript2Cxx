@@ -1096,7 +1096,6 @@ export class Emitter {
             const conditionType = <ts.ConditionalTypeNode>type;
             type = conditionType.checkType;
         } else if (node.type.kind === ts.SyntaxKind.MappedType) {
-            const mappedType = <ts.MappedTypeNode>type;
             if (node.typeParameters && node.typeParameters[0]) {
                 type = <any>{ kind: ts.SyntaxKind.TypeParameter, name: ts.createIdentifier((<any>(node.typeParameters[0])).symbol.name) };
             }

@@ -37,6 +37,10 @@ export class Preprocessor {
             return true;
         }
 
+        if (p0.initializer && p1.initializer && p0.initializer.kind === p1.initializer.kind) {
+            return true;
+        }
+
         return false;
     }
 
@@ -51,7 +55,8 @@ export class Preprocessor {
         const type = this.resolver.getOrResolveTypeOf(firstType.expression);
         const baseClassDeclaration = <ts.ClassDeclaration>type.symbol.valueDeclaration;
 
-        const constructors = <ts.ConstructorDeclaration[]>node.members.filter(m => m.kind === ts.SyntaxKind.Constructor);
+        const constructors = <ts.ConstructorDeclaration[]>node.members
+            .filter(m => m.kind === ts.SyntaxKind.Constructor);
         const baseConstructors = <ts.ConstructorDeclaration[]>baseClassDeclaration
             .members.filter(m => m.kind === ts.SyntaxKind.Constructor);
 

@@ -773,7 +773,7 @@ describe('Classes', () => {
             private val2: number;                       \
                                                         \
             constructor(name: string, alpha: number, beta: number, radius: number, setActiveOnSceneIfNoneActive = true) { \
-                super(name, scene);                     \
+                super(name, null);                      \
                 this.val = name;                        \
                 this.val2 = alpha;                      \
             }                                           \
