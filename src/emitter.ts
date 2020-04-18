@@ -1018,7 +1018,8 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
-        if (implementationMode && (node.initializer && !this.isStatic(node))) {
+        const isStatic = this.isStatic(node);
+        if (implementationMode && isStatic || node.initializer && !isStatic) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
