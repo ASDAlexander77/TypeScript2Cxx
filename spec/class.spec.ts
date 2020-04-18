@@ -350,9 +350,9 @@ describe('Classes', () => {
                 this.name = val;                                        \
             }                                                           \
                                                                         \
-            public get Department(): any;                               \
+            public abstract get Department(): any;                      \
                                                                         \
-            public set Department(val: string);                         \
+            public abstract set Department(val: string);                \
         }                                                               \
                                                                         \
         class Employee extends Person {                                 \
@@ -425,6 +425,7 @@ describe('Classes', () => {
         }                                                               \
                                                                         \
         class Test3 extends Test2 {                                     \
+            protected _abstr(): void {};                                \
         }                                                               \
                                                                         \
         const c = new Test3("asd");                                     \
@@ -526,7 +527,7 @@ describe('Classes', () => {
 
     it('Class - Static Get/Set Accessors',  () => expect('1\r\n').to.equals(new Run().test([
         'class Engine {                                                     \
-            private _last: number;                                          \
+            private static _last: number;                                   \
                                                                             \
             public static get Last(): number {                              \
                 return this._last;                                          \

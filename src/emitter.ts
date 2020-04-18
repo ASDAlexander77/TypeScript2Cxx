@@ -1018,7 +1018,7 @@ export class Emitter {
             throw new Error('Not Implemented');
         }
 
-        if (implementationMode || (node.initializer && !this.isStatic(node))) {
+        if (implementationMode && (node.initializer && !this.isStatic(node))) {
             this.writer.writeString(' = ');
             this.processExpression(node.initializer);
         }
@@ -1718,7 +1718,8 @@ export class Emitter {
             noBody = true;
         }
 
-        if (implementationMode && noBody) {
+        const isAbstract = this.isAbstract(node);
+        if (implementationMode && isAbstract) {
             // ignore declarations
             return true;
         }
@@ -1947,13 +1948,13 @@ export class Emitter {
             this.writer.writeString(' ');
         }
 
-        if (isClassMember && !implementationMode && noBody) {
+        if (!implementationMode && isAbstract) {
             // abstract
             this.writer.cancelNewLine();
             this.writer.writeString(' = 0');
         }
 
-        if (isFunctionExpression || implementationMode && !isClassMemberDeclaration) {
+        if (!noBody && (isArrowFunction || isFunctionExpression || implementationMode)) {
             this.writer.BeginBlock();
 
             node.parameters
@@ -2122,6 +2123,10 @@ export class Emitter {
 
     private isStatic(node: ts.Node) {
         return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
+    }
+
+    private isAbstract(node: ts.Node) {
+        return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.AbstractKeyword);
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): boolean {
