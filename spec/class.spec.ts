@@ -712,7 +712,7 @@ describe('Classes', () => {
                 }                                                           \
             }                                                               \
         }                                                                   \
-        new Observable();                                                   \
+        new Observable<void>();                                             \
     '])));
 
     it('Class - constructor with Default Parameter', () => expect('Hello\r\n10\r\n').to.equals(new Run().test([

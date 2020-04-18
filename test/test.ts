@@ -1,30 +1,52 @@
-class Matrix {                                 
-        }                                               
-                                                        
-        class Class1 {                                  
-            public _matrix1 = new Matrix();             
-            private _name: string;                      
-            constructor(name: string, scene: any, setActiveOnSceneIfNoneActive = true) { 
-                this._name = name;                      
-            }                                           
-        }                                               
-                                                        
-        class Class2 extends Class1 {                   
-            public _matrix2 = new Matrix();             
-            private val: string;                        
-            private val2: number;                       
-                                                        
-            constructor(name: string, alpha: number, beta: number, radius: number, setActiveOnSceneIfNoneActive = true) { 
-                super(name, null);                     
-                this.val = name;                        
-                this.val2 = alpha;                      
-            }                                           
-                                                        
-            public show() {                             
-                console.log(this.val);                  
-                console.log(this.val2);                 
-            }                                           
-        }                                               
-                                                        
-        var c = new Class2("Hello", 11, 12, 13);        
-        c.show();
+export interface IBehaviorAware<T> {                   
+            init(): void;                                       
+        }                                                       
+                                                                
+        class Node implements IBehaviorAware<Node> {            
+        public metadata: any = null;                            
+                                                                
+        public animations = [];                                 
+                                                                
+        constructor(scene: any = null) {                        
+            this.init();                                        
+        }                                                       
+                                                                
+        public init() {                                         
+        }                                                       
+                                                                
+        public set x(v) {                                       
+        }                                                       
+                                                                
+        public get x() {                                        
+            return 0;                                           
+        }                                                       
+    }                                                           
+                                                                
+    class TargetCamera extends Node {                           
+        constructor() {                                         
+            super();                                            
+        }                                                       
+                                                                
+        public set x1(v) {                                      
+        }                                                       
+                                                                
+        public get x1() {                                       
+            return 1;                                           
+        }                                                       
+    }                                                           
+                                                                
+    class ArcCamera extends TargetCamera {                      
+        constructor() {                                         
+            super();                                            
+        }                                                       
+                                                                
+        public set x2(v) {                                      
+        }                                                       
+                                                                
+        public get x2() {                                       
+            return 2;                                           
+        }                                                       
+    }                                                           
+                                                                
+    new ArcCamera();                                            
+    console.log("Run");

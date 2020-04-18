@@ -972,11 +972,15 @@ export class Emitter {
             }
         }
 
-        for (const member of (<any[]><any>node.members).filter(m => m.kind !== ts.SyntaxKind.PropertyDeclaration || !this.hasThis(m))) {
+        const propertyWithThis = (m: ts.Node) => {
+            return m.kind === ts.SyntaxKind.PropertyDeclaration && this.hasThis(m);
+        };
+
+        for (const member of (<any[]><any>node.members).filter(m => !propertyWithThis(m))) {
             this.processDeclaration(member);
         }
 
-        for (const member of (<any[]><any>node.members).filter(m => m.kind === ts.SyntaxKind.PropertyDeclaration && this.hasThis(m))) {
+        for (const member of (<any[]><any>node.members).filter(m => propertyWithThis(m))) {
             this.processDeclaration(member);
         }
 
@@ -1703,7 +1707,7 @@ export class Emitter {
     }
 
     private processFunctionExpressionInternal(
-        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration | ts.MethodSignature
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
         implementationMode?: boolean): boolean {
 
@@ -1722,7 +1726,8 @@ export class Emitter {
             noBody = true;
         }
 
-        const isAbstract = this.isAbstract(node);
+        const isAbstract = this.isAbstract(node)
+            || node.kind === ts.SyntaxKind.MethodSignature && node.parent.kind === ts.SyntaxKind.InterfaceDeclaration;
         if (implementationMode && isAbstract) {
             // ignore declarations
             return true;
