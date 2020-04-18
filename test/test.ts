@@ -1,52 +1,51 @@
-export interface IBehaviorAware<T> {                   
-            init(): void;                                       
-        }                                                       
-                                                                
-        class Node implements IBehaviorAware<Node> {            
-        public metadata: any = null;                            
-                                                                
-        public animations = [];                                 
-                                                                
-        constructor(scene: any = null) {                        
-            this.init();                                        
-        }                                                       
-                                                                
-        public init() {                                         
-        }                                                       
-                                                                
-        public set x(v) {                                       
-        }                                                       
-                                                                
-        public get x() {                                        
-            return 0;                                           
-        }                                                       
-    }                                                           
-                                                                
-    class TargetCamera extends Node {                           
-        constructor() {                                         
-            super();                                            
-        }                                                       
-                                                                
-        public set x1(v) {                                      
-        }                                                       
-                                                                
-        public get x1() {                                       
-            return 1;                                           
-        }                                                       
-    }                                                           
-                                                                
-    class ArcCamera extends TargetCamera {                      
-        constructor() {                                         
-            super();                                            
-        }                                                       
-                                                                
-        public set x2(v) {                                      
-        }                                                       
-                                                                
-        public get x2() {                                       
-            return 2;                                           
-        }                                                       
-    }                                                           
-                                                                
-    new ArcCamera();                                            
+class Node1 {                                      
+        public _scene: Scene;                               
+                                                            
+        constructor(scene: Scene) {                         
+            this._scene = scene;                            
+        }                                                   
+                                                            
+        public getScene(): Scene {                          
+            return this._scene;                             
+        }                                                   
+                                                            
+        public get parent(): any {                          
+            return 1;                                       
+        }                                                   
+                                                            
+        public set parent(v) {                              
+        }                                                   
+    }                                                       
+                                                            
+    abstract class AbstractScene {                          
+    }                                                       
+                                                            
+    class Scene extends AbstractScene {                     
+        private cameras =[];                                
+                                                            
+        public addCamera(newCamera: Camera): void {         
+            this.cameras[1] = newCamera;                    
+        }                                                   
+                                                            
+        public get parent(): any {                          
+            return 1;                                       
+        }                                                   
+                                                            
+        public set parent(v) {                              
+        }                                                   
+    }                                                       
+                                                            
+    class Camera extends Node1 {                            
+        constructor(scene: Scene) {                         
+            super(scene);                                   
+            this.getScene().addCamera(this);                
+        }                                                   
+                                                            
+        public get parent(): any {                          
+            return 1;                                       
+        }                                                   
+    }                                                       
+                                                            
+    let s = new Scene();                                    
+    let c = new Camera(s);                                  
     console.log("Run");

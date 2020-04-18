@@ -957,6 +957,11 @@ export class Emitter {
         this.writer.IncreaseIntent();
         this.writer.writeStringNewLine();
 
+        this.writer.writeString('using std::enable_shared_from_this<');
+        this.processIdentifier(node.name);
+        this.processTemplateParameters(<ts.ClassDeclaration>node);
+        this.writer.writeStringNewLine('>::shared_from_this;');
+
         /*
         if (!node.heritageClauses) {
             // to make base class polymorphic
@@ -2849,7 +2854,14 @@ export class Emitter {
             }
         }
 
-        this.writer.writeString('this');
+        if (node.parent.kind === ts.SyntaxKind.PropertyAccessExpression)
+        {
+            this.writer.writeString('this');
+        }
+        else
+        {
+            this.writer.writeString('shared_from_this()');
+        }
     }
 
     private processSuperExpression(node: ts.SuperExpression): void {
