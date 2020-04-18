@@ -268,7 +268,7 @@ describe('Classes', () => {
                 this.department = department;                           \
             }                                                           \
                                                                         \
-            public get ElevatorPitch() {                                 \
+            public get ElevatorPitch() {                                \
                 return `Hello, my name is ${this.name} and I work in ${this.department}.`;  \
             }                                                           \
         }                                                               \
@@ -277,7 +277,7 @@ describe('Classes', () => {
         console.log(howard.ElevatorPitch);                              \
     '])));
 
-    it('Class inheritance - complete example with property on base class',
+    it.skip('Class inheritance - complete example with property on base class',
     () => expect(new Run().test([
         'class Person {                                                 \
             protected name: string;                                     \
@@ -301,7 +301,7 @@ describe('Classes', () => {
         console.log(howard.ElevatorPitch);                              \
     '])).to.equals('Hello, my name is Howard and I work in Sales.\r\n'));
 
-    it('Class inheritance - complete example with property on base class 2',
+    it.skip('Class inheritance - complete example with property on base class 2',
     () => expect(new Run().test([
         'class Person {                                                 \
             protected name: string;                                     \
@@ -339,7 +339,7 @@ describe('Classes', () => {
             protected name: string;                                     \
             constructor(name: string) { this.Name = name; }             \
             public get ElevatorPitch() {                                \
-                return `Hello, my name is ${this.Name} and I work in ${this.department}.`;  \
+                return `Hello, my name is ${this.Name} and I work in ${this.Department}.`;  \
             }                                                           \
                                                                         \
             public get Name() {                                         \
@@ -349,6 +349,10 @@ describe('Classes', () => {
             public set Name(val: string) {                              \
                 this.name = val;                                        \
             }                                                           \
+                                                                        \
+            public get Department(): any;                               \
+                                                                        \
+            public set Department(val: string);                         \
         }                                                               \
                                                                         \
         class Employee extends Person {                                 \
