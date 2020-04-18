@@ -32,6 +32,8 @@ namespace js
 #define Infinity std::numeric_limits<double>::infinity()
 #define NaN nan("")
 
+struct undefined_t;
+struct null_t;
 struct any;
 struct object;
 struct string;
@@ -192,23 +194,6 @@ inline auto lshift(T1 op1, T2 op2)
 
 } // namespace bitwise
 
-static struct null_t
-{
-    constexpr null_t() = default;
-
-    constexpr null_t(std::nullptr_t) {};
-
-    constexpr operator bool() const
-    {
-        return false;
-    }
-
-    constexpr operator std::nullptr_t() const
-    {
-        return nullptr;
-    }
-} null;
-
 static struct undefined_t
 {
 
@@ -248,12 +233,12 @@ static struct undefined_t
         return isUndefined != other.isUndefined;
     }
 
-    bool operator==(null_t)
+    bool operator==(const null_t&)
     {
         return !isUndefined;
     }
 
-    bool operator!=(null_t)
+    bool operator!=(const null_t&)
     {
         return isUndefined;
     }
@@ -276,6 +261,26 @@ static struct undefined_t
     }
 } undefined(true);
 
+static struct null_t : public undefined_t
+{
+    null_t() : undefined_t(false) 
+    {
+    };
+
+    null_t(std::nullptr_t) : undefined_t(false) 
+    {
+    };
+
+    null_t(const undefined_t &undef) : undefined_t(true)
+    {
+    }
+
+    constexpr operator std::nullptr_t() const
+    {
+        return nullptr;
+    }
+} null;
+
 struct boolean : public undefined_t
 {
 
@@ -285,9 +290,8 @@ struct boolean : public undefined_t
     {
     }
 
-    boolean(bool initValue)
+    boolean(bool initValue) : _value(initValue), undefined_t(false)
     {
-        _value = initValue;
     }
 
     boolean(const undefined_t &undef) : undefined_t(true)
@@ -1457,7 +1461,7 @@ struct any
         {
         }
 
-        constexpr anyType(null_t) : _data(nullptr)
+        constexpr anyType(const null_t&) : _data(nullptr)
         {
         }
 
@@ -1644,19 +1648,19 @@ struct any
         throw "wrong type";
     }
 
-    operator std::nullptr_t()
+    operator null_t()
     {
-        if (_type == anyTypeId::string_type && (*(js::string *)_value._data).operator const char *() == nullptr)
+        if (_type == anyTypeId::string_type && (*(js::string *)_value._data).isNull)
         {
-            return nullptr;
+            return null;
         }
 
         if (_type == anyTypeId::object_type && _value._data == nullptr)
         {
-            return nullptr;
+            return null;
         }
 
-        throw "wrong type";
+        return undefined;
     }
 
     using js_boolean = js::boolean;
@@ -1701,7 +1705,7 @@ struct any
 
         if (_type == anyTypeId::object_type && _value._data == nullptr)
         {
-            return js::string(nullptr);
+            return js::string(null);
         }
 
         throw "wrong type";
