@@ -1073,7 +1073,11 @@ export class Emitter {
         }
 
         const name = node.name.text;
-        if (name === 'float' || name === 'double' || name === 'int') {
+        if (name === 'float' || name === 'double' || name === 'long double'
+            || name === 'long long' || name === 'long' || name === 'int'
+            || name === 'unsigned long long' || name === 'unsigned long' || name === 'unsigned int'
+            || name === 'int8_t' || name === 'int16_t' || name === 'int32_t' || name === 'int64_t'
+            || name === 'uint8_t' || name === 'uint16_t' || name === 'uint32_t' || name === 'uint64_t') {
             return;
         }
 

@@ -1,25 +1,30 @@
-class Class1 {                                     
-            public class0 = false;                          
-            public class1 = false;                          
-            public method1(): boolean {                     
-                this.class1 = false;                        
-                return false;                               
-            }                                               
-        }                                                   
-        class Class2 extends Class1 {                       
-            public class2 = false;                          
-            public method1(): boolean {                     
-                this.class1 = true;                         
-                this.class2 = false;                        
-                return super.method1();                     
-            }                                               
-        }                                                   
-        const c1 = new Class1();                            
-        c1.method1();                                       
-        console.log(c1.class0);                             
-        console.log(c1.class1);                             
-        const c2 = new Class2();                            
-        c2.method1();                                       
-        console.log(c2.class0);                             
-        console.log(c2.class1);                             
-        console.log(c2.class2);     
+class Matrix {                                 
+        }                                               
+                                                        
+        class Class1 {                                  
+            public _matrix1 = new Matrix();             
+            private _name: string;                      
+            constructor(name: string, scene: any, setActiveOnSceneIfNoneActive = true) { 
+                this._name = name;                      
+            }                                           
+        }                                               
+                                                        
+        class Class2 extends Class1 {                   
+            public _matrix2 = new Matrix();             
+            private val: string;                        
+            private val2: number;                       
+                                                        
+            constructor(name: string, alpha: number, beta: number, radius: number, setActiveOnSceneIfNoneActive = true) { 
+                super(name, scene);                     
+                this.val = name;                        
+                this.val2 = alpha;                      
+            }                                           
+                                                        
+            public show() {                             
+                console.log(this.val);                  
+                console.log(this.val2);                 
+            }                                           
+        }                                               
+                                                        
+        var c = new Class2("Hello", 11, 12, 13);        
+        c.show();
