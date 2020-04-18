@@ -1953,7 +1953,7 @@ export class Emitter {
             this.writer.writeString(' = 0');
         }
 
-        if ((!isClassMemberDeclaration || implementationMode) && !noBody && node.kind !== ts.SyntaxKind.FunctionDeclaration) {
+        if (isFunctionExpression || implementationMode && !isClassMemberDeclaration) {
             this.writer.BeginBlock();
 
             node.parameters
