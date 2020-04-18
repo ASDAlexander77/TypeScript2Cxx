@@ -1020,9 +1020,11 @@ export class Emitter {
 
     private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration,
         implementationMode?: boolean): void {
-        this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
+        const skip = this.processFunctionDeclaration(<ts.FunctionDeclaration><any>node, implementationMode);
         if (implementationMode) {
-            this.writer.writeStringNewLine();
+            if (!skip) {
+                this.writer.writeStringNewLine();
+            }
         } else {
             this.writer.EndOfStatement();
         }
@@ -1677,7 +1679,7 @@ export class Emitter {
     private processFunctionExpression(
         node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
-        implementationMode?: boolean): boolean | void {
+        implementationMode?: boolean): boolean | boolean {
 
         // skip function declaration as union
         this.scope.push(node);
@@ -1696,6 +1698,11 @@ export class Emitter {
             noBody = true;
         }
 
+        if (implementationMode && noBody) {
+            // ignore declarations
+            return true;
+        }
+
         const noReturn = !this.hasReturn(node);
         // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         // const noCapture = !this.requireCapture(node);
@@ -1706,7 +1713,8 @@ export class Emitter {
             implementationMode = true;
         }
 
-        const isClassMember = this.isClassMemberDeclaration(node) || this.isClassMemberSignature(node);
+        const isClassMemberDeclaration = this.isClassMemberDeclaration(node);
+        const isClassMember = isClassMemberDeclaration || this.isClassMemberSignature(node);
         const isFunctionOrMethodDeclaration =
             (node.kind === ts.SyntaxKind.FunctionDeclaration || isClassMember)
             && !isNestedFunction;
@@ -1758,7 +1766,7 @@ export class Emitter {
                     this.writer.writeString(' ');
                 }
 
-                if (this.isClassMemberDeclaration(node) && implementationMode) {
+                if (isClassMemberDeclaration && implementationMode) {
                     // in case of constructor
                     this.writeClassName();
 
@@ -1919,32 +1927,30 @@ export class Emitter {
             this.writer.writeString(' ');
         }
 
-        if (!this.isClassMemberDeclaration(node) || implementationMode) {
-            if (noBody) {
-                if (isClassMember) {
-                    // abstract
-                    this.writer.cancelNewLine();
-                    this.writer.writeString(' = 0');
-                }
-            } else if (node.kind !== ts.SyntaxKind.FunctionDeclaration || implementationMode) {
-                this.writer.BeginBlock();
+        if (isClassMember && !implementationMode && noBody) {
+            // abstract
+            this.writer.cancelNewLine();
+            this.writer.writeString(' = 0');
+        }
 
-                node.parameters
-                    .filter(e => e.dotDotDotToken)
-                    .forEach(element => {
-                        this.writer.writeString('array ');
-                        this.processExpression(<ts.Identifier>element.name);
-                        this.writer.writeString(' = {');
-                        this.processExpression(<ts.Identifier>element.name);
-                        this.writer.writeStringNewLine('_...};');
-                    });
+        if ((!isClassMemberDeclaration || implementationMode) && !noBody && node.kind !== ts.SyntaxKind.FunctionDeclaration) {
+            this.writer.BeginBlock();
 
-                (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
-                    this.processStatementInternal(element, true);
+            node.parameters
+                .filter(e => e.dotDotDotToken)
+                .forEach(element => {
+                    this.writer.writeString('array ');
+                    this.processExpression(<ts.Identifier>element.name);
+                    this.writer.writeString(' = {');
+                    this.processExpression(<ts.Identifier>element.name);
+                    this.writer.writeStringNewLine('_...};');
                 });
 
-                this.writer.EndBlock();
-            }
+            (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
+                this.processStatementInternal(element, true);
+            });
+
+            this.writer.EndBlock();
         }
 
         this.scope.pop();
@@ -2100,7 +2106,7 @@ export class Emitter {
         return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.StaticKeyword);
     }
 
-    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): void {
+    private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): boolean {
 
         if (!implementationMode) {
             this.processPredefineType(node.type);
@@ -2118,6 +2124,8 @@ export class Emitter {
         if (this.isClassMemberSignature(node)) {
             this.writer.cancelNewLine();
         }
+
+        return skip;
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
