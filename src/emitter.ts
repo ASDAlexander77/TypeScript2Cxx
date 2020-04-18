@@ -142,11 +142,16 @@ export class Emitter {
     }
 
     private processFile(sourceFile: ts.SourceFile): void {
+        this.scope.push(sourceFile);
+        this.processFileInternal(sourceFile);
+        this.scope.pop();
+    }
+
+    private processFileInternal(sourceFile: ts.SourceFile): void {
         this.fixupParentReferences(sourceFile);
 
         this.sourceFileName = sourceFile.fileName;
 
-        this.scope.push(sourceFile);
 
         if (this.isHeader()) {
             // added header
@@ -225,8 +230,6 @@ export class Emitter {
             // end of header
             this.writer.writeStringNewLine(`#endif`);
         }
-
-        this.scope.pop();
     }
 
     private WriteHeader() {
@@ -499,7 +502,11 @@ export class Emitter {
 
     private processModuleImplementation(node: ts.ModuleDeclaration, template?: boolean) {
         this.scope.push(node);
+        this.processModuleImplementationInternal(node, template);
+        this.scope.pop();
+    }
 
+    private processModuleImplementationInternal(node: ts.ModuleDeclaration, template?: boolean) {
         this.writer.writeString('namespace ');
         this.writer.writeString(node.name.text);
         this.writer.writeString(' ');
@@ -517,19 +524,18 @@ export class Emitter {
         }
 
         this.writer.EndBlock();
-
-        this.scope.pop();
     }
 
     private processClassImplementation(node: ts.ClassDeclaration, template?: boolean) {
-
         this.scope.push(node);
+        this.processClassImplementationInternal(node, template);
+        this.scope.pop();
+    }
 
+    private processClassImplementationInternal(node: ts.ClassDeclaration, template?: boolean) {
         for (const member of node.members) {
             this.processImplementation(member, template);
         }
-
-        this.scope.pop();
     }
 
     private processExpressionStatement(node: ts.ExpressionStatement): void {
@@ -756,12 +762,16 @@ export class Emitter {
     }
 
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
+        this.scope.push(node);
+        this.processEnumDeclarationInternal(node);
+        this.scope.pop();
+    }
+
+    private processEnumDeclarationInternal(node: ts.EnumDeclaration): void {
 
         if (!this.isHeader()) {
             return;
         }
-
-        this.scope.push(node);
 
         /*
         const properties = [];
@@ -825,8 +835,6 @@ export class Emitter {
 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
-
-        this.scope.pop();
     }
 
     private hasAccessModifier(modifiers: ts.ModifiersArray) {
@@ -887,12 +895,16 @@ export class Emitter {
         return hasInBase;
     }
 
-    private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
+    private processClassDeclaration(node: ts.ClassDeclaration | ts.InterfaceDeclaration) {
+        this.scope.push(node);
+        this.processClassDeclarationInternal(node);
+        this.scope.pop();
+    }
+
+    private processClassDeclarationInternal(node: ts.ClassDeclaration | ts.InterfaceDeclaration): void {
         if (!this.isHeader()) {
             return;
         }
-
-        this.scope.push(node);
 
         this.processClassForwardDeclarationInternal(node);
 
@@ -973,8 +985,6 @@ export class Emitter {
 
         this.writer.EndBlock();
         this.writer.EndOfStatement();
-
-        this.scope.pop();
 
         this.writer.writeStringNewLine();
     }
@@ -1679,11 +1689,21 @@ export class Emitter {
     private processFunctionExpression(
         node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
-        implementationMode?: boolean): boolean | boolean {
+        implementationMode?: boolean): boolean {
+
+        this.scope.push(node);
+        const result = this.processFunctionExpressionInternal(node, implementationMode);
+        this.scope.pop();
+
+        return result;
+    }
+
+    private processFunctionExpressionInternal(
+        node: ts.FunctionExpression | ts.ArrowFunction | ts.FunctionDeclaration | ts.MethodDeclaration
+            | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
+        implementationMode?: boolean): boolean {
 
         // skip function declaration as union
-        this.scope.push(node);
-
         let noBody = false;
         if (!node.body
             || ((<any>node).body.statements
@@ -1952,8 +1972,6 @@ export class Emitter {
 
             this.writer.EndBlock();
         }
-
-        this.scope.pop();
     }
 
     private writeClassName() {
