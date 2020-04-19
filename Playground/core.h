@@ -1238,7 +1238,7 @@ struct array : public undefined_t
 
     constexpr operator bool()
     {
-        return !isUndefined && !get().empty();
+        return !isUndefined;
     }
 
     constexpr array *operator->()
@@ -1422,7 +1422,7 @@ struct object : public undefined_t
 
     constexpr operator bool()
     {
-        return !isUndefined && !_values.empty();
+        return !isUndefined;
     }
 
     constexpr object *operator->()
