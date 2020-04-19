@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import { describe, it } from 'mocha';
 
 describe('Lang tests', () => {
+    it('00 float', () => expect(new Run().test(['lang-test0/00float.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('01 arguments', () => expect(new Run().test(['lang-test0/01arguments.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntestDefaultArgs\r\ntest OK!\r\n'));
     it('02 numbers', () => expect(new Run().test(['lang-test0/02numbers.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\nTN\r\nZZ12\r\nnums#0\r\nnums#1\r\nnums#3\r\nnums#4\r\nFB\r\nFIB987\r\nnums#5\r\nv:0\r\nv: 0\r\nv:0\r\nv:null\r\nv:false\r\ntest OK!\r\n'));
     it('05 strings', () => expect(new Run().test(['lang-test0/05strings.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntestStrings\r\nts0x\r\nts0y\r\nts0\r\nts0\r\nY\r\n0\r\nY\r\n01\r\nY\r\n012\r\nY\r\n0123\r\nY\r\n01234\r\nY\r\n012345\r\nY\r\n0123456\r\nY\r\n01234567\r\nY\r\n012345678\r\nY\r\n0123456789\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\nX\r\n109876543210\r\nlive4OK\r\nXtrue\r\ntestStrings DONE\r\ntest OK!\r\n'));
