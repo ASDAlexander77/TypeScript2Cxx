@@ -1072,7 +1072,10 @@ describe('Classes', () => {
     '])));
 
     it('Class - BUG (base class has setter and derived not)',  () => expect('Run\r\n').to.equals(new Run().test([
-        'class Node1 {                                          \
+        'class Scene {                                          \
+        }                                                       \
+                                                                \
+        class Node1 {                                           \
             public _scene: Scene;                               \
                                                                 \
             constructor(scene: Scene) {                         \
@@ -1089,7 +1092,7 @@ describe('Classes', () => {
             }                                                   \
         }                                                       \
                                                                 \
-        let c = new Camera(s);                                  \
+        let c = new Camera(new Scene());                        \
         console.log("Run");                                     \
     '])));
 

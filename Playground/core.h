@@ -286,10 +286,16 @@ static struct null_t : public undefined_t
         return false;
     }
 
-    constexpr operator std::nullptr_t() const
+    constexpr operator std::nullptr_t()
     {
         return nullptr;
     }
+
+    template <typename T>
+    constexpr operator std::shared_ptr<T>()
+    {
+        return std::shared_ptr<T>(nullptr);
+    }    
 } null;
 
 struct boolean : public undefined_t
