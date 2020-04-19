@@ -1690,6 +1690,13 @@ export class Emitter {
 
                 break;
             case ts.SyntaxKind.ModuleDeclaration:
+                if ((<any>type).symbol
+                    && (<any>type).symbol.parent
+                    && (<any>type).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
+                    this.processType((<any>type).symbol.parent.valueDeclaration);
+                    this.writer.writeString('::');
+                }
+
                 const moduleDeclaration = <ts.ModuleDeclaration><any>type;
                 this.writer.writeString(moduleDeclaration.name.text);
                 break;
