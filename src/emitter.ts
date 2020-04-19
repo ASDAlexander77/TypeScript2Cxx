@@ -1170,6 +1170,16 @@ export class Emitter {
         }
 
         this.writer.writeStringNewLine('\"');
+
+        if (node.importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+            for (const binding of (<ts.NamedImports>node.importClause.namedBindings).elements) {
+                this.writer.writeString('using ');
+                this.processExpression(binding.name);
+                this.writer.writeString(' = ');
+                this.processExpression(binding.propertyName);
+                this.writer.writeStringNewLine(';');
+            }
+        }
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
