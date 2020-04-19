@@ -1345,7 +1345,7 @@ struct array : public undefined_t
     template <class I>
     std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>, bool> exists(I i) const
     {
-        return static_cast<size_t>(i) < get().get().size();
+        return static_cast<size_t>(i) < get().size();
     }
 
     template <class I>

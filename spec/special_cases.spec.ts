@@ -58,8 +58,7 @@ describe('Special cases', () => {
         let b = 1;                              \
                                                 \
         function f() {                          \
-            let s = null;                       \
-            s();                                \
+            throw 3;                            \
             return 2;                           \
         }                                       \
                                                 \

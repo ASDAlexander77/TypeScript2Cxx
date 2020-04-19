@@ -252,12 +252,12 @@ describe('Statements', () => {
 
     it('switch - with for statement', () => expect(new Run().test([
         'const grade = 0;                                       \
+        var i = 0;                                              \
         switch(grade) {                                         \
            case 0:                                              \
               console.log("Excellent");                         \
               break;                                            \
            case 1:                                              \
-              var i = 0;                                        \
               for (i; i < 10; i++) {                            \
                   console.log("failed");                        \
               }                                                 \
