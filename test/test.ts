@@ -1,5 +1,5 @@
 module M1  {                               
-            module M2 {                             
+            export module M2 {                             
                 export class C {                    
                     static Y() { return 2; }        
                                                     

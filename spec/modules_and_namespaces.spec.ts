@@ -19,7 +19,7 @@ describe('Modules', () => {
 
     it('Module 2 - nested', () => expect('1\r\n').to.equals(new Run().test([
         'module M1  {                               \
-            module M2 {                             \
+            export module M2 {                      \
                 export class C {                    \
                     static Y() { return 2; }        \
                                                     \
