@@ -1,6 +1,4 @@
 function testFloat() {
-    if (!hasFloat)
-        return
     let v = 13 / 32
     v *= 32
     assert(v == 13, "/")

@@ -62,11 +62,6 @@ let i16: int16
 let xyz = 12;
 
 
-let hasFloat = true
-if ((1 / 10) == 0) {
-    hasFloat = false
-}
-
 class Testrec {
     str: string;
     num: number;
@@ -74,23 +69,15 @@ class Testrec {
     str2: string;
 }
 
-function testFloat() {
-    if (!hasFloat)
-        return
-    let v = 13 / 32
-    v *= 32
-    assert(v == 13, "/")
-    for (let i = 0; i < 20; ++i) {
-        v *= 10000
-    }
-    //assert(v > 1e81, "81")
+function clean() {
+    glb1 = 0
+    s2 = ""
+    x = 0
+    action = null
+    tot = ""
+    lazyAcc = 0
+    sum = 0
 }
-
-
-
-
-testFloat()
-
 
 function testNumCollection(): void {
     msg("test num coll")
@@ -123,6 +110,7 @@ function testNumCollection(): void {
     msg("loop done")
 }
 testNumCollection();
+
 
 clean()
 msg("test OK!")

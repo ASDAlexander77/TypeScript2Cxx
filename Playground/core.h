@@ -1531,6 +1531,15 @@ struct any
 
     any(const js::any &value) : _type(value._type), _value(value._value), _counter(value._counter)
     {
+        switch (_type) {
+            case anyTypeId::boolean_type: 
+                _value._boolean = value._value._boolean;
+                break;
+            case anyTypeId::number_type:
+                _value._number = value._value._number;
+                break;
+        }
+
         if (_counter != nullptr) 
         {
             ++(*_counter);
