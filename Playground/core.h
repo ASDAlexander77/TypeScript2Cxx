@@ -361,12 +361,12 @@ struct number : public undefined_t
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    constexpr operator T() const
+    constexpr operator T()
     {
         return static_cast<T>(_value);
     }
 
-    constexpr operator size_t() const
+    constexpr operator size_t()
     {
         return static_cast<size_t>(_value);
     }
@@ -376,7 +376,7 @@ struct number : public undefined_t
         return !isUndefined && _value != 0;
     }
 
-    constexpr operator double() const
+    constexpr operator double()
     {
         return _value;
     }
@@ -2477,90 +2477,6 @@ struct any
         return os << "[any]";
     }
 };
-
-template <>
-inline bool Equals(undefined_t l, undefined_t r)
-{
-    return l.isUndefined == r.isUndefined;
-}
-
-template <>
-inline bool Equals(undefined_t l, null_t)
-{
-    return l.isUndefined;
-}
-
-template <>
-inline bool Equals(null_t, undefined_t r)
-{
-    return r.isUndefined;
-}
-
-template <>
-inline bool Equals(undefined_t l, int r)
-{
-    return l.isUndefined && r == 0;
-}
-
-template <>
-inline bool Equals(int l, undefined_t r)
-{
-    return l == 0 && r.isUndefined;
-}
-
-template <>
-inline bool Equals(any l, int r)
-{
-    return l.operator==(r);
-}
-
-template <>
-inline bool Equals(int l, any r)
-{
-    return r.operator==(l);
-}
-
-template <>
-inline bool NotEquals(undefined_t l, undefined_t r)
-{
-    return l.isUndefined != r.isUndefined;
-}
-
-template <>
-inline bool NotEquals(undefined_t l, null_t)
-{
-    return !l.isUndefined;
-}
-
-template <>
-inline bool NotEquals(null_t, undefined_t r)
-{
-    return !r.isUndefined;
-}
-
-template <>
-inline bool NotEquals(undefined_t l, int r)
-{
-    return !(l.isUndefined && r == 0);
-}
-
-template <>
-inline bool NotEquals(int l, undefined_t r)
-{
-    return !(l == 0 && r.isUndefined);
-}
-
-template <>
-inline bool NotEquals(any l, int r)
-{
-    return !(l.operator==(r));
-}
-
-template <>
-inline bool NotEquals(int l, any r)
-{
-    return !(r.operator==(l));
-}
 
 template <>
 string typeOf(boolean value)
