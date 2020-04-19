@@ -997,7 +997,7 @@ export class Emitter {
 
         this.writer.writeStringNewLine();
 
-        if (node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword)) {
+        if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword)) {
             this.writer.writeString('using _default = ');
             this.processIdentifier(node.name);
             this.processTemplateParameters(<ts.ClassDeclaration>node);
