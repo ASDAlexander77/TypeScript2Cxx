@@ -2957,6 +2957,8 @@ export class Emitter {
         const methodAccess = symbolInfo
             && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
             && node.parent.kind !== ts.SyntaxKind.CallExpression;
+        const isStaticMethodAccess = this.isStatic(symbolInfo.valueDeclaration);
+
         const getAccess = symbolInfo
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
@@ -2965,17 +2967,22 @@ export class Emitter {
             || node.name.text === 'length' && this.resolver.isArrayOrStringType(typeInfo);
 
         if (methodAccess) {
-            this.writer.writeString('std::bind(&');
-            if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-                const valueDeclaration = <ts.ClassDeclaration>symbolInfo.valueDeclaration.parent;
-                this.processExpression(<ts.Identifier>valueDeclaration.name);
-            }
+            if (isStaticMethodAccess) {
+                this.writer.writeString('&');
+                this.processExpression(<ts.Identifier>node.name);
+            } else {
+                this.writer.writeString('std::bind(&');
+                if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
+                    const valueDeclaration = <ts.ClassDeclaration>symbolInfo.valueDeclaration.parent;
+                    this.processExpression(<ts.Identifier>valueDeclaration.name);
+                    this.writer.writeString('::');
+                }
 
-            this.writer.writeString('::');
-            this.processExpression(<ts.Identifier>node.name);
-            this.writer.writeString(', ');
-            this.processExpression(node.expression);
-            this.writer.writeString(')');
+                this.processExpression(<ts.Identifier>node.name);
+                this.writer.writeString(', ');
+                this.processExpression(node.expression);
+                this.writer.writeString(')');
+            }
         } else {
             if (node.expression.kind === ts.SyntaxKind.NewExpression
                 || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {

@@ -1,22 +1,26 @@
-	class Scene {
-}
-
-	class Node1 {                                          
-            public _scene: Scene;                               
-                                                                
-            constructor(scene: Scene) {                         
-                this._scene = scene;                            
-            }                                                   
-                                                                
-            public set parent(v) {                              
-            }                                                   
-        }                                                       
-                                                                
-        class Camera extends Node1 {                            
-            constructor(scene: Scene) {                         
-                super(null);                                    
-            }                                                   
-        }                                                       
-                                                                
-        let c = new Camera(new Scene());                                  
-        console.log("Run");
+class Test {                           
+            val = 10;                           
+                                                
+            public testMethod() {               
+                console.log(this.val);          
+            }                                   
+        }                                       
+                                                
+        class Test2 {                           
+            val = 20;                           
+        }                                       
+                                                
+        const t = new Test();                   
+                                                
+        const m1 = t.testMethod;                
+        m1();                                   
+                                                
+        const t2 = new Test2();                 
+                                                
+        //const m2 = t.testMethod.bind(t2);       
+        //m2();                                   
+        function fff(m3) {                      
+            m3();                               
+        }                                       
+                                                
+        //fff(t.testMethod.bind(t2));

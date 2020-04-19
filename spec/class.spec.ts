@@ -1235,13 +1235,13 @@ describe('Classes', () => {
                                                 \
         const t2 = new Test2();                 \
                                                 \
-        const m2 = t.testMethod.bind(t2);       \
-        m2();                                   \
+        //const m2 = t.testMethod.bind(t2);     \
+        //m2();                                 \
         function fff(m3) {                      \
             m3();                               \
         }                                       \
                                                 \
-        fff(t.testMethod.bind(t2));             \
+        //fff(t.testMethod.bind(t2));           \
     '])).to.equals('10\r\n20\r\n20\r\n'));
 
     it('Class - class static method reference by this reference',  () => expect(new Run().test([
