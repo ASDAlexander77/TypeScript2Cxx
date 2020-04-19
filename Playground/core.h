@@ -1715,8 +1715,7 @@ struct any
         return undefined;
     }
 
-    using js_boolean = js::boolean;
-    operator js_boolean()
+    operator js::boolean()
     {
         if (_type == anyTypeId::boolean_type)
         {
@@ -1726,8 +1725,7 @@ struct any
         throw "wrong type";
     }
 
-    using js_number = js::number;
-    operator js_number()
+    operator js::number()
     {
         if (_type == anyTypeId::number_type)
         {
@@ -1742,8 +1740,7 @@ struct any
         throw "wrong type";
     }
 
-    using js_string = js::string;
-    operator js_string()
+    operator js::string()
     {
         if (_type == anyTypeId::string_type)
         {
@@ -1763,8 +1760,7 @@ struct any
         throw "wrong type";
     }
 
-    using js_object = js::object;
-    operator js_object()
+    operator js::object()
     {
         if (_type == anyTypeId::object_type)
         {
@@ -1774,8 +1770,7 @@ struct any
         throw "wrong type";
     }
 
-    using js_array = js::array;
-    operator js_array()
+    operator js::array()
     {
         if (_type == anyTypeId::array_type)
         {
@@ -1864,26 +1859,6 @@ struct any
         return streamObj2.str();
     }
 
-    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator==(T t) const
-    {
-        switch (_type)
-        {
-        case anyTypeId::undefined_type:
-            return false;
-        case anyTypeId::boolean_type:
-            return _value._boolean._value == static_cast<bool>(t);
-        case anyTypeId::number_type:
-            return _value._number._value == t;
-        case anyTypeId::string_type:
-            return ((js::string *)_value._data)->_value == std::to_string(t);
-        case anyTypeId::object_type:
-            return false;
-        }
-
-        throw "not implemented";
-    }
-
     bool operator==(const js::any &other) const
     {
         if (_type != other._type)
@@ -1911,6 +1886,76 @@ struct any
     bool operator!=(const js::any &other) const
     {
         return !(*this == other);
+    }
+
+    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator==(T t) const
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined_type:
+            return false;
+        case anyTypeId::boolean_type:
+            return _value._boolean._value == static_cast<bool>(t);
+        case anyTypeId::number_type:
+            return _value._number._value == t;
+        case anyTypeId::string_type:
+            return ((js::string *)_value._data)->_value == std::to_string(t);
+        case anyTypeId::object_type:
+            return false;
+        }
+
+        throw "not implemented";
+    }
+
+    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator!=(T t) const
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined_type:
+            return true;
+        case anyTypeId::boolean_type:
+            return _value._boolean._value != static_cast<bool>(t);
+        case anyTypeId::number_type:
+            return _value._number._value != t;
+        case anyTypeId::string_type:
+            return ((js::string *)_value._data)->_value != std::to_string(t);
+        case anyTypeId::object_type:
+            return false;
+        }
+
+        throw "not implemented";
+    }    
+
+    bool operator==(const js::boolean &other) const
+    {
+        return static_cast<js::boolean>(*mutable_(this)) == other;
+    }
+
+    bool operator!=(const js::boolean &other) const
+    {
+        return static_cast<js::boolean>(*mutable_(this)) != other;
+    }    
+
+    bool operator==(const js::number &other) const
+    {
+        return static_cast<js::number>(*mutable_(this)) == other;
+    }
+
+    bool operator!=(const js::number &other) const
+    {
+        return static_cast<js::number>(*mutable_(this)) != other;
+    }    
+
+    bool operator==(const js::string &other) const
+    {
+        return static_cast<js::string>(*mutable_(this)) == other;
+    }
+
+    bool operator!=(const js::string &other) const
+    {
+        return static_cast<js::string>(*mutable_(this)) != other;
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
