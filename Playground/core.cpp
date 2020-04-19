@@ -27,6 +27,10 @@ object::object() : _values(), undefined_t(false)
 {
 }
 
+object::object(const object& value) : _values(value._values), undefined_t(value.isUndefined)
+{
+}
+
 object::object(std::initializer_list<pair> values) : undefined_t(false)
 {
     for (auto &item : values)

@@ -87,13 +87,17 @@ inline R cast(T t)
 template <typename L, typename R>
 constexpr bool Equals(L l, R r)
 {
-    return static_cast<bool>(l) == static_cast<bool>(r) && l == r;
+    auto undefL = static_cast<bool>(l);
+    auto undefR = static_cast<bool>(r);
+    return undefL == undefR && undefL == false || l == r;
 }
 
 template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
-    return static_cast<bool>(l) != static_cast<bool>(r) || l != r;
+    auto undefL = static_cast<bool>(l);
+    auto undefR = static_cast<bool>(r);    
+    return undefL != undefR || l != r;
 }
 
 template <typename T>
@@ -199,26 +203,21 @@ static struct undefined_t
 
     bool isUndefined;
 
-    undefined_t() : isUndefined(true)
+    constexpr undefined_t() : isUndefined(true)
     {
     }
 
-    undefined_t(bool value) : isUndefined(value)
+    constexpr undefined_t(bool value) : isUndefined(value)
     {
     }
 
-    undefined_t(const undefined_t &undef) : undefined_t(true)
+    constexpr undefined_t(const undefined_t &undef) : undefined_t(true)
     {
     }    
 
-    constexpr operator bool() const
-    {
-        return !isUndefined;
-    }
-
     constexpr operator bool()
     {
-        return !isUndefined;
+        return false;
     }
 
     inline operator std::nullptr_t()
@@ -270,12 +269,21 @@ static struct null_t : public undefined_t
     {
     };
 
+    null_t(const null_t& other) : undefined_t(other.isUndefined) 
+    {
+    };
+
     null_t(std::nullptr_t) : undefined_t(false) 
     {
     };
 
     null_t(const undefined_t &undef) : undefined_t(true)
     {
+    }
+
+    constexpr operator bool()
+    {
+        return false;
     }
 
     constexpr operator std::nullptr_t() const
@@ -303,11 +311,6 @@ struct boolean : public undefined_t
 
     boolean(const undefined_t &undef) : undefined_t(true)
     {
-    }
-
-    constexpr operator const bool() const
-    {
-        return !isUndefined && _value;
     }
 
     constexpr operator bool()
@@ -368,7 +371,7 @@ struct number : public undefined_t
         return static_cast<size_t>(_value);
     }
 
-    constexpr operator bool() const
+    constexpr operator bool()
     {
         return !isUndefined && _value != 0;
     }
@@ -824,6 +827,10 @@ struct string : public undefined_t
     {
     }
 
+    string(const string& value) : _value(value._value), undefined_t(value.isUndefined), isNull(value.isNull)
+    {
+    }
+
     string(null_t v) : _value(), undefined_t(false), isNull(true)
     {
     }    
@@ -849,6 +856,11 @@ struct string : public undefined_t
     inline operator const char *()
     {
         return _value.c_str();
+    }
+
+    constexpr operator bool()
+    {
+        return !isUndefined && !isNull && !_value.empty();
     }
 
     inline operator size_t() const
@@ -1186,6 +1198,10 @@ struct array : public undefined_t
     {
     }
 
+    array(const array& value) : _values(value._values), undefined_t(value.isUndefined)
+    {
+    }    
+
     array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), undefined_t(false)
     {
     }
@@ -1196,6 +1212,11 @@ struct array : public undefined_t
 
     array(const undefined_t &undef) : undefined_t(true)
     {
+    }
+
+    constexpr operator bool()
+    {
+        return !isUndefined && !get().empty();
     }
 
     constexpr array *operator->()
@@ -1363,6 +1384,8 @@ struct object : public undefined_t
 
     object();
 
+    object(const object& value);
+
     object(std::initializer_list<pair> values);
 
     object(const undefined_t &undef) : undefined_t(true)
@@ -1374,6 +1397,11 @@ struct object : public undefined_t
     }
 
     ObjectKeys<decltype(_values)> keys();
+
+    constexpr operator bool()
+    {
+        return !isUndefined && !_values.empty();
+    }
 
     constexpr object *operator->()
     {
