@@ -265,30 +265,46 @@ static struct undefined_t
 
 static struct null_t : public undefined_t
 {
-    null_t() : undefined_t(false) 
+    void* _ptr;
+
+    null_t() : _ptr(nullptr), undefined_t(false) 
     {
     };
 
-    null_t(const null_t& other) : undefined_t(other.isUndefined) 
+    null_t(void* ptr) : _ptr(ptr), undefined_t(false) 
     {
     };
 
-    null_t(std::nullptr_t) : undefined_t(false) 
+    null_t(const null_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
     {
     };
 
-    null_t(const undefined_t &undef) : undefined_t(true)
+    null_t(std::nullptr_t) : _ptr(nullptr), undefined_t(false) 
+    {
+    };
+
+    null_t(const undefined_t &undef) : _ptr(nullptr), undefined_t(true)
     {
     }
 
     constexpr operator bool()
     {
-        return false;
+        return !isUndefined && _ptr != nullptr;
     }
 
     constexpr operator std::nullptr_t()
     {
         return nullptr;
+    }
+
+    bool operator==(null_t p)
+    {
+        return isUndefined == p.isUndefined && _ptr == p._ptr;
+    }
+
+    bool operator!=(null_t p)
+    {
+        return isUndefined != p.isUndefined || _ptr != p._ptr;
     }
 
     template <typename T>
@@ -1718,7 +1734,7 @@ struct any
             return null;
         }
 
-        return undefined;
+        return null_t(_value._data);
     }
 
     operator js::boolean()

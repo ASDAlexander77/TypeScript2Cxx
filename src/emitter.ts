@@ -2957,7 +2957,7 @@ export class Emitter {
         const methodAccess = symbolInfo
             && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
             && node.parent.kind !== ts.SyntaxKind.CallExpression;
-        const isStaticMethodAccess = this.isStatic(symbolInfo.valueDeclaration);
+        const isStaticMethodAccess = symbolInfo && symbolInfo.valueDeclaration && this.isStatic(symbolInfo.valueDeclaration);
 
         const getAccess = symbolInfo
             && symbolInfo.declarations
