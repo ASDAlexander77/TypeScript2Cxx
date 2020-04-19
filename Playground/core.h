@@ -93,7 +93,7 @@ constexpr bool Equals(L l, R r)
 template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
-    return static_cast<bool>(l) != static_cast<bool>(r) && l != r;
+    return static_cast<bool>(l) != static_cast<bool>(r) || l != r;
 }
 
 template <typename T>
@@ -199,14 +199,17 @@ static struct undefined_t
 
     bool isUndefined;
 
-    undefined_t()
+    undefined_t() : isUndefined(true)
     {
-        isUndefined = false;
     }
 
     undefined_t(bool value) : isUndefined(value)
     {
     }
+
+    undefined_t(const undefined_t &undef) : undefined_t(true)
+    {
+    }    
 
     constexpr operator bool() const
     {
@@ -290,6 +293,10 @@ struct boolean : public undefined_t
     {
     }
 
+    boolean(const boolean &value) : _value(value._value), undefined_t(value.isUndefined)
+    {
+    }    
+
     boolean(bool initValue) : _value(initValue), undefined_t(false)
     {
     }
@@ -336,8 +343,12 @@ struct number : public undefined_t
     {
     }
 
+    number(const number& value) : _value(value._value), undefined_t(value.isUndefined)
+    {
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number(T initValue)
+    number(T initValue) : undefined_t(false) 
     {
         _value = static_cast<V>(initValue);
     }
@@ -813,19 +824,19 @@ struct string : public undefined_t
     {
     }
 
-    string(null_t v) : _value(), isNull(true)
+    string(null_t v) : _value(), undefined_t(false), isNull(true)
     {
     }    
 
-    string(std::string value) : _value(value), isNull(false)
+    string(std::string value) : _value(value), undefined_t(false), isNull(false)
     {
     }
 
-    string(const char *value) : _value(value), isNull(false)
+    string(const char *value) : _value(value), undefined_t(false), isNull(false)
     {
     }
 
-    string(const char value) : _value(1, value), isNull(false)
+    string(const char value) : _value(1, value), undefined_t(false), isNull(false)
     {
     }
 
@@ -1444,20 +1455,24 @@ struct any
     };
 
     union anyType {
+        void *_data;
         js::boolean _boolean;
         js::number _number;
-        void *_data;
         js::function *_function;
 
         constexpr anyType() : _data(nullptr)
         {
         }
 
-        inline anyType(js::boolean value) : _boolean(value)
+        constexpr anyType(const anyType& value) : _data(value._data)
+        {
+        }        
+
+        inline anyType(const js::boolean& value) : _boolean(value)
         {
         }
 
-        inline anyType(js::number t) : _number(t)
+        inline anyType(const js::number& value) : _number(value)
         {
         }
 

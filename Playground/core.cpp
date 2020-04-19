@@ -5,7 +5,7 @@ using namespace js;
 namespace js
 {
 // String
-string::string(any val) : _value(val.operator js::string()), isNull(false)
+string::string(any val) : _value(val.operator js::string()), undefined_t(false), isNull(false)
 {
 }    
 
@@ -27,7 +27,7 @@ object::object() : _values(), undefined_t(false)
 {
 }
 
-object::object(std::initializer_list<pair> values)
+object::object(std::initializer_list<pair> values) : undefined_t(false)
 {
     for (auto &item : values)
     {

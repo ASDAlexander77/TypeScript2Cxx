@@ -101,41 +101,47 @@ function clean() {
 testFloat()
 
 
-function eqOp() {
-    msg("eqOp")
-    let x = 12
-    assert((x += 10) == 22, "Y0")
-    assert(x == 22, "Y1")
-    x /= 2
-    assert(x == 11, "Y2")
-
-    let s = ("fo" + 1)
-    let t = ("ba" + 2)
-    s += t
-    assert(s == "fo1b" + "a2", "fb")
+function defaultArgs(x: number, y = 3, z = 7) {
+    return x + y + z;
 }
 
-function eqOpString() {
-    msg("eqOpStr")
-    let x = "fo"
-    assert((x += "ba") == "foba", "SY0")
-    assert(x == "foba", "SY1")
+function optargs(x: number, y?: number, z?: number) {
+    if (y == undefined)
+        y = 0
+    return x + y;
 }
 
-eqOp()
-eqOpString()
-
-function eq<A, B>(a: A, b: B) { return a == b as any as A }
-
-function eqG() {
-    assert(eq("2", 2), "2")
-    assert(eq(2, "2"), "2'")
-    assert(!eq("null", null), "=1")
-    assert(!eq(null, "null"), "=2")
-    assert(!eq("2", 3), "=3")
+function optstring(x: number, s?: string) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
 }
 
-eqG()
+function optstring2(x: number, s: string = null) {
+    if (s != null) {
+        return parseInt(s) + x;
+    }
+    return x * 2;
+}
+
+function testDefaultArgs() {
+    msg("testDefaultArgs");
+    assert(defaultArgs(1) == 11, "defl0")
+    assert(defaultArgs(1, 4) == 12, "defl1")
+    assert(defaultArgs(1, 4, 8) == 13, "defl2")
+
+    assert(optargs(1) == 1, "opt0");
+    assert(optargs(1, 2) == 3, "opt1");
+    assert(optargs(1, 2, 3) == 3, "opt2");
+
+    assert(optstring(3) == 6, "os0")
+    assert(optstring(3, "7") == 10, "os1")
+    assert(optstring2(3) == 6, "os0")
+    assert(optstring2(3, "7") == 10, "os1")
+}
+
+testDefaultArgs();
 
 clean()
 msg("test OK!")
