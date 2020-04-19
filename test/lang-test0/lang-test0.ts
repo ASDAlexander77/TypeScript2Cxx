@@ -73,3 +73,13 @@ class Testrec {
     _bool: boolean;
     str2: string;
 }
+
+function clean() {
+    glb1 = 0
+    s2 = ""
+    x = 0
+    action = null
+    tot = ""
+    lazyAcc = 0
+    sum = 0
+}
