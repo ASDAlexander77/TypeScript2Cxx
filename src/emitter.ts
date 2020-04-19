@@ -996,6 +996,13 @@ export class Emitter {
         this.writer.EndOfStatement();
 
         this.writer.writeStringNewLine();
+
+        if (node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword)) {
+            this.writer.writeString('using _default = ');
+            this.processIdentifier(node.name);
+            this.processTemplateParameters(<ts.ClassDeclaration>node);
+            this.writer.writeStringNewLine(';');
+        }
     }
 
     private processPropertyDeclaration(node: ts.PropertyDeclaration | ts.PropertySignature | ts.ParameterDeclaration,
@@ -1171,13 +1178,22 @@ export class Emitter {
 
         this.writer.writeStringNewLine('\"');
 
-        if (node.importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
-            for (const binding of (<ts.NamedImports>node.importClause.namedBindings).elements) {
+        if (node.importClause) {
+            if (node.importClause.name && node.importClause.name.kind === ts.SyntaxKind.Identifier) {
                 this.writer.writeString('using ');
-                this.processExpression(binding.name);
-                this.writer.writeString(' = ');
-                this.processExpression(binding.propertyName);
-                this.writer.writeStringNewLine(';');
+                this.processExpression(node.importClause.name);
+                this.writer.writeStringNewLine(' = _default;');
+            }
+
+            if (node.importClause.namedBindings
+                && node.importClause.namedBindings.kind === ts.SyntaxKind.NamedImports) {
+                for (const binding of (<ts.NamedImports>node.importClause.namedBindings).elements.filter(e => e.propertyName)) {
+                    this.writer.writeString('using ');
+                    this.processExpression(binding.name);
+                    this.writer.writeString(' = ');
+                    this.processExpression(binding.propertyName);
+                    this.writer.writeStringNewLine(';');
+                }
             }
         }
     }
