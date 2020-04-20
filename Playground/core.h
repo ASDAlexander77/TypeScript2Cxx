@@ -912,7 +912,7 @@ struct string : public undefined_t
     {
     }
 
-    string(pointer_t v) : _value(static_cast<const char *>(v)), undefined_t(false), isNull(!v)
+    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), undefined_t(false), isNull(!v)
     {
     }    
 
