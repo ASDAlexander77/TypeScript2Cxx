@@ -1,4 +1,3 @@
-	console.log(null === 0);                                               
-        console.log(undefined === 0);                                          
-        console.log(null !== 0);                                               
-        console.log(undefined !== 0);
+var i:any;                                    
+i = 0; 
+console.log(i && <any>null);                        

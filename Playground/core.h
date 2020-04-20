@@ -26,8 +26,8 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (vx) : (y)); })()
-#define AND(x, y) ([&]() { auto vx = (x); return ((bool)(vx) ? (y) : (vx)); })()
+#define OR(x, y) ([]() { auto vx = (x); return static_cast<bool>(vx) ? vx : (y); })()
+#define AND(x, y) ([]() { auto vx = (x); return static_cast<bool>(vx) ? (y) : vx; })()
 
 #define Infinity std::numeric_limits<double>::infinity()
 #define NaN nan("")
@@ -343,7 +343,12 @@ static struct null_t : public undefined_t
     constexpr operator std::shared_ptr<T>()
     {
         return std::shared_ptr<T>(nullptr);
-    }    
+    }  
+
+    friend std::ostream &operator<<(std::ostream &os, null_t val)
+    {
+        return os << "null";
+    }      
 } null;
 
 struct boolean : public undefined_t

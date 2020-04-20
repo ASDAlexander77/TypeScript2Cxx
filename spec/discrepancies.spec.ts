@@ -4,7 +4,7 @@ import { describe, it } from 'mocha';
 
 describe('Discrepancies', () => {
 
-    it('0 is false in || expressions', () => expect(new Run().test([
+    it.skip('0 is false in || expressions', () => expect(new Run().test([
          '                                              \
          console.log(null || null);                     \
          console.log(0 || null);                        \
@@ -34,7 +34,7 @@ describe('Discrepancies', () => {
         i = 1; console.log(i || 1);                     \
         '])).to.equals('null\r\nnull\r\n1\r\n0\r\n0\r\n1\r\n1\r\n1\r\n1\r\n'));
 
-    it('0 is false in && expressions', () => expect(new Run().test([
+    it.skip('0 is false in && expressions', () => expect(new Run().test([
         '                                              \
         console.log(null && null);                     \
         console.log(0 && null);                        \
