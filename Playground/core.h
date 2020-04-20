@@ -87,17 +87,37 @@ inline R cast(T t)
 template <typename L, typename R>
 constexpr bool Equals(L l, R r)
 {
-    auto undefL = static_cast<bool>(l);
-    auto undefR = static_cast<bool>(r);
-    return undefL == undefR && undefL == false || l == r;
+    return ((l == undefined || l == null) && (r == undefined || r == null)) || l == r;
 }
 
 template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
-    auto undefL = static_cast<bool>(l);
-    auto undefR = static_cast<bool>(r);    
-    return undefL != undefR || l != r;
+    return !Equals(l, r);
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(undefined_t undef, T t)
+{
+    return !undef.isUndefined;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(T t, undefined_t undef)
+{
+    return !undef.isUndefined;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(null_t nullValue, T t)
+{
+    return false;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(T t, null_t nullValue)
+{
+    return false;
 }
 
 template <typename T>
@@ -305,6 +325,18 @@ static struct null_t : public undefined_t
     bool operator!=(null_t p)
     {
         return isUndefined != p.isUndefined || _ptr != p._ptr;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator==(T t)
+    {
+        return false;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    bool operator!=(T t)
+    {
+        return true;
     }
 
     template <typename T>
@@ -971,6 +1003,31 @@ struct string : public undefined_t
         return !isUndefined && _value.compare(other._value) == 0;
     }
 
+    bool operator!=(const js::string &other)
+    {
+        return !isUndefined && _value.compare(other._value) != 0;
+    }
+
+    bool operator==(undefined_t undef)
+    {
+        return isUndefined == undef.isUndefined;
+    }
+
+    friend bool operator==(undefined_t undef, const js::string& other)
+    {
+        return other.isUndefined == undef.isUndefined;
+    }    
+
+    bool operator!=(undefined_t undef)
+    {
+        return isUndefined != undef.isUndefined;
+    }    
+
+    friend bool operator!=(undefined_t undef, const js::string& other)
+    {
+        return other.isUndefined != undef.isUndefined;
+    }   
+
     bool operator==(null_t)
     {
         return !isUndefined && isNull;
@@ -980,11 +1037,6 @@ struct string : public undefined_t
     {
         return !other.isUndefined && other.isNull;
     }    
-
-    bool operator!=(const js::string &other)
-    {
-        return !isUndefined && _value.compare(other._value) != 0;
-    }
 
     bool operator!=(null_t)
     {
@@ -1962,7 +2014,28 @@ struct any
         return _type != anyTypeId::undefined_type && other.isUndefined;
     }
 
-    // TODO: add comparing to null_t
+    bool operator==(const null_t &other) const
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined_type:
+        case anyTypeId::boolean_type:
+        case anyTypeId::number_type:
+            return false;
+        case anyTypeId::string_type:
+            return ((js::string *)_value._data)->isNull && other._ptr == nullptr;
+        case anyTypeId::object_type:
+        case anyTypeId::class_type:
+            return _value._data == other._ptr;
+        }
+
+        throw "not implemented";
+    } 
+
+    bool operator!=(const null_t &other) const
+    {
+        return !operator==(other);
+    } 
 
     bool operator==(const js::boolean &other) const
     {

@@ -25,7 +25,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('true\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\n'));
 
     // do we need it?
-    it.skip('strict 0', () => expect(new Run().test([
+    it('strict 0', () => expect(new Run().test([
         '                                                    \
         console.log(null === 0);                                               \
         console.log(undefined === 0);                                          \
@@ -42,7 +42,7 @@ describe('Undefined/null cases', () => {
     '])).to.equals('false\r\nfalse\r\ntrue\r\ntrue\r\n'));
 
     // do we need it?
-    it.skip('not strict 0', () => expect(new Run().test([
+    it('not strict 0', () => expect(new Run().test([
         '                                                    \
         console.log(null == 0);                                                \
         console.log(undefined == 0);                                           \
