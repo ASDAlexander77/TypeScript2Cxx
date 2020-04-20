@@ -345,9 +345,19 @@ static struct pointer_t : public undefined_t
         return std::shared_ptr<T>(nullptr);
     }  
 
+    template <typename T>
+    constexpr operator const T*()
+    {
+        return isUndefined ? static_cast<const T*>(nullptr) : static_cast<const T*>(_ptr);
+    }  
+
     friend std::ostream &operator<<(std::ostream &os, pointer_t val)
     {
-        return os << "null";
+        if (!val.isUndefined && val._ptr == nullptr) {
+            return os << "null";
+        }
+
+        return os << val._ptr;
     }      
 } null;
 
@@ -902,7 +912,7 @@ struct string : public undefined_t
     {
     }
 
-    string(pointer_t v) : _value(), undefined_t(false), isNull(true)
+    string(pointer_t v) : _value(static_cast<const char *>(v)), undefined_t(false), isNull(!v)
     {
     }    
 
@@ -910,7 +920,7 @@ struct string : public undefined_t
     {
     }
 
-    string(const char *value) : _value(value), undefined_t(false), isNull(false)
+    string(const char *value) : _value(value), undefined_t(false), isNull(value == nullptr)
     {
     }
 
@@ -987,9 +997,9 @@ struct string : public undefined_t
         return string(_value + value._value);
     }
 
-    string operator+(pointer_t)
+    string operator+(pointer_t ptr)
     {
-        return string(_value + "null");
+        return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
     }    
 
     string operator+(any value);
@@ -1045,24 +1055,24 @@ struct string : public undefined_t
         return other.isUndefined != undef.isUndefined;
     }   
 
-    bool operator==(pointer_t)
+    bool operator==(pointer_t ptr)
     {
-        return !isUndefined && isNull;
+        return !isUndefined && isNull && (!ptr);
     }
 
-    friend bool operator==(pointer_t, const js::string& other)
+    friend bool operator==(pointer_t ptr, const js::string& other)
     {
-        return !other.isUndefined && other.isNull;
+        return !other.isUndefined && other.isNull && (!ptr);
     }    
 
-    bool operator!=(pointer_t)
+    bool operator!=(pointer_t ptr)
     {
-        return !isUndefined && !isNull;
+        return !isUndefined && !isNull && (!ptr);
     }    
 
-    friend bool operator!=(pointer_t, const js::string& other)
+    friend bool operator!=(pointer_t ptr, const js::string& other)
     {
-        return !other.isUndefined && !other.isNull;
+        return !other.isUndefined && !other.isNull && (!ptr);
     }   
 
     string concat(string value)
@@ -1156,9 +1166,9 @@ static js::number operator+(const string& v)
     return number(static_cast<double>(v));
 }
 
-static js::number operator+(pointer_t)
+static js::number operator+(pointer_t ptr)
 {
-    return number(0);
+    return number(reinterpret_cast<size_t>(ptr._ptr));
 }
 
 template <typename Rx, typename _Cls, typename... Args>
@@ -1595,7 +1605,7 @@ struct any
         {
         }
 
-        constexpr anyType(const pointer_t&) : _data(nullptr)
+        constexpr anyType(const pointer_t& ptr) : _data(ptr._ptr)
         {
         }
 
