@@ -1924,6 +1924,7 @@ struct any
         case anyTypeId::string_type:
             return ((js::string *)_value._data)->_value == std::to_string(t);
         case anyTypeId::object_type:
+        case anyTypeId::class_type:
             return false;
         }
 
@@ -1944,11 +1945,24 @@ struct any
         case anyTypeId::string_type:
             return ((js::string *)_value._data)->_value != std::to_string(t);
         case anyTypeId::object_type:
+        case anyTypeId::class_type:
             return false;
         }
 
         throw "not implemented";
     }    
+
+    bool operator==(const js::undefined_t &other) const
+    {
+        return _type == anyTypeId::undefined_type && other.isUndefined;
+    }
+
+    bool operator!=(const js::undefined_t &other) const
+    {
+        return _type != anyTypeId::undefined_type && other.isUndefined;
+    }
+
+    // TODO: add comparing to null_t
 
     bool operator==(const js::boolean &other) const
     {
