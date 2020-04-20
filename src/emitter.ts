@@ -2705,7 +2705,11 @@ export class Emitter {
     }
 
     private processTypeAssertionExpression(node: ts.TypeAssertion) {
+        this.writer.writeString('static_cast<');
+        this.processType(node.type);
+        this.writer.writeString('>(');
         this.processExpression(node.expression);
+        this.writer.writeString(')');
     }
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {

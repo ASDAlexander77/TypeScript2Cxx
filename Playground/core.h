@@ -26,8 +26,8 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x, y) ([]() { auto vx = (x); return static_cast<bool>(vx) ? vx : (y); })()
-#define AND(x, y) ([]() { auto vx = (x); return static_cast<bool>(vx) ? (y) : vx; })()
+#define OR(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? vx : (y); })()
+#define AND(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? (y) : vx; })()
 
 #define Infinity std::numeric_limits<double>::infinity()
 #define NaN nan("")
@@ -875,6 +875,18 @@ typedef tmpl::number<double> number;
 static js::number operator+(const undefined_t& v)
 {
     return number(NAN);
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(number n, T t)
+{
+    return n == number(t);
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(T t, number n)
+{
+    return number(t) == n;
 }
 
 struct string : public undefined_t
@@ -1791,7 +1803,7 @@ struct any
             return null;
         }
 
-        return null_t(_value._data);
+        throw "wrong type";
     }
 
     operator js::boolean()
