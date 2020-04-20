@@ -33,7 +33,7 @@ namespace js
 #define NaN nan("")
 
 struct undefined_t;
-struct null_t;
+struct pointer_t;
 struct any;
 struct object;
 struct string;
@@ -109,13 +109,13 @@ constexpr bool Equals(T t, undefined_t undef)
 }
 
 template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(null_t nullValue, T t)
+constexpr bool Equals(pointer_t nullValue, T t)
 {
     return false;
 }
 
 template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(T t, null_t nullValue)
+constexpr bool Equals(T t, pointer_t nullValue)
 {
     return false;
 }
@@ -255,12 +255,12 @@ static struct undefined_t
         return isUndefined != other.isUndefined;
     }
 
-    bool operator==(const null_t&)
+    bool operator==(const pointer_t&)
     {
         return !isUndefined;
     }
 
-    bool operator!=(const null_t&)
+    bool operator!=(const pointer_t&)
     {
         return isUndefined;
     }
@@ -283,27 +283,27 @@ static struct undefined_t
     }
 } undefined(true);
 
-static struct null_t : public undefined_t
+static struct pointer_t : public undefined_t
 {
     void* _ptr;
 
-    null_t() : _ptr(nullptr), undefined_t(false) 
+    pointer_t() : _ptr(nullptr), undefined_t(false) 
     {
     };
 
-    null_t(void* ptr) : _ptr(ptr), undefined_t(false) 
+    pointer_t(void* ptr) : _ptr(ptr), undefined_t(false) 
     {
     };
 
-    null_t(const null_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
+    pointer_t(const pointer_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
     {
     };
 
-    null_t(std::nullptr_t) : _ptr(nullptr), undefined_t(false) 
+    pointer_t(std::nullptr_t) : _ptr(nullptr), undefined_t(false) 
     {
     };
 
-    null_t(const undefined_t &undef) : _ptr(nullptr), undefined_t(true)
+    pointer_t(const undefined_t &undef) : _ptr(nullptr), undefined_t(true)
     {
     }
 
@@ -317,12 +317,12 @@ static struct null_t : public undefined_t
         return nullptr;
     }
 
-    bool operator==(null_t p)
+    bool operator==(pointer_t p)
     {
         return isUndefined == p.isUndefined && _ptr == p._ptr;
     }
 
-    bool operator!=(null_t p)
+    bool operator!=(pointer_t p)
     {
         return isUndefined != p.isUndefined || _ptr != p._ptr;
     }
@@ -345,7 +345,7 @@ static struct null_t : public undefined_t
         return std::shared_ptr<T>(nullptr);
     }  
 
-    friend std::ostream &operator<<(std::ostream &os, null_t val)
+    friend std::ostream &operator<<(std::ostream &os, pointer_t val)
     {
         return os << "null";
     }      
@@ -902,7 +902,7 @@ struct string : public undefined_t
     {
     }
 
-    string(null_t v) : _value(), undefined_t(false), isNull(true)
+    string(pointer_t v) : _value(), undefined_t(false), isNull(true)
     {
     }    
 
@@ -987,7 +987,7 @@ struct string : public undefined_t
         return string(_value + value._value);
     }
 
-    string operator+(null_t)
+    string operator+(pointer_t)
     {
         return string(_value + "null");
     }    
@@ -1045,22 +1045,22 @@ struct string : public undefined_t
         return other.isUndefined != undef.isUndefined;
     }   
 
-    bool operator==(null_t)
+    bool operator==(pointer_t)
     {
         return !isUndefined && isNull;
     }
 
-    friend bool operator==(null_t, const js::string& other)
+    friend bool operator==(pointer_t, const js::string& other)
     {
         return !other.isUndefined && other.isNull;
     }    
 
-    bool operator!=(null_t)
+    bool operator!=(pointer_t)
     {
         return !isUndefined && !isNull;
     }    
 
-    friend bool operator!=(null_t, const js::string& other)
+    friend bool operator!=(pointer_t, const js::string& other)
     {
         return !other.isUndefined && !other.isNull;
     }   
@@ -1156,7 +1156,7 @@ static js::number operator+(const string& v)
     return number(static_cast<double>(v));
 }
 
-static js::number operator+(null_t)
+static js::number operator+(pointer_t)
 {
     return number(0);
 }
@@ -1595,7 +1595,7 @@ struct any
         {
         }
 
-        constexpr anyType(const null_t&) : _data(nullptr)
+        constexpr anyType(const pointer_t&) : _data(nullptr)
         {
         }
 
@@ -1641,7 +1641,7 @@ struct any
     {
     }
 
-    any(null_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
+    any(pointer_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
     {
     }
 
@@ -1791,7 +1791,7 @@ struct any
         throw "wrong type";
     }
 
-    operator null_t()
+    operator pointer_t()
     {
         if (_type == anyTypeId::string_type && (*(js::string *)_value._data).isNull)
         {
@@ -1803,7 +1803,7 @@ struct any
             return null;
         }
 
-        throw "wrong type";
+        return pointer_t(_value._data);
     }
 
     operator js::boolean()
@@ -2031,7 +2031,7 @@ struct any
         return _type != anyTypeId::undefined_type && other.isUndefined;
     }
 
-    bool operator==(const null_t &other) const
+    bool operator==(const pointer_t &other) const
     {
         switch (_type)
         {
@@ -2049,7 +2049,7 @@ struct any
         throw "not implemented";
     } 
 
-    bool operator!=(const null_t &other) const
+    bool operator!=(const pointer_t &other) const
     {
         return !operator==(other);
     } 
