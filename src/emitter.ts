@@ -808,9 +808,9 @@ export class Emitter {
         this.processStatement(this.fixupParentReferences(enumDeclare, node));
         */
 
-        this.writer.writeString('enum ');
+        this.writer.writeString('enum struct ');
         this.processIdentifier(node.name);
-        this.writer.writeString(' ');
+        this.writer.writeString(' : int ');
         this.writer.BeginBlock();
 
         let next = false;
@@ -2447,7 +2447,7 @@ export class Emitter {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.writer.writeString('null');
+        this.writer.writeString(node && node.parent.kind === ts.SyntaxKind.TypeAssertionExpression ? 'nullptr' : 'null');
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {

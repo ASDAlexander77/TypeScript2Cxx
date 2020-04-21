@@ -142,7 +142,7 @@ constexpr auto keys_(T &t) -> decltype(t->keys())
 namespace bitwise
 {
 template <typename T1, typename T2>
-inline auto rshift(T1 op1, T2 op2)
+constexpr auto rshift(T1 op1, T2 op2)
 {
     auto op1ll = static_cast<long long>(op1);
     auto op1l = static_cast<long>(op1ll);
@@ -155,7 +155,7 @@ inline auto rshift(T1 op1, T2 op2)
 }
 
 template <typename T1, typename T2>
-inline auto rshift_nosign(T1 op1, T2 op2)
+constexpr auto rshift_nosign(T1 op1, T2 op2)
 {
     auto op1ll = static_cast<long long>(op1);
     auto op1ul = static_cast<unsigned long>(op1ll);
@@ -168,7 +168,7 @@ inline auto rshift_nosign(T1 op1, T2 op2)
 }
 
 template <typename T1, typename T2>
-inline auto lshift(T1 op1, T2 op2)
+constexpr auto lshift(T1 op1, T2 op2)
 {
     auto op1ll = static_cast<long long>(op1);
     auto op1l = static_cast<long>(op1ll);
@@ -297,6 +297,13 @@ static struct pointer_t : public undefined_t
     {
         return true;
     }
+
+/*
+    constexpr operator std::nullptr_t()
+    {
+        return nullptr;
+    }
+*/
 
     template <typename T>
     constexpr operator std::shared_ptr<T>()
@@ -1567,7 +1574,7 @@ struct object : public undefined_t
 struct any
 {
 
-    enum anyTypeId
+    enum struct anyTypeId
     {
         undefined_type,
         boolean_type,
@@ -2705,37 +2712,37 @@ inline bool is(js::any t);
 template <>
 inline bool is<js::boolean>(js::any t)
 {
-    return t && t._type == any::boolean_type;
+    return t && t._type == any::anyTypeId::boolean_type;
 }
 
 template <>
 inline bool is<js::number>(js::any t)
 {
-    return t && t._type == any::number_type;
+    return t && t._type == any::anyTypeId::number_type;
 }
 
 template <>
 inline bool is<js::string>(js::any t)
 {
-    return t && t._type == any::string_type;
+    return t && t._type == any::anyTypeId::string_type;
 }
 
 template <>
 inline bool is<js::array>(js::any t)
 {
-    return t && t._type == any::array_type;
+    return t && t._type == any::anyTypeId::array_type;
 }
 
 template <>
 inline bool is<js::object>(js::any t)
 {
-    return t && t._type == any::object_type;
+    return t && t._type == any::anyTypeId::object_type;
 }
 
 template <>
 inline bool is<js::function>(js::any t)
 {
-    return t && t._type == any::function_type;
+    return t && t._type == any::anyTypeId::function_type;
 }
 
 struct Finally
