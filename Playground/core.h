@@ -1399,9 +1399,9 @@ struct array : public undefined_t
         return js::number(get().cend() - std::find(get().cbegin(), get().cend(), e) - 1);
     }
 
-    void removeElement(E e) 
+    js::boolean removeElement(E e) 
     {
-        get().erase(std::find(get().cbegin(), get().cend(), e));
+        return js::boolean(get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend());
     }
 
     auto begin() -> decltype(get().begin())
@@ -2585,6 +2585,28 @@ struct any
             throw "wrong type";
         }
     }
+
+    auto begin() -> decltype((((js::array *)nullptr))->begin())
+    {
+        switch (_type)
+        {
+        case anyTypeId::array_type:
+            return ((js::array *)_value._data)->begin();
+        default:
+            throw "wrong type";
+        }        
+    }
+
+    auto end() -> decltype((((js::array *)nullptr))->end())
+    {
+        switch (_type)
+        {
+        case anyTypeId::array_type:
+            return ((js::array *)_value._data)->end();
+        default:
+            throw "wrong type";
+        }        
+    }    
 
     size_t hash(void) const noexcept
     {
