@@ -1793,19 +1793,8 @@ struct any
         throw "wrong type";
     }
 
-    template <class T, std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
+    template <class T, class = std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
     any &operator[](T t) const
-    {
-        if (_type == anyTypeId::object_type)
-        {
-            return mutable_(*(js::object *)_value._data)[t];
-        }
-
-        throw "wrong type";
-    }
-
-    template <class T, std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
-    any &operator[](T t)
     {
         if (_type == anyTypeId::object_type)
         {
@@ -1814,6 +1803,17 @@ struct any
 
         throw "wrong type";
     }
+
+    template <class T, class = std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
+    any &operator[](T t)
+    {
+        if (_type == anyTypeId::object_type)
+        {
+            return (*(js::object *)_value._data)[t];
+        }
+
+        throw "wrong type";
+    }    
 
     operator pointer_t()
     {
@@ -1919,6 +1919,21 @@ struct any
 
         return false;
     }
+
+    operator double()
+    {
+        switch (_type)
+        {
+        case anyTypeId::undefined_type:
+            return 0;
+        case anyTypeId::boolean_type:
+            return _value._boolean._value ? 1 : 0;
+        case anyTypeId::number_type:
+            return _value._number._value;
+        }
+
+        throw "wrong type";
+    }  
 
     template <typename T>
     using std_shared_ptr = std::shared_ptr<T>;
@@ -3335,36 +3350,21 @@ static struct Console
         return this;
     }
 
-    template <class... Args>
-    void log(Args... args)
+    void log(any arg)
     {
-        for (auto &arg : {args...})
-        {
-            std::cout << arg;
-        }
-
+        std::cout << arg;
         std::cout << std::endl;
     }
 
-    template <class... Args>
-    void warn(Args... args)
+    void warn(any arg)
     {
-        for (auto &arg : {args...})
-        {
-            std::clog << arg;
-        }
-
+        std::clog << arg;
         std::clog << std::endl;
     }
 
-    template <class... Args>
-    void error(Args... args)
+    void error(any arg)
     {
-        for (auto &arg : {args...})
-        {
-            std::cerr << arg;
-        }
-
+        std::cerr << arg;
         std::cerr << std::endl;
     }
 
