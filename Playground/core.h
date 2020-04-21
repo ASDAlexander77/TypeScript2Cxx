@@ -84,42 +84,6 @@ inline R cast(T t)
     return static_cast<R>(t);
 }
 
-template <typename L, typename R>
-constexpr bool Equals(L l, R r)
-{
-    return ((l == undefined || l == null) && (r == undefined || r == null)) || l == r;
-}
-
-template <typename L, typename R>
-constexpr bool NotEquals(L l, R r)
-{
-    return !Equals(l, r);
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(undefined_t undef, T t)
-{
-    return !undef.isUndefined;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(T t, undefined_t undef)
-{
-    return !undef.isUndefined;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(pointer_t nullValue, T t)
-{
-    return false;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(T t, pointer_t nullValue)
-{
-    return false;
-}
-
 template <typename T>
 constexpr const T &const_(T &t)
 {
@@ -312,11 +276,6 @@ static struct pointer_t : public undefined_t
         return !isUndefined && _ptr != nullptr;
     }
 
-    constexpr operator std::nullptr_t()
-    {
-        return nullptr;
-    }
-
     bool operator==(pointer_t p)
     {
         return isUndefined == p.isUndefined && _ptr == p._ptr;
@@ -342,7 +301,7 @@ static struct pointer_t : public undefined_t
     template <typename T>
     constexpr operator std::shared_ptr<T>()
     {
-        return std::shared_ptr<T>(nullptr);
+        return std::shared_ptr<T>(static_cast<T*>(_ptr));
     }  
 
     template <typename T>
@@ -360,6 +319,43 @@ static struct pointer_t : public undefined_t
         return os << val._ptr;
     }      
 } null;
+
+
+template <typename L, typename R>
+constexpr bool Equals(L l, R r)
+{
+    return ((l == undefined || l == null) && (r == undefined || r == null)) || l == r;
+}
+
+template <typename L, typename R>
+constexpr bool NotEquals(L l, R r)
+{
+    return !Equals(l, r);
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(undefined_t undef, T t)
+{
+    return !undef.isUndefined;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+constexpr bool Equals(T t, undefined_t undef)
+{
+    return !undef.isUndefined;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+inline bool Equals(pointer_t nullValue, T t)
+{
+    return false;
+}
+
+template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+inline bool Equals(T t, pointer_t nullValue)
+{
+    return false;
+}
 
 struct boolean : public undefined_t
 {
@@ -888,13 +884,13 @@ static js::number operator+(const undefined_t& v)
 }
 
 template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(number n, T t)
+inline bool Equals(number n, T t)
 {
     return n == number(t);
 }
 
 template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(T t, number n)
+inline bool Equals(T t, number n)
 {
     return number(t) == n;
 }
