@@ -38,6 +38,27 @@ struct any;
 struct object;
 struct string;
 
+namespace tmpl {
+    template <typename T> struct number;
+}
+typedef tmpl::number<double> number;
+
+template<class _Ty>
+struct is_numeric : std::bool_constant<std::is_arithmetic_v<_Ty> || std::is_same_v<_Ty, js::number>>
+{
+};
+
+template<class _Ty>
+constexpr bool is_numeric_v = is_numeric<_Ty>::value;
+
+template<class _Ty>
+struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char*> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
+{
+};
+
+template<class _Ty>
+constexpr bool is_stringish_v = is_stringish<_Ty>::value;
+
 template <typename T>
 struct _Deduction_MethodPtr;
 
@@ -882,8 +903,6 @@ struct number : public undefined_t
     }
 };
 }
-
-typedef tmpl::number<double> number;
 
 static js::number operator+(const undefined_t& v)
 {
@@ -1771,8 +1790,8 @@ struct any
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, js::number>>>
-    any &operator[](T t) const
+    template <class T>
+    any &operator[](std::enable_if_t<is_numeric_v<T>, T> t) const
     {
         if (_type == anyTypeId::array_type)
         {
@@ -1782,8 +1801,8 @@ struct any
         throw "wrong type";        
     }    
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, js::number>>>
-    any &operator[](T t)
+    template <class T>
+    any &operator[](std::enable_if_t<is_numeric_v<T>, T> t)
     {
         if (_type == anyTypeId::array_type)
         {
@@ -1793,8 +1812,8 @@ struct any
         throw "wrong type";
     }
 
-    template <class T, class = std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
-    any &operator[](T t) const
+    template <class T>
+    any &operator[](std::enable_if_t<is_stringish_v<T>, T> t) const
     {
         if (_type == anyTypeId::object_type)
         {
@@ -1804,8 +1823,8 @@ struct any
         throw "wrong type";
     }
 
-    template <class T, class = std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
-    any &operator[](T t)
+    template <class T>
+    any &operator[](std::enable_if_t<is_stringish_v<T>, T> t)
     {
         if (_type == anyTypeId::object_type)
         {
@@ -1814,6 +1833,28 @@ struct any
 
         throw "wrong type";
     }    
+
+    template <class T>
+    any &operator[](T t) const
+    {
+        if (_type == anyTypeId::object_type)
+        {
+            return (*(js::object *)_value._data)[t];
+        }
+
+        throw "wrong type";
+    }  
+
+    template <class T>
+    any &operator[](T t)
+    {
+        if (_type == anyTypeId::object_type)
+        {
+            return (*(js::object *)_value._data)[t];
+        }
+
+        throw "wrong type";
+    }  
 
     operator pointer_t()
     {
