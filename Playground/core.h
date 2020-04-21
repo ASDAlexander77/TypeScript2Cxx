@@ -1007,6 +1007,12 @@ struct string : public undefined_t
 
     string operator+(any value);
 
+    string &operator+=(char c)
+    {
+        _value.append(string(c));
+        return *this;
+    }    
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     string &operator+=(T t)
     {
@@ -1884,7 +1890,7 @@ struct any
         throw "wrong type";
     }
 
-    operator bool()
+    operator bool() const
     {
         switch (_type)
         {
@@ -1909,8 +1915,13 @@ struct any
         return false;
     }
 
+    operator double()
+    {
+        return cast_to<double>();
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    operator T()
+    T cast_to() const
     {
         switch (_type)
         {
@@ -1923,7 +1934,7 @@ struct any
         case anyTypeId::string_type:
             return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
         default:
-            return (T)(_value._data);
+            return 0;
         }
 
         throw "wrong type";

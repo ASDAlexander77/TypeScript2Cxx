@@ -18,9 +18,9 @@ describe('Lang tests', () => {
     it('14 lazyoperations', () => expect(new Run().test(['lang-test0/14lazyoperations.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntesting lazy\r\ntesting lazy done\r\ntest OK!\r\n'));
     it('15 references', () => expect(new Run().test(['lang-test0/15references.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('17 classes', () => expect(new Run().test(['lang-test0/17classes.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntestToString\r\ntest OK!\r\n'));
-    /*
     it('18 enums', () => expect(new Run().test(['lang-test0/18enums.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('19 forof', () => expect(new Run().test(['lang-test0/19forof.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
+    /*
     it('20 maps', () => expect(new Run().test(['lang-test0/20maps.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('22 lambdas', () => expect(new Run().test(['lang-test0/22lambdas.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('23 generics', () => expect(new Run().test(['lang-test0/23generics.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
