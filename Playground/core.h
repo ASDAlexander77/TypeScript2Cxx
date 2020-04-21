@@ -1170,6 +1170,11 @@ static js::string operator""_S(const char *s, std::size_t size)
     return js::string(s);
 }
 
+static js::number operator""_N(long double value)
+{
+    return js::number(value);
+}
+
 static js::number operator+(const string& v)
 {
     return number(static_cast<double>(v));
@@ -1890,7 +1895,7 @@ struct any
         throw "wrong type";
     }
 
-    operator bool() const
+    operator bool()
     {
         switch (_type)
         {
@@ -1913,31 +1918,6 @@ struct any
         }
 
         return false;
-    }
-
-    operator double()
-    {
-        return cast_to<double>();
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    T cast_to() const
-    {
-        switch (_type)
-        {
-        case anyTypeId::undefined_type:
-            return T{0};
-        case anyTypeId::boolean_type:
-            return static_cast<T>(_value._boolean._value);
-        case anyTypeId::number_type:
-            return static_cast<T>(_value._number._value);
-        case anyTypeId::string_type:
-            return static_cast<T>(std::stold(((js::string *)_value._data)->_value));
-        default:
-            return 0;
-        }
-
-        throw "wrong type";
     }
 
     template <typename T>
