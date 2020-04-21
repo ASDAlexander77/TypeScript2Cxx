@@ -971,7 +971,7 @@ export class Emitter {
 
         // declare all private parameters of constructors
         for (const constructor of <ts.ConstructorDeclaration[]>(<ts.ClassDeclaration>node)
-                .members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
+            .members.filter(m => m.kind === ts.SyntaxKind.Constructor)) {
             for (const fieldAsParam of constructor.parameters.filter(p => this.hasAccessModifier(p.modifiers))) {
                 this.processDeclaration(fieldAsParam);
             }
@@ -1303,6 +1303,23 @@ export class Emitter {
         });
 
         return hasReturnResult;
+    }
+
+    private hasPropertyAccess(location: ts.Node, property: string): boolean {
+        let hasPropertyAccessResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                const identifier = <ts.Identifier>node;
+                if (identifier.text === property) {
+                    hasPropertyAccessResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return hasPropertyAccessResult;
     }
 
     private hasArguments(location: ts.Node): boolean {
@@ -2325,17 +2342,40 @@ export class Emitter {
     }
 
     private processForOfStatement(node: ts.ForOfStatement): void {
-        this.writer.writeString('for (auto& ');
-        const initVar = <any>node.initializer;
-        initVar.__ignore_type = true;
-        this.processExpression(initVar);
 
-        this.writer.writeString(' : ');
+        // if has Length access use iteration
+        const hasLengthAccess = this.hasPropertyAccess(node.statement, 'length');
+        if (!hasLengthAccess) {
+            this.writer.writeString('for (auto& ');
+            const initVar = <any>node.initializer;
+            initVar.__ignore_type = true;
+            this.processExpression(initVar);
 
-        this.processExpression(node.expression);
+            this.writer.writeString(' : ');
 
-        this.writer.writeStringNewLine(')');
-        this.processStatement(node.statement);
+            this.processExpression(node.expression);
+
+            this.writer.writeStringNewLine(')');
+            this.processStatement(node.statement);
+        } else {
+            const arrayName = `__array${node.getFullStart()}_${node.getEnd()}`;
+            const indexName = `__indx${node.getFullStart()}_${node.getEnd()}`;
+            this.writer.writeString(`auto& ${arrayName} = `);
+            this.processExpression(node.expression);
+            this.writer.EndOfStatement();
+
+            this.writer.writeStringNewLine(`for (size_t ${indexName} = 0; ${indexName} < ${arrayName}->get_length(); ${indexName}++)`);
+            this.writer.BeginBlock();
+            this.writer.writeString(`auto& `);
+            const initVar = <any>node.initializer;
+            initVar.__ignore_type = true;
+            this.processExpression(initVar);
+            this.writer.writeStringNewLine(` = const_(${arrayName})[${indexName}]`);
+            this.writer.EndOfStatement();
+
+            this.processStatement(node.statement);
+            this.writer.EndBlock();
+        }
     }
 
     private processBreakStatement(node: ts.BreakStatement) {
@@ -2621,7 +2661,7 @@ export class Emitter {
         }
 
         if (!isTuple) {
-           this.writer.writeString('array');
+            this.writer.writeString('array');
         }
 
         if (node.elements.length !== 0) {
@@ -3042,7 +3082,7 @@ export class Emitter {
             } else if (this.resolver.isStaticAccess(typeInfo)
                 || node.expression.kind === ts.SyntaxKind.SuperKeyword
                 || typeInfo && typeInfo.symbol && typeInfo.symbol.valueDeclaration
-                    && typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration) {
+                && typeInfo.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration) {
                 this.writer.writeString('::');
             } else {
                 this.writer.writeString('->');

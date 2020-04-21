@@ -1788,7 +1788,7 @@ struct any
         throw "wrong type";
     }
 
-    template <class T>
+    template <class T, std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
     any &operator[](T t) const
     {
         if (_type == anyTypeId::object_type)
@@ -1799,7 +1799,7 @@ struct any
         throw "wrong type";
     }
 
-    template <class T>
+    template <class T, std::enable_if_t<!std::is_arithmetic_v<T> && !std::is_same_v<T, js::number>>>
     any &operator[](T t)
     {
         if (_type == anyTypeId::object_type)
@@ -2596,6 +2596,17 @@ struct any
             throw "wrong type";
         }
     }
+
+    size_t get_length()
+    {
+        switch (_type)
+        {
+        case anyTypeId::array_type:
+            return ((js::array *)_value._data)->get_length();
+        default:
+            throw "wrong type";
+        }
+    }    
 
     auto begin() -> decltype((((js::array *)nullptr))->begin())
     {
