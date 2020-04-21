@@ -52,7 +52,7 @@ template<class _Ty>
 constexpr bool is_numeric_v = is_numeric<_Ty>::value;
 
 template<class _Ty>
-struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char*> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
+struct is_stringish : std::bool_constant<std::is_same_v<_Ty, decltype("A")> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
 {
 };
 
@@ -1366,7 +1366,7 @@ struct array : public undefined_t
         return get().size();
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
+    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
     E &operator[](I i) const
     {
         if (static_cast<size_t>(i) >= get().size())
@@ -1377,7 +1377,7 @@ struct array : public undefined_t
         return mutable_(get())[static_cast<size_t>(i)];
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>>>
+    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
     E &operator[](I i)
     {
         while (static_cast<size_t>(i) >= get().size())
@@ -1798,8 +1798,8 @@ struct any
             return mutable_(*(js::array *)_value._data)[t];
         }
 
-        throw "wrong type";        
-    }    
+        throw "wrong type";
+    }  
 
     template <class T>
     any &operator[](std::enable_if_t<is_numeric_v<T>, T> t)
@@ -1810,29 +1810,7 @@ struct any
         }
 
         throw "wrong type";
-    }
-
-    template <class T>
-    any &operator[](std::enable_if_t<is_stringish_v<T>, T> t) const
-    {
-        if (_type == anyTypeId::object_type)
-        {
-            return (*(js::object *)_value._data)[t];
-        }
-
-        throw "wrong type";
-    }
-
-    template <class T>
-    any &operator[](std::enable_if_t<is_stringish_v<T>, T> t)
-    {
-        if (_type == anyTypeId::object_type)
-        {
-            return (*(js::object *)_value._data)[t];
-        }
-
-        throw "wrong type";
-    }    
+    }  
 
     template <class T>
     any &operator[](T t) const
