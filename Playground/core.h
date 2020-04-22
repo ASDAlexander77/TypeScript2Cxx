@@ -461,6 +461,8 @@ struct number : public undefined_t
         return streamObj2.str();
     }
 
+    operator string();
+
     friend number_t operator+(const number_t n, number_t value)
     {
         return number_t(n._value + value._value);
@@ -1789,7 +1791,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number + t);
+            return any(_value._number.operator js::string() + t);
         case anyTypeId::string_type:
             return any(js::string(((js::string *)_value._data)->_value + t._value));
         }
@@ -2646,6 +2648,13 @@ constexpr bool IN(V v, O o)
 
 // Number
 namespace tmpl {
+
+template <typename V>
+number<V>::operator js::string() {
+    return js::string(static_cast<std::string>(*this));
+}    
+
+
 template <typename V>
 js::string number<V>::toString() {
     std::ostringstream streamObj2;
