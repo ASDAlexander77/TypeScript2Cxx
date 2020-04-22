@@ -2460,8 +2460,10 @@ struct any
             h2 = std::hash<std::string>{}(string_ref_const()._value);
             break;
 
+        case anyTypeId::array_type:
         case anyTypeId::object_type:
-            h2 = std::hash<void*>{}((void*)&(object_ref_const()._values));
+        case anyTypeId::class_type:
+            h2 = std::hash<void*>{}((void*)_value._data);
             break;
 
         default:
