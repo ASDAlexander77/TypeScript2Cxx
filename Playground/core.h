@@ -1472,6 +1472,46 @@ struct any
         return this;
     }
 
+    constexpr const js::string& string_ref_const() const
+    {
+        return *(js::string*)_value._data;
+    }    
+
+    constexpr js::string& string_ref()
+    {
+        return *(js::string*)_value._data;
+    }
+
+    constexpr const array& array_ref_const() const
+    {
+        return *(array*)_value._data;
+    }
+
+    constexpr array& array_ref()
+    {
+        return *(array*)_value._data;
+    }
+
+    constexpr const object& object_ref_const() const
+    {
+        return *(object*)_value._data;
+    }    
+
+    constexpr object& object_ref()
+    {
+        return *(object*)_value._data;
+    }
+
+    constexpr const std::shared_ptr<js::object>& class_ref_const() const 
+    {
+        return *(std::shared_ptr<js::object>*)_value._data;
+    }  
+
+    constexpr std::shared_ptr<js::object>& class_ref() 
+    {
+        return *(std::shared_ptr<js::object>*)_value._data;
+    }    
+
     any& operator=(const any& other)
     {
         _type = other._type;
@@ -1492,7 +1532,7 @@ struct any
         {
             if (_type == anyTypeId::array_type)
             {
-                return mutable_(*(js::array *)_value._data)[t];
+                return mutable_(array_ref())[t];
             }
         }
 
@@ -1500,7 +1540,7 @@ struct any
         {
             if (_type == anyTypeId::object_type)
             {
-                return (*(js::object *)_value._data)[t];
+                return (object_ref())[t];
             }
         }
 
@@ -1514,7 +1554,7 @@ struct any
         {
             if (_type == anyTypeId::array_type)
             {
-                return (*(js::array *)_value._data)[t];
+                return (array_ref())[t];
             }
         }
 
@@ -1522,16 +1562,16 @@ struct any
         {
             if (_type == anyTypeId::object_type)
             {
-                return (*(js::object *)_value._data)[t];
+                return (object_ref())[t];
             }
         }
 
         throw "wrong type";
     }  
 
-    operator pointer_t()
+    operator js::pointer_t()
     {
-        if (_type == anyTypeId::string_type && (*(js::string *)_value._data).isNull)
+        if (_type == anyTypeId::string_type && string_ref().isNull)
         {
             return null;
         }
@@ -1563,7 +1603,7 @@ struct any
 
         if (_type == anyTypeId::string_type)
         {
-            return js::number(std::atof((*(js::string *)_value._data).operator const char *()));
+            return js::number(std::atof(string_ref().operator const char *()));
         }
 
         throw "wrong type";
@@ -1573,7 +1613,7 @@ struct any
     {
         if (_type == anyTypeId::string_type)
         {
-            return *(js::string *)_value._data;
+            return string_ref();
         }
 
         if (_type == anyTypeId::number_type)
@@ -1593,7 +1633,7 @@ struct any
     {
         if (_type == anyTypeId::object_type)
         {
-            return *(js::object *)_value._data;
+            return object_ref();
         }
 
         throw "wrong type";
@@ -1603,7 +1643,7 @@ struct any
     {
         if (_type == anyTypeId::array_type)
         {
-            return *(js::array *)_value._data;
+            return array_ref();
         }
 
         throw "wrong type";
@@ -1620,9 +1660,9 @@ struct any
         case anyTypeId::number_type:
             return _value._number._value != 0.0;
         case anyTypeId::string_type:
-            return ((js::string *)_value._data)->_value.length() > 0;
+            return string_ref()._value.length() > 0;
         case anyTypeId::object_type:
-            return _value._data != nullptr && ((js::object *)_value._data)->_values.size() > 0;
+            return _value._data != nullptr && object_ref()->_values.size() > 0;
         case anyTypeId::array_type:
             return ((js::array *)_value._data)->get().size() > 0;
         case anyTypeId::class_type:
@@ -1699,9 +1739,9 @@ struct any
         case anyTypeId::number_type:
             return _value._number._value == other._value._number._value;
         case anyTypeId::string_type:
-            return std::strcmp(((js::string *)_value._data)->_value.c_str(), ((js::string *)other._value._data)->_value.c_str()) == 0;
+            return string_ref_const() == mutable_(other).string_ref();
         case anyTypeId::object_type:
-            return ((js::object *)_value._data) == ((js::object *)other._value._data);
+            return object_ref_const() == mutable_(other).object_ref();
         }
 
         throw "not implemented";
@@ -1731,7 +1771,7 @@ struct any
         case anyTypeId::number_type:
             return false;
         case anyTypeId::string_type:
-            return ((js::string *)_value._data)->isNull && other._ptr == nullptr;
+            return string_ref_const().isNull && other._ptr == nullptr;
         case anyTypeId::object_type:
         case anyTypeId::class_type:
             return _value._data == other._ptr;
@@ -1793,13 +1833,18 @@ struct any
         case anyTypeId::number_type:
             return any(_value._number.operator js::string() + t);
         case anyTypeId::string_type:
-            return any(js::string(((js::string *)_value._data)->_value + t._value));
+            return any(string_ref() + t);
         }
 
         throw "not implemented";
     }  
 
-    any operator+(any t) const
+    inline any operator+(any t) const
+    {
+        return mutable_(this)->operator+(t);        
+    }
+
+    any operator+(any t)
     {
         switch (_type)
         {
@@ -1809,24 +1854,19 @@ struct any
             case anyTypeId::number_type:
                 return any(_value._number + t._value._number);
             case anyTypeId::string_type:
-                return any(js::string(static_cast<std::string>(_value._number) + ((js::string *)t._value._data)->_value));
+                return any(_value._number.operator js::string() + t.string_ref());
             }
             break;
         case anyTypeId::string_type:
             switch (t._type)
             {
             case anyTypeId::string_type:
-                return any(js::string(((js::string *)_value._data)->_value + ((js::string *)t._value._data)->_value));
+                return any(string_ref() + t.string_ref());
             }
             break;
         }
 
         throw "not implemented";
-    }
-
-    any operator+(any t)
-    {
-        return const_(this)->operator+(t);
     }
 
     any &operator++()
@@ -2356,7 +2396,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::object_type:
-            ((js::object *)_value._data)->_values.erase(field);
+            object_ref()->_values.erase(field);
             break;
 
         default:
@@ -2417,11 +2457,11 @@ struct any
             break;
 
         case anyTypeId::string_type:
-            h2 = std::hash<std::string>{}(((js::string *)_value._data)->_value);
+            h2 = std::hash<std::string>{}(string_ref_const()._value);
             break;
 
         case anyTypeId::object_type:
-            h2 = std::hash<void *>{}((js::object *)_value._data);
+            h2 = std::hash<void*>{}((void*)&(object_ref_const()._values));
             break;
 
         default:
