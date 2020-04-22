@@ -2510,10 +2510,12 @@ export class Emitter {
         const isNegative = node.parent
             && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
             && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
-        let suffix = '';
+        const suffix = '';
+        /*
         if (isNegative && val >= 2147483648) {
             suffix = 'll';
         }
+        */
 
         // find if you need to box value
         let currentNode: ts.Expression = node;

@@ -285,6 +285,16 @@ static struct pointer_t : public undefined_t
         return !isUndefined && _ptr != nullptr;
     }
 
+    bool operator==(undefined_t u)
+    {
+        return isUndefined == u.isUndefined;
+    }
+
+    bool operator!=(undefined_t u)
+    {
+        return isUndefined != u.isUndefined;
+    }
+
     bool operator==(pointer_t p)
     {
         return isUndefined == p.isUndefined && _ptr == p._ptr;
@@ -409,12 +419,6 @@ struct number : public undefined_t
     {
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    constexpr operator T()
-    {
-        return static_cast<T>(_value);
-    }
-
     constexpr operator size_t()
     {
         return static_cast<size_t>(_value);
@@ -428,6 +432,12 @@ struct number : public undefined_t
     constexpr operator double()
     {
         return _value;
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    constexpr operator T()
+    {
+        return static_cast<T>(_value);
     }
 
     constexpr number_t *operator->()
