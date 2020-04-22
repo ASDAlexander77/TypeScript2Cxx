@@ -2195,6 +2195,19 @@ struct any
         throw "not implemented";
     }
 
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend T operator+=(T& t, any value)
+    {
+        switch (value._type)
+        {
+        case anyTypeId::number_type:
+            return t += value._value._number;
+        }
+
+        throw "not implemented";
+    }
+
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     any operator-(T t)
     {
@@ -2249,6 +2262,18 @@ struct any
         case anyTypeId::number_type:
             _value._number -= other;
             return *this;
+        }
+
+        throw "not implemented";
+    }
+
+    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    friend T operator-=(T& t, any value)
+    {
+        switch (value._type)
+        {
+        case anyTypeId::number_type:
+            return t -= value._value._number;
         }
 
         throw "not implemented";
