@@ -484,6 +484,13 @@ struct number : public undefined_t
         std::ostringstream streamObj2;
         streamObj2 << _value;
         return streamObj2.str();
+    }    
+
+    operator std::string()
+    {
+        std::ostringstream streamObj2;
+        streamObj2 << _value;
+        return streamObj2.str();
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -784,7 +791,12 @@ struct number : public undefined_t
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     friend number_t operator>>(T t, number_t value)
     {
-        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));
+        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));       
+    }
+
+    number_t operator~()
+    {
+        return number(~static_cast<long>(_value));
     }
 
     template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
@@ -1576,15 +1588,14 @@ struct object : public undefined_t
         _values.erase(field);
     }
 
-    template <class I>
-    std::enable_if_t<std::is_same_v<I, const char *> || std::is_same_v<I, std::string> || std::is_same_v<I, string> || std::is_same_v<I, any> || std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    template <class T>
+    bool exists(T i) const
     {
-        return _values.find(std::to_string(i)) != _values.end();
-    }
+        if constexpr (is_numeric_v<T> || is_stringish_v<T>) 
+        {
+            return _values.find(i) != _values.end();
+        }
 
-    template <class I>
-    std::enable_if_t<!std::is_same_v<I, const char *> && !std::is_same_v<I, std::string> && !std::is_same_v<I, string> && !std::is_same_v<I, any> && !std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
-    {
         return false;
     }
 
@@ -2335,7 +2346,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     friend any operator*(T t, any value)
     {
         switch (value._type)
@@ -2358,7 +2369,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     any operator/(T t)
     {
         switch (_type)
@@ -2397,7 +2408,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     friend any operator/(T t, any value)
     {
         switch (value._type)
@@ -2421,6 +2432,69 @@ struct any
         throw "not implemented";
     }
 
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
+    any operator%(T t)
+    {
+        switch (_type)
+        {
+        case anyTypeId::number_type:
+            return any(_value._number % t);
+        }
+
+        throw "not implemented";
+    }
+
+    any operator%(any t)
+    {
+        switch (_type)
+        {
+        case anyTypeId::number_type:
+            switch (t._type)
+            {
+            case anyTypeId::number_type:
+                return any(_value._number % t._value._number);
+            }
+            break;
+        }
+
+        throw "not implemented";
+    }
+
+    any operator%(const js::number &t)
+    {
+        switch (_type)
+        {
+        case anyTypeId::number_type:
+            return any(_value._number % t);
+        }
+
+        throw "not implemented";
+    }
+
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
+    friend any operator%(T t, any value)
+    {
+        switch (value._type)
+        {
+        case anyTypeId::number_type:
+            return any(t % value._value._number);
+        }
+
+        throw "not implemented";
+    }
+
+    any &operator%=(js::number other)
+    {
+        switch (_type)
+        {
+        case anyTypeId::number_type:
+            _value._number %= other;
+            return *this;
+        }
+
+        throw "not implemented";
+    }
+
     bool operator>(js::number n)
     {
         switch (_type)
@@ -2432,7 +2506,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator>(T t)
     {
         switch (_type)
@@ -2471,7 +2545,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator>=(T t)
     {
         switch (_type)
@@ -2510,7 +2584,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator<(T t)
     {
         switch (_type)
@@ -2549,7 +2623,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator<=(T t)
     {
         switch (_type)
@@ -3021,7 +3095,7 @@ struct ReadonlyArray
         return ArrayKeys<std::size_t>(_values.size());
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
+    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
     T &operator[](I i) const
     {
         if (static_cast<size_t>(i) >= _values.size())

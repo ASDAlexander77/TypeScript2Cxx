@@ -1540,15 +1540,8 @@ export class Emitter {
                     || this.resolver.isTypeAlias((<any>type).typeName)) && !this.resolver.isThisType(typeInfo);
 
                 // detect if pointer
-                let isEnum = false;
-                const entityProcessCheck = (entity: ts.EntityName) => {
-                    if (entity.kind === ts.SyntaxKind.QualifiedName) {
-                        entityProcessCheck(entity.left);
-                        isEnum = this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration);
-                    }
-                };
-
-                entityProcessCheck(typeReference.typeName);
+                const isEnum = this.isEnum(typeReference);
+                const isArray = this.resolver.isArrayType(typeInfo);
 
                 const skipPointerIf =
                     (typeInfo && (<any>typeInfo).symbol && (<any>typeInfo).symbol.name === '__type')
@@ -1559,7 +1552,8 @@ export class Emitter {
                     || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
                     || isEnum
                     || skipPointerInType
-                    || isTypeAlias;
+                    || isTypeAlias
+                    || isArray;
 
                 if (!skipPointerIf) {
                     this.writer.writeString('std::shared_ptr<');
@@ -1572,24 +1566,13 @@ export class Emitter {
                     this.writer.writeString('::');
                 }
 
-                const entityProcess = (entity: ts.EntityName) => {
-                    if (entity.kind === ts.SyntaxKind.Identifier) {
-                        this.writer.writeString(entity.text);
-                    } else if (entity.kind === ts.SyntaxKind.QualifiedName) {
-                        entityProcess(entity.left);
-                        isEnum = this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration);
-                        if (!isEnum) {
-                            this.writer.writeString('::');
-                            this.writer.writeString(entity.right.text);
-                        }
-                    } else {
-                        throw new Error('Not Implemented');
-                    }
-                };
+                if (isArray) {
+                    this.writer.writeString('array');
+                } else {
+                    this.writeTypeName(typeReference);
+                }
 
-                entityProcess(typeReference.typeName);
-
-                if (typeReference.typeArguments) {
+                if (!isArray && typeReference.typeArguments) {
                     this.writer.writeString('<');
 
                     let next1 = false;
@@ -1721,6 +1704,38 @@ export class Emitter {
                 this.writer.writeString(auto ? 'auto' : 'any');
                 break;
         }
+    }
+
+    private writeTypeName(typeReference: ts.TypeReferenceNode) {
+        const entityProcess = (entity: ts.EntityName) => {
+            if (entity.kind === ts.SyntaxKind.Identifier) {
+                this.writer.writeString(entity.text);
+            } else if (entity.kind === ts.SyntaxKind.QualifiedName) {
+                entityProcess(entity.left);
+                if (!this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration)) {
+                    this.writer.writeString('::');
+                    this.writer.writeString(entity.right.text);
+                }
+            } else {
+                throw new Error('Not Implemented');
+            }
+        };
+
+        entityProcess(typeReference.typeName);
+    }
+
+    private isEnum(typeReference: ts.TypeReferenceNode) {
+        let isEnum = false;
+        const entityProcessCheck = (entity: ts.EntityName) => {
+            if (entity.kind === ts.SyntaxKind.QualifiedName) {
+                entityProcessCheck(entity.left);
+                isEnum = this.resolver.isTypeFromSymbol(entity.left, ts.SyntaxKind.EnumDeclaration);
+            }
+        };
+
+        entityProcessCheck(typeReference.typeName);
+
+        return isEnum;
     }
 
     private processDefaultValue(type: ts.TypeNode): void {
