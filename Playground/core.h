@@ -1182,12 +1182,12 @@ struct ObjectKeys
         return *this;
     }
 
-    const std::string &operator*() const
+    const std::string &operator*()
     {
         return _index->first;
     }
 
-    bool operator!=(const iterator &rhs) const
+    bool operator!=(const iterator &rhs)
     {
         return _index != rhs._end;
     }
@@ -1379,6 +1379,11 @@ struct any
 
     any(const js::number &value) : _type(anyTypeId::number_type), _value(value), _counter(nullptr)
     {
+    }
+
+    any(const std::string &value) : _type(anyTypeId::string_type), _value((void *)new js::string(value)), _counter(new long)
+    {
+        *_counter = 1;
     }
 
     any(const js::string &value) : _type(anyTypeId::string_type), _value((void *)new js::string(value)), _counter(new long)

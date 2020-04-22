@@ -1,8 +1,7 @@
-class Class1 {                                 
-            public show(s:string) {                     
-                console.log(s);                         
-            }                                           
-        }                                               
-                                                        
-        let c = new Class1();                           
-        c.show("Hello");
+let a = { obj: "asd", obj2: "value" };     
+        delete a.obj;                               
+        for (let i in a)                            
+        {                                           
+            console.log(i);                         
+            console.log(a[i]);                      
+        }                   

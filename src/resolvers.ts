@@ -106,6 +106,10 @@ export class IdentifierResolver {
     }
 
     public isObjectType(typeInfo: ts.Type) {
+        if (!typeInfo) {
+            return false;
+        }
+
         if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
             const type = (<any>typeInfo.symbol.valueDeclaration).type;
             if (type && type.kind === ts.SyntaxKind.TypeReference) {
@@ -117,11 +121,15 @@ export class IdentifierResolver {
     }
 
     public isArrayOrStringType(typeInfo: ts.Type) {
-        if (typeInfo && (<any>typeInfo).intrinsicName === "string") {
+        if (!typeInfo) {
+            return false;
+        }
+
+        if ((<any>typeInfo).intrinsicName === 'string') {
             return true;
         }
 
-        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) == "string") {
+        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) === 'string') {
             return true;
         }
 
