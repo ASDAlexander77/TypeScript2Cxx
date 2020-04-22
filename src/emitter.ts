@@ -2510,19 +2510,10 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
-        let boxing = false;
-        if (currentNode && currentNode.parent && currentNode.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
-            boxing = true;
-        }
-
-        if (boxing) {
-            this.writer.writeString('number(');
-        }
-
         this.writer.writeString(`${node.text}${suffix}`);
-
-        if (boxing) {
-            this.writer.writeString(')');
+        if (!(<any>node).__skip_boxing)
+        {
+            this.writer.writeString(`_N`);
         }
     }
 
@@ -2693,6 +2684,7 @@ export class Emitter {
             }
 
             this.writer.writeString('std::get<');
+            (<any>node.argumentExpression).__skip_boxing = true;
             this.processExpression(node.argumentExpression);
             this.writer.writeString('>(');
             this.processExpression(node.expression);

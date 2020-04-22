@@ -250,13 +250,13 @@ static struct undefined_t
         return isUndefined;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator==(T t)
     {
         return !isUndefined && t == 0;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator!=(T t)
     {
         return isUndefined && t == 0;
@@ -307,13 +307,13 @@ static struct pointer_t : public undefined_t
         return isUndefined != p.isUndefined || _ptr != p._ptr;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator==(T t)
     {
         return false;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     bool operator!=(T t)
     {
         return true;
@@ -1190,6 +1190,11 @@ static js::string operator""_S(const char *s, std::size_t size)
 }
 
 static js::number operator""_N(long double value)
+{
+    return js::number(value);
+}
+
+static js::number operator""_N(unsigned long long value)
 {
     return js::number(value);
 }
@@ -2122,7 +2127,7 @@ struct any
         return static_cast<js::string>(*mutable_(this)) != other;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     any operator+(T t)
     {
         switch (_type)
@@ -2196,7 +2201,7 @@ struct any
     }
 
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     friend T operator+=(T& t, any value)
     {
         switch (value._type)
@@ -2208,7 +2213,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     any operator-(T t)
     {
         switch (_type)
@@ -2267,7 +2272,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     friend T operator-=(T& t, any value)
     {
         switch (value._type)
@@ -2279,7 +2284,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
     any operator*(T t)
     {
         switch (_type)
