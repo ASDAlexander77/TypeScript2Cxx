@@ -657,11 +657,6 @@ struct number : public undefined_t
 };
 }
 
-static js::number operator+(const undefined_t& v)
-{
-    return number(NAN);
-}
-
 struct string : public undefined_t
 {
     bool isNull;
@@ -2484,6 +2479,16 @@ struct any
         return os << "[any]";
     }
 };
+
+static js::number operator+(const undefined_t& v)
+{
+    return number(NAN);
+}
+
+static js::number operator+(const boolean& v)
+{
+    return number((mutable_(v)) ? 1 : 0);
+}
 
 template <>
 string typeOf(boolean value)
