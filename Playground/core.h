@@ -702,12 +702,17 @@ struct string : public undefined_t
         return _value.c_str();
     }
 
-    constexpr operator bool()
+    inline operator bool()
     {
         return !isUndefined && !isNull && !_value.empty();
     }
 
-    inline operator size_t() const
+    inline operator double()
+    {
+        return !(*this) ? 0 : std::stod(_value);
+    }
+
+    inline operator size_t()
     {
         return _value.size();
     }    
@@ -899,7 +904,7 @@ static js::number operator""_N(unsigned long long value)
 
 static js::number operator+(const string& v)
 {
-    return number(static_cast<double>(v));
+    return number(static_cast<double>(mutable_(v)));
 }
 
 static js::number operator+(pointer_t ptr)
