@@ -29,8 +29,8 @@ namespace js
 #define OR(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? vx : (y); })()
 #define AND(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? (y) : vx; })()
 
-#define Infinity std::numeric_limits<double>::infinity()
-#define NaN nan("")
+#define Infinity js::number(std::numeric_limits<double>::infinity())
+#define NaN js::number(nan(""))
 
 struct undefined_t;
 struct pointer_t;
@@ -172,7 +172,7 @@ constexpr auto rshift(T1 op1, T2 op2)
     auto op2ul32 = op2ul & 0x1f;
     auto r = op1l >> op2ul32;
     auto rl = static_cast<long>(r);
-    return rl;    
+    return static_cast<T1>(rl);    
 }
 
 template <typename T1, typename T2>
@@ -185,7 +185,7 @@ constexpr auto rshift_nosign(T1 op1, T2 op2)
     auto op2ul32 = op2ul & 0x1f;
     auto r = op1ul >> op2ul32;
     auto rul = static_cast<unsigned long>(r);
-    return rul;    
+    return static_cast<T1>(rul);    
 }
 
 template <typename T1, typename T2>
@@ -198,7 +198,7 @@ constexpr auto lshift(T1 op1, T2 op2)
     auto op2ul32 = op2ul & 0x1f;
     auto r = op1l << op2ul32;
     auto rl = static_cast<long>(r);
-    return rl;
+    return static_cast<T1>(rl);
 }
 
 } // namespace bitwise
@@ -393,6 +393,9 @@ struct boolean : public undefined_t
     }
 };
 
+static struct boolean true_t(true);
+static struct boolean false_t(false);
+
 namespace tmpl
 {
 template <typename V>
@@ -434,11 +437,10 @@ struct number : public undefined_t
         return _value;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    constexpr operator T()
+    constexpr operator long long()
     {
-        return static_cast<T>(_value);
-    }
+        return static_cast<long long>(_value);
+    }    
 
     constexpr number_t *operator->()
     {
@@ -710,9 +712,9 @@ struct string : public undefined_t
         return _value.size();
     }    
 
-    size_t get_length()
+    js::number get_length()
     {
-        return _value.size();
+        return js::number(_value.size());
     }
 
     constexpr string *operator->()
@@ -725,7 +727,7 @@ struct string : public undefined_t
         return string(_value[n]);
     }
 
-    string operator+(bool b)
+    string operator+(boolean b)
     {
         return string(_value + (b ? "true" : "false"));
     }
@@ -1063,8 +1065,8 @@ struct array : public undefined_t
         return *_values.get();
     }
 
-    size_t get_length() {
-        return get().size();
+    js::number get_length() {
+        return js::number(get().size());
     }
 
     template <class I, class = std::enable_if_t<is_numeric_v<I>>>
@@ -1771,8 +1773,7 @@ struct any
         return static_cast<js::string>(*mutable_(this)) != other;
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    any operator+(T t)
+    any operator+(js::number t)
     {
         switch (_type)
         {
