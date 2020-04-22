@@ -1,6 +1,8 @@
-	let a = [10, 20, 30, 40];              
-        for (let i in a) {                      
-            console.log(i);                     
-            if (i == 0) continue;               
-            break;                              
-        }
+class Class1 {                                 
+            public show(s:string) {                     
+                console.log(s);                         
+            }                                           
+        }                                               
+                                                        
+        let c = new Class1();                           
+        c.show("Hello");
