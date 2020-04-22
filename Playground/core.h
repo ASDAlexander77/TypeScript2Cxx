@@ -2480,11 +2480,13 @@ struct any
     }
 };
 
+// TODO: put into class undefined
 static js::number operator+(const undefined_t& v)
 {
     return number(NAN);
 }
 
+// TODO: put into class boolean
 static js::number operator+(const boolean& v)
 {
     return number((mutable_(v)) ? 1 : 0);
