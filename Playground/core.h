@@ -1789,6 +1789,19 @@ struct any
         throw "not implemented";
     }
 
+    any operator+(string t)
+    {
+        switch (_type)
+        {
+        case anyTypeId::number_type:
+            return any(_value._number + t);
+        case anyTypeId::string_type:
+            return any(js::string(((js::string *)_value._data)->_value + t._value));
+        }
+
+        throw "not implemented";
+    }  
+
     any operator+(any t) const
     {
         switch (_type)
@@ -1799,14 +1812,14 @@ struct any
             case anyTypeId::number_type:
                 return any(_value._number + t._value._number);
             case anyTypeId::string_type:
-                return any(js::string(std::strcat(mutable_(static_cast<std::string>(_value._number).c_str()), ((js::string *)t._value._data)->_value.c_str())));
+                return any(js::string(static_cast<std::string>(_value._number) + ((js::string *)t._value._data)->_value));
             }
             break;
         case anyTypeId::string_type:
             switch (t._type)
             {
             case anyTypeId::string_type:
-                return any(js::string(std::strcat(mutable_(((js::string *)_value._data)->_value.c_str()), ((js::string *)t._value._data)->_value.c_str())));
+                return any(js::string(((js::string *)_value._data)->_value + ((js::string *)t._value._data)->_value));
             }
             break;
         }
@@ -1845,7 +1858,7 @@ struct any
         case anyTypeId::number_type:
             _value._number += other;
             return *this;
-        }
+        }  
 
         throw "not implemented";
     }
@@ -2354,7 +2367,7 @@ struct any
         }
     }
 
-    size_t get_length()
+    js::number get_length()
     {
         switch (_type)
         {
