@@ -1900,9 +1900,7 @@ struct any
         throw "not implemented";
     }
 
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    friend T operator+=(T& t, any value)
+    friend js::number operator+=(js::number& t, any value)
     {
         switch (value._type)
         {
@@ -1913,8 +1911,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    any operator-(T t)
+    any operator-(js::number t)
     {
         switch (_type)
         {
@@ -1972,8 +1969,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    friend T operator-=(T& t, any value)
+    friend js::number operator-=(js::number& t, any value)
     {
         switch (value._type)
         {
@@ -1984,8 +1980,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    any operator*(T t)
+    any operator*(js::number t)
     {
         switch (_type)
         {
@@ -2035,18 +2030,6 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    friend any operator*(T t, any value)
-    {
-        switch (value._type)
-        {
-        case anyTypeId::number_type:
-            return any(t * value._value._number);
-        }
-
-        throw "not implemented";
-    }
-
     friend any operator*(js::number n, any value)
     {
         switch (value._type)
@@ -2058,8 +2041,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    any operator/(T t)
+    any operator/(js::number t)
     {
         switch (_type)
         {
@@ -2086,19 +2068,7 @@ struct any
         throw "not implemented";
     }
 
-    any operator/(const js::number &t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return any(_value._number / t);
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    friend any operator/(T t, any value)
+    friend any operator/(js::number t, any value)
     {
         switch (value._type)
         {
@@ -2121,8 +2091,7 @@ struct any
         throw "not implemented";
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    any operator%(T t)
+    any operator%(number t)
     {
         switch (_type)
         {
@@ -2396,7 +2365,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::object_type:
-            object_ref()->_values.erase(field);
+            object_ref()._values.erase(field);
             break;
 
         default:
@@ -2409,29 +2378,29 @@ struct any
         switch (_type)
         {
         case anyTypeId::array_type:
-            return ((js::array *)_value._data)->get_length();
+            return array_ref().get_length();
         default:
             throw "wrong type";
         }
     }    
 
-    auto begin() -> decltype((((js::array *)nullptr))->begin())
+    auto begin() -> decltype(array_ref().begin())
     {
         switch (_type)
         {
         case anyTypeId::array_type:
-            return ((js::array *)_value._data)->begin();
+            return array_ref().begin();
         default:
             throw "wrong type";
         }        
     }
 
-    auto end() -> decltype((((js::array *)nullptr))->end())
+    auto end() -> decltype(array_ref().end())
     {
         switch (_type)
         {
         case anyTypeId::array_type:
-            return ((js::array *)_value._data)->end();
+            return array_ref().end();
         default:
             throw "wrong type";
         }        
