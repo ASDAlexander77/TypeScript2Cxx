@@ -57,19 +57,40 @@ I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
         console.log(sentence);                                      \
     '])));
 
-    it('Array', () => expect('1\r\n2\r\n3\r\n10\r\n1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
+    it('Array', () => expect('1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
         'let list: number[] = [1, 2, 3];        \
         console.log(list[0]);                   \
         console.log(list[1]);                   \
         console.log(list[2]);                   \
         list[2] = 10;                           \
         console.log(list[2]);                   \
-        var list2: Array<number> = [1, 2, 3];   \
+    '])));
+
+    it('new Array', () => expect('1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
+        'var list2: Array<number> = [1, 2, 3];   \
         console.log(list2[0]);                  \
         console.log(list2[1]);                  \
         console.log(list2[2]);                  \
         list2[2] = 10;                          \
         console.log(list2[2]);                  \
+    '])));
+
+    it('Object', () => expect('1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
+        'let list = {v1: 1, v2: 2, v3: 3};         \
+        console.log(list["v1"]);                   \
+        console.log(list["v2"]);                   \
+        console.log(list["v3"]);                   \
+        list["v3"] = 10;                           \
+        console.log(list["v3"]);                   \
+    '])));
+
+    it('new Map', () => expect('1\r\n2\r\n3\r\n10\r\n').to.equals(new Run().test([
+        'var list2: Map<number> = [1, 2, 3];       \
+        console.log(list["v1"]);                   \
+        console.log(list["v2"]);                   \
+        console.log(list["v3"]);                   \
+        list["v3"] = 10;                           \
+        console.log(list["v3"]);                   \
     '])));
 
     it('Tuple', () => expect('hello\r\n10\r\nhello\r\n10\r\n').to.equals(new Run().test([

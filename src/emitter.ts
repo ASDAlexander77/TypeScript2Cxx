@@ -2710,6 +2710,7 @@ export class Emitter {
                 && type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
                 && type.kind !== ts.SyntaxKind.ArrayType
+                && type.kind !== ts.SyntaxKind.ObjectKeyword
                 && type.kind !== ts.SyntaxKind.AnyKeyword
                 && symbolInfo
                 && symbolInfo.valueDeclaration
@@ -2903,15 +2904,22 @@ export class Emitter {
 
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
 
-        if (node.kind === ts.SyntaxKind.NewExpression) {
+        const isNew = node.kind === ts.SyntaxKind.NewExpression;
+        const typeOfExpression = isNew && this.resolver.getOrResolveTypeOf(node.expression);
+        const isArray = isNew && typeOfExpression && typeOfExpression.symbol && typeOfExpression.symbol.name === 'ArrayConstructor';
+
+        if (node.kind === ts.SyntaxKind.NewExpression && !isArray) {
             this.writer.writeString('std::make_shared<');
         }
 
-        this.processExpression(node.expression);
+        if (isArray) {
+            this.writer.writeString('array');
+        } else {
+            this.processExpression(node.expression);
+            this.processTemplateArguments(node);
+        }
 
-        this.processTemplateArguments(node);
-
-        if (node.kind === ts.SyntaxKind.NewExpression) {
+        if (node.kind === ts.SyntaxKind.NewExpression && !isArray) {
             // closing template
             this.writer.writeString('>');
         }
