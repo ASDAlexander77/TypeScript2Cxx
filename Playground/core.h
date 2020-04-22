@@ -52,7 +52,7 @@ template<class _Ty>
 constexpr bool is_numeric_v = is_numeric<_Ty>::value;
 
 template<class _Ty>
-struct is_stringish : std::bool_constant<std::is_same_v<_Ty, decltype("A")> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
+struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char*> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
 {
 };
 
@@ -1791,33 +1791,22 @@ struct any
     }
 
     template <class T>
-    any &operator[](std::enable_if_t<is_numeric_v<T>, T> t) const
-    {
-        if (_type == anyTypeId::array_type)
-        {
-            return mutable_(*(js::array *)_value._data)[t];
-        }
-
-        throw "wrong type";
-    }  
-
-    template <class T>
-    any &operator[](std::enable_if_t<is_numeric_v<T>, T> t)
-    {
-        if (_type == anyTypeId::array_type)
-        {
-            return (*(js::array *)_value._data)[t];
-        }
-
-        throw "wrong type";
-    }  
-
-    template <class T>
     any &operator[](T t) const
     {
-        if (_type == anyTypeId::object_type)
+        if constexpr (is_numeric_v<T>)
         {
-            return (*(js::object *)_value._data)[t];
+            if (_type == anyTypeId::array_type)
+            {
+                return mutable_(*(js::array *)_value._data)[t];
+            }
+        }
+
+        if constexpr (is_stringish_v<T>)
+        {
+            if (_type == anyTypeId::object_type)
+            {
+                return (*(js::object *)_value._data)[t];
+            }
         }
 
         throw "wrong type";
@@ -1826,9 +1815,20 @@ struct any
     template <class T>
     any &operator[](T t)
     {
-        if (_type == anyTypeId::object_type)
+        if constexpr (is_numeric_v<T>)
         {
-            return (*(js::object *)_value._data)[t];
+            if (_type == anyTypeId::array_type)
+            {
+                return (*(js::array *)_value._data)[t];
+            }
+        }
+
+        if constexpr (is_stringish_v<T>)
+        {
+            if (_type == anyTypeId::object_type)
+            {
+                return (*(js::object *)_value._data)[t];
+            }
         }
 
         throw "wrong type";
