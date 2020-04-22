@@ -44,7 +44,7 @@ namespace tmpl {
 typedef tmpl::number<double> number;
 
 template<class _Ty>
-struct is_numeric : std::bool_constant<std::is_arithmetic_v<_Ty> || std::is_same_v<_Ty, js::number>>
+struct is_numeric : std::bool_constant<std::is_same_v<_Ty, js::number>>
 {
 };
 
@@ -250,18 +250,6 @@ static struct undefined_t
         return isUndefined;
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator==(T t)
-    {
-        return !isUndefined && t == 0;
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator!=(T t)
-    {
-        return isUndefined && t == 0;
-    }
-
     friend std::ostream &operator<<(std::ostream &os, undefined_t val)
     {
         return os << "undefined";
@@ -307,17 +295,9 @@ static struct pointer_t : public undefined_t
         return isUndefined != p.isUndefined || _ptr != p._ptr;
     }
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator==(T t)
-    {
-        return false;
-    }
+    bool operator==(js::number n);
 
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator!=(T t)
-    {
-        return true;
-    }
+    bool operator!=(js::number n);
 
 /*
     constexpr operator std::nullptr_t()
@@ -359,30 +339,6 @@ template <typename L, typename R>
 constexpr bool NotEquals(L l, R r)
 {
     return !Equals(l, r);
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(undefined_t undef, T t)
-{
-    return !undef.isUndefined;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-constexpr bool Equals(T t, undefined_t undef)
-{
-    return !undef.isUndefined;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-inline bool Equals(pointer_t nullValue, T t)
-{
-    return false;
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-inline bool Equals(T t, pointer_t nullValue)
-{
-    return false;
 }
 
 struct boolean : public undefined_t
@@ -493,25 +449,6 @@ struct number : public undefined_t
         return streamObj2.str();
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator+(const T t)
-    {
-        return number_t(_value + t);
-    }
-
-/*
-    number_t operator+(number_t n)
-    {
-        return number_t(_value + n._value);
-    }
-*/
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator+(const T t, number_t value)
-    {
-        return number_t(t + value._value);
-    }
-
     friend number_t operator+(const number_t n, number_t value)
     {
         return number_t(n._value + value._value);
@@ -541,28 +478,9 @@ struct number : public undefined_t
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator+=(T &t, number_t other)
-    {
-        t += other._value;
-        return t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator-(T t)
-    {
-        return number_t(_value - t);
-    }
-
     number_t operator-(number_t n)
     {
         return number_t(_value - n._value);
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator-(T t, number_t value)
-    {
-        return number_t(t - value._value);
     }
 
     number_t operator-()
@@ -589,19 +507,6 @@ struct number : public undefined_t
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator-=(T &t, number_t other)
-    {
-        t -= other._value;
-        return t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator*(T t)
-    {
-        return number_t(_value * t);
-    }
-
     number_t operator*(number_t n)
     {
         return number_t(_value * n._value);
@@ -611,25 +516,6 @@ struct number : public undefined_t
     {
         _value *= other._value;
         return *this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator*=(T &t, number_t other)
-    {
-        t *= other._value;
-        return t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator*(T t, number_t value)
-    {
-        return number_t(t * value._value);
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator/(T t)
-    {
-        return number_t(_value / t);
     }
 
     number_t operator/(number_t n)
@@ -643,25 +529,6 @@ struct number : public undefined_t
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend T &operator/=(T &t, number_t other)
-    {
-        t /= other._value;
-        return t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator/(T t, number_t value)
-    {
-        return number_t(t / value._value);
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator^(T t)
-    {
-        return number_t(static_cast<long>(_value) ^ static_cast<long>(t));
-    }
-
     number_t operator^(number_t n)
     {
         return number_t(static_cast<long>(_value) ^ static_cast<long>(n._value));
@@ -671,18 +538,6 @@ struct number : public undefined_t
     {
         _value = static_cast<long>(_value) ^ static_cast<long>(other._value);
         return *this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator^(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) ^ static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator|(T t)
-    {
-        return number_t(static_cast<long>(_value) | static_cast<long>(t));
     }
 
     number_t operator|(number_t n)
@@ -696,18 +551,6 @@ struct number : public undefined_t
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator|(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) | static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator&(T t)
-    {
-        return number_t(static_cast<long>(_value) & static_cast<long>(t));
-    }
-
     number_t operator&(number_t n)
     {
         return number_t(static_cast<long>(_value) & static_cast<long>(n._value));
@@ -717,18 +560,6 @@ struct number : public undefined_t
     {
         _value = static_cast<long>(_value) & static_cast<long>(other._value);
         return *this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator&(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) & static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator%(T t)
-    {
-        return number_t(static_cast<long>(_value) % static_cast<long>(t));
     }
 
     number_t operator%(number_t n)
@@ -742,18 +573,6 @@ struct number : public undefined_t
         return *this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator%(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) % static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator<<(T t)
-    {
-        return number_t(static_cast<long>(_value) << static_cast<long>(t));
-    }
-
     number_t operator<<(number_t n)
     {
         return number_t(static_cast<long>(_value) << static_cast<long>(n._value));
@@ -764,18 +583,6 @@ struct number : public undefined_t
         _value = static_cast<long>(_value) << static_cast<long>(other._value);
         return *this;
     }    
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator<<(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) << static_cast<long>(value._value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number_t operator>>(T t)
-    {
-        return number_t(static_cast<long>(_value) >> static_cast<long>(t));
-    }
 
     number_t operator>>(number_t n)
     {
@@ -788,21 +595,9 @@ struct number : public undefined_t
         return *this;
     }    
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend number_t operator>>(T t, number_t value)
-    {
-        return number_t(static_cast<long>(t) >> static_cast<long>(value._value));       
-    }
-
     number_t operator~()
     {
         return number(~static_cast<long>(_value));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator==(T t)
-    {
-        return !isUndefined && _value == t;
     }
 
     bool operator==(number_t n)
@@ -810,33 +605,9 @@ struct number : public undefined_t
         return isUndefined |= n.isUndefined ? false : isUndefined == true ? true : _value == n._value;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator==(const T t, number_t value)
-    {
-        return !value.isUndefined && value._value == t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator!=(T t)
-    {
-        return !isUndefined && _value != t;
-    }
-
     bool operator!=(number_t n)
     {
         return isUndefined != n.isUndefined ? true : isUndefined == true ? true : _value != n._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator!=(const T t, number_t value)
-    {
-        return !value.isUndefined && value._value != t;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator<(T t)
-    {
-        return !isUndefined && _value < t;
     }
 
     bool operator<(number_t n)
@@ -844,33 +615,9 @@ struct number : public undefined_t
         return isUndefined == n.isUndefined && _value < n._value;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator<=(T t)
-    {
-        return !isUndefined && _value <= t;
-    }
-
     bool operator<=(number_t n)
     {
         return isUndefined == n.isUndefined && _value <= n._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator<(T t, number_t value)
-    {
-        return !value.isUndefined && t < value._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator<=(T t, number_t value)
-    {
-        return !value.isUndefined && t <= value._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator>(T t)
-    {
-        return !isUndefined && _value > t;
     }
 
     bool operator>(number_t n)
@@ -878,27 +625,9 @@ struct number : public undefined_t
         return isUndefined == n.isUndefined && _value > n._value;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator>=(T t)
-    {
-        return !isUndefined && _value >= t;
-    }
-
     bool operator>=(number_t n)
     {
         return isUndefined == n.isUndefined && _value >= n._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator>(T t, number_t value)
-    {
-        return !value.isUndefined && t > value._value;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    friend bool operator>=(T t, number_t value)
-    {
-        return !value.isUndefined && t >= value._value;
     }
 
     js::string toString();
@@ -919,18 +648,6 @@ struct number : public undefined_t
 static js::number operator+(const undefined_t& v)
 {
     return number(NAN);
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-inline bool Equals(number n, T t)
-{
-    return n == number(t);
-}
-
-template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-inline bool Equals(T t, number n)
-{
-    return number(t) == n;
 }
 
 struct string : public undefined_t
@@ -988,21 +705,9 @@ struct string : public undefined_t
         return _value.size();
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    constexpr operator T() const
-    {
-        return static_cast<T>(std::stold(_value.c_str()));
-    }
-
     constexpr string *operator->()
     {
         return this;
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    string operator[](T t) const
-    {
-        return string(_value[t]);
     }
 
     string operator[](number n) const
@@ -1013,12 +718,6 @@ struct string : public undefined_t
     string operator+(bool b)
     {
         return string(_value + (b ? "true" : "false"));
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    string operator+(T t)
-    {
-        return string(_value + std::to_string(t));
     }
 
     string operator+(number value)
@@ -1043,13 +742,6 @@ struct string : public undefined_t
         _value.append(string(c));
         return *this;
     }    
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    string &operator+=(T t)
-    {
-        _value.append(std::to_string(t));
-        return *this;
-    }
 
     string &operator+=(number value)
     {
@@ -1120,21 +812,9 @@ struct string : public undefined_t
         return string(_value + value._value);
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    string charAt(T t) const
-    {
-        return string(_value[t]);
-    }
-
     string charAt(number n) const
     {
         return string(_value[n]);
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number charCodeAt(T t) const
-    {
-        return number(_value[t]);
     }
 
     number charCodeAt(number n) const
@@ -1162,12 +842,6 @@ struct string : public undefined_t
         }
 
         return string(result);
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    string substring(T begin, T end)
-    {
-        return string(_value.substr(begin, end - begin));
     }
 
     string substring(number begin, number end)
@@ -1471,14 +1145,13 @@ struct array : public undefined_t
         return os << "[array]";
     }
 
-    template <class I>
-    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, js::number>, bool> exists(I i) const
+    bool exists(js::number i) const
     {
         return static_cast<size_t>(i) < get().size();
     }
 
-    template <class I>
-    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, js::number>, bool> exists(I i) const
+    template <class T>
+    bool exists(T) const
     {
         return false;
     }
@@ -1559,11 +1232,7 @@ struct object : public undefined_t
         return this;
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
-    any &operator[](T t) const
-    {
-        return mutable_(_values)[std::to_string(t)];
-    }
+    any &operator[](number n) const;
 
     any &operator[](const char *s) const;
 
@@ -1571,11 +1240,7 @@ struct object : public undefined_t
 
     any &operator[](string s) const;
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T> || std::is_same_v<T, number>>>
-    any &operator[](T t)
-    {
-        return _values[std::to_string(t)];
-    }
+    any &operator[](number n);
 
     any &operator[](const char *s);
 
@@ -1701,11 +1366,6 @@ struct any
     }
 
     any(pointer_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
-    {
-    }
-
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    any(T initValue) : _type(anyTypeId::number_type), _value(js::number(initValue)), _counter(nullptr)
     {
     }
 
@@ -2033,48 +1693,6 @@ struct any
         return !(*this == other);
     }
 
-    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator==(T t) const
-    {
-        switch (_type)
-        {
-        case anyTypeId::undefined_type:
-            return false;
-        case anyTypeId::boolean_type:
-            return _value._boolean._value == static_cast<bool>(t);
-        case anyTypeId::number_type:
-            return _value._number._value == t;
-        case anyTypeId::string_type:
-            return ((js::string *)_value._data)->_value == std::to_string(t);
-        case anyTypeId::object_type:
-        case anyTypeId::class_type:
-            return false;
-        }
-
-        throw "not implemented";
-    }
-
-    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    bool operator!=(T t) const
-    {
-        switch (_type)
-        {
-        case anyTypeId::undefined_type:
-            return true;
-        case anyTypeId::boolean_type:
-            return _value._boolean._value != static_cast<bool>(t);
-        case anyTypeId::number_type:
-            return _value._number._value != t;
-        case anyTypeId::string_type:
-            return ((js::string *)_value._data)->_value != std::to_string(t);
-        case anyTypeId::object_type:
-        case anyTypeId::class_type:
-            return false;
-        }
-
-        throw "not implemented";
-    }    
-
     bool operator==(const js::undefined_t &other) const
     {
         return _type == anyTypeId::undefined_type && other.isUndefined;
@@ -2363,7 +1981,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return any(n._value * value._value._number);
+            return any(n * value._value._number);
         }
 
         throw "not implemented";
@@ -3130,26 +2748,24 @@ struct Array : public ReadonlyArray<T>
     {
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    T &operator[](I i) const
+    T &operator[](number n) const
     {
-        if (static_cast<size_t>(i) >= _values.size())
+        if (static_cast<size_t>(n) >= _values.size())
         {
             return T(undefined);
         }
 
-        return mutable_(_values)[static_cast<size_t>(i)];
+        return mutable_(_values)[static_cast<size_t>(n)];
     }
 
-    template <class I, class = std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>>>
-    T &operator[](I i)
+    T &operator[](number n)
     {
-        while (static_cast<size_t>(i) >= _values.size())
+        while (static_cast<size_t>(n) >= _values.size())
         {
             _values.push_back(undefined_t());
         }
 
-        return _values[static_cast<size_t>(i)];
+        return _values[static_cast<size_t>(n)];
     }
 
     void push(T t)
@@ -3181,14 +2797,13 @@ struct Array : public ReadonlyArray<T>
         return _values.end();
     }
 
-    template <class I>
-    std::enable_if_t<std::is_arithmetic_v<I> || std::is_same_v<I, number>, bool> exists(I i) const
+    bool exists(number n) const
     {
-        return static_cast<size_t>(i) < _values.size();
+        return static_cast<size_t>(n) < _values.size();
     }
 
     template <class I>
-    std::enable_if_t<!std::is_arithmetic_v<I> && !std::is_same_v<I, number>, bool> exists(I i) const
+    bool exists(I i) const
     {
         return false;
     }

@@ -4,6 +4,17 @@ using namespace js;
 
 namespace js
 {
+
+bool pointer_t::operator==(js::number n)
+{
+    return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
+}
+
+bool pointer_t::operator!=(js::number n)
+{
+    return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
+}
+
 // String
 string::string(any val) : _value(val.operator js::string()), undefined_t(false), isNull(false)
 {
@@ -42,6 +53,16 @@ object::object(std::initializer_list<pair> values) : undefined_t(false)
 ObjectKeys<decltype(object::_values)> object::keys()
 {
     return ObjectKeys<decltype(object::_values)>(_values);
+}
+
+any &object::operator[](number n) const
+{
+    return mutable_(_values)[static_cast<std::string>(n)];
+}
+
+any &object::operator[](number n)
+{
+    return _values[static_cast<std::string>(n)];
 }
 
 any &object::operator[](const char *s) const
