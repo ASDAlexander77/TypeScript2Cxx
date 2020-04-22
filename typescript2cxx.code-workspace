@@ -77,7 +77,8 @@
             "xlocbuf": "cpp",
             "xlocmes": "cpp",
             "concepts": "cpp",
-            "bitset": "cpp"
+            "bitset": "cpp",
+            "*.rh": "cpp"
         }
     }
 }

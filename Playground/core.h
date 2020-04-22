@@ -991,12 +991,12 @@ struct ArrayKeys
         return *this;
     }
 
-    const T &operator*() const
+    const T &operator*()
     {
         return _index;
     }
 
-    bool operator!=(const iterator &rhs) const
+    bool operator!=(const iterator &rhs)
     {
         return _index != rhs._end;
     }
@@ -1079,9 +1079,9 @@ struct array : public undefined_t
         return get()[static_cast<size_t>(i)];
     }
 
-    ArrayKeys<std::size_t> keys()
+    ArrayKeys<js::number> keys()
     {
-        return ArrayKeys<std::size_t>(get().size());
+        return ArrayKeys<js::number>(get().size());
     }
 
     void push(E t)
