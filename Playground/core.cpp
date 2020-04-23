@@ -65,9 +65,9 @@ object::object(std::initializer_list<pair> values) : undefined_t(false)
     }
 }
 
-ObjectKeys<decltype(object::_values)> object::keys()
+ObjectKeys<js::string, decltype(object::_values)> object::keys()
 {
-    return ObjectKeys<decltype(object::_values)>(_values);
+    return ObjectKeys<js::string, decltype(object::_values)>(_values);
 }
 
 any &object::operator[](number n) const

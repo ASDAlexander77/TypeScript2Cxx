@@ -143,9 +143,9 @@ constexpr T deref_(T t)
 }
 
 template <typename T>
-constexpr auto keys_(const T &t) -> decltype(t->keys())
+constexpr auto keys_(const T &t) -> decltype(mutable_(t)->keys())
 {
-    return t->keys();
+    return mutable_(t)->keys();
 }
 
 template <typename T>
@@ -1269,10 +1269,10 @@ struct array : public undefined_t
 
 typedef tmpl::array<any> array;
 
-template <typename V, typename T = decltype(V().begin())>
+template <typename K, typename V, typename T = decltype(V().begin())>
 struct ObjectKeys
 {
-    typedef ObjectKeys<V> iterator;
+    typedef ObjectKeys<K, V> iterator;
 
     T _index;
     const T _end;
@@ -1291,7 +1291,7 @@ struct ObjectKeys
         return *this;
     }
 
-    const std::string &operator*()
+    const K &operator*()
     {
         return _index->first;
     }
@@ -1329,7 +1329,7 @@ struct object : public undefined_t
     {
     }
 
-    ObjectKeys<decltype(_values)> keys();
+    ObjectKeys<js::string, decltype(_values)> keys();
 
     constexpr operator bool()
     {
@@ -2777,6 +2777,18 @@ static number parseFloat(const js::string &value)
 
     return r;    
 }
+
+struct Object_t
+{
+    constexpr Object_t *operator->()
+    {
+        return this;
+    }
+
+    auto keys(const js::object& o) {
+        return keys_(o);
+    }
+} Object;
 
 template <typename T>
 struct ReadonlyArray

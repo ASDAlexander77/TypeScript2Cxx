@@ -148,7 +148,7 @@ export class Emitter {
         }
 
         return false;
-    }    
+    }
 
     private processFile(sourceFile: ts.SourceFile): void {
         this.scope.push(sourceFile);
@@ -223,7 +223,7 @@ export class Emitter {
 
             const position = this.writer.newSection();
 
-            sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s) 
+            sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)
                 || this.isNamespaceStatement(s)).forEach(s => {
                 if (this.isNamespaceStatement(s)) {
                     this.processModuleImplementationInMain(<ts.ModuleDeclaration>s);
@@ -363,6 +363,7 @@ export class Emitter {
             case ts.SyntaxKind.SpreadElement: this.processSpreadElement(<ts.SpreadElement>node); return;
             case ts.SyntaxKind.AwaitExpression: this.processAwaitExpression(<ts.AwaitExpression>node); return;
             case ts.SyntaxKind.Identifier: this.processIdentifier(<ts.Identifier>node); return;
+            case ts.SyntaxKind.ComputedPropertyName: this.processComputedPropertyName(<ts.ComputedPropertyName><any>node); return;
         }
 
         // TODO: finish it
@@ -2703,6 +2704,10 @@ export class Emitter {
         }
     }
 
+    private processComputedPropertyName(node: ts.ComputedPropertyName): void {
+        this.processExpression(node.expression);
+    }
+
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
@@ -2980,7 +2985,7 @@ export class Emitter {
 
         if (isArray) {
             this.writer.writeString('array');
-        } else { 
+        } else {
 
             const containerParent = node.parent.parent.parent;
             if (containerParent && this.isNamespaceStatement(containerParent)) {
