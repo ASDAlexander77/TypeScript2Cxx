@@ -1,5 +1,5 @@
 module M {                                 
-            export class C {                        
-                static Y(name: string) { return name; }
-            }                                       
+		function Y(name: string) { return name; }
+
+		Y("asd");
         }

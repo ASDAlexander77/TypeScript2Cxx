@@ -141,6 +141,15 @@ export class Emitter {
         return false;
     }
 
+    private isNamespaceStatement(f: ts.Node): boolean {
+        if (f.kind === ts.SyntaxKind.ModuleDeclaration
+            || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
+            return true;
+        }
+
+        return false;
+    }    
+
     private processFile(sourceFile: ts.SourceFile): void {
         this.scope.push(sourceFile);
         this.processFileInternal(sourceFile);
@@ -214,8 +223,13 @@ export class Emitter {
 
             const position = this.writer.newSection();
 
-            sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)).forEach(s => {
-                this.processStatement(s);
+            sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s) 
+                || this.isNamespaceStatement(s)).forEach(s => {
+                if (this.isNamespaceStatement(s)) {
+                    this.processModuleImplementationInMain(<ts.ModuleDeclaration>s);
+                } else {
+                    this.processStatement(s);
+                }
             });
 
             if (hasVarsContent || this.writer.hasAnyContent(position, rollbackPosition)) {
@@ -1171,8 +1185,12 @@ export class Emitter {
 
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
-            block.statements.filter(s => this.isDeclarationStatement(s)).forEach(element => {
-                this.processStatement(element);
+            block.statements.forEach(s => {
+                if (this.isDeclarationStatement(s) || this.isVariableStatement(s)) {
+                    this.processStatement(s);
+                } else if (this.isNamespaceStatement(s)) {
+                    this.processModuleDeclaration(<ts.ModuleDeclaration>s);
+                }
             });
         } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
             this.processModuleDeclaration(node.body);
@@ -1185,6 +1203,23 @@ export class Emitter {
 
     private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
         this.processModuleDeclaration(node);
+    }
+
+    private processModuleImplementationInMain(node: ts.ModuleDeclaration | ts.NamespaceDeclaration): void {
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.forEach(s => {
+                if (!this.isDeclarationStatement(s) && !this.isVariableStatement(s)) {
+                    this.processStatement(s);
+                } else if (this.isNamespaceStatement(s)) {
+                    this.processModuleImplementationInMain(<ts.ModuleDeclaration>s);
+                }
+            });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleImplementationInMain(node.body);
+        } else {
+            throw new Error('Not Implemented');
+        }
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
@@ -1727,6 +1762,18 @@ export class Emitter {
 
                 const moduleDeclaration = <ts.ModuleDeclaration><any>type;
                 this.writer.writeString(moduleDeclaration.name.text);
+                break;
+            case ts.SyntaxKind.TypeQuery:
+                const exprName = (<any>type).exprName
+
+                if ((<any>exprName).symbol
+                    && (<any>exprName).symbol.parent
+                    && (<any>exprName).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
+                    this.processType((<any>exprName).symbol.parent.valueDeclaration);
+                    this.writer.writeString('::');
+                }
+
+                this.writer.writeString(exprName.text);
                 break;
             default:
                 this.writer.writeString(auto ? 'auto' : 'any');
@@ -2934,6 +2981,13 @@ export class Emitter {
         if (isArray) {
             this.writer.writeString('array');
         } else {
+
+            if (this.isNamespaceStatement(node.parent.parent.parent)) {
+                const type = this.resolver.getOrResolveTypeOfAsTypeNode(node.parent.parent.parent);
+                this.processType(type);
+                this.writer.writeString('::');
+            }
+
             this.processExpression(node.expression);
             this.processTemplateArguments(node);
         }
