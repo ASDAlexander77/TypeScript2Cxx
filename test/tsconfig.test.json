@@ -23,7 +23,7 @@
       ]
     },
     "include": [
-      "test.ts"
+      "test_*.ts"
     ],
     "exclude": [
       "node_modules"

@@ -76,21 +76,21 @@ export class Run {
     }
 
     public static processFiles(cmdLineArgs: string[]): any {
-        const options = [];
+        const files = [];
         for (let i = 2; i < cmdLineArgs.length; i++) {
             const item = cmdLineArgs[i];
             if (!item || item[0] === '-') {
                 continue;
             }
 
-            options.push(item);
+            files.push(item);
         }
 
-        if (options.length === 0) {
+        if (files.length === 0) {
             return 'tsconfig.json';
         }
 
-        return options.length === 1 ? options[0] : options;
+        return files.length === 1 ? files[0] : files;
     }
 
     public run(sourcesOrConfigFile: string[] | string, cmdLineOptions: any): void {
@@ -203,7 +203,9 @@ export class Run {
     private generateBinary(
         program: ts.Program, sources: string[], options: ts.CompilerOptions, cmdLineOptions: any) {
 
-        console.log(ForegroundColorEscapeSequences.Pink + 'Generating binary files...' + resetEscapeSequence);
+        if (!cmdLineOptions.suppressOutput) {
+            console.log(ForegroundColorEscapeSequences.Pink + 'Generating binary files...' + resetEscapeSequence);
+        }
 
         const sourceFiles = program.getSourceFiles();
 
@@ -215,32 +217,36 @@ export class Run {
             if (fileVersion) {
                 const latestVersion = this.versions[s.fileName];
                 if (latestVersion && parseInt(latestVersion, 10) >= parseInt(fileVersion, 10)) {
-                    console.log(
-                        'File: '
-                        + ForegroundColorEscapeSequences.White
-                        + s.fileName
-                        + resetEscapeSequence
-                        + ' current version:'
-                        + fileVersion
-                        + ', last version:'
-                        + latestVersion
-                        + '. '
-                        + ForegroundColorEscapeSequences.Red
-                        + 'Skipped.'
-                        + resetEscapeSequence);
+                    if (!cmdLineOptions.suppressOutput) {
+                        console.log(
+                            'File: '
+                            + ForegroundColorEscapeSequences.White
+                            + s.fileName
+                            + resetEscapeSequence
+                            + ' current version:'
+                            + fileVersion
+                            + ', last version:'
+                            + latestVersion
+                            + '. '
+                            + ForegroundColorEscapeSequences.Red
+                            + 'Skipped.'
+                            + resetEscapeSequence);
+                    }
                     return;
                 }
 
                 this.versions[s.fileName] = fileVersion;
             }
 
-            console.log(
-                ForegroundColorEscapeSequences.Cyan
-                + 'Processing File: '
-                + resetEscapeSequence
-                + ForegroundColorEscapeSequences.White
-                + s.fileName
-                + resetEscapeSequence);
+            if (!cmdLineOptions.suppressOutput) {
+                console.log(
+                    ForegroundColorEscapeSequences.Cyan
+                    + 'Processing File: '
+                    + resetEscapeSequence
+                    + ForegroundColorEscapeSequences.White
+                    + s.fileName
+                    + resetEscapeSequence);
+            }
 
             const emitterHeader = new Emitter(program.getTypeChecker(), options, cmdLineOptions, false, program.getCurrentDirectory());
             emitterHeader.HeaderMode = true;
@@ -253,19 +259,23 @@ export class Run {
             const fileNameHeader = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'h'));
             const fileNameCpp = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'cpp'));
 
-            console.log(
-                ForegroundColorEscapeSequences.Cyan
-                + 'Writing to file: '
-                + resetEscapeSequence
-                + ForegroundColorEscapeSequences.White
-                + s.fileName
-                + resetEscapeSequence);
+            if (!cmdLineOptions.suppressOutput) {
+                console.log(
+                    ForegroundColorEscapeSequences.Cyan
+                    + 'Writing to file: '
+                    + resetEscapeSequence
+                    + ForegroundColorEscapeSequences.White
+                    + s.fileName
+                    + resetEscapeSequence);
+            }
 
             fs.writeFileSync(fileNameHeader, emitterHeader.writer.getText());
             fs.writeFileSync(fileNameCpp, emitterSource.writer.getText());
         });
 
-        console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
+        if (!cmdLineOptions.suppressOutput) {
+            console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
+        }
     }
 
     public test(sources: string[], cmdLineOptions?: any, header?: string, footer?: string): string {
@@ -274,9 +284,11 @@ export class Run {
         // change folder
         process.chdir('test');
 
-        const tempSourceFiles = sources.map((s: string, index: number) => 'test' + index + '.ts');
-        const tempCxxFiles = sources.map((s: string, index: number) => 'test' + index + '.cpp');
-        const tempHFiles = sources.map((s: string, index: number) => 'test' + index + '.h');
+        const fileName = 'test_';
+
+        const tempSourceFiles = sources.map((s: string, index: number) => fileName + index + '.ts');
+        const tempCxxFiles = sources.map((s: string, index: number) => fileName + index + '.cpp');
+        const tempHFiles = sources.map((s: string, index: number) => fileName + index + '.h');
 
         // clean up
         tempSourceFiles.forEach(f => {
@@ -309,46 +321,14 @@ export class Run {
                     }
                 }
 
-                // fs.writeFileSync('test' + index + '.ts', s.replace(/console\.log\(/g, 'print('));
-                fs.writeFileSync('test' + index + '.ts', s);
+                fs.writeFileSync(fileName + index + '.ts', s);
             });
 
-            const program = ts.createProgram(tempSourceFiles, {});
-            const emitResult = program.emit(undefined, (f, data, writeByteOrderMark) => {
-                // ts.sys.writeFile(f, data, writeByteOrderMark);
-            });
-
-            emitResult.diagnostics.forEach((d: ts.Diagnostic) => {
-                switch (d.category) {
-                    case 1: throw new Error('Error: ' + d.messageText + ' file: ' + d.file + ' line: ' + d.start);
-                    default: break;
-                }
-            });
-
-            const lastCxxFiles = [];
-            const sourceFiles = program.getSourceFiles();
-            sourceFiles.forEach((s: ts.SourceFile, index: number) => {
-                const currentFile = tempSourceFiles.find(sf => s.fileName.endsWith(sf));
-                if (currentFile) {
-                    const emitterHeader = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
-                    emitterHeader.HeaderMode = true;
-                    emitterHeader.processNode(s);
-                    const emitterSource = new Emitter(program.getTypeChecker(), undefined, cmdLineOptions || {}, false);
-                    emitterSource.SourceMode = true;
-                    emitterSource.processNode(s);
-
-                    const headerFile = currentFile.replace(/\.ts$/, '.h');
-                    fs.writeFileSync(headerFile, emitterHeader.writer.getText());
-
-                    const cxxFile = currentFile.replace(/\.ts$/, '.cpp');
-                    fs.writeFileSync(cxxFile, emitterSource.writer.getText());
-
-                    lastCxxFiles.push(cxxFile);
-                }
-            });
+            // to use tsconfig to compile
+            this.run('tsconfig.test.json', { suppressOutput: true });
 
             // compiling
-            const result_compile: any = spawn.sync('ms_test.bat', lastCxxFiles);
+            const result_compile: any = spawn.sync('ms_test.bat', tempCxxFiles);
             if (result_compile.error) {
                 actualOutput = result_compile.error.stack;
             } else if (result_compile.stdout.length) {
