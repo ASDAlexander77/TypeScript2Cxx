@@ -2345,6 +2345,8 @@ struct any
     {
         switch (_type)
         {
+        case anyTypeId::string_type:
+            return string_ref().get_length();
         case anyTypeId::array_type:
             return array_ref().get_length();
         default:
