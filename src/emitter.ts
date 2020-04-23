@@ -2980,7 +2980,7 @@ export class Emitter {
 
         if (isArray) {
             this.writer.writeString('array');
-        } else {
+        } else { 
 
             const containerParent = node.parent.parent.parent;
             if (containerParent && this.isNamespaceStatement(containerParent)) {

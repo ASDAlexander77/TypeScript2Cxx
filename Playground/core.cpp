@@ -7,12 +7,14 @@ namespace js
 
 bool pointer_t::operator==(js::number n)
 {
-    return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
+    //return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
+    return isUndefined == n.isUndefined && false;
 }
 
 bool pointer_t::operator!=(js::number n)
 {
-    return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
+    //return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
+    return isUndefined != n.isUndefined || true;
 }
 
 // String

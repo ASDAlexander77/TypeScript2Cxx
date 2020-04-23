@@ -608,6 +608,16 @@ struct number : public undefined_t
         return number(~static_cast<long>(_value));
     }
 
+    bool operator==(const undefined_t& n)
+    {
+        return isUndefined == n.isUndefined;
+    }
+
+    bool operator!=(const undefined_t& n)
+    {
+        return isUndefined != n.isUndefined;
+    }
+
     bool operator==(number_t n)
     {
         return isUndefined |= n.isUndefined ? false : isUndefined == true ? true : _value == n._value;
