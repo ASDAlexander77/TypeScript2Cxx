@@ -50,8 +50,8 @@ describe('Lang tests', () => {
     it('49 unicode', () => expect(new Run().test(['lang-test0/49unicode.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('50 indexedtypes', () => expect(new Run().test(['lang-test0/50indexedtypes.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('51 exceptions', () => expect(new Run().test(['lang-test0/51exceptions.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
-    it('241 arrayforeach', () => expect(new Run().test(['lang-test0/241arrayforeach.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
-    it('242 arrayjoin', () => expect(new Run().test(['lang-test0/242arrayjoin.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
+    it('241 arrayforeach', () => expect(new Run().test(['lang-test0/241arrayforeach.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntestArrayFoEach\r\ntest OK!\r\n'));
+    it('242 arrayjoin', () => expect(new Run().test(['lang-test0/242arrayjoin.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntestArrayJoin\r\ntest OK!\r\n'));
     it('243 arrayevery', () => expect(new Run().test(['lang-test0/243arrayevery.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('244 arraysome', () => expect(new Run().test(['lang-test0/244arraysome.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
 });

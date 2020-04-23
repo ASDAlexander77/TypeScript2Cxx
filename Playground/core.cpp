@@ -35,13 +35,16 @@ string::string(any val) : _value(val.operator js::string()), undefined_t(false),
 js::string string::operator+(any value)
 {
     string tmp(_value);
-    tmp._value.append(value.operator std::string().c_str());
+    tmp._value.append(value.operator std::string());
     return tmp;
 }
 
-js::string &string::operator+=(any value)
+js::string &string::operator+=(any a)
 {
-    _value.append(value.operator std::string().c_str());
+    auto value = a.operator std::string();
+    isUndefined = isUndefined && !value.empty();
+    isNull = isNull && !value.empty();
+    _value.append(value);
     return *this;
 }
 

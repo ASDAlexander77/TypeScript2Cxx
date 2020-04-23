@@ -761,19 +761,26 @@ struct string : public undefined_t
 
     string &operator+=(char c)
     {
+        isUndefined = false;
+        isNull = false;
         _value.append(string(c));
         return *this;
     }    
 
-    string &operator+=(number value)
+    string &operator+=(number n)
     {
-        _value.append(value.operator std::string().c_str());
+        auto value = n.operator std::string();
+        isUndefined = isUndefined && !value.empty();
+        isNull = isNull && !value.empty();
+        _value.append(value);
         return *this;
     }
 
     string &operator+=(string value)
     {
-        _value.append(value._value.c_str());
+        isUndefined = isUndefined && value.isUndefined;
+        isNull = isNull && value.isNull;
+        _value.append(value._value);
         return *this;
     }
 
@@ -1227,7 +1234,37 @@ struct array : public undefined_t
     any reduce(P p, I initial) {
         return std::reduce(_values.get()->begin(), _values.get()->end(), initial, p);
     }    
+
+    template <typename P>
+    boolean every(P p) {
+        return std::all_of(_values.get()->begin(), _values.get()->end(), p);
+    }    
+
+    template <typename P>
+    boolean some(P p) {
+        return std::any_of(_values.get()->begin(), _values.get()->end(), p);
+    }    
+
+    string join(string s)
+    {
+        return std::accumulate(_values.get()->begin(), _values.get()->end(), string{}, [&] (auto &res, const auto &piece) -> decltype(auto) { 
+            return res += (res) ? s + piece : piece; 
+        });
+    } 
+
+    void forEach(std::function<void(E)> p) {
+        std::for_each(_values.get()->begin(), _values.get()->end(), p);
+    }
+
+    void forEach(std::function<void(E, js::number)> p) {
+        auto first = &(*_values.get())[0];
+        std::result(_values.get()->begin(), _values.get()->end(), [=] (auto& v) {
+            js::number index = &v - first;
+            return p(v, index);
+        });
+    }    
 };
+
 } // namespace tmpl
 
 typedef tmpl::array<any> array;
@@ -2666,6 +2703,7 @@ template <typename V>
 js::string number<V>::toString(number_t radix) {
     return js::string(std::to_string(_value));
 }
+
 } // namespace tmpl
 
 } // namespace js
