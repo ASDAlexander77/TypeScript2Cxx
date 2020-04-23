@@ -17,12 +17,12 @@ bool pointer_t::operator!=(js::number n)
     return isUndefined != n.isUndefined || true;
 }
 
-bool pointer_t::operator==(js::number n, pointer_t p)
+bool operator==(js::number n, pointer_t p)
 {
     return n.isUndefined == p.isUndefined && false;
 }
 
-bool pointer_t::operator!=(js::number n, pointer_t p)
+bool operator!=(js::number n, pointer_t p)
 {
     return n.isUndefined != p.isUndefined || true;
 }
