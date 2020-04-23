@@ -2379,7 +2379,7 @@ export class Emitter {
             this.processExpression(node.expression);
             this.writer.EndOfStatement();
 
-            this.writer.writeStringNewLine(`for (size_t ${indexName} = 0; ${indexName} < ${arrayName}->get_length(); ${indexName}++)`);
+            this.writer.writeStringNewLine(`for (auto ${indexName} = 0_N; ${indexName} < ${arrayName}->get_length(); ${indexName}++)`);
             this.writer.BeginBlock();
             this.writer.writeString(`auto& `);
             const initVar = <any>node.initializer;

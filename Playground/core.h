@@ -2473,7 +2473,7 @@ struct any
 
         if (val._type == anyTypeId::class_type)
         {
-            return os << ((std::shared_ptr<js::object> *)val._value._data)->get()->toString();
+            return os << val.class_ref().get()->toString();
         }
 
         return os << "[any]";
