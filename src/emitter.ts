@@ -394,6 +394,7 @@ export class Emitter {
         switch (node.kind) {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleForwardDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
             default:
                 return;
@@ -879,6 +880,32 @@ export class Emitter {
         this.processIdentifier(node.name);
     }
 
+    private processModuleForwardDeclaration(node: ts.ModuleDeclaration, template?: boolean) {
+        this.scope.push(node);
+        this.processModuleForwardDeclarationInternal(node, template);
+        this.scope.pop();
+    }
+
+    private processModuleForwardDeclarationInternal(node: ts.ModuleDeclaration, template?: boolean) {
+        this.writer.writeString('namespace ');
+        this.writer.writeString(node.name.text);
+        this.writer.writeString(' ');
+        this.writer.BeginBlock();
+
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.forEach(element => {
+                this.processForwardDeclaration(element);
+            });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleForwardDeclaration(node.body, template);
+        } else {
+            throw new Error('Not Implemented');
+        }
+
+        this.writer.EndBlock();
+    }
+
     private isInBaseClass(baseClass: ts.TypeNode, identifier: ts.Identifier): boolean {
 
         const effectiveSymbol = (<any>baseClass).symbol || ((<any>baseClass).exprName).symbol;
@@ -1142,21 +1169,22 @@ export class Emitter {
 
         this.writer.BeginBlock();
 
-        this.processStatement(<ts.ModuleBlock>node.body);
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.filter(s => this.isDeclarationStatement(s)).forEach(element => {
+                this.processStatement(element);
+            });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleDeclaration(node.body);
+        } else {
+            throw new Error('Not Implemented');
+        }
 
         this.writer.EndBlock();
     }
 
     private processNamespaceDeclaration(node: ts.NamespaceDeclaration): void {
-        this.writer.writeString('namespace ');
-        this.processExpression(node.name);
-        this.writer.writeString(' ');
-
-        this.writer.BeginBlock();
-
         this.processModuleDeclaration(node);
-
-        this.writer.EndBlock();
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {

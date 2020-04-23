@@ -1,10 +1,5 @@
 module M {                                 
             export class C {                        
-                static Y() { return 2; }            
-                                                    
-                X() { return 1; }                   
+                static Y(name: string) { return name; }
             }                                       
-        }                                           
-                                                    
-        const c = new M.C();                        
-        console.log(c.X());
+        }

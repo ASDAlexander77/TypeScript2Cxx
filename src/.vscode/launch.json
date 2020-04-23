@@ -73,7 +73,7 @@
                 "--colors",
                 "-r",
                 "ts-node/register",
-                "${workspaceFolder}/../spec/**/basic_types.spec.ts"
+                "${workspaceFolder}/../spec/**/modules_and_namespaces.spec.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"
