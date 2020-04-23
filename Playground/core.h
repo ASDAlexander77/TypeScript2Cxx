@@ -1991,17 +1991,6 @@ struct any
         throw "not implemented";
     }
 
-    any operator*(const js::number &t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return any(_value._number * t);
-        }
-
-        throw "not implemented";
-    }
-
     any operator*(any t)
     {
         switch (_type)
@@ -2118,19 +2107,7 @@ struct any
         throw "not implemented";
     }
 
-    any operator%(const js::number &t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return any(_value._number % t);
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    friend any operator%(T t, any value)
+    friend any operator%(number t, any value)
     {
         switch (value._type)
         {
