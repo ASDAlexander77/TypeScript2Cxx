@@ -42,32 +42,6 @@ function testNested() {
 
     const x = 7
     let y = 1
-    bar(1)
-    y++
-    bar(2)
-    bar2()
-    assert(glb1 == 12)
-    glb1 = 0
-    const arr = [1,20,300]
-    for (let k of arr) {
-        qux()
-        function qux() {
-            glb1 += k
-        }
-    }
-    assert(glb1 == 321)
-
-    const fns: any[] = []
-    for (let k of arr) {
-        const kk = k
-        fns.push(qux2)
-        function qux2() {
-            glb1 += kk
-        }
-    }
-    glb1 = 0
-    for (let f of fns) f()
-    assert(glb1 == 321)
 
     function bar(v: number) {
         assert(x == 7 && y == v)
@@ -76,6 +50,33 @@ function testNested() {
     function bar2() {
         glb1 += 10
     }
+
+    bar(1)
+    y++
+    bar(2)
+    bar2()
+    assert(glb1 == 12)
+    glb1 = 0
+    const arr = [1,20,300]
+    for (let k of arr) {
+        function qux() {
+            glb1 += k
+        }
+        qux()
+    }
+    assert(glb1 == 321)
+
+    const fns: any[] = []
+    for (let k of arr) {
+        const kk = k
+        function qux2() {
+            glb1 += kk
+        }
+        fns.push(qux2)
+    }
+    glb1 = 0
+    for (let f of fns) f()
+    assert(glb1 == 321)
 }
 
 testLambdas();

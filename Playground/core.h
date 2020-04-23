@@ -20,6 +20,8 @@
 #include <random>
 #include <regex>
 #include <limits>
+#include <algorithm>
+#include <numeric>
 
 namespace js
 {
@@ -42,14 +44,6 @@ namespace tmpl {
     template <typename T> struct number;
 }
 typedef tmpl::number<double> number;
-
-template<class _Ty>
-struct is_numeric : std::bool_constant<std::is_same_v<_Ty, js::number>>
-{
-};
-
-template<class _Ty>
-constexpr bool is_numeric_v = is_numeric<_Ty>::value;
 
 template<class _Ty>
 struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char*> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
@@ -1081,8 +1075,7 @@ struct array : public undefined_t
         return js::number(get().size());
     }
 
-    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
-    E &operator[](I i) const
+    E &operator[](js::number i) const
     {
         if (static_cast<size_t>(i) >= get().size())
         {
@@ -1092,8 +1085,7 @@ struct array : public undefined_t
         return mutable_(get())[static_cast<size_t>(i)];
     }
 
-    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
-    E &operator[](I i)
+    E &operator[](js::number i)
     {
         while (static_cast<size_t>(i) >= get().size())
         {
@@ -1179,6 +1171,25 @@ struct array : public undefined_t
     {
         return false;
     }
+
+    template <typename P>
+    array filter(P p) {
+        array result;
+        std::copy_if(_values.get()->begin(), _values.get()->end(), result.begin(), p);
+        return result;
+    }
+
+    template <typename P>
+    array map(P p) {
+        array result;
+        std::transform(_values.get()->begin(), _values.get()->end(), result.begin(), p);
+        return result;
+    }
+
+    template <typename P, typename I>
+    any reduce(P p, I initial) {
+        return std::reduce(_values.get()->begin(), _values.get()->end(), initial, p);
+    }    
 };
 } // namespace tmpl
 
@@ -1280,7 +1291,7 @@ struct object : public undefined_t
     template <class T>
     bool exists(T i) const
     {
-        if constexpr (is_numeric_v<T> || is_stringish_v<T>) 
+        if constexpr (std::is_same_v<T, js::number> || is_stringish_v<T>) 
         {
             return _values.find(i) != _values.end();
         }
@@ -1538,7 +1549,7 @@ struct any
     template <class T>
     any &operator[](T t) const
     {
-        if constexpr (is_numeric_v<T>)
+        if constexpr (std::is_same_v<T, js::number>)
         {
             if (_type == anyTypeId::array_type)
             {
@@ -1560,7 +1571,7 @@ struct any
     template <class T>
     any &operator[](T t)
     {
-        if constexpr (is_numeric_v<T>)
+        if constexpr (std::is_same_v<T, js::number>)
         {
             if (_type == anyTypeId::array_type)
             {
@@ -2145,19 +2156,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number._value > n._value;
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator>(T t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return _value._number._value > t;
+            return _value._number > n;
         }
 
         throw "not implemented";
@@ -2184,19 +2183,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number._value >= n._value;
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator>=(T t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return _value._number._value >= t;
+            return _value._number >= n;
         }
 
         throw "not implemented";
@@ -2223,19 +2210,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number._value < n._value;
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator<(T t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return _value._number._value < t;
+            return _value._number < n;
         }
 
         throw "not implemented";
@@ -2262,19 +2237,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number._value <= n._value;
-        }
-
-        throw "not implemented";
-    }
-
-    template <class T, class = std::enable_if_t<is_numeric_v<T>>>
-    bool operator<=(T t)
-    {
-        switch (_type)
-        {
-        case anyTypeId::number_type:
-            return _value._number._value <= t;
+            return _value._number <= n;
         }
 
         throw "not implemented";

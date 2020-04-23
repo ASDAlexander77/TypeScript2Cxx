@@ -78,7 +78,8 @@
             "xlocmes": "cpp",
             "concepts": "cpp",
             "bitset": "cpp",
-            "*.rh": "cpp"
+            "*.rh": "cpp",
+            "ranges": "cpp"
         }
     }
 }
