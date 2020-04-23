@@ -79,7 +79,8 @@
             "concepts": "cpp",
             "bitset": "cpp",
             "*.rh": "cpp",
-            "ranges": "cpp"
+            "ranges": "cpp",
+            "numeric": "cpp"
         }
     }
 }

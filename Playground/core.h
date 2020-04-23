@@ -1172,17 +1172,35 @@ struct array : public undefined_t
         return false;
     }
 
-    template <typename P>
-    array filter(P p) {
+    array filter(std::function<bool(E)> p) {
         array result;
         std::copy_if(_values.get()->begin(), _values.get()->end(), result.begin(), p);
         return result;
     }
 
-    template <typename P>
-    array map(P p) {
+    array filter(std::function<bool(E, js::number)> p) {
+        array result;
+        auto first = &(*_values.get())[0];
+        std::copy_if(_values.get()->begin(), _values.get()->end(), result.begin(), [=] (auto& v) {
+            js::number index = &v - first;
+            return p(v, index);
+        });
+        return result;
+    }    
+
+    array map(std::function<E(E)> p) {
         array result;
         std::transform(_values.get()->begin(), _values.get()->end(), result.begin(), p);
+        return result;
+    }
+
+    array map(std::function<E(E, js::number)> p) {
+        array result;
+        auto first = &(*_values.get())[0];
+        std::transform(_values.get()->begin(), _values.get()->end(), result.begin(), [=] (auto& v) {
+            js::number index = &v - first;
+            return p(v, index);
+        });
         return result;
     }
 
@@ -2724,8 +2742,7 @@ struct ReadonlyArray
         return ArrayKeys<std::size_t>(_values.size());
     }
 
-    template <class I, class = std::enable_if_t<is_numeric_v<I>>>
-    T &operator[](I i) const
+    T &operator[](js::number i) const
     {
         if (static_cast<size_t>(i) >= _values.size())
         {
