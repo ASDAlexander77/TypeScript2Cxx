@@ -303,6 +303,10 @@ static struct pointer_t : public undefined_t
 
     bool operator!=(js::number n);
 
+    friend bool operator==(js::number n, pointer_t p);
+
+    friend bool operator!=(js::number n, pointer_t p);
+
 /*
     constexpr operator std::nullptr_t()
     {

@@ -17,6 +17,16 @@ bool pointer_t::operator!=(js::number n)
     return isUndefined != n.isUndefined || true;
 }
 
+bool pointer_t::operator==(js::number n, pointer_t p)
+{
+    return n.isUndefined == p.isUndefined && false;
+}
+
+bool pointer_t::operator!=(js::number n, pointer_t p)
+{
+    return n.isUndefined != p.isUndefined || true;
+}
+
 // String
 string::string(any val) : _value(val.operator js::string()), undefined_t(false), isNull(false)
 {
