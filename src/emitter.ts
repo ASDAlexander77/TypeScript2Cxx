@@ -2982,10 +2982,13 @@ export class Emitter {
             this.writer.writeString('array');
         } else {
 
-            if (this.isNamespaceStatement(node.parent.parent.parent)) {
+            const containerParent = node.parent.parent.parent;
+            if (containerParent && this.isNamespaceStatement(containerParent)) {
                 const type = this.resolver.getOrResolveTypeOfAsTypeNode(node.parent.parent.parent);
-                this.processType(type);
-                this.writer.writeString('::');
+                if (type) {
+                    this.processType(type);
+                    this.writer.writeString('::');
+                }
             }
 
             this.processExpression(node.expression);
