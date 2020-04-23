@@ -2518,7 +2518,7 @@ export class Emitter {
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
         | ts.TemplateHead | ts.TemplateMiddle | ts.TemplateTail): void {
-        this.writer.writeString(`"${node.text}"_S`);
+        this.writer.writeString(`"${node.text.replace(/\n/g, '\\\n')}"_S`);
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {

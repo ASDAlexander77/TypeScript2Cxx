@@ -9,6 +9,10 @@ export class Preprocessor {
     }
 
     public preprocessStatement(node: ts.Declaration | ts.Statement): ts.Declaration | ts.Statement {
+        if (!node) {
+            return node;
+        }
+
         switch (node.kind) {
             case ts.SyntaxKind.VariableStatement:
                 return this.preprocessVariableStatement(<ts.VariableStatement>node);
@@ -20,6 +24,10 @@ export class Preprocessor {
     }
 
     public preprocessExpression(node: ts.Expression): ts.Expression {
+        if (!node) {
+            return node;
+        }
+
         switch (node.kind) {
             case ts.SyntaxKind.BinaryExpression:
                 return this.preprocessBinaryExpression(<ts.BinaryExpression>node);

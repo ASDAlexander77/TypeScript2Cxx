@@ -83,33 +83,78 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-class StaticCl {
-    static x = 12;
-    static foo() {
-        glb1 += StaticCl.x
-    }
-    static bar(k: number) {
-        StaticCl.x = k
+namespace unicode {
+    export function run() {
+        let shortASCII = "hello world!"
+        let shortUTF = "hęłłó world!"
+        let longASCII = `
+99 Bottles of beer on the wall!
+Take one down
+Pass it around
+98 Bottles of beer on the wall!
+Take one down
+Pass it around
+97 Bottles of beer on the wall
+Take one down
+Pass it around
+`
+        let longUTF = `
+99 Bottlęs of beer on the wall! 💺
+Take one down
+Pass it around
+98 Bottłeś of beer on the wall! 💃
+Take one down
+Pass it around
+97 Bottles of beer on the wall! 😂
+Take óne down
+Pasś it around
+`
+
+        testAllStr(shortASCII)
+        testAllStr(shortUTF)
+        testAllStr(longASCII)
+        testAllStr(longUTF)
+        testAllStr(longUTF + longASCII)
+        testAllStr(longUTF + shortUTF)
     }
 
-    static doSomething: (v:number) => void;
+
+    function testAllStr(s: string) {
+        msg("utf8-t: " + s.length)
+        testOneCh(s)
+        testFromCh(s)
+        testSliceR(s)
+    }
+
+    function testOneCh(s: string) {
+        let r = ""
+        for (let i = 0; i < s.length; ++i)
+            r += s[i]
+        assert(s.length == r.length, "1chL")
+        assert(s == r, "1ch")
+    }
+
+    function testFromCh(s: string) {
+        let r = ""
+        for (let i = 0; i < s.length; ++i)
+            r += String.fromCharCode(s.charCodeAt(i))
+        assert(s == r, "1fch")
+    }
+
+    function testSliceR(s: string) {
+        for (let rep = 0; rep < 20; ++rep) {
+            let r = ""
+            for (let i = 0; i < s.length;) {
+                let len = Math.randomRange(0, 10)
+                r += s.slice(i, i + len)
+                i += len
+            }
+            assert(s == r, "1sl")
+        }
+    }
 }
 
-function testStatic() {
-    msg("testStatic");
-    glb1 = 0
-    StaticCl.foo()
-    assert(glb1 == 12, "s0")
-    StaticCl.bar(13)
-    StaticCl.foo()
-    assert(glb1 == 25, "s1")
-
-    StaticCl.doSomething = (x) => {
-        assert(x == 42, "s42")
-    }
-    StaticCl.doSomething(42)
-}
-testStatic()
+unicode.run()
 clean()
 msg("test OK!")
 

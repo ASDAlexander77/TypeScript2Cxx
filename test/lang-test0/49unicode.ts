@@ -60,7 +60,7 @@ Pasś it around
         for (let rep = 0; rep < 20; ++rep) {
             let r = ""
             for (let i = 0; i < s.length;) {
-                let len = Math.randomRange(0, 10)
+                let len = Math.random() * 10
                 r += s.slice(i, i + len)
                 i += len
             }
