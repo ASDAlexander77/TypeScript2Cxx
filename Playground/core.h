@@ -1204,6 +1204,11 @@ struct array : public undefined_t
         return result;
     }
 
+    template <typename P>
+    any reduce(P p) {
+        return std::reduce(_values.get()->begin(), _values.get()->end(), 0_N, p);
+    }    
+
     template <typename P, typename I>
     any reduce(P p, I initial) {
         return std::reduce(_values.get()->begin(), _values.get()->end(), initial, p);
