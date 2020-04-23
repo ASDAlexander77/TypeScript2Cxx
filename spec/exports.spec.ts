@@ -11,7 +11,7 @@ describe('Export', () => {
             }                                       \
         }                                           \
     ',
-    'import { ZipCodeValidator } from "./test0";    \
+    'import { ZipCodeValidator } from "./test_0";    \
     const myValidator = new ZipCodeValidator();     \
     console.log(myValidator.isAcceptable("test"));  \
     '])));
@@ -23,7 +23,7 @@ describe('Export', () => {
             }                                       \
         }                                           \
     ',
-    'import { ZipCodeValidator as ZCV } from "./test0";     \
+    'import { ZipCodeValidator as ZCV } from "./test_0";     \
     const myValidator = new ZCV();                          \
     console.log(myValidator.isAcceptable("test"));          \
     '])));
@@ -35,7 +35,7 @@ describe('Export', () => {
             }                                       \
         }                                           \
     ',
-    'import validator from "./test0";               \
+    'import validator from "./test_0";               \
     const myValidator = new validator();            \
     console.log(myValidator.isAcceptable("test"));  \
     '])));
@@ -48,7 +48,7 @@ describe('Export', () => {
             }                                       \
         }                                           \
     ',
-    'import * as Test from "./test0";    \
+    'import * as Test from "./test_0";    \
     const myValidator = new Test.ZipCodeValidator();\
     console.log(myValidator.isAcceptable("test"));  \
     '])));

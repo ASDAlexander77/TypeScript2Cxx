@@ -95,7 +95,7 @@ describe('Modules', () => {
             }                                       \
         }                                           \
         ',
-        'import \'./test0\';                        \
+        'import \'./test_0\';                        \
         const c = new M.C();                        \
         console.log(c.X());                         \
         const c2 = new M.C2();                      \
@@ -109,7 +109,7 @@ describe('Modules', () => {
             }                                       \
         }                                           \
         ',
-        'import \'./test0\';                        \
+        'import \'./test_0\';                        \
         console.log(M.C.Y("test"));                 \
     '])).to.equals('test\r\n'));
 });
