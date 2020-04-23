@@ -1173,15 +1173,15 @@ struct array : public undefined_t
     }
 
     array filter(std::function<bool(E)> p) {
-        array result;
-        std::copy_if(_values.get()->begin(), _values.get()->end(), result.begin(), p);
+        std::vector<E> result;
+        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
         return result;
     }
 
     array filter(std::function<bool(E, js::number)> p) {
-        array result;
+        std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::copy_if(_values.get()->begin(), _values.get()->end(), result.begin(), [=] (auto& v) {
+        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
             js::number index = &v - first;
             return p(v, index);
         });
@@ -1189,15 +1189,15 @@ struct array : public undefined_t
     }    
 
     array map(std::function<E(E)> p) {
-        array result;
-        std::transform(_values.get()->begin(), _values.get()->end(), result.begin(), p);
+        std::vector<E> result;
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
         return result;
     }
 
     array map(std::function<E(E, js::number)> p) {
-        array result;
+        std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::transform(_values.get()->begin(), _values.get()->end(), result.begin(), [=] (auto& v) {
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
             js::number index = &v - first;
             return p(v, index);
         });
