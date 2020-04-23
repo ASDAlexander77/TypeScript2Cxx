@@ -771,9 +771,19 @@ struct string : public undefined_t
 
     string &operator+=(any value);
 
+    bool operator==(const js::string &other) const
+    {
+        return !isUndefined && _value.compare(other._value) == 0;
+    }
+
     bool operator==(const js::string &other)
     {
         return !isUndefined && _value.compare(other._value) == 0;
+    }
+
+    bool operator!=(const js::string &other) const
+    {
+        return !isUndefined && _value.compare(other._value) != 0;
     }
 
     bool operator!=(const js::string &other)
@@ -1739,9 +1749,9 @@ struct any
         case anyTypeId::number_type:
             return _value._number._value == other._value._number._value;
         case anyTypeId::string_type:
-            return string_ref_const() == mutable_(other).string_ref();
+            return string_ref_const() == mutable_(other).string_ref_const();
         case anyTypeId::object_type:
-            return object_ref_const() == mutable_(other).object_ref();
+            return object_ref_const() == mutable_(other).string_ref_const();
         }
 
         throw "not implemented";

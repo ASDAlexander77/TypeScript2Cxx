@@ -1,24 +1,23 @@
-var x, y;                                  
-        y = 5;                                      
-        x = y + 2;	                                
-        console.log(x);                             
-        x = y - 2;	                                
-        console.log(x);                             
-        x = y * 2;	                                
-        console.log(x);                             
-        x = y / 2;	                                
-        console.log(x);                             
-        x = y % 2;	                                
-        console.log(x);                             
-        let x2, y2;                                 
-        y2 = 5;                                     
-        x2 = y2 + 2;	                            
-        console.log(x2);                            
-        x2 = y2 - 2;	                            
-        console.log(x2);                            
-        x2 = y2 * 2;	                            
-        console.log(x2);                            
-        x2 = y2 / 2;	                            
-        console.log(x2);                            
-        x2 = y2 % 2;	                            
-        console.log(x2);
+	var grade:string = "A";                                
+        switch(grade) {                                         
+           case "A": {                                          
+              console.log("Excellent");                         
+              break;                                            
+           }                                                    
+           case "B": {                                          
+              console.log("Good");                              
+              break;                                            
+           }                                                    
+           case "C": {                                          
+              console.log("Fair");                              
+              break;                                            
+           }                                                    
+           case "D": {                                          
+              console.log("Poor");                              
+              break;                                            
+           }                                                    
+           default: {                                           
+              console.log("Invalid choice");                    
+              break;                                            
+           }                                                    
+        }
