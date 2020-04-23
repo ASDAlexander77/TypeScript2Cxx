@@ -133,6 +133,15 @@ export class Emitter {
         return false;
     }
 
+    private isForNestedStatements(f: ts.Statement | ts.Declaration): boolean {
+        if (f.kind === ts.SyntaxKind.ModuleDeclaration
+            || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
+            return true;
+        }
+
+        return false;
+    }
+
     private isVariableStatement(f: ts.Node): boolean {
         if (f.kind === ts.SyntaxKind.VariableStatement) {
             return true;
@@ -287,8 +296,10 @@ export class Emitter {
             case ts.SyntaxKind.ClassDeclaration: this.processClassDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.InterfaceDeclaration: this.processClassDeclaration(<ts.InterfaceDeclaration>node); return;
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
-            case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
-            case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
+            case ts.SyntaxKind.ModuleDeclaration:
+                /*this.processModuleDeclaration(<ts.ModuleDeclaration>node);*/ return;
+            case ts.SyntaxKind.NamespaceExportDeclaration:
+            /*this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node);*/ return;
             case ts.SyntaxKind.ImportDeclaration:
                 /*done in forward declaration*/ /*this.processImportDeclaration(<ts.ImportDeclaration>node);*/ return;
             case ts.SyntaxKind.TypeAliasDeclaration:
@@ -395,6 +406,7 @@ export class Emitter {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.ModuleDeclaration: this.processModuleForwardDeclaration(<ts.ModuleDeclaration>node); return;
             default:
                 return;
         }
@@ -852,6 +864,32 @@ export class Emitter {
         this.processVariableDeclarationList(node.declarationList, true);
 
         this.writer.EndOfStatement();
+    }
+
+    private processModuleForwardDeclaration(node: ts.ModuleDeclaration, template?: boolean) {
+        this.scope.push(node);
+        this.processModuleForwardDeclarationInternal(node, template);
+        this.scope.pop();
+    }
+
+    private processModuleForwardDeclarationInternal(node: ts.ModuleDeclaration, template?: boolean) {
+        this.writer.writeString('namespace ');
+        this.writer.writeString(node.name.text);
+        this.writer.writeString(' ');
+        this.writer.BeginBlock();
+
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.forEach(element => {
+                this.processForwardDeclaration(element);
+            });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleForwardDeclaration(node.body, template);
+        } else {
+            throw new Error('Not Implemented');
+        }
+
+        this.writer.EndBlock();
     }
 
     private processClassForwardDeclaration(node: ts.ClassDeclaration) {
