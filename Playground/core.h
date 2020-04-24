@@ -961,6 +961,11 @@ struct string : public undefined_t
 
         return os << val._value;
     }
+
+    size_t hash(void) const noexcept
+    {
+        return std::hash<std::string>{}(_value);
+    }    
 };
 
 static js::string operator""_S(const char *s, std::size_t size)
@@ -1364,10 +1369,28 @@ struct ObjectKeys
 
 struct object : public undefined_t
 {
+    struct string_hash
+    {
+        typedef js::string argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const &value) const
+        {
+            return value.hash();
+        }
+    };
 
-    using pair = std::pair<std::string, any>;
+    struct string_equal_to
+    {
+        typedef js::string argument_type;
+        bool operator()(argument_type const &value, argument_type const &other) const
+        {
+            return value == other;
+        }
+    };
 
-    std::unordered_map<std::string, any> _values;
+    using pair = std::pair<string, any>;
+
+    std::unordered_map<string, any, string_hash, string_equal_to> _values;
 
     object();
 
@@ -2767,20 +2790,6 @@ js::string number<V>::toString(number_t radix) {
 } // namespace tmpl
 
 } // namespace js
-
-namespace std
-{
-template <>
-struct hash<js::any>
-{
-    typedef js::any argument_type;
-    typedef std::size_t result_type;
-    result_type operator()(argument_type const &value) const
-    {
-        return value.hash();
-    }
-};
-} // namespace std
 
 #define MAIN \
 int main(int argc, char** argv) \

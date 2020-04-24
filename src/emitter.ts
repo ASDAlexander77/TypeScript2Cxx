@@ -1275,7 +1275,6 @@ export class Emitter {
             this.writer.writeString('using ');
         }
 
-
         this.processExpression(node.name);
         this.writer.writeString(' = ');
         this.processModuleReferenceOrEntityName(node.moduleReference);
