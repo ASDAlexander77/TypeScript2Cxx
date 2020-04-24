@@ -208,9 +208,14 @@ export class Emitter {
 
             sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
-                .filter(s => this.isVariableStatement(s))
+                .filter(s => this.isVariableStatement(s)
+                    || this.isNamespaceStatement(s))
                 .forEach(s => {
-                    this.processStatement(<ts.Statement>s);
+                    if (this.isNamespaceStatement(s)) {
+                        this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
+                    } else {
+                        this.processStatement(<ts.Statement>s);
+                    }
                 });
 
             const hasVarsContent = this.writer.hasAnyContent(positionBeforeVars);
@@ -1190,7 +1195,7 @@ export class Emitter {
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
             block.statements.forEach(s => {
-                if (this.isDeclarationStatement(s) || this.isVariableStatement(s)) {
+                if (this.isDeclarationStatement(s)) {
                     this.processStatement(s);
                 } else if (this.isNamespaceStatement(s)) {
                     this.processModuleDeclaration(<ts.ModuleDeclaration>s);
@@ -1221,6 +1226,23 @@ export class Emitter {
             });
         } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
             this.processModuleImplementationInMain(node.body);
+        } else {
+            throw new Error('Not Implemented');
+        }
+    }
+
+    private processModuleVariableStatements(node: ts.ModuleDeclaration | ts.NamespaceDeclaration): void {
+        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+            const block = <ts.ModuleBlock>node.body;
+            block.statements.forEach(s => {
+                if (this.isVariableStatement(s)) {
+                    this.processStatement(s);
+                } else if (this.isNamespaceStatement(s)) {
+                    this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
+                }
+            });
+        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+            this.processModuleVariableStatements(node.body);
         } else {
             throw new Error('Not Implemented');
         }
