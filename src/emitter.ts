@@ -2621,7 +2621,7 @@ export class Emitter {
             this.writer.writeString('static ');
         }
 
-        this.writer.writeString(`std::unordered_map<any, int> ${switchName} = `);
+        this.writer.writeString(`std::unordered_map<any, int, any::any_hash, any::any_equal_to> ${switchName} = `);
         this.writer.BeginBlock();
 
         let caseNumber = 0;

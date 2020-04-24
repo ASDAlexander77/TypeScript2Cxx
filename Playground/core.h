@@ -1474,6 +1474,24 @@ struct object : public undefined_t
 
 struct any
 {
+    struct any_hash
+    {
+        typedef js::any argument_type;
+        typedef std::size_t result_type;
+        result_type operator()(argument_type const &value) const
+        {
+            return value.hash();
+        }
+    };
+
+    struct any_equal_to
+    {
+        typedef js::any argument_type;
+        bool operator()(argument_type const &value, argument_type const &other) const
+        {
+            return value == other;
+        }
+    };
 
     enum struct anyTypeId
     {
