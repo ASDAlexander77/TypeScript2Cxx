@@ -918,6 +918,11 @@ struct string : public undefined_t
         return number(_value[n]);
     }
 
+    string fromCharCode(number n) const
+    {
+        return string(static_cast<char>(static_cast<size_t>(n)));
+    }
+
     string toUpperCase()
     {
         std::string result(*this);
@@ -945,9 +950,16 @@ struct string : public undefined_t
         return string(_value.substr(begin, end - begin));
     }
 
+    string slice(number begin)
+    {
+        return string(_value.substr(begin < number(0) ? get_length() + begin : begin, get_length() - begin));
+    }
+
     string slice(number begin, number end)
     {
-        return string(_value.substr(begin, end - begin));
+        auto endStart = end < number(0) ? get_length() + end : end;
+        auto endPosition = begin < number(0) ? get_length() + begin : begin;
+        return string(_value.substr(begin < number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : number(0)));
     }
 
     auto begin() -> decltype(_value.begin())
@@ -2701,7 +2713,9 @@ static any Void(T value) {
 }
 
 template <typename I>
-inline bool is(js::any t);
+constexpr bool is(js::any t) {
+    return false;
+}
 
 template <>
 inline bool is<js::boolean>(js::any t)
@@ -2898,18 +2912,9 @@ static number parseFloat(const js::string &value)
     return r;    
 }
 
-static struct Object_t
-{
-    constexpr Object_t *operator->()
-    {
-        return this;
-    }
+static object Object;
 
-    template <typename T>
-    auto keys(const T& o) {
-        return keys_(o);
-    }
-} Object;
+static string String;
 
 template <typename T>
 struct ReadonlyArray
