@@ -3190,11 +3190,8 @@ export class Emitter {
     private processIdentifier(node: ts.Identifier): void {
 
         if (this.isWritingMain) {
-            // writing namespaces
-            const identifierType = this.resolver.getOrResolveTypeOf(node);
-            const valDelc = identifierType
-                && (<any>identifierType).symbol
-                && (<any>identifierType).symbol.valueDeclaration;
+            const identifierSymbol = this.resolver.getSymbolAtLocation(node);
+            const valDelc = identifierSymbol.valueDeclaration;
             if (valDelc) {
                 const containerParent = valDelc.parent.parent;
                 if (containerParent && this.isNamespaceStatement(containerParent)) {
