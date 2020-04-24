@@ -1288,6 +1288,23 @@ struct array : public undefined_t
         return result;
     }    
 
+    array map(std::function<void()> p) {
+        std::vector<E> result;
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+            p();
+            return E();
+        });
+        return result;
+    }
+
+    array map(std::function<E()> p) {
+        std::vector<E> result;
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+            return p();
+        });
+        return result;
+    }
+
     array map(std::function<E(E)> p) {
         std::vector<E> result;
         std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
@@ -2917,122 +2934,10 @@ static object Object;
 static string String;
 
 template <typename T>
-struct ReadonlyArray
-{
-    std::vector<T> _values;
-    number length;
-
-    ReadonlyArray() : _values()
-    {
-    }
-    
-    ReadonlyArray(js::number length_) : length(length_)
-    {
-    }
-
-    ReadonlyArray(std::initializer_list<T> values) : _values(values)
-    {
-    }
-
-    ArrayKeys<std::size_t> keys()
-    {
-        return ArrayKeys<std::size_t>(_values.size());
-    }
-
-    T &operator[](js::number i) const
-    {
-        if (static_cast<size_t>(i) >= _values.size())
-        {
-            return T(undefined);
-        }
-
-        return mutable_(_values)[static_cast<size_t>(i)];
-    }
-
-    void forEach(std::function<void(T, size_t)> callback)
-    {
-    }
-};
+using ReadonlyArray = tmpl::array<T>;
 
 template <typename T>
-struct Array : public ReadonlyArray<T>
-{
-    typedef ReadonlyArray<T> super__;
-    using super__::_values;
-    using super__::length;
-
-    Array() : ReadonlyArray<T>()
-    {
-    }
-
-    Array(js::number length_) : super__(length_)
-    {
-    }
-
-    Array(std::initializer_list<T> values) : ReadonlyArray<T>(values)
-    {
-    }
-
-    T &operator[](number n) const
-    {
-        if (static_cast<size_t>(n) >= _values.size())
-        {
-            return T(undefined);
-        }
-
-        return mutable_(_values)[static_cast<size_t>(n)];
-    }
-
-    T &operator[](number n)
-    {
-        while (static_cast<size_t>(n) >= _values.size())
-        {
-            _values.push_back(undefined_t());
-        }
-
-        return _values[static_cast<size_t>(n)];
-    }
-
-    void push(T t)
-    {
-        _values.push_back(t);
-    }
-
-    template <typename... Args>
-    void push(Args... args)
-    {
-        for (const auto &item : {args...})
-        {
-            _values.push_back(item);
-        }
-    }
-
-    T pop()
-    {
-        return _values.pop_back();
-    }
-
-    auto begin() -> decltype(_values.begin())
-    {
-        return _values.begin();
-    }
-
-    auto end() -> decltype(_values.end())
-    {
-        return _values.end();
-    }
-
-    bool exists(number n) const
-    {
-        return static_cast<size_t>(n) < _values.size();
-    }
-
-    template <class I>
-    bool exists(I i) const
-    {
-        return false;
-    }
-};
+using Array = tmpl::array<T>;
 
 struct Date
 {
@@ -3086,10 +2991,11 @@ template <typename T>
 struct TypedArray : public Array<T>
 {
     typedef Array<T> super__;
-    using super__::length;
+    js::number _length;
 
-    TypedArray(js::number length_) : super__(length_)
+    TypedArray(js::number length_) : super__()
     {
+        _length = length_;
     }
 };
 
