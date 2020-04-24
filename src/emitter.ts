@@ -3,6 +3,7 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
+import { readSync } from 'fs-extra';
 
 export class Emitter {
     public writer: CodeWriter;
@@ -2694,7 +2695,7 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        const val = parseInt(node.text, 10);
+        // const val = parseInt(node.text, 10);
         const isNegative = node.parent
             && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
             && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
@@ -2716,7 +2717,7 @@ export class Emitter {
         }
 
         this.writer.writeString(`${node.text}${suffix}`);
-        if (!(<any>node).__skip_boxing)
+        if (!(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember))
         {
             this.writer.writeString(`_N`);
         }

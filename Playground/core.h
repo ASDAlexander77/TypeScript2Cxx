@@ -456,11 +456,17 @@ struct number : public undefined_t
     {
     }
 
-    template <class T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number(T initValue) : undefined_t(false) 
     {
         _value = static_cast<V>(initValue);
     }
+
+    template <typename T>
+    number(T initValue, std::enable_if_t<std::is_enum_v<T>, T> = 0) : undefined_t(false) 
+    {
+        _value = static_cast<int>(initValue);
+    }    
 
     number(const undefined_t &undef) : undefined_t(true)
     {
@@ -1588,6 +1594,11 @@ struct any
     }
 
     any(bool value) : _type(anyTypeId::boolean_type), _value(js::boolean(value)), _counter(nullptr)
+    {
+    }
+
+    template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+    any(T value) : _type(anyTypeId::number_type), _value(js::number((int)value)), _counter(nullptr)
     {
     }
 
