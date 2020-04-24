@@ -11,6 +11,7 @@ export class Emitter {
     private sourceFileName: string;
     private scope: Array<ts.Node> = new Array<ts.Node>();
     private opsMap: Map<number, string> = new Map<number, string>();
+    private isWritingMain = false;
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
@@ -212,7 +213,9 @@ export class Emitter {
                     || this.isNamespaceStatement(s))
                 .forEach(s => {
                     if (this.isNamespaceStatement(s)) {
+                        this.isWritingMain = true;
                         this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
+                        this.isWritingMain = false;
                     } else {
                         this.processStatement(<ts.Statement>s);
                     }
@@ -226,6 +229,8 @@ export class Emitter {
             this.writer.writeStringNewLine('void Main(void)');
             this.writer.BeginBlock();
 
+            this.isWritingMain = true;
+
             const position = this.writer.newSection();
 
             sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)
@@ -236,6 +241,8 @@ export class Emitter {
                     this.processStatement(s);
                 }
             });
+
+            this.isWritingMain = false;
 
             if (hasVarsContent || this.writer.hasAnyContent(position, rollbackPosition)) {
                 this.writer.EndBlock();
@@ -1662,6 +1669,31 @@ export class Emitter {
                     this.writer.writeString('std::shared_ptr<');
                 }
 
+                // writing namespace
+                if (this.isWritingMain) {
+                    const symbol = (<any>typeReference.typeName).symbol;
+                    if (symbol) {
+                        const valDecl = symbol.valueDeclaration;
+                        if (valDecl) {
+                            let parent = valDecl.parent;
+                            if (parent) {
+                                parent = parent.parent;
+                            }
+
+                            if (parent) {
+                                const symbolNamespace = parent.symbol;
+                                if (symbolNamespace) {
+                                    const valDeclNamespace = symbolNamespace.valueDeclaration;
+                                    if (valDeclNamespace && valDeclNamespace.kind !== ts.SyntaxKind.SourceFile) {
+                                        this.processType(valDeclNamespace);
+                                        this.writer.writeString('::');
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if ((<any>typeReference.typeName).symbol
                     && (<any>typeReference.typeName).symbol.parent
                     && (<any>typeReference.typeName).symbol.parent.valueDeclaration.kind !== ts.SyntaxKind.SourceFile) {
@@ -3045,15 +3077,6 @@ export class Emitter {
             this.writer.writeString('array');
         } else {
 
-            const containerParent = node.parent.parent.parent;
-            if (containerParent && this.isNamespaceStatement(containerParent)) {
-                const type = this.resolver.getOrResolveTypeOfAsTypeNode(node.parent.parent.parent);
-                if (type) {
-                    this.processType(type);
-                    this.writer.writeString('::');
-                }
-            }
-
             this.processExpression(node.expression);
             this.processTemplateArguments(node);
         }
@@ -3165,6 +3188,25 @@ export class Emitter {
     }
 
     private processIdentifier(node: ts.Identifier): void {
+
+        if (this.isWritingMain) {
+            // writing namespaces
+            const identifierType = this.resolver.getOrResolveTypeOf(node);
+            const valDelc = identifierType
+                && (<any>identifierType).symbol
+                && (<any>identifierType).symbol.valueDeclaration;
+            if (valDelc) {
+                const containerParent = valDelc.parent.parent;
+                if (containerParent && this.isNamespaceStatement(containerParent)) {
+                    const type = this.resolver.getOrResolveTypeOfAsTypeNode(containerParent);
+                    if (type) {
+                        this.processType(type);
+                        this.writer.writeString('::');
+                    }
+                }
+            }
+        }
+
         // fix issue with 'continue'
         if (node.text === 'continue'
             || node.text === 'catch') {
