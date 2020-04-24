@@ -1627,7 +1627,7 @@ struct any
     }
 
     template <typename T>
-    any(T value, std::enable_if_t<std::is_enum_v<T>, T> = 0) : _type(anyTypeId::number_type), _value(js::number((int)value)), _counter(nullptr)
+    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _type(anyTypeId::number_type), _value(js::number((int)value)), _counter(nullptr)
     {
     }
 

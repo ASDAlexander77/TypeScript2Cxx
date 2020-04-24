@@ -2695,16 +2695,14 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-        // const val = parseInt(node.text, 10);
+        const val = parseInt(node.text, 10);
         const isNegative = node.parent
             && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
             && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
-        const suffix = '';
-        /*
+        let suffix = '';
         if (isNegative && val >= 2147483648) {
             suffix = 'll';
         }
-        */
 
         // find if you need to box value
         let currentNode: ts.Expression = node;
@@ -2716,10 +2714,12 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
-        this.writer.writeString(`${node.text}${suffix}`);
+        this.writer.writeString(`${node.text}`);
         if (!(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember))
         {
             this.writer.writeString(`_N`);
+        } else {
+            this.writer.writeString(`${suffix}`);
         }
     }
 
