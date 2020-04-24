@@ -5,6 +5,10 @@ using namespace js;
 namespace js
 {
 
+pointer_t::pointer_t(number n) : _ptr((void*)(long long)n._value), undefined_t(true)
+{
+}
+
 bool pointer_t::operator==(js::number n)
 {
     //return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));

@@ -302,11 +302,11 @@ static struct pointer_t : public undefined_t
     {
     };
 
-    pointer_t(void* ptr) : _ptr(ptr), undefined_t(false) 
+    pointer_t(const pointer_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
     {
     };
 
-    pointer_t(const pointer_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
+    pointer_t(void* ptr) : _ptr(ptr), undefined_t(false) 
     {
     };
 
@@ -314,6 +314,8 @@ static struct pointer_t : public undefined_t
     {
     };
 
+    pointer_t(number);
+    
     pointer_t(const undefined_t &undef) : _ptr(nullptr), undefined_t(true)
     {
     }
@@ -1557,8 +1559,14 @@ struct any
     {
     }
 
-    any(pointer_t v) : _type(anyTypeId::object_type), _value(v), _counter(nullptr)
+    any(pointer_t v) : _type(anyTypeId::number_type), _counter(nullptr)
     {
+        if (v.isUndefined) {
+            _value._number = (long long) v._ptr;
+        } else {
+            _type = anyTypeId::object_type;
+            _value._data = v._ptr;
+        }
     }
 
     any(bool value) : _type(anyTypeId::boolean_type), _value(js::boolean(value)), _counter(nullptr)
@@ -1759,6 +1767,11 @@ struct any
             return null;
         }
 
+        if (_type == anyTypeId::number_type)
+        {
+            return pointer_t(_value._number);
+        }        
+
         return pointer_t(_value._data);
     }
 
@@ -1783,6 +1796,11 @@ struct any
         {
             return js::number(std::atof(string_ref().operator const char *()));
         }
+
+        if (_type == anyTypeId::object_type && _value._data == nullptr)
+        {
+            return js::number(0);
+        }        
 
         throw "wrong type";
     }
