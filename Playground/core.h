@@ -250,6 +250,50 @@ static struct undefined_t
     }
 } undefined(true);
 
+struct void_t
+{
+    constexpr operator void()
+    {
+    }
+
+    constexpr operator bool()
+    {
+        return false;
+    }
+
+    constexpr bool operator==(void_t)
+    {
+        return true;
+    }
+
+    constexpr bool operator!=(void_t)
+    {
+        return false;
+    }     
+
+    constexpr bool operator==(undefined_t)
+    {
+        return true;
+    }
+
+    constexpr bool operator!=(undefined_t)
+    {
+        return false;
+    }        
+
+    template <typename T>
+    constexpr bool operator==(T)
+    {
+        return false;
+    }
+
+    template <typename T>
+    constexpr bool operator!=(T)
+    {
+        return true;
+    }        
+};
+
 static struct pointer_t : public undefined_t
 {
     void* _ptr;
@@ -752,6 +796,11 @@ struct string : public undefined_t
         return string(_value + value._value);
     }
 
+    friend string operator+(const string& value, string other)
+    {
+        return mutable_(value) + other;
+    }
+
     string operator+(pointer_t ptr)
     {
         return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
@@ -884,6 +933,11 @@ struct string : public undefined_t
     }
 
     string substring(number begin, number end)
+    {
+        return string(_value.substr(begin, end - begin));
+    }
+
+    string slice(number begin, number end)
     {
         return string(_value.substr(begin, end - begin));
     }
@@ -1357,6 +1411,8 @@ struct object : public undefined_t
 
     any &operator[](string s);
 
+    any &operator[](undefined_t undef);
+
     void Delete(const char *field)
     {
         _values.erase(field);
@@ -1450,6 +1506,10 @@ struct any
     long* _counter;
 
     any() : _type(anyTypeId::undefined_type), _value(nullptr), _counter(nullptr)
+    {
+    }
+
+    any(void_t) : _type(anyTypeId::undefined_type), _value(nullptr), _counter(nullptr)
     {
     }
 
@@ -2778,14 +2838,15 @@ static number parseFloat(const js::string &value)
     return r;    
 }
 
-struct Object_t
+static struct Object_t
 {
     constexpr Object_t *operator->()
     {
         return this;
     }
 
-    auto keys(const js::object& o) {
+    template <typename T>
+    auto keys(const T& o) {
         return keys_(o);
     }
 } Object;

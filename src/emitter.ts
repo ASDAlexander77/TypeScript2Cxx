@@ -419,6 +419,9 @@ export class Emitter {
     public isTemplate(declaration:
         ts.MethodDeclaration | ts.ConstructorDeclaration | ts.ClassDeclaration
         | ts.FunctionDeclaration | ts.FunctionExpression) {
+        if (!declaration) {
+            return false;
+        }
 
         if (declaration.typeParameters && declaration.typeParameters.length > 0) {
             return true;
@@ -1356,6 +1359,20 @@ export class Emitter {
         let hasReturnResult = false;
         this.childrenVisitor(location, (node: ts.Node) => {
             if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                hasReturnResult = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return hasReturnResult;
+    }
+
+    private hasReturnWithValue(location: ts.Node): boolean {
+        let hasReturnResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
                 const returnStatement = <ts.ReturnStatement>node;
                 if (returnStatement.expression) {
                     hasReturnResult = true;
@@ -1893,7 +1910,8 @@ export class Emitter {
             return true;
         }
 
-        const noReturn = !this.hasReturn(node);
+        const noReturnStatement = !this.hasReturn(node);
+        const noReturn = !this.hasReturnWithValue(node);
         // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         // const noCapture = !this.requireCapture(node);
 
@@ -1923,6 +1941,26 @@ export class Emitter {
             this.processModifiers(node.modifiers);
         }
 
+        const writeReturnType = () => {
+            if (node.type) {
+                if (this.isTemplateType(node.type)) {
+                    this.writer.writeString('RET');
+                } else {
+                    this.processType(node.type);
+                }
+            } else {
+                if (noReturn) {
+                    this.writer.writeString('void');
+                } else {
+                    if (isClassMember && (<ts.Identifier>node.name).text === 'toString') {
+                        this.writer.writeString('string');
+                    } else {
+                        this.writer.writeString('any');
+                    }
+                }
+            }
+        };
+
         if (writeAsLambdaCFunction) {
             if (isFunctionOrMethodDeclaration) {
                 // type declaration
@@ -1935,23 +1973,7 @@ export class Emitter {
                         this.writer.writeString('virtual ');
                     }
 
-                    if (node.type) {
-                        if (this.isTemplateType(node.type)) {
-                            this.writer.writeString('RET');
-                        } else {
-                            this.processType(node.type);
-                        }
-                    } else {
-                        if (noReturn) {
-                            this.writer.writeString('void');
-                        } else {
-                            if (isClassMember && (<ts.Identifier>node.name).text === 'toString') {
-                                this.writer.writeString('string');
-                            } else {
-                                this.writer.writeString('any');
-                            }
-                        }
-                    }
+                    writeReturnType();
 
                     this.writer.writeString(' ');
                 }
@@ -2146,6 +2168,14 @@ export class Emitter {
                 this.processStatementInternal(element, true);
             });
 
+            // add default return if no body
+            if (noReturnStatement && node && node.type && node.type.kind !== ts.SyntaxKind.VoidKeyword) {
+                this.writer.writeString('return ');
+                writeReturnType();
+                this.writer.writeString('()');
+                this.writer.EndOfStatement();
+            }
+
             this.writer.EndBlock();
         }
     }
@@ -2327,19 +2357,19 @@ export class Emitter {
     }
 
     private processReturnStatement(node: ts.ReturnStatement): void {
+        const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
+        const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
+        let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
+        if (functionReturn.kind === ts.SyntaxKind.FunctionType) {
+            functionReturn = (<ts.FunctionTypeNode>functionReturn).type;
+        } else if (!functionDeclaration.type) {
+            // if it is not function then use "any"
+            functionReturn = null;
+        }
+
         this.writer.writeString('return');
         if (node.expression) {
             this.writer.writeString(' ');
-
-            const typeReturn = this.resolver.getOrResolveTypeOfAsTypeNode(node.expression);
-            const functionDeclaration = (<ts.FunctionDeclaration>(this.scope[this.scope.length - 1]));
-            let functionReturn = functionDeclaration.type || this.resolver.getOrResolveTypeOfAsTypeNode(functionDeclaration);
-            if (functionReturn.kind === ts.SyntaxKind.FunctionType) {
-                functionReturn = (<ts.FunctionTypeNode>functionReturn).type;
-            } else if (!functionDeclaration.type) {
-                // if it is not function then use "any"
-                functionReturn = null;
-            }
 
             /*
             let theSame = (typeReturn && typeReturn.kind === ts.SyntaxKind.ThisKeyword)
@@ -2371,6 +2401,12 @@ export class Emitter {
                 this.writer.writeString(')');
             }
             */
+        } else {
+            if (functionReturn && functionReturn.kind !== ts.SyntaxKind.VoidKeyword) {
+                this.writer.writeString(' ');
+                this.processType(functionReturn);
+                this.writer.writeString('()');
+            }
         }
 
         this.writer.EndOfStatement();

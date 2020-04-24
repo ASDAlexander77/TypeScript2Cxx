@@ -110,6 +110,11 @@ any &object::operator[](string s)
     return _values[(std::string)s];
 }
 
+any &object::operator[](undefined_t undef)
+{
+    return _values["undefined"];
+}
+
 // Math
 number math_t::E = 2.718281828459045;
 number math_t::LN10 = 2.302585092994046;
