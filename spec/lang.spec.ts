@@ -36,7 +36,6 @@ describe('Lang tests', () => {
     it('35 lambdaparameters', () => expect(new Run().test(['lang-test0/35lambdaparameters.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('36 interfaces', () => expect(new Run().test(['lang-test0/36interfaces.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('37 objectliterals', () => expect(new Run().test(['lang-test0/37objectliterals.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
-    it('38 bitsize', () => expect(new Run().test(['lang-test0/38bitsize.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('39 objectdestructuring', () => expect(new Run().test(['lang-test0/39objectdestructuring.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('40 generics', () => expect(new Run().test(['lang-test0/40generics.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));
     it('41 anonymoustypes', () => expect(new Run().test(['lang-test0/41anonymoustypes.ts'], undefined, 'lang-test0/lang-test0.ts', 'lang-test0/99final.ts')).to.equals('start!\r\ntest OK!\r\n'));

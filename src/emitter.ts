@@ -127,7 +127,8 @@ export class Emitter {
             || f.kind === ts.SyntaxKind.ModuleDeclaration
             || f.kind === ts.SyntaxKind.NamespaceExportDeclaration
             || f.kind === ts.SyntaxKind.ImportDeclaration
-            || f.kind === ts.SyntaxKind.TypeAliasDeclaration) {
+            || f.kind === ts.SyntaxKind.TypeAliasDeclaration
+            || f.kind === ts.SyntaxKind.ImportEqualsDeclaration) {
             return true;
         }
 
@@ -315,6 +316,7 @@ export class Emitter {
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
+            case ts.SyntaxKind.ImportEqualsDeclaration: /*this.processImportEqualsDeclaration(<ts.ImportEqualsDeclaration>node);*/ return;
             case ts.SyntaxKind.ImportDeclaration:
                 /*done in forward declaration*/ /*this.processImportDeclaration(<ts.ImportDeclaration>node);*/ return;
             case ts.SyntaxKind.TypeAliasDeclaration:
@@ -525,6 +527,13 @@ export class Emitter {
                     || (!template && !this.isTemplate(<ts.MethodDeclaration>node))) {
                     this.processMethodDeclaration(<ts.MethodDeclaration>node, true);
                 }
+
+                return;
+            case ts.SyntaxKind.ImportEqualsDeclaration:
+                if (!template) {
+                    this.processImportEqualsDeclaration(<ts.ImportEqualsDeclaration>node);
+                }
+
                 return;
             default:
                 return;
@@ -1253,6 +1262,38 @@ export class Emitter {
         } else {
             throw new Error('Not Implemented');
         }
+    }
+
+    private processImportEqualsDeclaration(node: ts.ImportEqualsDeclaration): void {
+
+        const typeOfExpr = this.resolver.getOrResolveTypeOf(node.moduleReference);
+        if (typeOfExpr && typeOfExpr.symbol &&
+            (typeOfExpr.symbol.valueDeclaration.kind === ts.SyntaxKind.ModuleDeclaration
+                || typeOfExpr.symbol.valueDeclaration.kind === ts.SyntaxKind.NamespaceExportDeclaration)) {
+            this.writer.writeString('namespace ');
+        } else {
+            this.writer.writeString('using ');
+        }
+
+
+        this.processExpression(node.name);
+        this.writer.writeString(' = ');
+        this.processModuleReferenceOrEntityName(node.moduleReference);
+        this.writer.EndOfStatement();
+    }
+
+    private processModuleReferenceOrEntityName(node: ts.ModuleReference | ts.EntityName) {
+        switch (node.kind) {
+            case ts.SyntaxKind.Identifier: this.processIdentifier(node); break;
+            case ts.SyntaxKind.QualifiedName: this.processQualifiedName(node); break;
+            case ts.SyntaxKind.ExternalModuleReference: this.processExpression(node.expression); break;
+        }
+    }
+
+    private processQualifiedName(node: ts.QualifiedName) {
+        this.processModuleReferenceOrEntityName(node.left);
+        this.writer.writeString('::');
+        this.processExpression(node.right);
     }
 
     private processExportDeclaration(node: ts.ExportDeclaration): void {
@@ -3190,13 +3231,14 @@ export class Emitter {
     private processIdentifier(node: ts.Identifier): void {
 
         if (this.isWritingMain) {
-            const isRightPartOfPropertyAccess = node.parent.kind === ts.SyntaxKind.PropertyAccessExpression
-                && (<ts.PropertyAccessExpression>(node.parent)).name === node;
+            const isRightPartOfPropertyAccess = node.parent.kind === ts.SyntaxKind.QualifiedName
+                || node.parent.kind === ts.SyntaxKind.PropertyAccessExpression
+                    && (<ts.PropertyAccessExpression>(node.parent)).name === node;
             if (!isRightPartOfPropertyAccess) {
                 const identifierSymbol = this.resolver.getSymbolAtLocation(node);
-                const valDelc = identifierSymbol.valueDeclaration;
-                if (valDelc) {
-                    const containerParent = valDelc.parent.parent;
+                const valDecl = identifierSymbol && identifierSymbol.valueDeclaration;
+                if (valDecl) {
+                    const containerParent = valDecl.parent.parent;
                     if (containerParent && this.isNamespaceStatement(containerParent)) {
                         const type = this.resolver.getOrResolveTypeOfAsTypeNode(containerParent);
                         if (type) {
