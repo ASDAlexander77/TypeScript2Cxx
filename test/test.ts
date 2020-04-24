@@ -1,10 +1,7 @@
-module M {                                 
-            export class C {                        
-                static Y() { return 2; }            
-                                                    
-                X() { return 1; }                   
+module M1.M2 {                             
+            export function f() {                   
+                console.log("Hi");                  
             }                                       
         }                                           
                                                     
-        const c = new M.C();                        
-        console.log(c.X());
+        M1.M2.f();

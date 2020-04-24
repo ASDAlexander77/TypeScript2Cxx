@@ -3190,15 +3190,19 @@ export class Emitter {
     private processIdentifier(node: ts.Identifier): void {
 
         if (this.isWritingMain) {
-            const identifierSymbol = this.resolver.getSymbolAtLocation(node);
-            const valDelc = identifierSymbol.valueDeclaration;
-            if (valDelc) {
-                const containerParent = valDelc.parent.parent;
-                if (containerParent && this.isNamespaceStatement(containerParent)) {
-                    const type = this.resolver.getOrResolveTypeOfAsTypeNode(containerParent);
-                    if (type) {
-                        this.processType(type);
-                        this.writer.writeString('::');
+            const isRightPartOfPropertyAccess = node.parent.kind === ts.SyntaxKind.PropertyAccessExpression
+                && (<ts.PropertyAccessExpression>(node.parent)).name === node;
+            if (!isRightPartOfPropertyAccess) {
+                const identifierSymbol = this.resolver.getSymbolAtLocation(node);
+                const valDelc = identifierSymbol.valueDeclaration;
+                if (valDelc) {
+                    const containerParent = valDelc.parent.parent;
+                    if (containerParent && this.isNamespaceStatement(containerParent)) {
+                        const type = this.resolver.getOrResolveTypeOfAsTypeNode(containerParent);
+                        if (type) {
+                            this.processType(type);
+                            this.writer.writeString('::');
+                        }
                     }
                 }
             }
