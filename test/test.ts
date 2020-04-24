@@ -1,2 +1,4 @@
-	enum Color {Red = 1, Green, Blue}      
-        console.log(Color.Green); 
+	var hello = "is";                                      
+        for (var _char of hello) {                              
+            console.log(<any>_char);                            
+        }
