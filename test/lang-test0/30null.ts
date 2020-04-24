@@ -4,7 +4,8 @@ function testNullJS() {
     assert(x === undefined, "undef0")
     assert(x == null, "null0")
     x = null
-    assert(x === null, "null1")
+    //assert(x === null, "null1")
+    assert(x == null, "null1")
     assert(x == undefined, "undef1")
     x = 0
     assert(x != null, "null2")
@@ -37,11 +38,13 @@ namespace UndefinedReturn {
         let x = bar()
         if (!x)
             return 12
+	return
     }
     function foo2(): any {
         let x = bar()
         if (x)
             return 12
+	return
     }
     function foo3(): any {
         let x = bar()
