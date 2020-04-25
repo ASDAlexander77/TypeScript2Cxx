@@ -3218,21 +3218,36 @@ static struct Console
         return this;
     }
 
-    void log(any arg)
+    template <class... Args>
+    void log(Args... args)
     {
-        std::cout << arg;
+        for (auto &arg : {(any)args...})
+        {
+            std::cout << arg;
+        }
+
         std::cout << std::endl;
     }
 
-    void warn(any arg)
+    template <class... Args>
+    void warn(Args... args)
     {
-        std::clog << arg;
+        for (auto &arg : {(any)args...})
+        {
+            std::clog << arg;
+        }
+
         std::clog << std::endl;
     }
 
-    void error(any arg)
+    template <class... Args>
+    void error(Args... args)
     {
-        std::cerr << arg;
+        for (auto &arg : {(any)args...})
+        {
+            std::cerr << arg;
+        }
+
         std::cerr << std::endl;
     }
 
