@@ -35,11 +35,11 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.LessThanLessThanToken] = '__bitwise::lshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanToken] = '__bitwise::rshift';
         this.opsMap[ts.SyntaxKind.GreaterThanGreaterThanGreaterThanToken] = '__bitwise::rshift_nosign';
-        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__Equals';
+        this.opsMap[ts.SyntaxKind.EqualsEqualsToken] = '__equals';
         this.opsMap[ts.SyntaxKind.EqualsEqualsEqualsToken] = '==';
         this.opsMap[ts.SyntaxKind.LessThanToken] = '<';
         this.opsMap[ts.SyntaxKind.LessThanEqualsToken] = '<=';
-        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '__NotEquals';
+        this.opsMap[ts.SyntaxKind.ExclamationEqualsToken] = '__not_equals';
         this.opsMap[ts.SyntaxKind.ExclamationEqualsEqualsToken] = '!=';
         this.opsMap[ts.SyntaxKind.GreaterThanToken] = '>';
         this.opsMap[ts.SyntaxKind.GreaterThanEqualsToken] = '>=';
@@ -793,7 +793,7 @@ export class Emitter {
     }
 
     private processTypeOfExpression(node: ts.TypeOfExpression): void {
-        this.writer.writeString('typeOf(');
+        this.writer.writeString('type_of(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
     }

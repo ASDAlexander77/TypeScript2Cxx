@@ -1,2 +1,6 @@
-	enum Color {Red = 1, Green, Blue}      
-        console.log(Color.Green);
+	let a;                                 
+        let b;                                  
+                                                
+        a = b || 1;                             
+                                                
+        console.log(a); 

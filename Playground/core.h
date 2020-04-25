@@ -28,8 +28,8 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? vx : (y); })()
-#define AND(x, y) ([&]() { auto vx = (x); return static_cast<bool>(vx) ? (y) : vx; })()
+#define OR(x, y) ([&]() { auto vx = (x); return (static_cast<bool>(vx)) ? vx : (y); })()
+#define AND(x, y) ([&]() { auto vx = (x); return (static_cast<bool>(vx)) ? (y) : vx; })()
 
 #define Infinity js::number(std::numeric_limits<double>::infinity())
 #define NaN js::number(nan(""))
@@ -85,7 +85,7 @@ inline bool __is(T *t)
 }
 
 template <class T>
-static string typeOf(T value);
+static string type_of(T value);
 
 template <typename T>
 inline auto isNaN(T t)
@@ -384,15 +384,15 @@ static struct pointer_t : public undefined_t
 
 
 template <typename L, typename R>
-constexpr bool Equals(L l, R r)
+constexpr bool equals(L l, R r)
 {
     return ((l == undefined || l == null) && (r == undefined || r == null)) || l == r;
 }
 
 template <typename L, typename R>
-constexpr bool NotEquals(L l, R r)
+constexpr bool not_equals(L l, R r)
 {
-    return !Equals(l, r);
+    return !equals(l, r);
 }
 
 struct boolean : public undefined_t
@@ -463,7 +463,7 @@ struct number : public undefined_t
     }
 
     template <typename T>
-    number(T initValue, std::enable_if_t<std::is_enum_v<T>, T> = 0) : undefined_t(false) 
+    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : undefined_t(false) 
     {
         _value = static_cast<int>(initValue);
     }    
@@ -2520,7 +2520,7 @@ struct any
         throw "not implemented";
     }
 
-    js::string typeOf()
+    js::string type_of()
     {
         switch (_type)
         {
@@ -2695,33 +2695,33 @@ static js::number operator+(const boolean& v)
 }
 
 template <>
-string typeOf(boolean value)
+string type_of(boolean value)
 {
     return "boolean"_S;
 }
 
 template <>
-string typeOf(number value)
+string type_of(number value)
 {
     return "number"_S;
 }
 
 template <>
-string typeOf(string value)
+string type_of(string value)
 {
     return "string"_S;
 }
 
 template <>
-string typeOf(object value)
+string type_of(object value)
 {
     return "object"_S;
 }
 
 template <>
-string typeOf(any value)
+string type_of(any value)
 {
-    return value.typeOf();
+    return value.type_of();
 }
 
 template <class T>
@@ -2780,10 +2780,10 @@ public:
     ~Finally() { _dtor(); }
 };
 
-struct Utils
+namespace Utils
 {
     template <typename... Args>
-    static object assign(object &dst, const Args &... args)
+    object assign(object &dst, const Args &... args)
     {
         for (auto src : {args...})
         {
@@ -2819,31 +2819,31 @@ any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
 }
 
 template <typename V>
-constexpr bool IN(V v, const array &a)
+constexpr bool in(V v, const array &a)
 {
     return a.exists(v);
 }
 
 template <typename V>
-constexpr bool IN(V v, const object &a)
+constexpr bool in(V v, const object &a)
 {
     return a.exists(v);
 }
 
 template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
-constexpr bool IN(V v, const Ax &a)
+constexpr bool in(V v, const Ax &a)
 {
     return a.exists(v);
 }
 
 template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
-constexpr bool IN(V v, Ax *a)
+constexpr bool in(V v, Ax *a)
 {
     return a->exists(v);
 }
 
 template <typename V, class O>
-constexpr bool IN(V v, O o)
+constexpr bool in(V v, O o)
 {
     return false;
 }
@@ -2855,7 +2855,6 @@ template <typename V>
 number<V>::operator js::string() {
     return js::string(static_cast<std::string>(*this));
 }    
-
 
 template <typename V>
 js::string number<V>::toString() {
