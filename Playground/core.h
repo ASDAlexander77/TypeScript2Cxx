@@ -3218,38 +3218,65 @@ static struct Console
         return this;
     }
 
+    template <class Arg1>
+    inline void log_req(Arg1 arg1)
+    {
+        std::cout << arg1;
+    }
+
+    template <class Arg1, class... Args>
+    inline void log_req(Arg1 arg1, Args... args)
+    {
+        std::cout << arg1;
+        log_req(args...);
+    }
+
     template <class... Args>
     void log(Args... args)
     {
-        for (auto &arg : {(any)args...})
-        {
-            std::cout << arg;
-        }
-
+        log_req(args...);
         std::cout << std::endl;
+    }
+
+    template <class Arg1>
+    inline void warn_req(Arg1 arg1)
+    {
+        std::clog << arg1;
+    }
+
+    template <class Arg1, class... Args>
+    inline void warn_req(Arg1 arg1, Args... args)
+    {
+        std::clog << arg1;
+        warn_req(args...);
     }
 
     template <class... Args>
     void warn(Args... args)
     {
-        for (auto &arg : {(any)args...})
-        {
-            std::clog << arg;
-        }
-
+        warn_req(args...);
         std::clog << std::endl;
+    }    
+
+    template <class Arg1>
+    inline void error_req(Arg1 arg1)
+    {
+        std::cerr << arg1;
+    }
+
+    template <class Arg1, class... Args>
+    inline void error_req(Arg1 arg1, Args... args)
+    {
+        std::cerr << arg1;
+        error_req(args...);
     }
 
     template <class... Args>
     void error(Args... args)
     {
-        for (auto &arg : {(any)args...})
-        {
-            std::cerr << arg;
-        }
-
+        error_req(args...);
         std::cerr << std::endl;
-    }
+    }        
 
 } console;
 
