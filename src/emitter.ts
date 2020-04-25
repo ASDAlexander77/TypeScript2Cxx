@@ -61,7 +61,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.ExclamationToken] = '!';
         this.opsMap[ts.SyntaxKind.PlusPlusToken] = '++';
         this.opsMap[ts.SyntaxKind.MinusMinusToken] = '--';
-        this.opsMap[ts.SyntaxKind.InKeyword] = '__IN';
+        this.opsMap[ts.SyntaxKind.InKeyword] = '__in';
 
         this.opsMap[ts.SyntaxKind.AmpersandAmpersandToken] = '__AND';
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
@@ -3036,24 +3036,13 @@ export class Emitter {
             return;
         }
 
-        const wrapIntoRoundBrackets =
-            opCode === ts.SyntaxKind.AmpersandAmpersandToken
-            || opCode === ts.SyntaxKind.BarBarToken;
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
             this.writer.writeString(op.substr(2) + '(');
         }
 
-        if (wrapIntoRoundBrackets) {
-            this.writer.writeString('(');
-        }
-
         this.processExpression(node.left);
-
-        if (wrapIntoRoundBrackets) {
-            this.writer.writeString(')');
-        }
 
         if (isFunction) {
             this.writer.writeString(', ');
@@ -3061,15 +3050,7 @@ export class Emitter {
             this.writer.writeString(' ' + op + ' ');
         }
 
-        if (wrapIntoRoundBrackets) {
-            this.writer.writeString('(');
-        }
-
         this.processExpression(node.right);
-
-        if (wrapIntoRoundBrackets) {
-            this.writer.writeString(')');
-        }
 
         if (isFunction) {
             this.writer.writeString(')');
