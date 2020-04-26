@@ -424,6 +424,10 @@ struct boolean
         return this;
     }
 
+    inline bool operator==(boolean other) {
+        return static_cast<bool>(*this) == static_cast<bool>(other);
+    }    
+
     friend std::ostream &operator<<(std::ostream &os, boolean val)
     {
         if (val.isUndefined)
@@ -1475,6 +1479,11 @@ struct object
 
     any &operator[](undefined_t undef);
 
+    inline bool operator==(const object& other) {
+        // TODO - finish it
+        return isUndefined == other.isUndefined && isUndefined == true;
+    }
+
     void Delete(const char *field)
     {
         _values.erase(field);
@@ -1999,9 +2008,9 @@ struct any
         case anyTypeId::number_type:
             return _value._number._value == other._value._number._value;
         case anyTypeId::string_type:
-            return string_ref_const() == mutable_(other).string_ref_const();
+            return string_ref_const() == mutable_(other).string_ref();
         case anyTypeId::object_type:
-            return object_ref_const() == mutable_(other).string_ref_const();
+            return object_ref_const() == mutable_(other).object_ref();
         }
 
         throw "not implemented";

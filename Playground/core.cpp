@@ -5,7 +5,7 @@ using namespace js;
 namespace js
 {
 
-pointer_t::pointer_t(number n) : _ptr((void*)(long long)n._value), undefined_t(true)
+pointer_t::pointer_t(number n) : _ptr((void*)(long long)n._value), isUndefined(true)
 {
 }
 
@@ -32,7 +32,7 @@ bool operator!=(js::number n, pointer_t p)
 }
 
 // String
-string::string(any val) : _value(val.operator js::string()), undefined_t(false), isNull(false)
+string::string(any val) : _value(val.operator js::string()), isUndefined(false), isNull(false)
 {
 }    
 
@@ -53,15 +53,15 @@ js::string &string::operator+=(any a)
 }
 
 // Object
-object::object() : _values(), undefined_t(false)
+object::object() : _values(), isUndefined(false)
 {
 }
 
-object::object(const object& value) : _values(value._values), undefined_t(value.isUndefined)
+object::object(const object& value) : _values(value._values), isUndefined(value.isUndefined)
 {
 }
 
-object::object(std::initializer_list<pair> values) : undefined_t(false)
+object::object(std::initializer_list<pair> values) : isUndefined(false)
 {
     for (auto &item : values)
     {
