@@ -1,12 +1,8 @@
-function run() {                                                   
-            let o = false;                                                  
-            const a = function() {                                          
-                o = true;                                                   
-            };                                                              
-                                                                            
-            a();                                                            
-                                                                            
-            console.log(o);                                                 
-        }                                                                   
-                                                                            
-        run();                                                              
+	let a: boolean;                        
+         console.log(a === undefined);          
+         a = true;                              
+         console.log(a !== undefined);          
+         console.log(!!a);                      
+         a = false;                             
+         console.log(a !== undefined);          
+         console.log(!!a);

@@ -73,7 +73,7 @@
                 "--colors",
                 "-r",
                 "ts-node/register",
-                "${workspaceFolder}/../spec/**/scopes.spec.ts"
+                "${workspaceFolder}/../spec/**/boolean.spec.ts"
             ],
             "internalConsoleOptions": "openOnSessionStart",
             "cwd": "${workspaceFolder}/../"

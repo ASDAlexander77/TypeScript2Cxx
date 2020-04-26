@@ -196,18 +196,11 @@ constexpr auto lshift(T1 op1, T2 op2)
 
 static struct undefined_t
 {
-
-    bool isUndefined;
-
-    constexpr undefined_t() : isUndefined(true)
+    constexpr undefined_t()
     {
     }
 
-    constexpr undefined_t(bool value) : isUndefined(value)
-    {
-    }
-
-    constexpr undefined_t(const undefined_t &undef) : undefined_t(true)
+    constexpr undefined_t(const undefined_t &)
     {
     }    
 
@@ -216,36 +209,36 @@ static struct undefined_t
         return false;
     }
 
-    inline operator std::nullptr_t()
+    constexpr operator std::nullptr_t()
     {
         return nullptr;
     }
 
-    bool operator==(undefined_t other)
+    constexpr bool operator==(undefined_t)
     {
-        return isUndefined == other.isUndefined;
+        return true;
     }
 
-    bool operator!=(undefined_t other)
+    constexpr bool operator!=(undefined_t)
     {
-        return isUndefined != other.isUndefined;
+        return false;
     }
 
-    bool operator==(const pointer_t&)
+    constexpr bool operator==(const pointer_t&)
     {
-        return !isUndefined;
+        return false;
     }
 
-    bool operator!=(const pointer_t&)
+    constexpr bool operator!=(const pointer_t&)
     {
-        return isUndefined;
+        return true;
     }
 
-    friend std::ostream &operator<<(std::ostream &os, undefined_t val)
+    friend std::ostream &operator<<(std::ostream &os, undefined_t)
     {
         return os << "undefined";
     }
-} undefined(true);
+} undefined;
 
 struct void_t
 {
@@ -323,14 +316,14 @@ static struct pointer_t
         return !isUndefined && _ptr != nullptr;
     }
 
-    bool operator==(undefined_t u)
+    bool operator==(undefined_t)
     {
-        return isUndefined == u.isUndefined;
+        return isUndefined;
     }
 
-    bool operator!=(undefined_t u)
+    bool operator!=(undefined_t)
     {
-        return isUndefined != u.isUndefined;
+        return !isUndefined;
     }
 
     bool operator==(pointer_t p)
@@ -384,7 +377,11 @@ static struct pointer_t
 template <typename L, typename R>
 constexpr bool equals(L l, R r)
 {
-    return ((l == undefined || l == null) && (r == undefined || r == null)) || l == r;
+    auto lIsUndef = l == undefined;
+    auto lIsNull = l == null;
+    auto rIsUndef = r == undefined;
+    auto rIsNull = r == null;
+    return ((lIsUndef || lIsNull) && (rIsUndef || rIsNull)) || l == r;
 }
 
 template <typename L, typename R>
@@ -398,36 +395,68 @@ struct boolean
     using value_type = int;
     value_type _control;
 
-    constexpr boolean() : _control(std::numeric_limits<value_type>::max())
+    constexpr boolean() : _control(2)
     {
     }
 
-    boolean(const boolean &value) : _control(value._control)
+    inline boolean(const boolean &value) : _control(value._control)
     {
     }    
 
-    boolean(bool initValue) : _control(initValue)
+    inline boolean(bool value) : _control(value)
     {
     }
 
-    constexpr boolean(const undefined_t &undef) : boolean()
+    constexpr boolean(const undefined_t &) : boolean()
     {
     }
 
     constexpr operator bool() const
     {
-        return static_cast<bool>(_control);
+        return _control == 1;
     }
 
     constexpr operator bool()
     {
-        return static_cast<bool>(_control);
+        return _control == 1;
     }
 
     constexpr boolean *operator->()
     {
         return this;
     }
+
+    inline bool operator==(undefined_t) const {
+        return _control == 2;
+    }   
+
+    inline bool operator!=(undefined_t) const {
+        return _control != 2;
+    }    
+
+    inline bool operator==(pointer_t) const {
+        return false;
+    }       
+
+    inline bool operator!=(pointer_t) const {
+        return true;
+    }       
+
+    inline bool operator==(undefined_t) {
+        return _control == 2;
+    }   
+
+    inline bool operator!=(undefined_t) {
+        return _control != 2;
+    }    
+
+    inline bool operator==(pointer_t) {
+        return false;
+    }       
+
+    inline bool operator!=(pointer_t) {
+        return true;
+    }       
 
     inline bool operator==(boolean other) {
         return static_cast<bool>(*this) == static_cast<bool>(other);
@@ -872,24 +901,24 @@ struct string
         return !isUndefined && _value.compare(other._value) != 0;
     }
 
-    bool operator==(undefined_t undef)
+    bool operator==(undefined_t)
     {
-        return isUndefined == undef.isUndefined;
+        return isUndefined;
     }
 
-    friend bool operator==(undefined_t undef, const js::string& other)
+    friend bool operator==(undefined_t, const js::string& other)
     {
-        return other.isUndefined == undef.isUndefined;
+        return other.isUndefined;
     }    
 
-    bool operator!=(undefined_t undef)
+    bool operator!=(undefined_t)
     {
-        return isUndefined != undef.isUndefined;
+        return !isUndefined;
     }    
 
-    friend bool operator!=(undefined_t undef, const js::string& other)
+    friend bool operator!=(undefined_t, const js::string& other)
     {
-        return other.isUndefined != undef.isUndefined;
+        return !other.isUndefined;
     }   
 
     bool operator==(pointer_t ptr)
@@ -2026,14 +2055,14 @@ struct any
         return !(*this == other);
     }
 
-    bool operator==(const js::undefined_t &other) const
+    bool operator==(const js::undefined_t &) const
     {
-        return _type == anyTypeId::undefined_type && other.isUndefined;
+        return _type == anyTypeId::undefined_type;
     }
 
-    bool operator!=(const js::undefined_t &other) const
+    bool operator!=(const js::undefined_t &) const
     {
-        return _type != anyTypeId::undefined_type && other.isUndefined;
+        return _type != anyTypeId::undefined_type;
     }
 
     bool operator==(const pointer_t &other) const
