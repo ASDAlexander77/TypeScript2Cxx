@@ -701,14 +701,14 @@ struct number
         return number(~static_cast<long>(_value));
     }
 
-    bool operator==(const undefined_t& n)
+    bool operator==(const undefined_t&)
     {
-        return isUndefined == n.isUndefined;
+        return isUndefined;
     }
 
-    bool operator!=(const undefined_t& n)
+    bool operator!=(const undefined_t&)
     {
-        return isUndefined != n.isUndefined;
+        return !isUndefined;
     }
 
     bool operator==(number_t n)
