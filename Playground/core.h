@@ -704,12 +704,12 @@ struct number
 
     bool operator==(const undefined_t&)
     {
-        return isUndefined;
+        return isUndefined();
     }
 
     bool operator!=(const undefined_t&)
     {
-        return !isUndefined;
+        return !isUndefined();
     }
 
     bool operator==(number_t n)

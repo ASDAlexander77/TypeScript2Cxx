@@ -1,6 +1,5 @@
-let n: number;
-console.log(n);
-n = NaN;
-console.log(n);
-n = -NaN;
-console.log(n);
+	for (let i = 0; i < 3; i++) {          
+            console.log(i);                     
+            if (i == 0) continue;               
+            break;                              
+        }
