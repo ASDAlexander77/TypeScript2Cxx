@@ -495,6 +495,9 @@ struct number
     template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number(T initValue) :  _value{static_cast<V>(initValue)}
     {
+        if (isUndefined()) {
+            _value = std::abs(_value);
+        }
     }
 
     template <typename T>
@@ -551,14 +554,9 @@ struct number
 
     operator string();
 
-    friend number_t operator+(const number_t n, number_t value)
-    {
-        return number_t(n._value + value._value);
-    }
-
     number_t operator+()
     {
-        return number_t(+_value);
+        return +_value;
     }
 
     number_t &operator++()
@@ -574,6 +572,11 @@ struct number
         return tmp;
     }
 
+    friend number_t operator+(const number_t n, number_t value)
+    {
+        return n._value + value._value;
+    }
+
     number_t &operator+=(number_t other)
     {
         _value += other._value;
@@ -582,12 +585,12 @@ struct number
 
     number_t operator-(number_t n)
     {
-        return number_t(_value - n._value);
+        return _value - n._value;
     }
 
     number_t operator-()
     {
-        return number_t(-_value);
+        return -_value;
     }
 
     number_t &operator--()
@@ -611,7 +614,7 @@ struct number
 
     number_t operator*(number_t n)
     {
-        return number_t(_value * n._value);
+        return _value * n._value;
     }
 
     number_t &operator*=(number_t other)
@@ -622,7 +625,7 @@ struct number
 
     number_t operator/(number_t n)
     {
-        return number_t(_value / n._value);
+        return _value / n._value;
     }
 
     number_t &operator/=(number_t other)
@@ -699,7 +702,7 @@ struct number
 
     number_t operator~()
     {
-        return number(~static_cast<long>(_value));
+        return ~static_cast<long>(_value);
     }
 
     bool operator==(const undefined_t&)
@@ -751,6 +754,11 @@ struct number
         {
             return os << "undefined";
         }
+
+        if (std::isnan(val))
+        {
+            return os << "NaN";
+        }        
 
         return os << val._value;
     }

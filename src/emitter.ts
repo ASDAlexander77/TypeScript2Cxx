@@ -3036,13 +3036,24 @@ export class Emitter {
             return;
         }
 
+        const wrapIntoRoundBrackets =
+            opCode === ts.SyntaxKind.AmpersandAmpersandToken
+            || opCode === ts.SyntaxKind.BarBarToken;
         const op = this.opsMap[node.operatorToken.kind];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
             this.writer.writeString(op.substr(2) + '(');
         }
 
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString('(');
+        }
+
         this.processExpression(node.left);
+
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString(')');
+        }
 
         if (isFunction) {
             this.writer.writeString(', ');
@@ -3050,7 +3061,15 @@ export class Emitter {
             this.writer.writeString(' ' + op + ' ');
         }
 
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString('(');
+        }
+
         this.processExpression(node.right);
+
+        if (wrapIntoRoundBrackets) {
+            this.writer.writeString(')');
+        }
 
         if (isFunction) {
             this.writer.writeString(')');

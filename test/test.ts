@@ -1,5 +1,2 @@
-	for (let i = 0; i < 3; i++) {          
-            console.log(i);                     
-            if (i == 0) continue;               
-            break;                              
-        }
+let a: number;
+console.log(a + 1);
