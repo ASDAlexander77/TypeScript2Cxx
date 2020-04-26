@@ -31,9 +31,6 @@ namespace js
 #define OR(x, y) ([&]() { auto vx = (x); return (static_cast<bool>(vx)) ? vx : (y); })()
 #define AND(x, y) ([&]() { auto vx = (x); return (static_cast<bool>(vx)) ? (y) : vx; })()
 
-#define Infinity js::number(std::numeric_limits<double>::infinity())
-#define NaN js::number(nan(""))
-
 struct undefined_t;
 struct pointer_t;
 struct any;
@@ -294,29 +291,30 @@ struct void_t
     }        
 };
 
-static struct pointer_t : public undefined_t
+static struct pointer_t
 {
+    bool isUndefined;
     void* _ptr;
 
-    pointer_t() : _ptr(nullptr), undefined_t(false) 
+    pointer_t() : _ptr(nullptr), isUndefined(false) 
     {
     };
 
-    pointer_t(const pointer_t& other) : _ptr(other._ptr), undefined_t(other.isUndefined) 
+    pointer_t(const pointer_t& other) : _ptr(other._ptr), isUndefined(other.isUndefined) 
     {
     };
 
-    pointer_t(void* ptr) : _ptr(ptr), undefined_t(false) 
+    pointer_t(void* ptr) : _ptr(ptr), isUndefined(false) 
     {
     };
 
-    pointer_t(std::nullptr_t) : _ptr(nullptr), undefined_t(false) 
+    pointer_t(std::nullptr_t) : _ptr(nullptr), isUndefined(false) 
     {
     };
 
     pointer_t(number);
     
-    pointer_t(const undefined_t &undef) : _ptr(nullptr), undefined_t(true)
+    pointer_t(const undefined_t &undef) : _ptr(nullptr), isUndefined(true)
     {
     }
 
@@ -395,24 +393,24 @@ constexpr bool not_equals(L l, R r)
     return !equals(l, r);
 }
 
-struct boolean : public undefined_t
+struct boolean
 {
-
+    bool isUndefined;
     bool _value;
 
-    boolean() : _value(false), undefined_t(true)
+    boolean() : _value(false), isUndefined(true)
     {
     }
 
-    boolean(const boolean &value) : _value(value._value), undefined_t(value.isUndefined)
+    boolean(const boolean &value) : _value(value._value), isUndefined(value.isUndefined)
     {
     }    
 
-    boolean(bool initValue) : _value(initValue), undefined_t(false)
+    boolean(bool initValue) : _value(initValue), isUndefined(false)
     {
     }
 
-    boolean(const undefined_t &undef) : undefined_t(true)
+    boolean(const undefined_t &undef) : isUndefined(true)
     {
     }
 
@@ -443,32 +441,33 @@ static struct boolean false_t(false);
 namespace tmpl
 {
 template <typename V>
-struct number : public undefined_t
+struct number
 {
     using number_t = number<V>;
+    bool isUndefined;    
     V _value;
 
-    number() : _value(0), undefined_t(true)
+    number() : _value(0), isUndefined(true)
     {
     }
 
-    number(const number& value) : _value(value._value), undefined_t(value.isUndefined)
+    number(const number& value) : _value(value._value), isUndefined(value.isUndefined)
     {
     }
 
     template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number(T initValue) : undefined_t(false) 
+    number(T initValue) : isUndefined(false) 
     {
         _value = static_cast<V>(initValue);
     }
 
     template <typename T>
-    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : undefined_t(false) 
+    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : isUndefined(false) 
     {
         _value = static_cast<int>(initValue);
     }    
 
-    number(const undefined_t &undef) : undefined_t(true)
+    number(const undefined_t &undef) : isUndefined(true)
     {
     }
 
@@ -719,36 +718,37 @@ struct number : public undefined_t
 };
 }
 
-struct string : public undefined_t
+struct string
 {
+    bool isUndefined;    
     bool isNull;
     std::string _value;
 
-    string() : _value(), undefined_t(true), isNull(true)
+    string() : _value(), isUndefined(true), isNull(true)
     {
     }
 
-    string(const string& value) : _value(value._value), undefined_t(value.isUndefined), isNull(value.isNull)
+    string(const string& value) : _value(value._value), isUndefined(value.isUndefined), isNull(value.isNull)
     {
     }
 
-    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), undefined_t(false), isNull(!v)
+    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), isUndefined(false), isNull(!v)
     {
     }    
 
-    string(std::string value) : _value(value), undefined_t(false), isNull(false)
+    string(std::string value) : _value(value), isUndefined(false), isNull(false)
     {
     }
 
-    string(const char *value) : _value(value), undefined_t(false), isNull(value == nullptr)
+    string(const char *value) : _value(value), isUndefined(false), isNull(value == nullptr)
     {
     }
 
-    string(const char value) : _value(1, value), undefined_t(false), isNull(false)
+    string(const char value) : _value(1, value), isUndefined(false), isNull(false)
     {
     }
 
-    string(const undefined_t &undef) : undefined_t(true), isNull(true)
+    string(const undefined_t &undef) : isUndefined(true), isNull(true)
     {
     }
 
@@ -1129,31 +1129,32 @@ struct ArrayKeys
 namespace tmpl
 {
 template <typename E>
-struct array : public undefined_t
+struct array
 {
     using array_type = std::vector<E>;
     using array_type_ptr = std::shared_ptr<array_type>;
     using array_type_ref = array_type&;
 
+    bool isUndefined;
     array_type_ptr _values;
 
-    array() : _values(std::make_shared<array_type>()), undefined_t(false)
+    array() : _values(std::make_shared<array_type>()), isUndefined(false)
     {
     }
 
-    array(const array& value) : _values(value._values), undefined_t(value.isUndefined)
+    array(const array& value) : _values(value._values), isUndefined(value.isUndefined)
     {
     }    
 
-    array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), undefined_t(false)
+    array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
     {
     }
 
-    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), undefined_t(false)
+    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
     {
     }    
 
-    array(const undefined_t &undef) : undefined_t(true)
+    array(const undefined_t &undef) : isUndefined(true)
     {
     }
 
@@ -1404,7 +1405,7 @@ struct ObjectKeys
     }
 };
 
-struct object : public undefined_t
+struct object
 {
     struct string_hash
     {
@@ -1427,6 +1428,7 @@ struct object : public undefined_t
 
     using pair = std::pair<string, any>;
 
+    bool isUndefined;
     std::unordered_map<string, any, string_hash, string_equal_to> _values;
 
     object();
@@ -1435,7 +1437,7 @@ struct object : public undefined_t
 
     object(std::initializer_list<pair> values);
 
-    object(const undefined_t &undef) : undefined_t(true)
+    object(const undefined_t &undef) : isUndefined(true)
     {
     }
 
@@ -2849,6 +2851,9 @@ constexpr bool in(V v, O o)
 }
 
 // Number
+static js::number Infinity(std::numeric_limits<double>::infinity());
+static js::number NaN(std::numeric_limits<double>::quiet_NaN());
+
 namespace tmpl {
 
 template <typename V>
