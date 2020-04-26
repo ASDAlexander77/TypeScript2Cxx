@@ -506,7 +506,7 @@ struct number
     {
     }
 
-    inline void isUndefined() {
+    inline bool isUndefined() {
         return std::signbit(_value) && std::isnan(_value);
     }
 
@@ -714,32 +714,32 @@ struct number
 
     bool operator==(number_t n)
     {
-        return isUndefined |= n.isUndefined ? false : isUndefined == true ? true : _value == n._value;
+        return _value == n._value;
     }
 
     bool operator!=(number_t n)
     {
-        return isUndefined != n.isUndefined ? true : isUndefined == true ? true : _value != n._value;
+        return _value != n._value;
     }
 
     bool operator<(number_t n)
     {
-        return isUndefined == n.isUndefined && _value < n._value;
+        return _value < n._value;
     }
 
     bool operator<=(number_t n)
     {
-        return isUndefined == n.isUndefined && _value <= n._value;
+        return _value <= n._value;
     }
 
     bool operator>(number_t n)
     {
-        return isUndefined == n.isUndefined && _value > n._value;
+        return _value > n._value;
     }
 
     bool operator>=(number_t n)
     {
-        return isUndefined == n.isUndefined && _value >= n._value;
+        return _value >= n._value;
     }
 
     js::string toString();
@@ -747,7 +747,7 @@ struct number
 
     friend std::ostream &operator<<(std::ostream &os, number_t val)
     {
-        if (val.isUndefined)
+        if (val.isUndefined())
         {
             return os << "undefined";
         }
