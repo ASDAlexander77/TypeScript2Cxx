@@ -482,31 +482,32 @@ template <typename V>
 struct number
 {
     using number_t = number<V>;
-    bool isUndefined;    
     V _value;
 
-    number() : _value(0), isUndefined(true)
+    number() : _value{-std::numeric_limits<V>::quiet_NaN()}
     {
     }
 
-    number(const number& value) : _value(value._value), isUndefined(value.isUndefined)
+    number(const number& value) : _value{value._value}
     {
     }
 
     template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number(T initValue) : isUndefined(false) 
+    number(T initValue) :  _value{static_cast<V>(initValue)}
     {
-        _value = static_cast<V>(initValue);
     }
 
     template <typename T>
-    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : isUndefined(false) 
+    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value{static_cast<int>(initValue)}
     {
-        _value = static_cast<int>(initValue);
     }    
 
-    number(const undefined_t &undef) : isUndefined(true)
+    number(const undefined_t &undef) : _value{-std::numeric_limits<V>::quiet_NaN()}
     {
+    }
+
+    inline void isUndefined() {
+        return std::signbit(_value) && std::isnan(_value);
     }
 
     constexpr operator size_t()
@@ -516,7 +517,7 @@ struct number
 
     constexpr operator bool()
     {
-        return !isUndefined && _value != 0;
+        return std::isnormal(_value);
     }
 
     constexpr operator double()
