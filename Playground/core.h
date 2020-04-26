@@ -3235,7 +3235,11 @@ static struct Console
     template <class Arg1>
     inline void log_req(Arg1 arg1)
     {
-        std::cout << arg1;
+        if constexpr (std::is_enum_v<Arg1>) {
+            std::cout << static_cast<int>(arg1);
+        } else {
+            std::cout << arg1;
+        }
     }
 
     template <class Arg1, class... Args>
@@ -3255,7 +3259,11 @@ static struct Console
     template <class Arg1>
     inline void warn_req(Arg1 arg1)
     {
-        std::clog << arg1;
+        if constexpr (std::is_enum_v<Arg1>) {
+            std::clog << static_cast<int>(arg1);
+        } else {
+            std::clog << arg1;
+        }
     }
 
     template <class Arg1, class... Args>
@@ -3275,7 +3283,11 @@ static struct Console
     template <class Arg1>
     inline void error_req(Arg1 arg1)
     {
-        std::cerr << arg1;
+        if constexpr (std::is_enum_v<Arg1>) {
+            std::cerr << static_cast<int>(arg1);
+        } else {
+            std::cerr << arg1;
+        }
     }
 
     template <class Arg1, class... Args>
