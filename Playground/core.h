@@ -495,9 +495,6 @@ struct number
     template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
     number(T initValue) :  _value{static_cast<V>(initValue)}
     {
-        if (isUndefined()) {
-            _value = std::abs(_value);
-        }
     }
 
     template <typename T>

@@ -48,9 +48,12 @@ describe('Numbers', () => {
          console.log(!!a);                      \
     '])).to.equals('true\r\ntrue\r\ntrue\r\ntrue\r\nfalse\r\n'));
 
-    it('Number undefined ops', () => expect(new Run().test([
+    it.skip('Number undefined ops', () => expect(new Run().test([
         'let a: number;                         \
          console.log(a > undefined);            \
          console.log(a + 1);                    \
-    '])).to.equals('false\r\nNaN\r\n'));
+         a = undefined;                         \
+         a += 1;                                \
+         console.log(a);                        \
+    '])).to.equals('false\r\nNaN\r\nNaN\r\n'));
 });
