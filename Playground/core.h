@@ -395,28 +395,33 @@ constexpr bool not_equals(L l, R r)
 
 struct boolean
 {
-    bool isUndefined;
-    bool _value;
+    using value_type = int;
+    value_type _control;
 
-    boolean() : _value(false), isUndefined(true)
+    constexpr boolean() : _control(std::numeric_limits<value_type>::max())
     {
     }
 
-    boolean(const boolean &value) : _value(value._value), isUndefined(value.isUndefined)
+    boolean(const boolean &value) : _control(value._control)
     {
     }    
 
-    boolean(bool initValue) : _value(initValue), isUndefined(false)
+    boolean(bool initValue) : _control(initValue)
     {
     }
 
-    boolean(const undefined_t &undef) : isUndefined(true)
+    constexpr boolean(const undefined_t &undef) : boolean()
     {
+    }
+
+    constexpr operator bool() const
+    {
+        return static_cast<bool>(_control);
     }
 
     constexpr operator bool()
     {
-        return !isUndefined && _value;
+        return static_cast<bool>(_control);
     }
 
     constexpr boolean *operator->()
@@ -430,7 +435,7 @@ struct boolean
 
     friend std::ostream &operator<<(std::ostream &os, boolean val)
     {
-        if (val.isUndefined)
+        if (val._control == std::numeric_limits<value_type>::max())
         {
             return os << "undefined";
         }
@@ -1925,7 +1930,7 @@ struct any
         case anyTypeId::undefined_type:
             return false;
         case anyTypeId::boolean_type:
-            return _value._boolean._value;
+            return static_cast<bool>(_value._boolean);
         case anyTypeId::number_type:
             return _value._number._value != 0.0;
         case anyTypeId::string_type:
@@ -1950,7 +1955,7 @@ struct any
         case anyTypeId::undefined_type:
             return 0;
         case anyTypeId::boolean_type:
-            return _value._boolean._value ? 1 : 0;
+            return static_cast<bool>(_value._boolean) ? 1 : 0;
         case anyTypeId::number_type:
             return _value._number._value;
         }
@@ -2004,7 +2009,7 @@ struct any
         case anyTypeId::undefined_type:
             return true;
         case anyTypeId::boolean_type:
-            return _value._boolean._value == other._value._boolean._value;
+            return static_cast<bool>(_value._boolean) == static_cast<bool>(other._value._boolean);
         case anyTypeId::number_type:
             return _value._number._value == other._value._number._value;
         case anyTypeId::string_type:
@@ -2618,7 +2623,7 @@ struct any
             break;
 
         case anyTypeId::boolean_type:
-            h2 = std::hash<bool>{}(_value._boolean._value);
+            h2 = std::hash<bool>{}(_value._boolean);
             break;
 
         case anyTypeId::number_type:
