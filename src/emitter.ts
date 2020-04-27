@@ -2696,11 +2696,12 @@ export class Emitter {
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
         const val = parseInt(node.text, 10);
+        const isInt = val.toString() === node.text;
         const isNegative = node.parent
             && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
             && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
         let suffix = '';
-        if (isNegative && val >= 2147483648) {
+        if (isInt && isNegative && val >= 2147483648) {
             suffix = 'll';
         }
 
@@ -2714,6 +2715,11 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
+        if (isInt && val >= 0 && val <= 9) {
+            // use predefined const
+            this.writer.writeString(`_`);
+        }
+
         this.writer.writeString(`${node.text}`);
         if (!(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember))
         {
@@ -2725,7 +2731,12 @@ export class Emitter {
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
         | ts.TemplateHead | ts.TemplateMiddle | ts.TemplateTail): void {
-        this.writer.writeString(`"${node.text.replace(/\n/g, '\\\n')}"_S`);
+        const text = node.text.replace(/\n/g, '\\\n');
+        if (text === '') {
+            this.writer.writeString(`string_empty`);
+        } else {
+            this.writer.writeString(`"${text}"_S`);
+        }
     }
 
     private processNoSubstitutionTemplateLiteral(node: ts.NoSubstitutionTemplateLiteral): void {
