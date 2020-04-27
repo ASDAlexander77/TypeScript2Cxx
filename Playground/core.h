@@ -2225,7 +2225,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            number_ref() += 1;
+            number_ref()++;
             return *this;
         }
 
@@ -2234,9 +2234,15 @@ struct any
 
     any operator++(int)
     {
-        any tmp(*this);
-        operator++();
-        return tmp;
+        switch (_type)
+        {
+        case anyTypeId::number_type:            
+            any tmp(number_ref());
+            operator++();
+            return tmp;
+        }
+
+        throw "not implemented";        
     }
 
     any &operator+=(js::number other)
@@ -2303,9 +2309,15 @@ struct any
 
     any operator--(int)
     {
-        any tmp(*this);
-        operator--();
-        return tmp;
+        switch (_type)
+        {
+        case anyTypeId::number_type:        
+            any tmp(number_ref());
+            operator--();
+            return tmp;
+        }
+
+        throw "not implemented";        
     }
 
     any &operator-=(js::number other)
