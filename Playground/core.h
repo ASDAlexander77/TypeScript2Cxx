@@ -22,6 +22,7 @@
 #include <limits>
 #include <algorithm>
 #include <numeric>
+#include <variant>
 
 namespace js
 {
@@ -819,6 +820,11 @@ struct string
         return !(*this) ? 0 : std::stod(_value);
     }
 
+    inline operator std::string&()
+    {
+        return _value;
+    }
+
     inline operator size_t()
     {
         return _value.size();
@@ -879,7 +885,7 @@ struct string
     string &operator+=(char c)
     {
         _control = string_defined;
-        _value.append(string(c));
+        _value.append(string(c)._value);
         return *this;
     }    
 
@@ -1582,7 +1588,7 @@ struct object
 };
 
 struct any
-{
+{ 
     struct any_hash
     {
         typedef js::any argument_type;
@@ -1611,14 +1617,12 @@ struct any
         function_type,
         array_type,
         object_type,
-        class_type
+        class_type,
+        pointer_type
     };
 
     union anyType {
         void *_data;
-        js::boolean _boolean;
-        js::number _number;
-        js::function *_function;
 
         constexpr anyType() : _data(nullptr)
         {
@@ -1628,18 +1632,6 @@ struct any
         {
         }        
 
-        inline anyType(const js::boolean& value) : _boolean(value)
-        {
-        }
-
-        inline anyType(const js::number& value) : _number(value)
-        {
-        }
-
-        constexpr anyType(const pointer_t& ptr) : _data(ptr._ptr)
-        {
-        }
-
         constexpr anyType(std::nullptr_t) : _data(nullptr)
         {
         }
@@ -1647,15 +1639,15 @@ struct any
         constexpr anyType(void *ptr) : _data(ptr)
         {
         }
-
-        constexpr anyType(js::function *funcPtr) : _function(funcPtr)
-        {
-        }
     };
 
     anyTypeId _type;
     anyType _value;
     long* _counter;
+
+    using any_value_type = std::variant<js::boolean, js::number, js::function, js::array, js::object>;
+    using any_type_ptr = std::shared_ptr<any_value_type>;
+    using any_type_ref = any_value_type&;
 
     any() : _type(anyTypeId::undefined_type), _value(nullptr), _counter(nullptr)
     {
@@ -1667,15 +1659,6 @@ struct any
 
     any(const js::any &value) : _type(value._type), _value(value._value), _counter(value._counter)
     {
-        switch (_type) {
-            case anyTypeId::boolean_type: 
-                _value._boolean = value._value._boolean;
-                break;
-            case anyTypeId::number_type:
-                _value._number = value._value._number;
-                break;
-        }
-
         if (_counter != nullptr) 
         {
             ++(*_counter);
@@ -1686,22 +1669,16 @@ struct any
     {
     }
 
-    any(pointer_t v) : _type(anyTypeId::number_type), _counter(nullptr)
+    any(pointer_t v) : _type(anyTypeId::pointer_type), _value(v._ptr), _counter(nullptr)
     {
-        if (v.isUndefined) {
-            _value._number = (long long) v._ptr;
-        } else {
-            _type = anyTypeId::object_type;
-            _value._data = v._ptr;
-        }
     }
 
-    any(bool value) : _type(anyTypeId::boolean_type), _value(js::boolean(value)), _counter(nullptr)
+    any(bool value) : _type(anyTypeId::boolean_type), _value((void *)new js::boolean(value)), _counter(new long)
     {
     }
 
     template <typename T>
-    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _type(anyTypeId::number_type), _value(js::number((int)value)), _counter(nullptr)
+    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _type(anyTypeId::number_type), _value((void *)new js::number((int)value)), _counter(new long)
     {
     }
 
@@ -1709,11 +1686,11 @@ struct any
     {
     }
 
-    any(const js::boolean &value) : _type(anyTypeId::boolean_type), _value(value), _counter(nullptr)
+    any(const js::boolean &value) : _type(anyTypeId::boolean_type), _value((void *)new js::boolean(value)), _counter(new long)
     {
     }
 
-    any(const js::number &value) : _type(anyTypeId::number_type), _value(value), _counter(nullptr)
+    any(const js::number &value) : _type(anyTypeId::number_type), _value((void *)new js::number(value)), _counter(new long)
     {
     }
 
@@ -1766,7 +1743,10 @@ struct any
         {
             case anyTypeId::undefined_type:
             case anyTypeId::boolean_type:
+                delete (js::boolean*)_value._data;
+                break;
             case anyTypeId::number_type:
+                delete (js::number*)_value._data;
                 break;
             case anyTypeId::string_type:
                 delete (js::string*)_value._data;
@@ -1793,6 +1773,26 @@ struct any
     {
         return this;
     }
+
+    constexpr const js::boolean& boolean_ref_const() const
+    {
+        return *(js::boolean*)_value._data;
+    }    
+
+    constexpr js::boolean& boolean_ref()
+    {
+        return *(js::boolean*)_value._data;
+    }        
+
+    constexpr const js::number& number_ref_const() const
+    {
+        return *(js::number*)_value._data;
+    }    
+
+    constexpr js::number& number_ref()
+    {
+        return *(js::number*)_value._data;
+    }    
 
     constexpr const js::string& string_ref_const() const
     {
@@ -1905,7 +1905,7 @@ struct any
 
         if (_type == anyTypeId::number_type)
         {
-            return pointer_t(_value._number);
+            return pointer_t(number_ref());
         }        
 
         return pointer_t(_value._data);
@@ -1915,7 +1915,7 @@ struct any
     {
         if (_type == anyTypeId::boolean_type)
         {
-            return _value._boolean;
+            return boolean_ref();
         }
 
         throw "wrong type";
@@ -1925,7 +1925,7 @@ struct any
     {
         if (_type == anyTypeId::number_type)
         {
-            return _value._number;
+            return number_ref();
         }
 
         if (_type == anyTypeId::string_type)
@@ -1950,7 +1950,7 @@ struct any
 
         if (_type == anyTypeId::number_type)
         {
-            return js::string(_value._number.operator std::string());
+            return js::string(number_ref().operator std::string());
         }
 
         if (_type == anyTypeId::object_type && _value._data == nullptr)
@@ -1988,9 +1988,9 @@ struct any
         case anyTypeId::undefined_type:
             return false;
         case anyTypeId::boolean_type:
-            return static_cast<bool>(_value._boolean);
+            return boolean_ref();
         case anyTypeId::number_type:
-            return _value._number._value != 0.0;
+            return number_ref();
         case anyTypeId::string_type:
             return string_ref()._value.length() > 0;
         case anyTypeId::object_type:
@@ -2013,9 +2013,9 @@ struct any
         case anyTypeId::undefined_type:
             return 0;
         case anyTypeId::boolean_type:
-            return static_cast<bool>(_value._boolean) ? 1 : 0;
+            return boolean_ref() ? 1 : 0;
         case anyTypeId::number_type:
-            return _value._number._value;
+            return number_ref();
         }
 
         throw "wrong type";
@@ -2067,9 +2067,9 @@ struct any
         case anyTypeId::undefined_type:
             return true;
         case anyTypeId::boolean_type:
-            return static_cast<bool>(_value._boolean) == static_cast<bool>(other._value._boolean);
+            return boolean_ref_const() == mutable_(other).boolean_ref();
         case anyTypeId::number_type:
-            return _value._number._value == other._value._number._value;
+            return number_ref_const() == mutable_(other).number_ref();
         case anyTypeId::string_type:
             return string_ref_const() == mutable_(other).string_ref();
         case anyTypeId::object_type:
@@ -2152,7 +2152,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number + t);
+            return number_ref() + t;
         }
 
         throw "not implemented";
@@ -2163,7 +2163,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number.operator js::string() + t);
+            return number_ref().operator js::string() + t;
         case anyTypeId::string_type:
             return any(string_ref() + t);
         }
@@ -2184,16 +2184,16 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number + t._value._number);
+                return number_ref() + t.number_ref();
             case anyTypeId::string_type:
-                return any(_value._number.operator js::string() + t.string_ref());
+                return number_ref().operator js::string() + t.string_ref();
             }
             break;
         case anyTypeId::string_type:
             switch (t._type)
             {
             case anyTypeId::string_type:
-                return any(string_ref() + t.string_ref());
+                return string_ref() + t.string_ref();
             }
             break;
         }
@@ -2206,7 +2206,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number += 1;
+            number_ref() += 1;
             return *this;
         }
 
@@ -2225,7 +2225,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number += other;
+            number_ref() += other;
             return *this;
         }  
 
@@ -2237,7 +2237,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return t += value._value._number;
+            return t += value.number_ref();
         }
 
         throw "not implemented";
@@ -2248,7 +2248,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number - t);
+            return number_ref() - t;
         }
 
         throw "not implemented";
@@ -2262,7 +2262,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number - t._value._number);
+                return number_ref() - t.number_ref();
             }
             break;
         }
@@ -2275,7 +2275,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number -= 1;
+            number_ref() -= 1;
             return *this;
         }
 
@@ -2294,7 +2294,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number -= other;
+            number_ref() -= other;
             return *this;
         }
 
@@ -2306,7 +2306,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return t -= value._value._number;
+            return t -= value.number_ref();
         }
 
         throw "not implemented";
@@ -2317,7 +2317,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number * t);
+            return any(number_ref() * t);
         }
 
         throw "not implemented";
@@ -2331,7 +2331,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number * t._value._number);
+                return any(number_ref() * t.number_ref());
             }
             break;
         }
@@ -2344,7 +2344,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number *= other;
+            number_ref() *= other;
             return *this;
         }
 
@@ -2356,7 +2356,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return any(n * value._value._number);
+            return any(n * value.number_ref());
         }
 
         throw "not implemented";
@@ -2367,7 +2367,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number / t);
+            return any(number_ref() / t);
         }
 
         throw "not implemented";
@@ -2381,7 +2381,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number / t._value._number);
+                return any(number_ref() / t.number_ref());
             }
             break;
         }
@@ -2394,7 +2394,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return any(t / value._value._number);
+            return any(t / value.number_ref());
         }
 
         throw "not implemented";
@@ -2405,7 +2405,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number /= other;
+            number_ref() /= other;
             return *this;
         }
 
@@ -2417,7 +2417,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return any(_value._number % t);
+            return any(number_ref() % t);
         }
 
         throw "not implemented";
@@ -2431,7 +2431,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number % t._value._number);
+                return any(number_ref() % t.number_ref());
             }
             break;
         }
@@ -2444,7 +2444,7 @@ struct any
         switch (value._type)
         {
         case anyTypeId::number_type:
-            return any(t % value._value._number);
+            return any(t % value.number_ref());
         }
 
         throw "not implemented";
@@ -2455,7 +2455,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            _value._number %= other;
+            number_ref() %= other;
             return *this;
         }
 
@@ -2467,7 +2467,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number > n;
+            return number_ref() > n;
         }
 
         throw "not implemented";
@@ -2481,7 +2481,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number > t._value._number);
+                return any(number_ref() > t.number_ref());
             }
             break;
         }
@@ -2494,7 +2494,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number >= n;
+            return number_ref() >= n;
         }
 
         throw "not implemented";
@@ -2508,7 +2508,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number >= t._value._number);
+                return any(number_ref() >= t.number_ref());
             }
             break;
         }
@@ -2521,7 +2521,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number < n;
+            return number_ref() < n;
         }
 
         throw "not implemented";
@@ -2535,7 +2535,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number < t._value._number);
+                return any(number_ref() < t.number_ref());
             }
             break;
         }
@@ -2548,7 +2548,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::number_type:
-            return _value._number <= n;
+            return number_ref() <= n;
         }
 
         throw "not implemented";
@@ -2562,7 +2562,7 @@ struct any
             switch (t._type)
             {
             case anyTypeId::number_type:
-                return any(_value._number <= t._value._number);
+                return any(number_ref() <= t.number_ref());
             }
             break;
         }
@@ -2681,15 +2681,15 @@ struct any
             break;
 
         case anyTypeId::boolean_type:
-            h2 = std::hash<bool>{}(_value._boolean);
+            h2 = std::hash<bool>{}(static_cast<bool>(mutable_(boolean_ref_const())));
             break;
 
         case anyTypeId::number_type:
-            h2 = std::hash<double>{}(_value._number._value);
+            h2 = std::hash<double>{}(static_cast<double>(mutable_(number_ref_const())));
             break;
 
         case anyTypeId::string_type:
-            h2 = std::hash<std::string>{}(string_ref_const()._value);
+            h2 = std::hash<std::string>{}(static_cast<std::string&>(mutable_(string_ref_const())));
             break;
 
         case anyTypeId::array_type:
@@ -2714,12 +2714,12 @@ struct any
 
         if (val._type == anyTypeId::boolean_type)
         {
-            return os << val._value._boolean;
+            return os << val.boolean_ref();
         }
 
         if (val._type == anyTypeId::number_type)
         {
-            return os << val._value._number;
+            return os << val.number_ref();
         }
 
         if (val._value._data == nullptr)
