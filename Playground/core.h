@@ -462,8 +462,8 @@ struct boolean
         return true;
     }       
 
-    inline bool operator==(boolean other) {
-        return static_cast<bool>(*this) == static_cast<bool>(other);
+    friend inline bool operator==(boolean n, boolean other) {
+        return static_cast<bool>(n) == static_cast<bool>(other);
     }    
 
     friend std::ostream &operator<<(std::ostream &os, boolean val)
@@ -510,7 +510,7 @@ struct number
     {
     }
 
-    inline bool isUndefined() {
+    inline bool is_undefined() {
         return std::signbit(_value) && std::isnan(_value);
     }
 
@@ -554,6 +554,34 @@ struct number
     }
 
     operator string();
+
+    inline bool operator==(undefined_t) {
+        return is_undefined();
+    }   
+
+    inline bool operator!=(undefined_t) {
+        return !is_undefined();
+    }        
+
+    inline friend bool operator==(const number_t n, number_t other)
+    {
+        return n._value == other._value;
+    }    
+
+    inline friend bool operator!=(const number_t n, number_t other)
+    {
+        return n._value != other._value;
+    }    
+
+    inline friend bool operator==(const undefined_t, number_t other)
+    {
+        return other.is_undefined();
+    }    
+
+    inline friend bool operator!=(const undefined_t, number_t other)
+    {
+        return !other.is_undefined();
+    }    
 
     number_t operator+()
     {
@@ -706,26 +734,6 @@ struct number
         return ~static_cast<long>(_value);
     }
 
-    bool operator==(const undefined_t&)
-    {
-        return isUndefined();
-    }
-
-    bool operator!=(const undefined_t&)
-    {
-        return !isUndefined();
-    }
-
-    friend bool operator==(const number_t n, number_t other)
-    {
-        return n._value == other._value;
-    }    
-
-    bool operator!=(number_t n)
-    {
-        return _value != n._value;
-    }
-
     bool operator<(number_t n)
     {
         return _value < n._value;
@@ -751,7 +759,7 @@ struct number
 
     friend std::ostream &operator<<(std::ostream &os, number_t val)
     {
-        if (val.isUndefined())
+        if (val.is_undefined())
         {
             return os << "undefined";
         }
