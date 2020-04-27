@@ -764,35 +764,34 @@ struct number
 
 struct string
 {
-    bool isUndefined;    
-    bool isNull;
+    int _control; // 0 - defined, 1 - null, 2 - undefined
     std::string _value;
 
-    string() : _value(), isUndefined(true), isNull(true)
+    string() : _value(), _control(2)
     {
     }
 
-    string(const string& value) : _value(value._value), isUndefined(value.isUndefined), isNull(value.isNull)
+    string(const string& value) : _value(value._value), _control(value._control)
     {
     }
 
-    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), isUndefined(false), isNull(!v)
+    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? 0 : 1)
     {
     }    
 
-    string(std::string value) : _value(value), isUndefined(false), isNull(false)
+    string(std::string value) : _value(value), _control(0)
     {
     }
 
-    string(const char *value) : _value(value), isUndefined(false), isNull(value == nullptr)
+    string(const char *value) : _value(value), _control(value == nullptr ? 1 : 0)
     {
     }
 
-    string(const char value) : _value(1, value), isUndefined(false), isNull(false)
+    string(const char value) : _value(1, value), _control(0)
     {
     }
 
-    string(const undefined_t &undef) : isUndefined(true), isNull(true)
+    string(const undefined_t &) : _control(2)
     {
     }
 
@@ -805,7 +804,7 @@ struct string
 
     inline operator bool()
     {
-        return !isUndefined && !isNull && !_value.empty();
+        return _control == 0 && !_value.empty();
     }
 
     inline operator double()
@@ -817,6 +816,16 @@ struct string
     {
         return _value.size();
     }    
+
+    inline bool is_null() const
+    {
+        return _control == 1;
+    }
+
+    inline bool is_undefined() const
+    {
+        return _control == 2;
+    }
 
     js::number get_length()
     {
@@ -862,8 +871,7 @@ struct string
 
     string &operator+=(char c)
     {
-        isUndefined = false;
-        isNull = false;
+        _control = 0;
         _value.append(string(c));
         return *this;
     }    
@@ -871,16 +879,14 @@ struct string
     string &operator+=(number n)
     {
         auto value = n.operator std::string();
-        isUndefined = isUndefined && !value.empty();
-        isNull = isNull && !value.empty();
+        _control = 0;
         _value.append(value);
         return *this;
     }
 
     string &operator+=(string value)
     {
-        isUndefined = isUndefined && value.isUndefined;
-        isNull = isNull && value.isNull;
+        _control = 0;
         _value.append(value._value);
         return *this;
     }
@@ -889,82 +895,82 @@ struct string
 
     bool operator==(const js::string &other) const
     {
-        return !isUndefined && _value.compare(other._value) == 0;
+        return !_control && _value.compare(other._value) == 0;
     }
 
     bool operator==(const js::string &other)
     {
-        return !isUndefined && _value.compare(other._value) == 0;
+        return !_control && _value.compare(other._value) == 0;
     }
 
     bool operator!=(const js::string &other) const
     {
-        return !isUndefined && _value.compare(other._value) != 0;
+        return !_control && _value.compare(other._value) != 0;
     }
 
     bool operator!=(const js::string &other)
     {
-        return !isUndefined && _value.compare(other._value) != 0;
+        return !_control && _value.compare(other._value) != 0;
     }
 
     bool operator==(undefined_t)
     {
-        return isUndefined;
+        return _control == 2;
     }
 
     friend bool operator==(undefined_t, const js::string& other)
     {
-        return other.isUndefined;
+        return other._control == 2;
     }    
 
     bool operator!=(undefined_t)
     {
-        return !isUndefined;
+        return _control != 2;
     }    
 
     friend bool operator!=(undefined_t, const js::string& other)
     {
-        return !other.isUndefined;
+        return other._control != 2;
     }   
 
     bool operator==(pointer_t ptr)
     {
-        return !isUndefined && isNull && (!ptr);
+        return _control == 1 && (!ptr);
     }
 
     friend bool operator==(pointer_t ptr, const js::string& other)
     {
-        return !other.isUndefined && other.isNull && (!ptr);
+        return other._control == 1 && (!ptr);
     }    
 
     bool operator!=(pointer_t ptr)
     {
-        return !isUndefined && !isNull && (!ptr);
+        return !_control && (!ptr);
     }    
 
     friend bool operator!=(pointer_t ptr, const js::string& other)
     {
-        return !other.isUndefined && !other.isNull && (!ptr);
+        return !other._control && (!ptr);
     }   
 
     string concat(string value)
     {
-        return string(_value + value._value);
+        return _value + value._value;
     }
 
     string charAt(number n) const
     {
-        return string(_value[n]);
+        return _value[n];
     }
 
     number charCodeAt(number n) const
     {
-        return number(_value[n]);
+        return _value[n];
     }
 
     string fromCharCode(number n) const
     {
-        return string(static_cast<char>(static_cast<size_t>(n)));
+        return static_cast<char>(static_cast<size_t>(n));
     }
 
     string toUpperCase()
@@ -991,19 +997,19 @@ struct string
 
     string substring(number begin, number end)
     {
-        return string(_value.substr(begin, end - begin));
+        return _value.substr(begin, end - begin);
     }
 
     string slice(number begin)
     {
-        return string(_value.substr(begin < number(0) ? get_length() + begin : begin, get_length() - begin));
+        return _value.substr(begin < number(0) ? get_length() + begin : begin, get_length() - begin);
     }
 
     string slice(number begin, number end)
     {
         auto endStart = end < number(0) ? get_length() + end : end;
         auto endPosition = begin < number(0) ? get_length() + begin : begin;
-        return string(_value.substr(begin < number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : number(0)));
+        return _value.substr(begin < number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : number(0));
     }
 
     auto begin() -> decltype(_value.begin())
@@ -1018,7 +1024,7 @@ struct string
 
     friend std::ostream &operator<<(std::ostream &os, string val)
     {
-        if (val.isUndefined)
+        if (val._control == 2)
         {
             return os << "undefined";
         }
@@ -1878,7 +1884,7 @@ struct any
 
     operator js::pointer_t()
     {
-        if (_type == anyTypeId::string_type && string_ref().isNull)
+        if (_type == anyTypeId::string_type && string_ref().is_null())
         {
             return null;
         }
@@ -2088,7 +2094,7 @@ struct any
         case anyTypeId::number_type:
             return false;
         case anyTypeId::string_type:
-            return string_ref_const().isNull && other._ptr == nullptr;
+            return string_ref_const().is_null() && other._ptr == nullptr;
         case anyTypeId::object_type:
         case anyTypeId::class_type:
             return _value._data == other._ptr;
