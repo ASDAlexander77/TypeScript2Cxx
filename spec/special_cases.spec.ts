@@ -91,7 +91,7 @@ describe('Special cases', () => {
         console.log(<any>(a.value--));          \
     '])));
 
-    it.skip('++/-- prefix/suffix (field and cast)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
+    it('++/-- prefix/suffix (field and cast)', () => expect('2\r\n1\r\n1\r\n2\r\n').to.equals(new Run().test([
         'var a = { value: 1 };                         \
         console.log(<any>(++((<any>a).value)));        \
         console.log(<any>(--((<any>a).value)));        \

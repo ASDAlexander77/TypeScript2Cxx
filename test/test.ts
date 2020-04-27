@@ -1,5 +1,12 @@
-	var a = { value: 1 };                  
-        console.log(<any>(++a.value));          
-        console.log(<any>(--a.value));          
-        console.log(<any>(a.value++));          
-        console.log(<any>(a.value--));
+	function run() {                                                   
+            let o = 1;                                                      
+            const a = function() {                                          
+                o = 2;                                                      
+            };                                                              
+                                                                            
+            a();                                                            
+                                                                            
+            console.log(o);                                                 
+        }                                                                   
+                                                                            
+        run();
