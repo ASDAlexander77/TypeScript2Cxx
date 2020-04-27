@@ -957,7 +957,7 @@ struct string
 
     friend bool operator!=(pointer_t ptr, const js::string& other)
     {
-        return other._control != string_defined && (!ptr);
+        return other._control == string_defined && (!ptr);
     }   
 
     string concat(string value)

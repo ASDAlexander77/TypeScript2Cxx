@@ -1,2 +1,4 @@
-let a: number;
-console.log(a + 1);
+	console.log(null === "");                                              
+        console.log(undefined === "");                                         
+        console.log(null !== "");                                              
+        console.log(undefined !== "");
