@@ -1299,12 +1299,12 @@ struct array
 
     js::number indexOf(E e) 
     {
-        return js::number(get().cend() - std::find(get().cbegin(), get().cend(), e) - 1);
+        return get().cend() - std::find(get().cbegin(), get().cend(), e) - 1;
     }
 
     js::boolean removeElement(E e) 
     {
-        return js::boolean(get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend());
+        return get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend();
     }
 
     auto begin() -> decltype(get().begin())
@@ -1675,23 +1675,28 @@ struct any
 
     any(bool value) : _type(anyTypeId::boolean_type), _value((void *)new js::boolean(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     template <typename T>
     any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _type(anyTypeId::number_type), _value((void *)new js::number((int)value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(char value) : _type(anyTypeId::string_type), _value((void *)new js::string(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(const js::boolean &value) : _type(anyTypeId::boolean_type), _value((void *)new js::boolean(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(const js::number &value) : _type(anyTypeId::number_type), _value((void *)new js::number(value)), _counter(new long)
     {
+        *_counter = 1;
     }
 
     any(const std::string &value) : _type(anyTypeId::string_type), _value((void *)new js::string(value)), _counter(new long)
