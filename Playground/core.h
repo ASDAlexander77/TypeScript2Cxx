@@ -2124,6 +2124,7 @@ struct any
             return string_ref_const().is_null() && other._ptr == nullptr;
         case anyTypeId::object_type:
         case anyTypeId::class_type:
+        case anyTypeId::pointer_type:
             return _value._data == other._ptr;
         }
 
