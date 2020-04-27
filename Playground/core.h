@@ -716,10 +716,10 @@ struct number
         return !isUndefined();
     }
 
-    bool operator==(number_t n)
+    friend bool operator==(const number_t n, number_t other)
     {
-        return _value == n._value;
-    }
+        return n._value == other._value;
+    }    
 
     bool operator!=(number_t n)
     {
@@ -1297,12 +1297,12 @@ struct array
         return array(std::vector<E>(get().cbegin() + first, get().cbegin() + last + 1));
     }
 
-    js::number indexOf(E e) 
+    js::number indexOf(const E& e) 
     {
         return get().cend() - std::find(get().cbegin(), get().cend(), e) - 1;
     }
 
-    js::boolean removeElement(E e) 
+    js::boolean removeElement(const E& e) 
     {
         return get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend();
     }
