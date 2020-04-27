@@ -153,6 +153,145 @@ export class Emitter {
         return false;
     }
 
+    private childrenVisitor(location: ts.Node, visit: (node: ts.Node) => boolean) {
+        let root = true;
+        function checkChild(node: ts.Node): any {
+            if (root) {
+                root = false;
+            } else {
+                if (node.kind === ts.SyntaxKind.FunctionDeclaration
+                    || node.kind === ts.SyntaxKind.ArrowFunction
+                    || node.kind === ts.SyntaxKind.MethodDeclaration
+                    || node.kind === ts.SyntaxKind.FunctionExpression
+                    || node.kind === ts.SyntaxKind.FunctionType
+                    || node.kind === ts.SyntaxKind.ClassDeclaration
+                    || node.kind === ts.SyntaxKind.ClassExpression) {
+                    return;
+                }
+            }
+
+            if (!visit(node)) {
+                ts.forEachChild(node, checkChild);
+            }
+        }
+
+        ts.forEachChild(location, checkChild);
+    }
+
+    private hasReturn(location: ts.Node): boolean {
+        let hasReturnResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                hasReturnResult = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return hasReturnResult;
+    }
+
+    private hasReturnWithValue(location: ts.Node): boolean {
+        let hasReturnResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                const returnStatement = <ts.ReturnStatement>node;
+                if (returnStatement.expression) {
+                    hasReturnResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return hasReturnResult;
+    }
+
+    private hasPropertyAccess(location: ts.Node, property: string): boolean {
+        let hasPropertyAccessResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
+                const identifier = <ts.Identifier>node;
+                if (identifier.text === property) {
+                    hasPropertyAccessResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return hasPropertyAccessResult;
+    }
+
+    private hasArguments(location: ts.Node): boolean {
+        let hasArgumentsResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+                const identifier = <ts.Identifier>node;
+                if (identifier.text === 'arguments') {
+                    hasArgumentsResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return hasArgumentsResult;
+    }
+
+    private requireCapture(location: ts.Node): boolean {
+        let requireCaptureResult = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier
+                && node.parent.kind !== ts.SyntaxKind.FunctionDeclaration
+                && node.parent.kind !== ts.SyntaxKind.ClassDeclaration
+                && node.parent.kind !== ts.SyntaxKind.MethodDeclaration
+                && node.parent.kind !== ts.SyntaxKind.EnumDeclaration) {
+                const isLocal = this.resolver.isLocal(node);
+                if (isLocal !== undefined && !isLocal) {
+                    requireCaptureResult = true;
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        return requireCaptureResult;
+    }
+
+    private hasThis(location: ts.Node): boolean {
+        let createThis = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ThisKeyword) {
+                createThis = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return createThis;
+    }
+
+    private hasThisAsShared(location: ts.Node): boolean {
+        let createThis = false;
+        this.childrenVisitor(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ThisKeyword && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+                createThis = true;
+                return true;
+            }
+
+            return false;
+        });
+
+        return createThis;
+    }
+
     private processFile(sourceFile: ts.SourceFile): void {
         this.scope.push(sourceFile);
         this.processFileInternal(sourceFile);
@@ -1360,15 +1499,22 @@ export class Emitter {
 
         const next = { next: false };
         let result = false;
-        declarationList.declarations.forEach(
-            d => result = this.processVariableDeclarationOne(
-                <ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration) || result);
+        declarationList.declarations.forEach(d => {
+                const captureRequired = this.requireCapture(d);
+                result =
+                    this.processVariableDeclarationOne(<ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration)
+                    || result;
+            } );
 
         return result;
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier, initializer: ts.Expression, type: ts.TypeNode, next?: { next: boolean }, forwardDeclaration?: boolean) {
+        name: ts.Identifier,
+        initializer: ts.Expression,
+        type: ts.TypeNode,
+        next?: { next: boolean },
+        forwardDeclaration?: boolean): boolean {
         if (next && next.next) {
             this.writer.writeString(', ');
         }
@@ -1398,145 +1544,6 @@ export class Emitter {
         if (anyVal) {
             this.writer.EndOfStatement();
         }
-    }
-
-    private childrenVisitor(location: ts.Node, visit: (node: ts.Node) => boolean) {
-        let root = true;
-        function checkChild(node: ts.Node): any {
-            if (root) {
-                root = false;
-            } else {
-                if (node.kind === ts.SyntaxKind.FunctionDeclaration
-                    || node.kind === ts.SyntaxKind.ArrowFunction
-                    || node.kind === ts.SyntaxKind.MethodDeclaration
-                    || node.kind === ts.SyntaxKind.FunctionExpression
-                    || node.kind === ts.SyntaxKind.FunctionType
-                    || node.kind === ts.SyntaxKind.ClassDeclaration
-                    || node.kind === ts.SyntaxKind.ClassExpression) {
-                    return;
-                }
-            }
-
-            if (!visit(node)) {
-                ts.forEachChild(node, checkChild);
-            }
-        }
-
-        ts.forEachChild(location, checkChild);
-    }
-
-    private hasReturn(location: ts.Node): boolean {
-        let hasReturnResult = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.ReturnStatement) {
-                hasReturnResult = true;
-                return true;
-            }
-
-            return false;
-        });
-
-        return hasReturnResult;
-    }
-
-    private hasReturnWithValue(location: ts.Node): boolean {
-        let hasReturnResult = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.ReturnStatement) {
-                const returnStatement = <ts.ReturnStatement>node;
-                if (returnStatement.expression) {
-                    hasReturnResult = true;
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        return hasReturnResult;
-    }
-
-    private hasPropertyAccess(location: ts.Node, property: string): boolean {
-        let hasPropertyAccessResult = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
-                const identifier = <ts.Identifier>node;
-                if (identifier.text === property) {
-                    hasPropertyAccessResult = true;
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        return hasPropertyAccessResult;
-    }
-
-    private hasArguments(location: ts.Node): boolean {
-        let hasArgumentsResult = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.Identifier && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
-                const identifier = <ts.Identifier>node;
-                if (identifier.text === 'arguments') {
-                    hasArgumentsResult = true;
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        return hasArgumentsResult;
-    }
-
-    private requireCapture(location: ts.Node): boolean {
-        let requireCaptureResult = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.Identifier
-                && node.parent.kind !== ts.SyntaxKind.FunctionDeclaration
-                && node.parent.kind !== ts.SyntaxKind.ClassDeclaration
-                && node.parent.kind !== ts.SyntaxKind.MethodDeclaration
-                && node.parent.kind !== ts.SyntaxKind.EnumDeclaration) {
-                const isLocal = this.resolver.isLocal(node);
-                if (isLocal !== undefined && !isLocal) {
-                    requireCaptureResult = true;
-                    return true;
-                }
-            }
-
-            return false;
-        });
-
-        return requireCaptureResult;
-    }
-
-    private hasThis(location: ts.Node): boolean {
-        let createThis = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.ThisKeyword) {
-                createThis = true;
-                return true;
-            }
-
-            return false;
-        });
-
-        return createThis;
-    }
-
-    private hasThisAsShared(location: ts.Node): boolean {
-        let createThis = false;
-        this.childrenVisitor(location, (node: ts.Node) => {
-            if (node.kind === ts.SyntaxKind.ThisKeyword && node.parent.kind !== ts.SyntaxKind.PropertyAccessExpression) {
-                createThis = true;
-                return true;
-            }
-
-            return false;
-        });
-
-        return createThis;
     }
 
     private processPredefineType(typeIn: ts.TypeNode | ts.ParameterDeclaration | ts.TypeParameterDeclaration | ts.Expression,
