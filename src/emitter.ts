@@ -2715,13 +2715,14 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
-        if (isInt && val >= 0 && val <= 9) {
+        const applyNSuffix = !(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember);
+        if (applyNSuffix && isInt && val >= 0 && val <= 9) {
             // use predefined const
             this.writer.writeString(`_`);
         }
 
         this.writer.writeString(`${node.text}`);
-        if (!(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember))
+        if (applyNSuffix)
         {
             this.writer.writeString(`_N`);
         } else {
