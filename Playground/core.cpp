@@ -53,7 +53,7 @@ js::string &string::operator+=(any a)
 }
 
 // Object
-object::object() : _values(), isUndefined(false)
+object::object() : _values(std::make_shared<object_type>()), isUndefined(false)
 {
 }
 
@@ -61,62 +61,63 @@ object::object(const object& value) : _values(value._values), isUndefined(value.
 {
 }
 
-object::object(std::initializer_list<pair> values) : isUndefined(false)
+object::object(std::initializer_list<pair> values) : _values(std::make_shared<object_type>()), isUndefined(false)
 {
+    auto& ref = get();
     for (auto &item : values)
     {
-        _values[item.first] = item.second;
+        ref[item.first] = item.second;
     }
 }
 
-ObjectKeys<js::string, decltype(object::_values)> object::keys()
+ObjectKeys<js::string, object::object_type> object::keys()
 {
-    return ObjectKeys<js::string, decltype(object::_values)>(_values);
+    return ObjectKeys<js::string, object::object_type>(get());
 }
 
 any &object::operator[](number n) const
 {
-    return mutable_(_values)[static_cast<std::string>(n)];
+    return mutable_(get())[static_cast<std::string>(n)];
 }
 
 any &object::operator[](number n)
 {
-    return _values[static_cast<std::string>(n)];
+    return get()[static_cast<std::string>(n)];
 }
 
 any &object::operator[](const char *s) const
 {
-    return mutable_(_values)[std::string(s)];
+    return mutable_(get())[std::string(s)];
 }
 
 any &object::operator[](std::string s) const
 {
-    return mutable_(_values)[s];
+    return mutable_(get())[s];
 }
 
 any &object::operator[](string s) const
 {
-    return mutable_(_values)[(std::string)s];
+    return mutable_(get())[(std::string)s];
 }
 
 any &object::operator[](const char *s)
 {
-    return _values[std::string(s)];
+    return get()[std::string(s)];
 }
 
 any &object::operator[](std::string s)
 {
-    return _values[s];
+    return get()[s];
 }
 
 any &object::operator[](string s)
 {
-    return _values[(std::string)s];
+    return get()[(std::string)s];
 }
 
-any &object::operator[](undefined_t undef)
+any &object::operator[](undefined_t)
 {
-    return _values["undefined"];
+    return get()["undefined"];
 }
 
 // Math

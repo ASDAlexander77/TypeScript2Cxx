@@ -1410,15 +1410,16 @@ struct array
 
 typedef tmpl::array<any> array;
 
-template <typename K, typename V, typename T = decltype(V().begin())>
+template <typename TKey, typename TMap>
 struct ObjectKeys
 {
-    typedef ObjectKeys<K, V> iterator;
+    typedef ObjectKeys<TKey, TMap> iterator;
+    typedef decltype(((TMap*)nullptr)->begin()) TIterator_map;
 
-    T _index;
-    const T _end;
+    TIterator_map _index;
+    const TIterator_map _end;
 
-    ObjectKeys(V &values_) : _index(values_.begin()), _end(values_.end())
+    ObjectKeys(TMap &values_) : _index(values_.begin()), _end(values_.end())
     {
     }
 
@@ -1432,7 +1433,7 @@ struct ObjectKeys
         return *this;
     }
 
-    const K &operator*()
+    const TKey &operator*()
     {
         return _index->first;
     }
@@ -1470,10 +1471,13 @@ struct object
         }
     };
 
+    using object_type = std::unordered_map<string, any, string_hash, string_equal_to>;
+    using object_type_ptr = std::shared_ptr<object_type>;
+    using object_type_ref = object_type&;
     using pair = std::pair<string, any>;
 
     bool isUndefined;
-    std::unordered_map<string, any, string_hash, string_equal_to> _values;
+    object_type_ptr _values;
 
     object();
 
@@ -1489,12 +1493,16 @@ struct object
     {
     }
 
-    ObjectKeys<js::string, decltype(_values)> keys();
-
     constexpr operator bool()
     {
         return !isUndefined;
     }
+
+    inline object_type_ref get() const {
+        return *_values.get();
+    }
+
+    ObjectKeys<js::string, object_type> keys();
 
     constexpr object *operator->()
     {
@@ -1526,7 +1534,7 @@ struct object
 
     void Delete(const char *field)
     {
-        _values.erase(field);
+        get().erase(field);
     }
 
     template <class T>
@@ -1534,7 +1542,7 @@ struct object
     {
         if constexpr (std::is_same_v<T, js::number> || is_stringish_v<T>) 
         {
-            return _values.find(i) != _values.end();
+            return get().find(i) != get().end();
         }
 
         return false;
@@ -1971,7 +1979,7 @@ struct any
         case anyTypeId::string_type:
             return string_ref()._value.length() > 0;
         case anyTypeId::object_type:
-            return _value._data != nullptr && object_ref()->_values.size() > 0;
+            return _value._data != nullptr && object_ref()->get().size() > 0;
         case anyTypeId::array_type:
             return ((js::array *)_value._data)->get().size() > 0;
         case anyTypeId::class_type:
@@ -2603,7 +2611,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::object_type:
-            object_ref()._values.erase(field);
+            object_ref().get().erase(field);
             break;
 
         default:
