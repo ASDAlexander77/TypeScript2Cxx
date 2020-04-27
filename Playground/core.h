@@ -392,10 +392,13 @@ constexpr bool not_equals(L l, R r)
 
 struct boolean
 {
-    using value_type = int;
-    value_type _control;
+    enum control_t {
+        boolean_false = 0,
+        boolean_true = 1,
+        boolean_undefined = 2
+    } _control;
 
-    constexpr boolean() : _control(2)
+    constexpr boolean() : _control(boolean_undefined)
     {
     }
 
@@ -403,22 +406,22 @@ struct boolean
     {
     }    
 
-    inline boolean(bool value) : _control(value)
+    inline boolean(bool value) : _control(static_cast<control_t>(value))
     {
     }
 
-    constexpr boolean(const undefined_t &) : boolean()
+    constexpr boolean(const undefined_t &) : _control(boolean_undefined)
     {
     }
 
     constexpr operator bool() const
     {
-        return _control == 1;
+        return _control == boolean_true;
     }
 
     constexpr operator bool()
     {
-        return _control == 1;
+        return _control == boolean_true;
     }
 
     constexpr boolean *operator->()
@@ -427,11 +430,11 @@ struct boolean
     }
 
     inline bool operator==(undefined_t) const {
-        return _control == 2;
+        return _control == boolean_undefined;
     }   
 
     inline bool operator!=(undefined_t) const {
-        return _control != 2;
+        return _control != boolean_undefined;
     }    
 
     inline bool operator==(pointer_t) const {
@@ -443,11 +446,11 @@ struct boolean
     }       
 
     inline bool operator==(undefined_t) {
-        return _control == 2;
+        return _control == boolean_undefined;
     }   
 
     inline bool operator!=(undefined_t) {
-        return _control != 2;
+        return _control != boolean_undefined;
     }    
 
     inline bool operator==(pointer_t) {
@@ -464,7 +467,7 @@ struct boolean
 
     friend std::ostream &operator<<(std::ostream &os, boolean val)
     {
-        if (val._control == std::numeric_limits<value_type>::max())
+        if (val._control == boolean_undefined)
         {
             return os << "undefined";
         }
@@ -764,10 +767,14 @@ struct number
 
 struct string
 {
-    int _control; // 0 - defined, 1 - null, 2 - undefined
+    enum {
+        string_defined = 0,
+        string_null = 1,
+        string_undefined = 2
+    } _control; 
     std::string _value;
 
-    string() : _value(), _control(2)
+    string() : _value(), _control(string_undefined)
     {
     }
 
@@ -775,23 +782,23 @@ struct string
     {
     }
 
-    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? 0 : 1)
+    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? string_defined : string_null)
     {
     }    
 
-    string(std::string value) : _value(value), _control(0)
+    string(std::string value) : _value(value), _control(string_defined)
     {
     }
 
-    string(const char *value) : _value(value), _control(value == nullptr ? 1 : 0)
+    string(const char *value) : _value(value), _control(value == nullptr ? string_null : string_defined)
     {
     }
 
-    string(const char value) : _value(1, value), _control(0)
+    string(const char value) : _value(1, value), _control(string_defined)
     {
     }
 
-    string(const undefined_t &) : _control(2)
+    string(const undefined_t &) : _control(string_undefined)
     {
     }
 
@@ -819,12 +826,12 @@ struct string
 
     inline bool is_null() const
     {
-        return _control == 1;
+        return _control == string_null;
     }
 
     inline bool is_undefined() const
     {
-        return _control == 2;
+        return _control == string_undefined;
     }
 
     js::number get_length()
@@ -871,7 +878,7 @@ struct string
 
     string &operator+=(char c)
     {
-        _control = 0;
+        _control = string_defined;
         _value.append(string(c));
         return *this;
     }    
@@ -879,14 +886,14 @@ struct string
     string &operator+=(number n)
     {
         auto value = n.operator std::string();
-        _control = 0;
+        _control = string_defined;
         _value.append(value);
         return *this;
     }
 
     string &operator+=(string value)
     {
-        _control = 0;
+        _control = string_defined;
         _value.append(value._value);
         return *this;
     }
@@ -895,62 +902,62 @@ struct string
 
     bool operator==(const js::string &other) const
     {
-        return !_control && _value.compare(other._value) == 0;
+        return _control == string_defined && _value.compare(other._value) == 0;
     }
 
     bool operator==(const js::string &other)
     {
-        return !_control && _value.compare(other._value) == 0;
+        return _control == string_defined && _value.compare(other._value) == 0;
     }
 
     bool operator!=(const js::string &other) const
     {
-        return !_control && _value.compare(other._value) != 0;
+        return _control == string_defined && _value.compare(other._value) != 0;
     }
 
     bool operator!=(const js::string &other)
     {
-        return !_control && _value.compare(other._value) != 0;
+        return _control == string_defined && _value.compare(other._value) != 0;
     }
 
     bool operator==(undefined_t)
     {
-        return _control == 2;
+        return is_undefined();
     }
 
     friend bool operator==(undefined_t, const js::string& other)
     {
-        return other._control == 2;
+        return other.is_undefined();
     }    
 
     bool operator!=(undefined_t)
     {
-        return _control != 2;
+        return !is_undefined();
     }    
 
     friend bool operator!=(undefined_t, const js::string& other)
     {
-        return other._control != 2;
+        return !other.is_undefined();
     }   
 
     bool operator==(pointer_t ptr)
     {
-        return _control == 1 && (!ptr);
+        return is_null() && (!ptr);
     }
 
     friend bool operator==(pointer_t ptr, const js::string& other)
     {
-        return other._control == 1 && (!ptr);
+        return other.is_null() && (!ptr);
     }    
 
     bool operator!=(pointer_t ptr)
     {
-        return !_control && (!ptr);
+        return _control == string_defined && (!ptr);
     }    
 
     friend bool operator!=(pointer_t ptr, const js::string& other)
     {
-        return !other._control && (!ptr);
+        return other._control != string_defined && (!ptr);
     }   
 
     string concat(string value)

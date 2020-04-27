@@ -32,7 +32,7 @@ bool operator!=(js::number n, pointer_t p)
 }
 
 // String
-string::string(any val) : _value(val.operator js::string()), _control(0)
+string::string(any val) : _value(val.operator js::string()), _control(string_defined)
 {
 }    
 
@@ -46,7 +46,7 @@ js::string string::operator+(any value)
 js::string &string::operator+=(any a)
 {
     auto value = a.operator std::string();
-    _control = 0;
+    _control = string_defined;
     _value.append(value);
     return *this;
 }
