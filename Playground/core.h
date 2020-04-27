@@ -1804,6 +1804,11 @@ struct any
         return *(js::string*)_value._data;
     }
 
+    constexpr function* function_ptr()
+    {
+        return (js::function*)_value._data;
+    }
+
     constexpr const array& array_ref_const() const
     {
         return *(array*)_value._data;
@@ -2039,7 +2044,7 @@ struct any
     {
         if (_type == anyTypeId::function_type)
         {
-            auto func = _value._function;
+            auto func = function_ptr();
             return std::function<Rx(Args...)>([=](Args... args) -> Rx {
                 return func->invoke({args...});
             });
@@ -2576,7 +2581,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::function_type:
-            return _value._function->invoke({args...});
+            return function_ptr()->invoke({args...});
         }
 
         throw "not implemented";
@@ -2588,7 +2593,7 @@ struct any
         switch (_type)
         {
         case anyTypeId::function_type:
-            return _value._function->invoke({args...});
+            return function_ptr()->invoke({args...});
         }
 
         throw "not implemented";
@@ -2729,7 +2734,7 @@ struct any
 
         if (val._type == anyTypeId::string_type)
         {
-            return os << *(js::string *)val._value._data;
+            return os << val.string_ref();
         }
 
         if (val._type == anyTypeId::function_type)
