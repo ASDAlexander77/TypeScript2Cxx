@@ -1725,7 +1725,7 @@ struct any
     }   
 
     template <typename T>
-    inline const T& get() const {
+    inline const T& get() const { 
         return std::get<T>(_value);
     }
 
@@ -1866,17 +1866,12 @@ struct any
             return null;
         }
 
-        if (get_type() == anyTypeId::object_type && get<void*>() == nullptr)
-        {
-            return null;
-        }
-
         if (get_type() == anyTypeId::number_type)
         {
             return pointer_t(number_ref());
         }        
 
-        return pointer_t(get<void*>());
+        return get<pointer_t>();
     }
 
     operator js::boolean()
@@ -1901,11 +1896,6 @@ struct any
             return js::number(std::atof(string_ref().operator const char *()));
         }
 
-        if (get_type() == anyTypeId::object_type && get<void*>() == nullptr)
-        {
-            return js::number(0);
-        }        
-
         throw "wrong type";
     }
 
@@ -1919,11 +1909,6 @@ struct any
         if (get_type() == anyTypeId::number_type)
         {
             return js::string(number_ref().operator std::string());
-        }
-
-        if (get_type() == anyTypeId::object_type && get<void*>() == nullptr)
-        {
-            return js::string(null);
         }
 
         throw "wrong type";
@@ -1962,11 +1947,13 @@ struct any
         case anyTypeId::string_type:
             return string_ref()._value.length() > 0;
         case anyTypeId::object_type:
-            return get<void*>() != nullptr && object_ref()->get().size() > 0;
+            return object_ref()->get().size() > 0;
         case anyTypeId::array_type:
-            return get_ptr<js::array>()->get().size() > 0;
+            return array_ref()->get().size() > 0;
+        case anyTypeId::pointer_type:
+            return get<pointer_t>();
         case anyTypeId::class_type:
-            return get<void*>() != nullptr;
+            return true;
         default:
             break;
         }
@@ -2673,12 +2660,6 @@ struct any
             h2 = std::hash<std::string>{}(static_cast<std::string&>(mutable_(string_ref_const())));
             break;
 
-        case anyTypeId::array_type:
-        case anyTypeId::object_type:
-        case anyTypeId::class_type:
-            h2 = std::hash<void*>{}(get<void*>());
-            break;
-
         default:
             h2 = 0;
         }
@@ -2703,7 +2684,7 @@ struct any
             return os << val.number_ref();
         }
 
-        if (val.get<void*>() == nullptr)
+        if (val.get<pointer_t>()._ptr == nullptr)
         {
             return os << "null";
         }
