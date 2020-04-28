@@ -2703,6 +2703,26 @@ struct any
     }
 };
 
+template <typename T>
+struct shared
+{
+    using shared_type = shared<T>;
+    std::shared_ptr<T> _value;
+
+    shared(T t) : _value(std::make_shared<T>(t)) {}	
+
+    template <typename V>
+    shared_type& operator=(const V& v) {
+        *_value = v;
+        return *this;
+    }
+
+	operator T() { return *_value.get(); }
+};
+
+template <typename T>
+shared(T t) -> shared<T>;
+
 // TODO: put into class undefined
 static js::number operator+(const undefined_t& v)
 {

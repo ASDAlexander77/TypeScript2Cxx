@@ -1509,6 +1509,7 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
+        const forceCaptureRequired = declarationList.declarations.some(d => d && (<any>d).__requireCapture);
         if (!((<any>declarationList).__ignore_type)) {
 
             if (forwardDeclaration) {
@@ -1522,17 +1523,21 @@ export class Emitter {
                 && scopeItem.kind !== ts.SyntaxKind.ModuleDeclaration
                 && scopeItem.kind !== ts.SyntaxKind.NamespaceExportDeclaration;
 
-            const forceCaptureRequired = declarationList.declarations.some(d => d && (<any>d).__requireCapture);
-
             const firstType = declarationList.declarations.filter(d => d.type)[0]?.type;
             const firstInitializer = declarationList.declarations.filter(d => d.initializer)[0]?.initializer;
             const effectiveType = firstType || this.resolver.getOrResolveTypeOfAsTypeNode(firstInitializer);
+            const useAuto = autoAllowed && !!(firstInitializer);
             this.processPredefineType(effectiveType);
-
-            if (forceCaptureRequired) {
-                this.writer.writeString('any');
+            if (!forceCaptureRequired) {
+                this.processType(effectiveType, useAuto);
             } else {
-                this.processType(effectiveType, autoAllowed && !!(firstInitializer));
+                if (useAuto) {
+                    this.writer.writeString('shared');
+                } else {
+                    this.writer.writeString('shared<');
+                    this.processType(effectiveType, useAuto);
+                    this.writer.writeString('>');
+                }
             }
 
             this.writer.writeString(' ');
@@ -1542,7 +1547,8 @@ export class Emitter {
         let result = false;
         declarationList.declarations.forEach(d => {
                 result =
-                    this.processVariableDeclarationOne(<ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration)
+                    this.processVariableDeclarationOne(
+                        <ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration, forceCaptureRequired)
                     || result;
             } );
 
@@ -1554,7 +1560,8 @@ export class Emitter {
         initializer: ts.Expression,
         type: ts.TypeNode,
         next?: { next: boolean },
-        forwardDeclaration?: boolean): boolean {
+        forwardDeclaration?: boolean,
+        forceCaptureRequired?: boolean): boolean {
         if (next && next.next) {
             this.writer.writeString(', ');
         }
