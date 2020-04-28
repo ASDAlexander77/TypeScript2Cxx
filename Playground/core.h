@@ -1793,8 +1793,7 @@ struct any
 
     any& operator=(const any& other)
     {
-        _value.get()->first = other._value.get()->first;
-         _value.get()->second = other._value.get()->second;
+        *_value.get() = *other._value.get();
          return *this;
     }
 
