@@ -153,6 +153,16 @@ export class Emitter {
         return false;
     }
 
+    private childrenVisitorNoScope(location: ts.Node, visit: (node: ts.Node) => boolean) {
+        function checkChild(node: ts.Node): any {
+            if (!visit(node)) {
+                ts.forEachChild(node, checkChild);
+            }
+        }
+
+        ts.forEachChild(location, checkChild);
+    }
+
     private childrenVisitor(location: ts.Node, visit: (node: ts.Node) => boolean) {
         let root = true;
         function checkChild(node: ts.Node): any {
@@ -251,10 +261,13 @@ export class Emitter {
                 && node.parent.kind !== ts.SyntaxKind.ClassDeclaration
                 && node.parent.kind !== ts.SyntaxKind.MethodDeclaration
                 && node.parent.kind !== ts.SyntaxKind.EnumDeclaration) {
-                const isLocal = this.resolver.isLocal(node);
-                if (isLocal !== undefined && !isLocal) {
-                    requireCaptureResult = true;
-                    return true;
+                const data = this.resolver.isLocal(node);
+                if (data) {
+                    const isLocal = data[0];
+                    if (isLocal !== undefined && !isLocal) {
+                        requireCaptureResult = true;
+                        return true;
+                    }
                 }
             }
 
@@ -262,6 +275,27 @@ export class Emitter {
         });
 
         return requireCaptureResult;
+    }
+
+    private markRequiredCapture(location: ts.Node): boolean {
+        this.childrenVisitorNoScope(location, (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.Identifier
+                && node.parent.kind !== ts.SyntaxKind.FunctionDeclaration
+                && node.parent.kind !== ts.SyntaxKind.ClassDeclaration
+                && node.parent.kind !== ts.SyntaxKind.MethodDeclaration
+                && node.parent.kind !== ts.SyntaxKind.EnumDeclaration) {
+                const data = this.resolver.isLocal(node);
+                if (data) {
+                    const isLocal = data[0];
+                    const resolvedSymbol = data[1];
+                    if (isLocal !== undefined && !isLocal) {
+                        (<any>resolvedSymbol).valueDeclaration.__requireCapture = true;
+                    }
+                }
+            }
+
+            return false;
+        });
     }
 
     private hasThis(location: ts.Node): boolean {
@@ -1500,7 +1534,6 @@ export class Emitter {
         const next = { next: false };
         let result = false;
         declarationList.declarations.forEach(d => {
-                const captureRequired = this.requireCapture(d);
                 result =
                     this.processVariableDeclarationOne(<ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration)
                     || result;
@@ -2266,6 +2299,7 @@ export class Emitter {
                 this.writer.writeStringNewLine(' _this(this);');
             }
 
+            this.markRequiredCapture(node);
             (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
                 this.processStatementInternal(element, true);
             });

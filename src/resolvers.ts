@@ -391,7 +391,7 @@ export class IdentifierResolver {
         return undefined;
     }
 
-    public isLocal(location: ts.Node): boolean {
+    public isLocal(location: ts.Node): [boolean, any] {
         if (location.kind !== ts.SyntaxKind.Identifier
             && location.parent.kind === ts.SyntaxKind.PropertyAccessExpression) {
             // only identifier is accepted
@@ -427,7 +427,7 @@ export class IdentifierResolver {
 
             resolvedSymbol = (<any>locationWithLocals).locals.get(name);
             if (resolvedSymbol) {
-                return level <= 1;
+                return [level <= 1, resolvedSymbol];
             }
 
             locationWithLocals = locationWithLocals.parent;
