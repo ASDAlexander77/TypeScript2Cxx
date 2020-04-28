@@ -81,7 +81,8 @@
             "*.rh": "cpp",
             "ranges": "cpp",
             "numeric": "cpp",
-            "optional": "cpp"
+            "optional": "cpp",
+            "variant": "cpp"
         }
     }
 }
