@@ -1618,24 +1618,32 @@ struct any
 
     enum struct anyTypeId
     {
-        undefined_type,
+        undefined_type = 0,
         boolean_type,
+        pointer_type,
         number_type,
         string_type,
-        function_type,
         array_type,
         object_type,
-        class_type,
-        pointer_type
+        function_type,
+        class_type
     };
 
-    using any_value_type = std::pair<anyTypeId, void*>;
-    using any_type_ptr = std::shared_ptr<any_value_type>;
-    using any_type_ref = any_value_type&;
+    using any_value_type = std::variant<
+        js::undefined_t, 
+        js::boolean, 
+        js::pointer_t, 
+        js::number, 
+        js::string, 
+        js::array, 
+        js::object, 
+        std::shared_ptr<js::function>, 
+        std::shared_ptr<js::object>
+    >;
 
-    any_type_ptr _value;
+    any_value_type _value;
 
-    any()
+    any() : _value(undefined)
     {
     }
 
@@ -1643,67 +1651,67 @@ struct any
     {
     }
 
-    any(void_t)
+    any(void_t) : _value(undefined)
     {
     }
 
-    any(undefined_t)
+    any(undefined_t) : _value(undefined)
     {
     }
 
-    any(pointer_t v) : _value(std::make_shared<any_value_type>(anyTypeId::pointer_type, v._ptr))
+    any(pointer_t v) : _value(v)
     {
     }
 
-    any(bool value) : _value(std::make_shared<any_value_type>(anyTypeId::boolean_type, (void *)new js::boolean(value)))
+    any(bool value) : _value(js::boolean(value))
     {
     }
 
     template <typename T>
-    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value(std::make_shared<any_value_type>(anyTypeId::number_type, (void *)new js::number((int)value)))
+    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value(js::number((int)value))
     {
     }
 
-    any(char value) : _value(std::make_shared<any_value_type>(anyTypeId::string_type, (void *)new js::string(value)))
+    any(char value) : _value(js::string(value))
     {
     }
 
-    any(const js::boolean &value) : _value(std::make_shared<any_value_type>(anyTypeId::boolean_type, (void *)new js::boolean(value)))
+    any(const js::boolean &value) : _value(value)
     {
     }
 
-    any(const js::number &value) : _value(std::make_shared<any_value_type>(anyTypeId::number_type, (void *)new js::number(value)))
+    any(const js::number &value) : _value(value)
     {
     }
 
-    any(const std::string &value) : _value(std::make_shared<any_value_type>(anyTypeId::string_type, (void *)new js::string(value)))
+    any(const std::string &value) : _value(js::string(value))
     {
     }
 
-    any(const js::string &value) : _value(std::make_shared<any_value_type>(anyTypeId::string_type, (void *)new js::string(value)))
+    any(const js::string &value) : _value(value)
     {
     }
 
-    any(const js::array &value) : _value(std::make_shared<any_value_type>(anyTypeId::array_type, (void *)new js::array(value)))
+    any(const js::array &value) : _value(value)
     {
     }
 
-    any(const js::object &value) : _value(std::make_shared<any_value_type>(anyTypeId::object_type, (void *)new js::object(value)))
+    any(const js::object &value) : _value(value)
     {
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
-    any(const F &value) : _value(std::make_shared<any_value_type>(anyTypeId::function_type, (void *)new js::function_t<F>(value)))
+    any(const F &value) : _value(std::make_shared((js::function*)new js::function_t<F>(value)))
     {
     }
 
     template <typename Rx, typename... Args>
-    any(Rx (__cdecl *value)(Args...)) : _value(std::make_shared<any_value_type>(anyTypeId::function_type, (void *)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)))
+    any(Rx (__cdecl *value)(Args...)) : _value(std::make_shared((js::function*)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)))
     {
     }
 
     template <typename C>
-    any(std::shared_ptr<C> value) : _value(std::make_shared<any_value_type>(anyTypeId::class_type, (void *)new std::shared_ptr<js::object>(value)))
+    any(std::shared_ptr<C> value) : _value(std::shared_ptr<js::object>(value))
     {
     }
 
@@ -1713,17 +1721,27 @@ struct any
     }
 
     inline anyTypeId get_type() const {
-        return _value.get()->first;
-    }    
+        return static_cast<anyTypeId>(_value.index());
+    }   
 
     template <typename T>
     inline T& get() const {
-        return *(T*)_value.get()->second;
+        return mutable_(std::get<T>(_value));
     }
 
     template <typename T>
     inline T* get_ptr() const {
-        return (T*)_value.get()->second;
+        return &*mutable_(std::get<std::shared_ptr<T>>(_value));
+    }
+
+    template <typename T>
+    inline T& get() {
+        return std::get<T>(_value);
+    }
+
+    template <typename T>
+    inline T* get_ptr() {
+        return &*std::get<std::shared_ptr<T>>(_value);
     }
 
     inline const js::boolean& boolean_ref_const() const
@@ -1793,7 +1811,7 @@ struct any
 
     any& operator=(const any& other)
     {
-        *_value.get() = *other._value.get();
+        _value = other._value;
          return *this;
     }
 
@@ -2057,7 +2075,7 @@ struct any
         case anyTypeId::object_type:
         case anyTypeId::class_type:
         case anyTypeId::pointer_type:
-            return get<void*>() == other._ptr;
+            return get<pointer_t>()._ptr == other._ptr;
         }
 
         throw "not implemented";
