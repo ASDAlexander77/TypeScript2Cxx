@@ -2669,52 +2669,37 @@ struct any
 
     friend std::ostream &operator<<(std::ostream &os, any val)
     {
-        if (val.get_type() == anyTypeId::undefined_type)
-        {
-            return os << "undefined";
-        }
+        switch (val.get_type()) {
+            case anyTypeId::undefined_type:
+                return os << "undefined";
 
-        if (val.get_type() == anyTypeId::boolean_type)
-        {
-            return os << val.boolean_ref();
-        }
+            case anyTypeId::boolean_type:
+                return os << val.boolean_ref();
 
-        if (val.get_type() == anyTypeId::number_type)
-        {
-            return os << val.number_ref();
-        }
+            case anyTypeId::number_type:
+                return os << val.number_ref();
 
-        if (val.get<pointer_t>()._ptr == nullptr)
-        {
-            return os << "null";
-        }
+            case anyTypeId::pointer_type:
+                return os << "null";
 
-        if (val.get_type() == anyTypeId::string_type)
-        {
-            return os << val.string_ref();
-        }
+            case anyTypeId::string_type:
+                return os << val.string_ref();
 
-        if (val.get_type() == anyTypeId::function_type)
-        {
-            return os << "[function]";
-        }
+            case anyTypeId::function_type:
+                return os << "[function]";
 
-        if (val.get_type() == anyTypeId::array_type)
-        {
-            return os << "[array]";
-        }
+            case anyTypeId::array_type:
+                return os << "[array]";
 
-        if (val.get_type() == anyTypeId::object_type)
-        {
-            return os << "[object]";
-        }
+            case anyTypeId::object_type:
+                return os << "[object]";
 
-        if (val.get_type() == anyTypeId::class_type)
-        {
-            return os << val.class_ref().get()->toString();
+            case anyTypeId::class_type:
+                return os << val.class_ref().get()->toString();
+    
+            default:
+                return os << "[any]";
         }
-
-        return os << "[any]";
     }
 };
 
