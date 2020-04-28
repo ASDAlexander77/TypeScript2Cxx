@@ -1725,13 +1725,13 @@ struct any
     }   
 
     template <typename T>
-    inline T& get() const {
-        return mutable_(std::get<T>(_value));
+    inline const T& get() const {
+        return std::get<T>(_value);
     }
 
     template <typename T>
-    inline T* get_ptr() const {
-        return &*mutable_(std::get<std::shared_ptr<T>>(_value));
+    inline std::shared_ptr<T> get_ptr() const {
+        return mutable_(std::get<std::shared_ptr<T>>(_value));
     }
 
     template <typename T>
@@ -1740,8 +1740,8 @@ struct any
     }
 
     template <typename T>
-    inline T* get_ptr() {
-        return &*std::get<std::shared_ptr<T>>(_value);
+    inline std::shared_ptr<T> get_ptr() {
+        return std::get<std::shared_ptr<T>>(_value);
     }
 
     inline const js::boolean& boolean_ref_const() const
@@ -1774,7 +1774,7 @@ struct any
         return get<js::string>();
     }
 
-    inline function* function_ptr()
+    inline std::shared_ptr<function> function_ptr()
     {
         return get_ptr<function>();
     }
