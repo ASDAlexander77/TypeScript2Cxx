@@ -1701,12 +1701,12 @@ struct any
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
-    any(const F &value) : _value(std::make_shared((js::function*)new js::function_t<F>(value)))
+    any(const F &value) : _value(std::shared_ptr<js::function>(((js::function*)new js::function_t<F>(value))))
     {
     }
 
     template <typename Rx, typename... Args>
-    any(Rx (__cdecl *value)(Args...)) : _value(std::make_shared((js::function*)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)))
+    any(Rx (__cdecl *value)(Args...)) : _value(std::shared_ptr<js::function>((js::function*)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)))
     {
     }
 
