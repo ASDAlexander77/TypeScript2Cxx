@@ -277,7 +277,7 @@ export class Emitter {
         return requireCaptureResult;
     }
 
-    private markRequiredCapture(location: ts.Node): boolean {
+    private markRequiredCapture(location: ts.Node): void {
         this.childrenVisitorNoScope(location, (node: ts.Node) => {
             if (node.kind === ts.SyntaxKind.Identifier
                 && node.parent.kind !== ts.SyntaxKind.FunctionDeclaration
@@ -1521,12 +1521,19 @@ export class Emitter {
                 && scopeItem.kind !== ts.SyntaxKind.ClassDeclaration
                 && scopeItem.kind !== ts.SyntaxKind.ModuleDeclaration
                 && scopeItem.kind !== ts.SyntaxKind.NamespaceExportDeclaration;
-            const effectiveType = declarationList.declarations[0].type
-                || this.resolver.getOrResolveTypeOfAsTypeNode(declarationList.declarations[0].initializer);
+
+            const forceCaptureRequired = declarationList.declarations.some(d => d && (<any>d).__requireCapture);
+
+            const firstType = declarationList.declarations.filter(d => d.type)[0]?.type;
+            const firstInitializer = declarationList.declarations.filter(d => d.initializer)[0]?.initializer;
+            const effectiveType = firstType || this.resolver.getOrResolveTypeOfAsTypeNode(firstInitializer);
             this.processPredefineType(effectiveType);
-            this.processType(
-                effectiveType,
-                autoAllowed && !!(declarationList.declarations[0].initializer));
+
+            if (forceCaptureRequired) {
+                this.writer.writeString('any');
+            } else {
+                this.processType(effectiveType, autoAllowed && !!(firstInitializer));
+            }
 
             this.writer.writeString(' ');
         }
