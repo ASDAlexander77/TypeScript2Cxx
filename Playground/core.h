@@ -1640,6 +1640,10 @@ struct any
     {
     }
 
+    any(const any& other) : _value(other._value)
+    {
+    }
+
     any(void_t)
     {
     }
@@ -1787,6 +1791,12 @@ struct any
     {
         return get<std::shared_ptr<js::object> >();
     }    
+
+    any& operator=(const any& other)
+    {
+         _value = other._value;
+         return *this;
+    }
 
     template <class T>
     any &operator[](T t) const
