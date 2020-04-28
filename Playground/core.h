@@ -1634,7 +1634,6 @@ struct any
     using any_type_ref = any_value_type&;
 
     any_type_ptr _value;
-    // : _value(std::make_shared<any_value_type>(anyTypeId::undefined_type, nullptr))
 
     any()
     {
@@ -1723,7 +1722,7 @@ struct any
     }
 
     template <typename T>
-    inline T* get_ptr() {
+    inline T* get_ptr() const {
         return (T*)_value.get()->second;
     }
 
@@ -1794,7 +1793,8 @@ struct any
 
     any& operator=(const any& other)
     {
-         _value = other._value;
+        _value.get()->first = other._value.get()->first;
+         _value.get()->second = other._value.get()->second;
          return *this;
     }
 
