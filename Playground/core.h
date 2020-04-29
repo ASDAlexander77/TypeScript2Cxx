@@ -337,10 +337,6 @@ static struct pointer_t
 
     bool operator!=(js::number n);
 
-    friend bool operator==(js::number n, pointer_t p);
-
-    friend bool operator!=(js::number n, pointer_t p);
-
     /*
     constexpr operator std::nullptr_t()
     {
@@ -595,6 +591,16 @@ struct number
     inline friend bool operator!=(const undefined_t, number_t other)
     {
         return !other.is_undefined();
+    }
+
+    inline friend bool operator==(number_t n, pointer_t p)
+    {
+        return n.is_undefined() == p.isUndefined && false;
+    }
+
+    inline friend bool operator!=(number_t n, pointer_t p)
+    {
+        return n.is_undefined() != p.isUndefined || true;
     }
 
     number_t operator+()
@@ -1645,7 +1651,7 @@ struct object
 
     constexpr object_type_ref get() const
     {
-        return object_traits<object_type>::access(mutable_(_values));
+        return object_traits<object_type>::access(_values);
     }
 
     constexpr object_type_ref get()
