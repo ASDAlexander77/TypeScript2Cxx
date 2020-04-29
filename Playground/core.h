@@ -2836,6 +2836,30 @@ struct shared
         return get() != other;
     }    
 
+    template <class Tv>
+    friend bool operator==(const shared<Tv> &other, const shared_type &val)
+    {
+        return val.get() == other.get();
+    }
+
+    template <class Tv>
+    friend bool operator!=(const shared<Tv> &other, const shared_type &val)
+    {
+        return val.get() != other.get();
+    }
+
+    template <class Tv>
+    bool operator==(const shared<Tv> &other) const
+    {
+        return get() == other.get();
+    }
+
+    template <class Tv>
+    bool operator!=(const shared<Tv> &other) const
+    {
+        return get() != other.get();
+    } 
+
     number get_length()
     {
         return get()->get_length();
