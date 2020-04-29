@@ -2739,7 +2739,21 @@ struct shared
         return *this;
     }
 
-	operator T() { return *_value.get(); }
+	operator T&() { return *_value.get(); }
+
+    T& get() const { return *_value.get(); }
+
+    template <class T>
+    auto &operator[](T t) const
+    {
+        return const_(get())[t];
+    }  
+
+    template <class T>
+    auto &operator[](T t)
+    {
+        return get()[t];
+    }     
 };
 
 template <typename T>
