@@ -37,18 +37,22 @@ struct pointer_t;
 struct any;
 struct object;
 struct string;
+template <typename T>
+struct shared;
 
-namespace tmpl {
-    template <typename T> struct number;
+namespace tmpl
+{
+template <typename T>
+struct number;
 }
 typedef tmpl::number<double> number;
 
-template<class _Ty>
-struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char*> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
+template <class _Ty>
+struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char *> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
 {
 };
 
-template<class _Ty>
+template <class _Ty>
 constexpr bool is_stringish_v = is_stringish<_Ty>::value;
 
 template <typename T>
@@ -164,7 +168,7 @@ constexpr auto rshift(T1 op1, T2 op2)
     auto op2ul32 = op2ul & 0x1f;
     auto r = op1l >> op2ul32;
     auto rl = static_cast<long>(r);
-    return static_cast<T1>(rl);    
+    return static_cast<T1>(rl);
 }
 
 template <typename T1, typename T2>
@@ -177,7 +181,7 @@ constexpr auto rshift_nosign(T1 op1, T2 op2)
     auto op2ul32 = op2ul & 0x1f;
     auto r = op1ul >> op2ul32;
     auto rul = static_cast<unsigned long>(r);
-    return static_cast<T1>(rul);    
+    return static_cast<T1>(rul);
 }
 
 template <typename T1, typename T2>
@@ -203,7 +207,7 @@ static struct undefined_t
 
     constexpr undefined_t(const undefined_t &)
     {
-    }    
+    }
 
     constexpr operator bool()
     {
@@ -225,12 +229,12 @@ static struct undefined_t
         return false;
     }
 
-    constexpr bool operator==(const pointer_t&)
+    constexpr bool operator==(const pointer_t &)
     {
         return false;
     }
 
-    constexpr bool operator!=(const pointer_t&)
+    constexpr bool operator!=(const pointer_t &)
     {
         return true;
     }
@@ -260,7 +264,7 @@ struct void_t
     constexpr bool operator!=(void_t)
     {
         return false;
-    }     
+    }
 
     constexpr bool operator==(undefined_t)
     {
@@ -270,7 +274,7 @@ struct void_t
     constexpr bool operator!=(undefined_t)
     {
         return false;
-    }        
+    }
 
     template <typename T>
     constexpr bool operator==(T)
@@ -282,32 +286,24 @@ struct void_t
     constexpr bool operator!=(T)
     {
         return true;
-    }        
+    }
 };
 
 static struct pointer_t
 {
     bool isUndefined;
-    void* _ptr;
+    void *_ptr;
 
-    pointer_t() : _ptr(nullptr), isUndefined(false) 
-    {
-    };
+    pointer_t() : _ptr(nullptr), isUndefined(false){};
 
-    pointer_t(const pointer_t& other) : _ptr(other._ptr), isUndefined(other.isUndefined) 
-    {
-    };
+    pointer_t(const pointer_t &other) : _ptr(other._ptr), isUndefined(other.isUndefined){};
 
-    pointer_t(void* ptr) : _ptr(ptr), isUndefined(false) 
-    {
-    };
+    pointer_t(void *ptr) : _ptr(ptr), isUndefined(false){};
 
-    pointer_t(std::nullptr_t) : _ptr(nullptr), isUndefined(false) 
-    {
-    };
+    pointer_t(std::nullptr_t) : _ptr(nullptr), isUndefined(false){};
 
     pointer_t(number);
-    
+
     pointer_t(const undefined_t &undef) : _ptr(nullptr), isUndefined(true)
     {
     }
@@ -345,7 +341,7 @@ static struct pointer_t
 
     friend bool operator!=(js::number n, pointer_t p);
 
-/*
+    /*
     constexpr operator std::nullptr_t()
     {
         return nullptr;
@@ -355,25 +351,25 @@ static struct pointer_t
     template <typename T>
     constexpr operator std::shared_ptr<T>()
     {
-        return std::shared_ptr<T>(static_cast<T*>(_ptr));
-    }  
+        return std::shared_ptr<T>(static_cast<T *>(_ptr));
+    }
 
     template <typename T>
-    constexpr operator const T*()
+    constexpr operator const T *()
     {
-        return isUndefined ? static_cast<const T*>(nullptr) : static_cast<const T*>(_ptr);
-    }  
+        return isUndefined ? static_cast<const T *>(nullptr) : static_cast<const T *>(_ptr);
+    }
 
     friend std::ostream &operator<<(std::ostream &os, pointer_t val)
     {
-        if (!val.isUndefined && val._ptr == nullptr) {
+        if (!val.isUndefined && val._ptr == nullptr)
+        {
             return os << "null";
         }
 
         return os << val._ptr;
-    }      
+    }
 } null;
-
 
 template <typename L, typename R>
 constexpr bool equals(L l, R r)
@@ -386,14 +382,51 @@ constexpr bool equals(L l, R r)
 }
 
 template <typename L, typename R>
+constexpr bool equals(shared<L> l, shared<R> r)
+{
+    return equals(*l, *r);
+}
+
+template <typename L, typename R>
+constexpr bool equals(shared<L> l, R r)
+{
+    return equals(*l, r);
+}
+
+template <typename L, typename R>
+constexpr bool equals(L l, shared<R> r)
+{
+    return equals(l, *r);
+}
+
+template <typename L, typename R>
 constexpr bool not_equals(L l, R r)
 {
     return !equals(l, r);
 }
 
+template <typename L, typename R>
+constexpr bool not_equals(shared<L> l, shared<R> r)
+{
+    return !equals(*l, *r);
+}
+
+template <typename L, typename R>
+constexpr bool not_equals(shared<L> l, R r)
+{
+    return !equals(*l, r);
+}
+
+template <typename L, typename R>
+constexpr bool not_equals(L l, shared<R> r)
+{
+    return !equals(l, *r);
+}
+
 struct boolean
 {
-    enum control_t {
+    enum control_t
+    {
         boolean_false = 0,
         boolean_true = 1,
         boolean_undefined = 2
@@ -405,7 +438,7 @@ struct boolean
 
     inline boolean(const boolean &value) : _control(value._control)
     {
-    }    
+    }
 
     inline boolean(bool value) : _control(static_cast<control_t>(value))
     {
@@ -430,41 +463,50 @@ struct boolean
         return this;
     }
 
-    inline bool operator==(undefined_t) const {
+    inline bool operator==(undefined_t) const
+    {
         return _control == boolean_undefined;
-    }   
+    }
 
-    inline bool operator!=(undefined_t) const {
+    inline bool operator!=(undefined_t) const
+    {
         return _control != boolean_undefined;
-    }    
+    }
 
-    inline bool operator==(pointer_t) const {
+    inline bool operator==(pointer_t) const
+    {
         return false;
-    }       
+    }
 
-    inline bool operator!=(pointer_t) const {
+    inline bool operator!=(pointer_t) const
+    {
         return true;
-    }       
+    }
 
-    inline bool operator==(undefined_t) {
+    inline bool operator==(undefined_t)
+    {
         return _control == boolean_undefined;
-    }   
+    }
 
-    inline bool operator!=(undefined_t) {
+    inline bool operator!=(undefined_t)
+    {
         return _control != boolean_undefined;
-    }    
+    }
 
-    inline bool operator==(pointer_t) {
+    inline bool operator==(pointer_t)
+    {
         return false;
-    }       
+    }
 
-    inline bool operator!=(pointer_t) {
+    inline bool operator!=(pointer_t)
+    {
         return true;
-    }       
+    }
 
-    friend inline bool operator==(boolean n, boolean other) {
+    friend inline bool operator==(boolean n, boolean other)
+    {
         return static_cast<bool>(n) == static_cast<bool>(other);
-    }    
+    }
 
     boolean operator~()
     {
@@ -497,25 +539,26 @@ struct number
     {
     }
 
-    number(const number& value) : _value{value._value}
+    number(const number &value) : _value{value._value}
     {
     }
 
     template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    number(T initValue) :  _value{static_cast<V>(initValue)}
+    number(T initValue) : _value{static_cast<V>(initValue)}
     {
     }
 
     template <typename T>
     number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value{static_cast<int>(initValue)}
     {
-    }    
+    }
 
     number(const undefined_t &undef) : _value{-std::numeric_limits<V>::quiet_NaN()}
     {
     }
 
-    inline bool is_undefined() {
+    inline bool is_undefined()
+    {
         return std::signbit(_value) && std::isnan(_value);
     }
 
@@ -537,7 +580,7 @@ struct number
     constexpr operator long long()
     {
         return static_cast<long long>(_value);
-    }    
+    }
 
     constexpr number_t *operator->()
     {
@@ -549,7 +592,7 @@ struct number
         std::ostringstream streamObj2;
         streamObj2 << _value;
         return streamObj2.str();
-    }    
+    }
 
     operator std::string()
     {
@@ -560,33 +603,35 @@ struct number
 
     operator string();
 
-    inline bool operator==(undefined_t) {
+    inline bool operator==(undefined_t)
+    {
         return is_undefined();
-    }   
+    }
 
-    inline bool operator!=(undefined_t) {
+    inline bool operator!=(undefined_t)
+    {
         return !is_undefined();
-    }        
+    }
 
     inline friend bool operator==(const number_t n, number_t other)
     {
         return n._value == other._value;
-    }    
+    }
 
     inline friend bool operator!=(const number_t n, number_t other)
     {
         return n._value != other._value;
-    }    
+    }
 
     inline friend bool operator==(const undefined_t, number_t other)
     {
         return other.is_undefined();
-    }    
+    }
 
     inline friend bool operator!=(const undefined_t, number_t other)
     {
         return !other.is_undefined();
-    }    
+    }
 
     number_t operator+()
     {
@@ -721,18 +766,18 @@ struct number
     {
         _value = static_cast<long>(_value) << static_cast<long>(other._value);
         return *this;
-    }    
+    }
 
     number_t operator>>(number_t n)
     {
         return number_t(static_cast<long>(_value) >> static_cast<long>(n._value));
-    }    
+    }
 
     number_t &operator>>=(number_t other)
     {
         _value = static_cast<long>(_value) >> static_cast<long>(other._value);
         return *this;
-    }    
+    }
 
     number_t operator~()
     {
@@ -772,33 +817,34 @@ struct number
         if (std::isnan(val))
         {
             return os << "NaN";
-        }        
+        }
 
         return os << val._value;
     }
 };
-}
+} // namespace tmpl
 
 struct string
 {
-    enum {
+    enum
+    {
         string_defined = 0,
         string_null = 1,
         string_undefined = 2
-    } _control; 
+    } _control;
     std::string _value;
 
     string() : _value(), _control(string_undefined)
     {
     }
 
-    string(const string& value) : _value(value._value), _control(value._control)
+    string(const string &value) : _value(value._value), _control(value._control)
     {
     }
 
     string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? string_defined : string_null)
     {
-    }    
+    }
 
     string(std::string value) : _value(value), _control(string_defined)
     {
@@ -833,7 +879,7 @@ struct string
         return !(*this) ? 0 : std::stod(_value);
     }
 
-    inline operator std::string&()
+    inline operator std::string &()
     {
         return _value;
     }
@@ -841,7 +887,7 @@ struct string
     inline operator size_t()
     {
         return _value.size();
-    }    
+    }
 
     inline bool is_null() const
     {
@@ -883,7 +929,7 @@ struct string
         return string(_value + value._value);
     }
 
-    friend string operator+(const string& value, string other)
+    friend string operator+(const string &value, string other)
     {
         return mutable_(value) + other;
     }
@@ -891,7 +937,7 @@ struct string
     string operator+(pointer_t ptr)
     {
         return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
-    }    
+    }
 
     string operator+(any value);
 
@@ -900,7 +946,7 @@ struct string
         _control = string_defined;
         _value.append(string(c)._value);
         return *this;
-    }    
+    }
 
     string &operator+=(number n)
     {
@@ -944,40 +990,40 @@ struct string
         return is_undefined();
     }
 
-    friend bool operator==(undefined_t, const js::string& other)
+    friend bool operator==(undefined_t, const js::string &other)
     {
         return other.is_undefined();
-    }    
+    }
 
     bool operator!=(undefined_t)
     {
         return !is_undefined();
-    }    
+    }
 
-    friend bool operator!=(undefined_t, const js::string& other)
+    friend bool operator!=(undefined_t, const js::string &other)
     {
         return !other.is_undefined();
-    }   
+    }
 
     bool operator==(pointer_t ptr)
     {
         return is_null() && (!ptr);
     }
 
-    friend bool operator==(pointer_t ptr, const js::string& other)
+    friend bool operator==(pointer_t ptr, const js::string &other)
     {
         return other.is_null() && (!ptr);
-    }    
+    }
 
     bool operator!=(pointer_t ptr)
     {
         return _control == string_defined && (!ptr);
-    }    
+    }
 
-    friend bool operator!=(pointer_t ptr, const js::string& other)
+    friend bool operator!=(pointer_t ptr, const js::string &other)
     {
         return other._control == string_defined && (!ptr);
-    }   
+    }
 
     string concat(string value)
     {
@@ -1061,7 +1107,7 @@ struct string
     size_t hash(void) const noexcept
     {
         return std::hash<std::string>{}(_value);
-    }    
+    }
 };
 
 static struct string string_empty("");
@@ -1081,7 +1127,7 @@ static js::number operator""_N(unsigned long long value)
     return js::number(value);
 }
 
-static js::number operator+(const string& v)
+static js::number operator+(const string &v)
 {
     return number(static_cast<double>(mutable_(v)));
 }
@@ -1107,7 +1153,7 @@ struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...)>
 };
 
 template <typename Rx, typename... Args>
-struct _Deduction_MethodPtr<Rx (__cdecl *)(Args...)>
+struct _Deduction_MethodPtr<Rx(__cdecl *)(Args...)>
 {
     using _ReturnType = Rx;
     const static size_t _CountArgs = sizeof...(Args);
@@ -1212,7 +1258,7 @@ struct array
 {
     using array_type = std::vector<E>;
     using array_type_ptr = std::shared_ptr<array_type>;
-    using array_type_ref = array_type&;
+    using array_type_ref = array_type &;
 
     bool isUndefined;
     array_type_ptr _values;
@@ -1221,9 +1267,9 @@ struct array
     {
     }
 
-    array(const array& value) : _values(value._values), isUndefined(value.isUndefined)
+    array(const array &value) : _values(value._values), isUndefined(value.isUndefined)
     {
-    }    
+    }
 
     array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
     {
@@ -1231,7 +1277,7 @@ struct array
 
     array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
     {
-    }    
+    }
 
     array(const undefined_t &undef) : isUndefined(true)
     {
@@ -1247,11 +1293,13 @@ struct array
         return this;
     }
 
-    inline array_type_ref get() const {
+    inline array_type_ref get() const
+    {
         return *_values.get();
     }
 
-    js::number get_length() {
+    js::number get_length()
+    {
         return js::number(get().size());
     }
 
@@ -1296,27 +1344,27 @@ struct array
 
     E pop()
     {
-        return get().pop_back(); 
+        return get().pop_back();
     }
 
     template <typename... Args>
-    void splice(size_t position, size_t size, Args... args) 
+    void splice(size_t position, size_t size, Args... args)
     {
         get().erase(get().cbegin() + position, get().cbegin() + position + size);
         get().insert(get().cbegin() + position, {args...});
     }
 
-    array slice(size_t first, size_t last) 
+    array slice(size_t first, size_t last)
     {
         return array(std::vector<E>(get().cbegin() + first, get().cbegin() + last + 1));
     }
 
-    js::number indexOf(const E& e) 
+    js::number indexOf(const E &e)
     {
         return get().cend() - std::find(get().cbegin(), get().cend(), e) - 1;
     }
 
-    js::boolean removeElement(const E& e) 
+    js::boolean removeElement(const E &e)
     {
         return get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend();
     }
@@ -1352,49 +1400,55 @@ struct array
         return false;
     }
 
-    array filter(std::function<bool(E)> p) {
+    array filter(std::function<bool(E)> p)
+    {
         std::vector<E> result;
         std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
         return result;
     }
 
-    array filter(std::function<bool(E, js::number)> p) {
+    array filter(std::function<bool(E, js::number)> p)
+    {
         std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
         return result;
-    }    
+    }
 
-    array map(std::function<void()> p) {
+    array map(std::function<void()> p)
+    {
         std::vector<E> result;
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
             p();
             return E();
         });
         return result;
     }
 
-    array map(std::function<E()> p) {
+    array map(std::function<E()> p)
+    {
         std::vector<E> result;
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
             return p();
         });
         return result;
     }
 
-    array map(std::function<E(E)> p) {
+    array map(std::function<E(E)> p)
+    {
         std::vector<E> result;
         std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
         return result;
     }
 
-    array map(std::function<E(E, js::number)> p) {
+    array map(std::function<E(E, js::number)> p)
+    {
         std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=] (auto& v) {
+        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
@@ -1402,43 +1456,49 @@ struct array
     }
 
     template <typename P>
-    any reduce(P p) {
+    any reduce(P p)
+    {
         return std::reduce(_values.get()->begin(), _values.get()->end(), 0_N, p);
-    }    
+    }
 
     template <typename P, typename I>
-    any reduce(P p, I initial) {
+    any reduce(P p, I initial)
+    {
         return std::reduce(_values.get()->begin(), _values.get()->end(), initial, p);
-    }    
+    }
 
     template <typename P>
-    boolean every(P p) {
+    boolean every(P p)
+    {
         return std::all_of(_values.get()->begin(), _values.get()->end(), p);
-    }    
+    }
 
     template <typename P>
-    boolean some(P p) {
+    boolean some(P p)
+    {
         return std::any_of(_values.get()->begin(), _values.get()->end(), p);
-    }    
+    }
 
     string join(string s)
     {
-        return std::accumulate(_values.get()->begin(), _values.get()->end(), string{}, [&] (auto &res, const auto &piece) -> decltype(auto) { 
-            return res += (res) ? s + piece : piece; 
+        return std::accumulate(_values.get()->begin(), _values.get()->end(), string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
+            return res += (res) ? s + piece : piece;
         });
-    } 
+    }
 
-    void forEach(std::function<void(E)> p) {
+    void forEach(std::function<void(E)> p)
+    {
         std::for_each(_values.get()->begin(), _values.get()->end(), p);
     }
 
-    void forEach(std::function<void(E, js::number)> p) {
+    void forEach(std::function<void(E, js::number)> p)
+    {
         auto first = &(*_values.get())[0];
-        std::result(_values.get()->begin(), _values.get()->end(), [=] (auto& v) {
+        std::result(_values.get()->begin(), _values.get()->end(), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
-    }    
+    }
 };
 
 } // namespace tmpl
@@ -1449,7 +1509,7 @@ template <typename TKey, typename TMap>
 struct ObjectKeys
 {
     typedef ObjectKeys<TKey, TMap> iterator;
-    typedef decltype(((TMap*)nullptr)->begin()) TIterator_map;
+    typedef decltype(((TMap *)nullptr)->begin()) TIterator_map;
 
     TIterator_map _index;
     const TIterator_map _end;
@@ -1508,7 +1568,7 @@ struct object
 
     using object_type = std::unordered_map<string, any, string_hash, string_equal_to>;
     using object_type_ptr = std::shared_ptr<object_type>;
-    using object_type_ref = object_type&;
+    using object_type_ref = object_type &;
     using pair = std::pair<string, any>;
 
     bool isUndefined;
@@ -1516,7 +1576,7 @@ struct object
 
     object();
 
-    object(const object& value);
+    object(const object &value);
 
     object(std::initializer_list<pair> values);
 
@@ -1533,7 +1593,8 @@ struct object
         return !isUndefined;
     }
 
-    inline object_type_ref get() const {
+    inline object_type_ref get() const
+    {
         return *_values.get();
     }
 
@@ -1562,7 +1623,8 @@ struct object
 
     any &operator[](undefined_t undef);
 
-    inline bool operator==(const object& other) {
+    inline bool operator==(const object &other)
+    {
         // TODO - finish it
         return isUndefined == other.isUndefined && isUndefined == true;
     }
@@ -1575,7 +1637,7 @@ struct object
     template <class T>
     bool exists(T i) const
     {
-        if constexpr (std::is_same_v<T, js::number> || is_stringish_v<T>) 
+        if constexpr (std::is_same_v<T, js::number> || is_stringish_v<T>)
         {
             return get().find(i) != get().end();
         }
@@ -1602,7 +1664,7 @@ struct object
 };
 
 struct any
-{ 
+{
     struct any_hash
     {
         typedef js::any argument_type;
@@ -1636,16 +1698,15 @@ struct any
     };
 
     using any_value_type = std::variant<
-        js::undefined_t, 
-        js::boolean, 
-        js::pointer_t, 
-        js::number, 
-        js::string, 
-        js::array, 
-        js::object, 
-        std::shared_ptr<js::function>, 
-        std::shared_ptr<js::object>
-    >;
+        js::undefined_t,
+        js::boolean,
+        js::pointer_t,
+        js::number,
+        js::string,
+        js::array,
+        js::object,
+        std::shared_ptr<js::function>,
+        std::shared_ptr<js::object>>;
 
     any_value_type _value;
 
@@ -1653,7 +1714,7 @@ struct any
     {
     }
 
-    any(const any& other) : _value(other._value)
+    any(const any &other) : _value(other._value)
     {
     }
 
@@ -1707,12 +1768,12 @@ struct any
     }
 
     template <typename F, class = std::enable_if_t<std::is_member_function_pointer_v<typename _Deduction<F>::type>>>
-    any(const F &value) : _value(std::shared_ptr<js::function>(((js::function*)new js::function_t<F>(value))))
+    any(const F &value) : _value(std::shared_ptr<js::function>(((js::function *)new js::function_t<F>(value))))
     {
     }
 
     template <typename Rx, typename... Args>
-    any(Rx (__cdecl *value)(Args...)) : _value(std::shared_ptr<js::function>((js::function*)new js::function_t<Rx (__cdecl *)(Args...), Rx (__cdecl *)(Args...)>(value)))
+    any(Rx(__cdecl *value)(Args...)) : _value(std::shared_ptr<js::function>((js::function *)new js::function_t<Rx(__cdecl *)(Args...), Rx(__cdecl *)(Args...)>(value)))
     {
     }
 
@@ -1726,56 +1787,61 @@ struct any
         return this;
     }
 
-    inline anyTypeId get_type() const {
+    inline anyTypeId get_type() const
+    {
         return static_cast<anyTypeId>(_value.index());
-    }   
+    }
 
     template <typename T>
-    inline const T& get() const { 
+    inline const T &get() const
+    {
         return std::get<T>(_value);
     }
 
     template <typename T>
-    inline std::shared_ptr<T> get_ptr() const {
+    inline std::shared_ptr<T> get_ptr() const
+    {
         return mutable_(std::get<std::shared_ptr<T>>(_value));
     }
 
     template <typename T>
-    inline T& get() {
+    inline T &get()
+    {
         return std::get<T>(_value);
     }
 
     template <typename T>
-    inline std::shared_ptr<T> get_ptr() {
+    inline std::shared_ptr<T> get_ptr()
+    {
         return std::get<std::shared_ptr<T>>(_value);
     }
 
-    inline const js::boolean& boolean_ref_const() const
+    inline const js::boolean &boolean_ref_const() const
     {
         return get<js::boolean>();
-    }    
+    }
 
-    inline js::boolean& boolean_ref()
+    inline js::boolean &boolean_ref()
     {
         return get<js::boolean>();
-    }        
+    }
 
-    inline const js::number& number_ref_const() const
+    inline const js::number &number_ref_const() const
     {
         return get<js::number>();
-    }    
+    }
 
-    inline js::number& number_ref()
+    inline js::number &number_ref()
     {
         return get<js::number>();
-    }    
+    }
 
-    inline const js::string& string_ref_const() const
+    inline const js::string &string_ref_const() const
     {
         return get<js::string>();
-    }    
+    }
 
-    inline js::string& string_ref()
+    inline js::string &string_ref()
     {
         return get<js::string>();
     }
@@ -1785,40 +1851,40 @@ struct any
         return get_ptr<function>();
     }
 
-    inline const array& array_ref_const() const
+    inline const array &array_ref_const() const
     {
         return get<array>();
     }
 
-    inline array& array_ref()
+    inline array &array_ref()
     {
         return get<array>();
     }
 
-    inline const object& object_ref_const() const
-    {
-        return get<object>();
-    }    
-
-    inline object& object_ref()
+    inline const object &object_ref_const() const
     {
         return get<object>();
     }
 
-    inline const std::shared_ptr<js::object>& class_ref_const() const 
+    inline object &object_ref()
     {
-        return get<std::shared_ptr<js::object> >();
-    }  
+        return get<object>();
+    }
 
-    inline std::shared_ptr<js::object>& class_ref() 
+    inline const std::shared_ptr<js::object> &class_ref_const() const
     {
-        return get<std::shared_ptr<js::object> >();
-    }    
+        return get<std::shared_ptr<js::object>>();
+    }
 
-    any& operator=(const any& other)
+    inline std::shared_ptr<js::object> &class_ref()
+    {
+        return get<std::shared_ptr<js::object>>();
+    }
+
+    any &operator=(const any &other)
     {
         _value = other._value;
-         return *this;
+        return *this;
     }
 
     template <class T>
@@ -1841,7 +1907,7 @@ struct any
         }
 
         throw "wrong type";
-    }  
+    }
 
     template <class T>
     any &operator[](T t)
@@ -1863,7 +1929,7 @@ struct any
         }
 
         throw "wrong type";
-    }  
+    }
 
     operator js::pointer_t()
     {
@@ -1875,7 +1941,7 @@ struct any
         if (get_type() == anyTypeId::number_type)
         {
             return pointer_t(number_ref());
-        }        
+        }
 
         return get<pointer_t>();
     }
@@ -1980,7 +2046,7 @@ struct any
         }
 
         throw "wrong type";
-    }  
+    }
 
     template <typename T>
     using std_shared_ptr = std::shared_ptr<T>;
@@ -2072,12 +2138,12 @@ struct any
         }
 
         throw "not implemented";
-    } 
+    }
 
     bool operator!=(const pointer_t &other) const
     {
         return !operator==(other);
-    } 
+    }
 
     bool operator==(const js::boolean &other) const
     {
@@ -2087,7 +2153,7 @@ struct any
     bool operator!=(const js::boolean &other) const
     {
         return static_cast<js::boolean>(*mutable_(this)) != other;
-    }    
+    }
 
     bool operator==(const js::number &other) const
     {
@@ -2097,7 +2163,7 @@ struct any
     bool operator!=(const js::number &other) const
     {
         return static_cast<js::number>(*mutable_(this)) != other;
-    }    
+    }
 
     bool operator==(const js::string &other) const
     {
@@ -2131,11 +2197,11 @@ struct any
         }
 
         throw "not implemented";
-    }  
+    }
 
     inline any operator+(any t) const
     {
-        return mutable_(this)->operator+(t);        
+        return mutable_(this)->operator+(t);
     }
 
     any operator+(any t)
@@ -2179,13 +2245,13 @@ struct any
     {
         switch (get_type())
         {
-        case anyTypeId::number_type:            
+        case anyTypeId::number_type:
             any tmp(number_ref());
             operator++();
             return tmp;
         }
 
-        throw "not implemented";        
+        throw "not implemented";
     }
 
     any &operator+=(js::number other)
@@ -2195,12 +2261,12 @@ struct any
         case anyTypeId::number_type:
             number_ref() += other;
             return *this;
-        }  
+        }
 
         throw "not implemented";
     }
 
-    friend js::number operator+=(js::number& t, any value)
+    friend js::number operator+=(js::number &t, any value)
     {
         switch (value.get_type())
         {
@@ -2254,13 +2320,13 @@ struct any
     {
         switch (get_type())
         {
-        case anyTypeId::number_type:        
+        case anyTypeId::number_type:
             any tmp(number_ref());
             operator--();
             return tmp;
         }
 
-        throw "not implemented";        
+        throw "not implemented";
     }
 
     any &operator-=(js::number other)
@@ -2275,7 +2341,7 @@ struct any
         throw "not implemented";
     }
 
-    friend js::number operator-=(js::number& t, any value)
+    friend js::number operator-=(js::number &t, any value)
     {
         switch (value.get_type())
         {
@@ -2619,7 +2685,7 @@ struct any
         default:
             throw "wrong type";
         }
-    }    
+    }
 
     auto begin() -> decltype(array_ref().begin())
     {
@@ -2629,7 +2695,7 @@ struct any
             return array_ref().begin();
         default:
             throw "wrong type";
-        }        
+        }
     }
 
     auto end() -> decltype(array_ref().end())
@@ -2640,8 +2706,8 @@ struct any
             return array_ref().end();
         default:
             throw "wrong type";
-        }        
-    }    
+        }
+    }
 
     size_t hash(void) const noexcept
     {
@@ -2663,7 +2729,7 @@ struct any
             break;
 
         case anyTypeId::string_type:
-            h2 = std::hash<std::string>{}(static_cast<std::string&>(mutable_(string_ref_const())));
+            h2 = std::hash<std::string>{}(static_cast<std::string &>(mutable_(string_ref_const())));
             break;
 
         default:
@@ -2675,36 +2741,37 @@ struct any
 
     friend std::ostream &operator<<(std::ostream &os, any val)
     {
-        switch (val.get_type()) {
-            case anyTypeId::undefined_type:
-                return os << "undefined";
+        switch (val.get_type())
+        {
+        case anyTypeId::undefined_type:
+            return os << "undefined";
 
-            case anyTypeId::boolean_type:
-                return os << val.boolean_ref();
+        case anyTypeId::boolean_type:
+            return os << val.boolean_ref();
 
-            case anyTypeId::number_type:
-                return os << val.number_ref();
+        case anyTypeId::number_type:
+            return os << val.number_ref();
 
-            case anyTypeId::pointer_type:
-                return os << "null";
+        case anyTypeId::pointer_type:
+            return os << "null";
 
-            case anyTypeId::string_type:
-                return os << val.string_ref();
+        case anyTypeId::string_type:
+            return os << val.string_ref();
 
-            case anyTypeId::function_type:
-                return os << "[function]";
+        case anyTypeId::function_type:
+            return os << "[function]";
 
-            case anyTypeId::array_type:
-                return os << "[array]";
+        case anyTypeId::array_type:
+            return os << "[array]";
 
-            case anyTypeId::object_type:
-                return os << "[object]";
+        case anyTypeId::object_type:
+            return os << "[object]";
 
-            case anyTypeId::class_type:
-                return os << val.class_ref().get()->toString();
-    
-            default:
-                return os << "[any]";
+        case anyTypeId::class_type:
+            return os << val.class_ref().get()->toString();
+
+        default:
+            return os << "[any]";
         }
     }
 };
@@ -2736,34 +2803,50 @@ struct shared
     using shared_type = shared<T>;
     std::shared_ptr<T> _value;
 
-    shared(T t) : _value(std::make_shared<T>(t)) {}	
+    shared(T t) : _value(std::make_shared<T>(t)) {}
 
     template <typename V>
-    shared_type& operator=(const V& v) {
+    shared_type &operator=(const V &v)
+    {
         *_value = v;
         return *this;
     }
 
-	operator T&() { return *_value.get(); }
+    T &operator*() const
+    {
+        return *_value.get();
+    }    
 
-    T& get() const { return *_value.get(); }
+    operator T &() { return *_value.get(); }
 
-    T* operator->() const
+    T &get() const { return *_value.get(); }
+
+    T *operator->() const
     {
         return _value.get();
-    }    
+    }
 
     template <class Tv>
     auto &operator[](Tv t) const
     {
         return const_(get())[t];
-    }  
+    }
 
     template <class Tv>
     auto &operator[](Tv t)
     {
         return get()[t];
-    }     
+    }
+
+    auto &operator++()
+    {
+        return ++get();
+    }
+
+    auto operator++(int)
+    {
+        return get()++;
+    }
 
     number get_length()
     {
@@ -2778,20 +2861,20 @@ struct shared
     auto end()
     {
         return get()->end();
-    }        
+    }
 };
 
 template <typename T>
-shared(T t) -> shared<T>;
+shared(T t)->shared<T>;
 
 // TODO: put into class undefined
-static js::number operator+(const undefined_t& v)
+static js::number operator+(const undefined_t &v)
 {
     return number(NAN);
 }
 
 // TODO: put into class boolean
-static js::number operator+(const boolean& v)
+static js::number operator+(const boolean &v)
 {
     return number((mutable_(v)) ? 1 : 0);
 }
@@ -2827,12 +2910,14 @@ string type_of(any value)
 }
 
 template <class T>
-static any Void(T value) {
+static any Void(T value)
+{
     return any();
 }
 
 template <typename I>
-constexpr bool is(js::any t) {
+constexpr bool is(js::any t)
+{
     return false;
 }
 
@@ -2884,20 +2969,20 @@ public:
 
 namespace Utils
 {
-    template <typename... Args>
-    object assign(object &dst, const Args &... args)
+template <typename... Args>
+object assign(object &dst, const Args &... args)
+{
+    for (auto src : {args...})
     {
-        for (auto src : {args...})
+        for (auto &k : keys_(src))
         {
-            for (auto &k : keys_(src))
-            {
-                dst[k] = const_(src)[k];
-            }
+            dst[k] = const_(src)[k];
         }
-
-        return dst;
     }
-};
+
+    return dst;
+}
+}; // namespace Utils
 
 template <typename V>
 constexpr bool in(V v, const array &a)
@@ -2911,13 +2996,13 @@ constexpr bool in(V v, const object &a)
     return a.exists(v);
 }
 
-template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+template <typename V, class Ax, class = std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
 constexpr bool in(V v, const Ax &a)
 {
     return a.exists(v);
 }
 
-template <typename V, class Ax, class=std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+template <typename V, class Ax, class = std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
 constexpr bool in(V v, Ax *a)
 {
     return a->exists(v);
@@ -2933,22 +3018,26 @@ constexpr bool in(V v, O o)
 static js::number Infinity(std::numeric_limits<double>::infinity());
 static js::number NaN(std::numeric_limits<double>::quiet_NaN());
 
-namespace tmpl {
+namespace tmpl
+{
 
 template <typename V>
-number<V>::operator js::string() {
+number<V>::operator js::string()
+{
     return js::string(static_cast<std::string>(*this));
-}    
+}
 
 template <typename V>
-js::string number<V>::toString() {
+js::string number<V>::toString()
+{
     std::ostringstream streamObj2;
     streamObj2 << _value;
     return streamObj2.str();
-} 
+}
 
 template <typename V>
-js::string number<V>::toString(number_t radix) {
+js::string number<V>::toString(number_t radix)
+{
     return js::string(std::to_string(_value));
 }
 
@@ -2967,43 +3056,44 @@ static struct js::number _9_N(9);
 
 } // namespace js
 
-#define MAIN \
-int main(int argc, char** argv) \
-{   \
-    try \
-    {   \
-        Main(); \
-    }   \
-    catch (const js::string& s)  \
-    {   \
-        std::cout << "Exception: " << s << std::endl;    \
-    }   \
-    catch (const js::any& a)  \
-    {   \
-        std::cout << "Exception: " << a << std::endl;    \
-    }   \
-    catch (const std::exception& exception)   \
-    {   \
-        std::cout << "Exception: " << exception.what() << std::endl; \
-    }   \
-    catch (const std::string& s)  \
-    {   \
-        std::cout << "Exception: " << s << std::endl;    \
-    }   \
-    catch (const char* s) \
-    {   \
-        std::cout << "Exception: " << s << std::endl;    \
-    }   \
-    catch (...) \
-    {   \
-        std::cout << "General failure." << std::endl;    \
-    }   \
-    return 0;   \
-}
+#define MAIN                                                             \
+    int main(int argc, char **argv)                                      \
+    {                                                                    \
+        try                                                              \
+        {                                                                \
+            Main();                                                      \
+        }                                                                \
+        catch (const js::string &s)                                      \
+        {                                                                \
+            std::cout << "Exception: " << s << std::endl;                \
+        }                                                                \
+        catch (const js::any &a)                                         \
+        {                                                                \
+            std::cout << "Exception: " << a << std::endl;                \
+        }                                                                \
+        catch (const std::exception &exception)                          \
+        {                                                                \
+            std::cout << "Exception: " << exception.what() << std::endl; \
+        }                                                                \
+        catch (const std::string &s)                                     \
+        {                                                                \
+            std::cout << "Exception: " << s << std::endl;                \
+        }                                                                \
+        catch (const char *s)                                            \
+        {                                                                \
+            std::cout << "Exception: " << s << std::endl;                \
+        }                                                                \
+        catch (...)                                                      \
+        {                                                                \
+            std::cout << "General failure." << std::endl;                \
+        }                                                                \
+        return 0;                                                        \
+    }
 
 // JS Core classes
-namespace js {
-    
+namespace js
+{
+
 static number parseInt(const js::string &value, int base = 10)
 {
     return number(std::stol(value._value, 0, base));
@@ -3016,11 +3106,11 @@ static number parseFloat(const js::string &value)
     {
         r = number(std::stod(value._value, 0));
     }
-    catch(const std::exception&)
+    catch (const std::exception &)
     {
     }
 
-    return r;    
+    return r;
 }
 
 static object Object;
@@ -3316,9 +3406,12 @@ static struct Console
     template <class Arg1>
     inline void log_req(Arg1 arg1)
     {
-        if constexpr (std::is_enum_v<Arg1>) {
+        if constexpr (std::is_enum_v<Arg1>)
+        {
             std::cout << static_cast<int>(arg1);
-        } else {
+        }
+        else
+        {
             std::cout << arg1;
         }
     }
@@ -3340,9 +3433,12 @@ static struct Console
     template <class Arg1>
     inline void warn_req(Arg1 arg1)
     {
-        if constexpr (std::is_enum_v<Arg1>) {
+        if constexpr (std::is_enum_v<Arg1>)
+        {
             std::clog << static_cast<int>(arg1);
-        } else {
+        }
+        else
+        {
             std::clog << arg1;
         }
     }
@@ -3359,14 +3455,17 @@ static struct Console
     {
         warn_req(args...);
         std::clog << std::endl;
-    }    
+    }
 
     template <class Arg1>
     inline void error_req(Arg1 arg1)
     {
-        if constexpr (std::is_enum_v<Arg1>) {
+        if constexpr (std::is_enum_v<Arg1>)
+        {
             std::cerr << static_cast<int>(arg1);
-        } else {
+        }
+        else
+        {
             std::cerr << arg1;
         }
     }
@@ -3383,7 +3482,7 @@ static struct Console
     {
         error_req(args...);
         std::cerr << std::endl;
-    }        
+    }
 
 } console;
 
