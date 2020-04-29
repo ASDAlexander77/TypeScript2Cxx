@@ -1086,6 +1086,7 @@ static js::number operator+(pointer_t ptr)
     return number(reinterpret_cast<size_t>(ptr._ptr));
 }
 
+// function ///////////////////////////////////////////////////////////////////////
 template <typename Rx, typename _Cls, typename... Args>
 struct _Deduction_MethodPtr<Rx (__thiscall _Cls::*)(Args...) const>
 {
@@ -2703,6 +2704,27 @@ struct any
     }
 };
 
+template <typename... Args>
+auto function::operator()(Args... args)
+{
+    return invoke({args...});
+}
+
+template <typename F, typename _MethodType>
+any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
+{
+    auto args_vector = std::vector<any>(args_);
+    if constexpr (std::is_void_v<_ReturnType>)
+    {
+        invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
+        return any();
+    }
+    else
+    {
+        return invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
+    }
+}
+
 template <typename T>
 struct shared
 {
@@ -2837,27 +2859,6 @@ namespace Utils
         return dst;
     }
 };
-
-template <typename... Args>
-auto function::operator()(Args... args)
-{
-    return invoke({args...});
-}
-
-template <typename F, typename _MethodType>
-any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
-{
-    auto args_vector = std::vector<any>(args_);
-    if constexpr (std::is_void_v<_ReturnType>)
-    {
-        invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
-        return any();
-    }
-    else
-    {
-        return invoke_seq<_MethodPtr::_CountArgs>(_f, args_vector);
-    }
-}
 
 template <typename V>
 constexpr bool in(V v, const array &a)

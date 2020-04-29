@@ -73,21 +73,20 @@ describe('Arithmetic Operators', () => {
     '])));
 
     it('Logical', () => expect('true\r\nfalse\r\n').to.equals(new Run().test([
-        'let r, x = 6, y = 3;                       \
+        'let r:boolean; let x = 6, y = 3;           \
         r = x < 10 && y > 1;                        \
         console.log(r);                             \
         r = x === 5 || y === 5;                     \
         console.log(r);                             \
     '])));
 
-    it.skip('Logical = not on int', () => expect('-2\r\n').to.equals(new Run().test([
+    it('Logical = not on int', () => expect('-2\r\n').to.equals(new Run().test([
         'let r;                                     \
         r = ~ 1;                                    \
         console.log(r);                             \
     '])));
 
-    // TODO: can be fixed later
-    it.skip('Logical = not on boolean', () => expect('true\r\n').to.equals(new Run().test([
+    it('Logical = not on boolean', () => expect('true\r\n').to.equals(new Run().test([
         'let r;                                     \
         r = ~ false;                                \
         console.log(r);                             \
@@ -111,7 +110,7 @@ describe('Arithmetic Operators', () => {
     '])));
 
     it('Logical (basic 2)', () => expect('false\r\ntrue\r\nfalse\r\ntrue\r\n').to.equals(new Run().test([
-        'let r, x = 1, y = 2;                       \
+        'let r:boolean; let x = 1, y = 2;           \
         r = x > y;                                  \
         console.log(r);                             \
         r = x < y;                                  \
