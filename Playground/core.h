@@ -466,6 +466,11 @@ struct boolean
         return static_cast<bool>(n) == static_cast<bool>(other);
     }    
 
+    boolean operator~()
+    {
+        return this->operator bool() ? false : true;
+    }
+
     friend std::ostream &operator<<(std::ostream &os, boolean val)
     {
         if (val._control == boolean_undefined)
@@ -2743,6 +2748,11 @@ struct shared
 
     T& get() const { return *_value.get(); }
 
+    T* operator->() const
+    {
+        return _value.get();
+    }    
+
     template <class Tv>
     auto &operator[](Tv t) const
     {
@@ -2754,6 +2764,21 @@ struct shared
     {
         return get()[t];
     }     
+
+    number get_length()
+    {
+        return get()->get_length();
+    }
+
+    auto begin()
+    {
+        return get()->begin();
+    }
+
+    auto end()
+    {
+        return get()->end();
+    }        
 };
 
 template <typename T>
