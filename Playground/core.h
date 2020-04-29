@@ -1255,11 +1255,11 @@ struct array
     constexpr array *operator->()
     {
         return this;
-    }
+    } 
 
     constexpr const array_type_ref get() const
     {
-        return _values;
+        return mutable_(_values);
     }
 
     constexpr array_type_ref get()
@@ -1372,7 +1372,7 @@ struct array
     array filter(std::function<bool(E)> p)
     {
         std::vector<E> result;
-        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
+        std::copy_if(get().begin(), get().end(), std::back_inserter(result), p);
         return result;
     }
 
@@ -1380,7 +1380,7 @@ struct array
     {
         std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::copy_if(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
+        std::copy_if(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
@@ -1390,7 +1390,7 @@ struct array
     array map(std::function<void()> p)
     {
         std::vector<E> result;
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
+        std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             p();
             return E();
         });
@@ -1400,7 +1400,7 @@ struct array
     array map(std::function<E()> p)
     {
         std::vector<E> result;
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
+        std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             return p();
         });
         return result;
@@ -1409,7 +1409,7 @@ struct array
     array map(std::function<E(E)> p)
     {
         std::vector<E> result;
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), p);
+        std::transform(get().begin(), get().end(), std::back_inserter(result), p);
         return result;
     }
 
@@ -1417,7 +1417,7 @@ struct array
     {
         std::vector<E> result;
         auto first = &(*_values.get())[0];
-        std::transform(_values.get()->begin(), _values.get()->end(), std::back_inserter(result), [=](auto &v) {
+        std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
@@ -1427,43 +1427,43 @@ struct array
     template <typename P>
     any reduce(P p)
     {
-        return std::reduce(_values.get()->begin(), _values.get()->end(), 0_N, p);
+        return std::reduce(get().begin(), get().end(), 0_N, p);
     }
 
     template <typename P, typename I>
     any reduce(P p, I initial)
     {
-        return std::reduce(_values.get()->begin(), _values.get()->end(), initial, p);
+        return std::reduce(get().begin(), get().end(), initial, p);
     }
 
     template <typename P>
     boolean every(P p)
     {
-        return std::all_of(_values.get()->begin(), _values.get()->end(), p);
+        return std::all_of(get().begin(), get().end(), p);
     }
 
     template <typename P>
     boolean some(P p)
     {
-        return std::any_of(_values.get()->begin(), _values.get()->end(), p);
+        return std::any_of(get().begin(), get().end(), p);
     }
 
     string join(string s)
     {
-        return std::accumulate(_values.get()->begin(), _values.get()->end(), string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
+        return std::accumulate(get().begin(), get().end(), string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
             return res += (res) ? s + piece : piece;
         });
     }
 
     void forEach(std::function<void(E)> p)
     {
-        std::for_each(_values.get()->begin(), _values.get()->end(), p);
+        std::for_each(get().begin(), get().end(), p);
     }
 
     void forEach(std::function<void(E, js::number)> p)
     {
         auto first = &(*_values.get())[0];
-        std::result(_values.get()->begin(), _values.get()->end(), [=](auto &v) {
+        std::result(get().begin(), get().end(), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
         });
