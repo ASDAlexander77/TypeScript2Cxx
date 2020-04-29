@@ -1509,19 +1509,19 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
-        const forceCaptureRequired = declarationList.declarations.some(d => d && (<any>d).__requireCapture);
+        const scopeItem = this.scope[this.scope.length - 1];
+        const autoAllowed =
+            scopeItem.kind !== ts.SyntaxKind.SourceFile
+            && scopeItem.kind !== ts.SyntaxKind.ClassDeclaration
+            && scopeItem.kind !== ts.SyntaxKind.ModuleDeclaration
+            && scopeItem.kind !== ts.SyntaxKind.NamespaceExportDeclaration;
+
+        const forceCaptureRequired = autoAllowed && declarationList.declarations.some(d => d && (<any>d).__requireCapture);
         if (!((<any>declarationList).__ignore_type)) {
 
             if (forwardDeclaration) {
                 this.writer.writeString('extern ');
             }
-
-            const scopeItem = this.scope[this.scope.length - 1];
-            const autoAllowed =
-                scopeItem.kind !== ts.SyntaxKind.SourceFile
-                && scopeItem.kind !== ts.SyntaxKind.ClassDeclaration
-                && scopeItem.kind !== ts.SyntaxKind.ModuleDeclaration
-                && scopeItem.kind !== ts.SyntaxKind.NamespaceExportDeclaration;
 
             const firstType = declarationList.declarations.filter(d => d.type)[0]?.type;
             const firstInitializer = declarationList.declarations.filter(d => d.initializer)[0]?.initializer;

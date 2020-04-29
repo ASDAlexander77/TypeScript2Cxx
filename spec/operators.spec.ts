@@ -122,7 +122,7 @@ describe('Arithmetic Operators', () => {
     '])));
 
     it('Logical (basic 3)', () => expect('false\r\nfalse\r\ntrue\r\ntrue\r\n').to.equals(new Run().test([
-        'let r, x = 1, y = 1;                       \
+        'let r:boolean; let x = 1, y = 1;           \
         r = x > y;                                  \
         console.log(r);                             \
         r = x < y;                                  \
@@ -134,7 +134,7 @@ describe('Arithmetic Operators', () => {
     '])));
 
     it('Logical (basic 4)', () => expect('true\r\nfalse\r\ntrue\r\nfalse\r\n').to.equals(new Run().test([
-        'let r, x = 2, y = 1;                       \
+        'let r:boolean; let x = 2, y = 1;           \
         r = x > y;                                  \
         console.log(r);                             \
         r = x < y;                                  \
