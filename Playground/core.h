@@ -790,6 +790,7 @@ struct number
         return os << val._value;
     }
 };
+
 } // namespace tmpl
 
 struct string
@@ -3112,16 +3113,16 @@ any &object<K, V>::operator[](undefined_t)
 
 } // namespace tmpl
 
-static struct js::number _0_N(0);
-static struct js::number _1_N(1);
-static struct js::number _2_N(2);
-static struct js::number _3_N(3);
-static struct js::number _4_N(4);
-static struct js::number _5_N(5);
-static struct js::number _6_N(6);
-static struct js::number _7_N(7);
-static struct js::number _8_N(8);
-static struct js::number _9_N(9);
+static js::number _0_N(0);
+static js::number _1_N(1);
+static js::number _2_N(2);
+static js::number _3_N(3);
+static js::number _4_N(4);
+static js::number _5_N(5);
+static js::number _6_N(6);
+static js::number _7_N(7);
+static js::number _8_N(8);
+static js::number _9_N(9);
 
 // typeof
 template <>
