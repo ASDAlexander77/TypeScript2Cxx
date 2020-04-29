@@ -382,45 +382,9 @@ constexpr bool equals(L l, R r)
 }
 
 template <typename L, typename R>
-constexpr bool equals(shared<L> l, shared<R> r)
-{
-    return equals(*l, *r);
-}
-
-template <typename L, typename R>
-constexpr bool equals(shared<L> l, R r)
-{
-    return equals(*l, r);
-}
-
-template <typename L, typename R>
-constexpr bool equals(L l, shared<R> r)
-{
-    return equals(l, *r);
-}
-
-template <typename L, typename R>
 constexpr bool not_equals(L l, R r)
 {
     return !equals(l, r);
-}
-
-template <typename L, typename R>
-constexpr bool not_equals(shared<L> l, shared<R> r)
-{
-    return !equals(*l, *r);
-}
-
-template <typename L, typename R>
-constexpr bool not_equals(shared<L> l, R r)
-{
-    return !equals(*l, r);
-}
-
-template <typename L, typename R>
-constexpr bool not_equals(L l, shared<R> r)
-{
-    return !equals(l, *r);
 }
 
 struct boolean
@@ -2847,6 +2811,30 @@ struct shared
     {
         return get()++;
     }
+
+    template <class Tv>
+    friend bool operator==(const Tv &other, const shared_type &val)
+    {
+        return val.get() == other;
+    }
+
+    template <class Tv>
+    friend bool operator!=(const Tv &other, const shared_type &val)
+    {
+        return val.get() != other;
+    }
+
+    template <class Tv>
+    bool operator==(const Tv &other) const
+    {
+        return get() == other;
+    }
+
+    template <class Tv>
+    bool operator!=(const Tv &other) const
+    {
+        return get() != other;
+    }    
 
     number get_length()
     {
