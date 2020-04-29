@@ -1244,12 +1244,6 @@ struct array
         {	
             return (static_cast<_Ty&>(_Arg));
         }
-
-        static constexpr _Ty& access(std::remove_reference_t<_Ty>&& _Arg)
-        {
-            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
-            return (static_cast<_Ty&>(_Arg));
-        }        
     };
 
     template <>
@@ -1263,11 +1257,6 @@ struct array
         {	
             return (static_cast<array_type_ref>(*_Arg));
         }
-
-        static inline array_type_ref access(array_type&& _Arg)
-        {
-            return (static_cast<array_type_ref>(*_Arg));
-        }          
     };
 
     bool isUndefined;
@@ -1305,7 +1294,7 @@ struct array
 
     constexpr array_type_ref get() const
     {
-        return array_traits<array_type>::access(_values);
+        return array_traits<array_type>::access(mutable_(_values));
     }
 
     constexpr array_type_ref get()
@@ -1322,7 +1311,8 @@ struct array
     {
         if (static_cast<size_t>(i) >= get().size())
         {
-            return E(undefined);
+            static E empty;
+            return empty;
         }
 
         return mutable_(get())[static_cast<size_t>(i)];
@@ -1602,12 +1592,6 @@ struct object
         {	
             return (static_cast<_Ty&>(_Arg));
         }
-
-        static constexpr _Ty& access(std::remove_reference_t<_Ty>&& _Arg)
-        {
-            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
-            return (static_cast<_Ty&>(_Arg));
-        }        
     };
 
     template <>
@@ -1621,11 +1605,6 @@ struct object
         {	
             return (static_cast<object_type_ref>(*_Arg));
         }
-
-        static inline object_type_ref access(object_type&& _Arg)
-        {
-            return (static_cast<object_type_ref>(*_Arg));
-        }          
     };
 
 
@@ -1651,7 +1630,7 @@ struct object
 
     constexpr object_type_ref get() const
     {
-        return object_traits<object_type>::access(_values);
+        return object_traits<object_type>::access(mutable_(_values));
     }
 
     constexpr object_type_ref get()
