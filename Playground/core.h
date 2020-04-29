@@ -251,10 +251,6 @@ static struct undefined_t
 
 struct void_t
 {
-    constexpr operator void()
-    {
-    }
-
     constexpr operator bool()
     {
         return false;
@@ -782,7 +778,7 @@ struct number
             return os << "undefined";
         }
 
-        if (std::isnan(val))
+        if (std::isnan(static_cast<double>(val)))
         {
             return os << "NaN";
         }
@@ -1016,7 +1012,7 @@ struct string
 
     string toUpperCase()
     {
-        std::string result(*this);
+        std::string result(this->operator std::string &());
         for (auto &c : result)
         {
             c = toupper(c);
@@ -1027,7 +1023,7 @@ struct string
 
     string toLowerCase()
     {
-        std::string result(*this);
+        std::string result(this->operator std::string &());
         for (auto &c : result)
         {
             c = tolower(c);
@@ -1301,7 +1297,7 @@ struct array
         return this;
     } 
 
-    constexpr const array_type_ref get() const
+    constexpr array_type_ref get() const
     {
         return array_traits<array_type>::access(_values);
     }
@@ -1647,9 +1643,15 @@ struct object
         return !isUndefined;
     }
 
-    constexpr const object_type_ref get() const;
+    constexpr object_type_ref get() const
+    {
+        return object_traits<object_type>::access(mutable_(_values));
+    }
 
-    constexpr object_type_ref get();
+    constexpr object_type_ref get()
+    {
+        return object_traits<object_type>::access(_values);
+    }
 
     ObjectKeys<js::string, object_type> keys();
 
@@ -1676,7 +1678,7 @@ struct object
 
     any &operator[](undefined_t undef);
 
-    inline bool operator==(const object &other)
+    inline bool operator==(const object &other) const
     {
         // TODO - finish it
         return isUndefined == other.isUndefined && isUndefined == true;
@@ -2151,13 +2153,13 @@ struct any
         case anyTypeId::undefined_type:
             return true;
         case anyTypeId::boolean_type:
-            return boolean_ref_const() == mutable_(other).boolean_ref();
+            return boolean_ref_const() == mutable_(other).boolean_ref_const();
         case anyTypeId::number_type:
-            return number_ref_const() == mutable_(other).number_ref();
+            return number_ref_const() == mutable_(other).number_ref_const();
         case anyTypeId::string_type:
-            return string_ref_const() == mutable_(other).string_ref();
+            return string_ref_const() == mutable_(other).string_ref_const();
         case anyTypeId::object_type:
-            return object_ref_const() == mutable_(other).object_ref();
+            return object_ref_const() == mutable_(other).object_ref_const();
         }
 
         throw "not implemented";
@@ -3040,18 +3042,6 @@ object<K, V>::object(const undefined_t &) : _values(object<K, V>::object_traits<
 }
 
 template <typename K, typename V>
-constexpr const typename object<K, V>::object_type_ref object<K, V>::get() const
-{
-    return object::object_traits<object::object_type>::access(mutable_(_values));
-}
-
-template <typename K, typename V>
-constexpr typename object<K, V>::object_type_ref object<K, V>::get()
-{
-    return object<K, V>::object_traits<object<K, V>::object_type>::access(_values);
-}
-
-template <typename K, typename V>
 ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys()
 {
     return ObjectKeys<js::string, object<K, V>::object_type>(get());
@@ -3162,7 +3152,7 @@ static any Void(T value)
 }
 
 template <typename I>
-constexpr bool is(js::any t)
+inline bool is(js::any t)
 {
     return false;
 }
