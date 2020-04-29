@@ -1221,8 +1221,34 @@ namespace tmpl
 template <typename E>
 struct array
 {
-    using array_type = std::vector<E>;
-    using array_type_ref = array_type &;
+    using array_type_base = std::vector<E>;
+    using array_type = array_type_base; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
+    //using array_type = std::shared_ptr<array_type_base>; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
+    using array_type_ref = array_type_base &;
+
+    template <typename Ttr> 
+    struct array_traits {
+        template <typename Tr> 
+        static constexpr auto create(Tr&& value) {
+            return value;
+        }
+
+        static constexpr Ttr& access(Ttr& value) {
+            return value;
+        }        
+    };
+
+    template <>
+    struct array_traits<std::shared_ptr<array_type_base>> {
+        template <typename Tr> 
+        static inline auto create(Tr&& value) {
+            return std::make_shared<array_type_base>(value);
+        }  
+
+        static inline array_type_ref access(std::shared_ptr<array_type_base>& value) {
+            return *value;
+        }                    
+    };
 
     bool isUndefined;
     array_type _values;
@@ -1235,15 +1261,15 @@ struct array
     {
     }
 
-    array(std::initializer_list<E> values) : _values(values), isUndefined(false)
+    array(std::initializer_list<E> values) : _values(array_traits<array_type>::create(values)), isUndefined(false)
     {
     }
 
-    array(std::vector<E> values) : _values(values), isUndefined(false)
+    array(std::vector<E> values) : _values(array_traits<array_type>::create(values)), isUndefined(false)
     {
     }
 
-    array(const undefined_t &undef) : isUndefined(true)
+    array(const undefined_t &undef) : _values(), isUndefined(true)
     {
     }
 
@@ -1259,12 +1285,12 @@ struct array
 
     constexpr const array_type_ref get() const
     {
-        return mutable_(_values);
+        return array_traits<array_type>::access(_values);
     }
 
     constexpr array_type_ref get()
     {
-        return _values;
+        return array_traits<array_type>::access(_values);
     }
 
     js::number get_length()
