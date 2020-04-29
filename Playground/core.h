@@ -2743,14 +2743,14 @@ struct shared
 
     T& get() const { return *_value.get(); }
 
-    template <class T>
-    auto &operator[](T t) const
+    template <class Tv>
+    auto &operator[](Tv t) const
     {
         return const_(get())[t];
     }  
 
-    template <class T>
-    auto &operator[](T t)
+    template <class Tv>
+    auto &operator[](Tv t)
     {
         return get()[t];
     }     
