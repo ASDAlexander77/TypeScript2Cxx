@@ -1226,28 +1226,42 @@ struct array
     //using array_type = std::shared_ptr<array_type_base>; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
     using array_type_ref = array_type_base &;
 
-    template <typename Ttr> 
+    template <typename _Ty> 
     struct array_traits {
-        template <typename Tr> 
-        static constexpr auto create(Tr&& value) {
-            return value;
+        template<class... _Types>
+	    static _Ty create(_Types&&... _Args) {
+            return array_type_base(_Args...);
         }
 
-        static constexpr Ttr& access(Ttr& value) {
-            return value;
+        static constexpr _Ty& access(std::remove_reference_t<_Ty>& _Arg)
+        {	
+            return (static_cast<_Ty&>(_Arg));
+        }
+
+        static constexpr _Ty& access(std::remove_reference_t<_Ty>&& _Arg)
+        {
+            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
+            return (static_cast<_Ty&>(_Arg));
         }        
     };
 
     template <>
     struct array_traits<std::shared_ptr<array_type_base>> {
-        template <typename Tr> 
-        static inline auto create(Tr&& value) {
-            return std::make_shared<array_type_base>(value);
-        }  
+        template<class... _Types>
+	    static auto create(_Types&&... _Args) {
+            return std::make_shared<array_type_base>(_Args...);
+        }        
 
-        static inline array_type_ref access(std::shared_ptr<array_type_base>& value) {
-            return *value;
-        }                    
+        static inline array_type_ref access(array_type& _Arg)
+        {	
+            return (static_cast<array_type_ref>(*_Arg));
+        }
+
+        static inline array_type_ref access(array_type&& _Arg)
+        {
+            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
+            return (static_cast<array_type_ref>(*_Arg));
+        }          
     };
 
     bool isUndefined;
