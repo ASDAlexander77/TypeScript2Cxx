@@ -1217,17 +1217,17 @@ struct ArrayKeys
 
 namespace tmpl
 {
+
 template <typename E>
 struct array
 {
     using array_type = std::vector<E>;
-    using array_type_ptr = std::shared_ptr<array_type>;
     using array_type_ref = array_type &;
 
     bool isUndefined;
-    array_type_ptr _values;
+    array_type _values;
 
-    array() : _values(std::make_shared<array_type>()), isUndefined(false)
+    array() : _values(), isUndefined(false)
     {
     }
 
@@ -1235,11 +1235,11 @@ struct array
     {
     }
 
-    array(std::initializer_list<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
+    array(std::initializer_list<E> values) : _values(values), isUndefined(false)
     {
     }
 
-    array(std::vector<E> values) : _values(std::make_shared<array_type>(values)), isUndefined(false)
+    array(std::vector<E> values) : _values(values), isUndefined(false)
     {
     }
 
@@ -1257,9 +1257,14 @@ struct array
         return this;
     }
 
-    inline array_type_ref get() const
+    constexpr const array_type_ref get() const
     {
-        return *_values.get();
+        return _values;
+    }
+
+    constexpr array_type_ref get()
+    {
+        return _values;
     }
 
     js::number get_length()
@@ -1531,12 +1536,11 @@ struct object
     };
 
     using object_type = std::unordered_map<string, any, string_hash, string_equal_to>;
-    using object_type_ptr = std::shared_ptr<object_type>;
     using object_type_ref = object_type &;
-    using pair = std::pair<string, any>;
+    using pair = std::pair<const string, any>;
 
     bool isUndefined;
-    object_type_ptr _values;
+    object_type _values;
 
     object();
 
@@ -1557,10 +1561,9 @@ struct object
         return !isUndefined;
     }
 
-    inline object_type_ref get() const
-    {
-        return *_values.get();
-    }
+    constexpr const object_type_ref get() const;
+
+    constexpr object_type_ref get();
 
     ObjectKeys<js::string, object_type> keys();
 

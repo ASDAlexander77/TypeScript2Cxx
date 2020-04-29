@@ -52,7 +52,7 @@ js::string &string::operator+=(any a)
 }
 
 // Object
-object::object() : _values(std::make_shared<object_type>()), isUndefined(false)
+object::object() : _values(), isUndefined(false)
 {
 }
 
@@ -60,13 +60,23 @@ object::object(const object& value) : _values(value._values), isUndefined(value.
 {
 }
 
-object::object(std::initializer_list<pair> values) : _values(std::make_shared<object_type>()), isUndefined(false)
+object::object(std::initializer_list<pair> values) : _values(values), isUndefined(false)
 {
     auto& ref = get();
     for (auto &item : values)
     {
         ref[item.first] = item.second;
     }
+}
+
+constexpr const object::object_type_ref object::get() const
+{
+    return mutable_(_values);
+}
+
+constexpr object::object_type_ref object::get()
+{
+    return _values;
 }
 
 ObjectKeys<js::string, object::object_type> object::keys()
