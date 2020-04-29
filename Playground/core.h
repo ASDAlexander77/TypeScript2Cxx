@@ -35,7 +35,6 @@ namespace js
 struct undefined_t;
 struct pointer_t;
 struct any;
-struct object;
 struct string;
 template <typename T>
 struct shared;
@@ -44,8 +43,13 @@ namespace tmpl
 {
 template <typename T>
 struct number;
+
+template <typename K, typename V>
+struct object;
 }
+
 typedef tmpl::number<double> number;
+typedef tmpl::object<string, any> object;
 
 template <class _Ty>
 struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char *> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
@@ -1248,7 +1252,7 @@ struct array
     template <>
     struct array_traits<std::shared_ptr<array_type_base>> {
         template<class... _Types>
-	    static auto create(_Types&&... _Args) {
+	    static inline auto create(_Types&&... _Args) {
             return std::make_shared<array_type_base>(_Args...);
         }        
 
@@ -1259,7 +1263,6 @@ struct array
 
         static inline array_type_ref access(array_type&& _Arg)
         {
-            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
             return (static_cast<array_type_ref>(*_Arg));
         }          
     };
@@ -1267,7 +1270,7 @@ struct array
     bool isUndefined;
     array_type _values;
 
-    array() : _values(), isUndefined(false)
+    array() : _values(array_traits<array_type>::create()), isUndefined(false)
     {
     }
 
@@ -1283,7 +1286,7 @@ struct array
     {
     }
 
-    array(const undefined_t &undef) : _values(), isUndefined(true)
+    array(const undefined_t &undef) : _values(array_traits<array_type>::create()), isUndefined(true)
     {
     }
 
@@ -1554,11 +1557,15 @@ struct ObjectKeys
     }
 };
 
+namespace tmpl
+{
+
+template <typename K, typename V>
 struct object
 {
-    struct string_hash
+    struct K_hash
     {
-        typedef js::string argument_type;
+        typedef K argument_type;
         typedef std::size_t result_type;
         result_type operator()(argument_type const &value) const
         {
@@ -1566,18 +1573,58 @@ struct object
         }
     };
 
-    struct string_equal_to
+    struct K_equal_to
     {
-        typedef js::string argument_type;
+        typedef K argument_type;
         bool operator()(argument_type const &value, argument_type const &other) const
         {
             return value == other;
         }
     };
 
-    using object_type = std::unordered_map<string, any, string_hash, string_equal_to>;
-    using object_type_ref = object_type &;
-    using pair = std::pair<const string, any>;
+    using object_type_base = std::unordered_map<K, V, K_hash, K_equal_to>;
+    using object_type = object_type_base; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
+    //using object_type = std::shared_ptr<object_type_base>; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
+    using object_type_ref = object_type_base &;
+    using pair = std::pair<const K, V>;
+
+    template <typename _Ty> 
+    struct object_traits {
+        template<class... _Types>
+	    static _Ty create(_Types&&... _Args) {
+            return object_type_base(_Args...);
+        }
+
+        static constexpr _Ty& access(std::remove_reference_t<_Ty>& _Arg)
+        {	
+            return (static_cast<_Ty&>(_Arg));
+        }
+
+        static constexpr _Ty& access(std::remove_reference_t<_Ty>&& _Arg)
+        {
+            static_assert(!std::is_lvalue_reference_v<_Ty>, "bad access call");
+            return (static_cast<_Ty&>(_Arg));
+        }        
+    };
+
+    template <>
+    struct object_traits<std::shared_ptr<object_type_base>> {
+        template<class... _Types>
+	    static inline auto create(_Types&&... _Args) {
+            return std::make_shared<object_type_base>(_Args...);
+        }        
+
+        static inline object_type_ref access(object_type& _Arg)
+        {	
+            return (static_cast<object_type_ref>(*_Arg));
+        }
+
+        static inline object_type_ref access(object_type&& _Arg)
+        {
+            return (static_cast<object_type_ref>(*_Arg));
+        }          
+    };
+
 
     bool isUndefined;
     object_type _values;
@@ -1588,9 +1635,7 @@ struct object
 
     object(std::initializer_list<pair> values);
 
-    object(const undefined_t &undef) : isUndefined(true)
-    {
-    }
+    object(const undefined_t &);
 
     virtual ~object()
     {
@@ -1612,7 +1657,7 @@ struct object
         return this;
     }
 
-    any &operator[](number n) const;
+    any &operator[](js::number n) const;
 
     any &operator[](const char *s) const;
 
@@ -1620,7 +1665,7 @@ struct object
 
     any &operator[](string s) const;
 
-    any &operator[](number n);
+    any &operator[](js::number n);
 
     any &operator[](const char *s);
 
@@ -1669,6 +1714,10 @@ struct object
         return os << "[object]";
     }
 };
+
+} // namespace tmpl
+
+typedef tmpl::object<string, any> object;
 
 struct any
 {
@@ -2934,6 +2983,147 @@ static js::number operator+(const boolean &v)
     return number((mutable_(v)) ? 1 : 0);
 }
 
+
+// Number
+static js::number Infinity(std::numeric_limits<double>::infinity());
+static js::number NaN(std::numeric_limits<double>::quiet_NaN());
+
+namespace tmpl
+{
+
+// Number
+template <typename V>
+number<V>::operator js::string()
+{
+    return js::string(static_cast<std::string>(*this));
+}
+
+template <typename V>
+js::string number<V>::toString()
+{
+    std::ostringstream streamObj2;
+    streamObj2 << _value;
+    return streamObj2.str();
+}
+
+template <typename V>
+js::string number<V>::toString(number_t radix)
+{
+    return js::string(std::to_string(_value));
+}
+
+// Object
+template <typename K, typename V>
+object<K, V>::object() : _values(object<K, V>::object_traits<object<K, V>::object_type>::create()), isUndefined(false)
+{
+}
+
+template <typename K, typename V>
+object<K, V>::object(const object& value) : _values(value._values), isUndefined(value.isUndefined)
+{
+}
+
+template <typename K, typename V>
+object<K, V>::object(std::initializer_list<pair> values) : _values(object<K, V>::object_traits<object<K, V>::object_type>::create(values)), isUndefined(false)
+{
+    auto& ref = get();
+    for (auto &item : values)
+    {
+        ref[item.first] = item.second;
+    }
+}
+
+template <typename K, typename V>
+object<K, V>::object(const undefined_t &) : _values(object<K, V>::object_traits<object<K, V>::object_type>::create()), isUndefined(true)
+{
+}
+
+template <typename K, typename V>
+constexpr const typename object<K, V>::object_type_ref object<K, V>::get() const
+{
+    return object::object_traits<object::object_type>::access(mutable_(_values));
+}
+
+template <typename K, typename V>
+constexpr typename object<K, V>::object_type_ref object<K, V>::get()
+{
+    return object<K, V>::object_traits<object<K, V>::object_type>::access(_values);
+}
+
+template <typename K, typename V>
+ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys()
+{
+    return ObjectKeys<js::string, object<K, V>::object_type>(get());
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](js::number n) const
+{
+    return mutable_(get())[static_cast<std::string>(n)];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](js::number n)
+{
+    return get()[static_cast<std::string>(n)];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](const char *s) const
+{
+    return mutable_(get())[std::string(s)];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](std::string s) const
+{
+    return mutable_(get())[s];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](string s) const
+{
+    return mutable_(get())[(std::string)s];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](const char *s)
+{
+    return get()[std::string(s)];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](std::string s)
+{
+    return get()[s];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](string s)
+{
+    return get()[(std::string)s];
+}
+
+template <typename K, typename V>
+any &object<K, V>::operator[](undefined_t)
+{
+    return get()["undefined"];
+}
+
+} // namespace tmpl
+
+static struct js::number _0_N(0);
+static struct js::number _1_N(1);
+static struct js::number _2_N(2);
+static struct js::number _3_N(3);
+static struct js::number _4_N(4);
+static struct js::number _5_N(5);
+static struct js::number _6_N(6);
+static struct js::number _7_N(7);
+static struct js::number _8_N(8);
+static struct js::number _9_N(9);
+
+// typeof
 template <>
 string type_of(boolean value)
 {
@@ -3068,46 +3258,6 @@ constexpr bool in(V v, O o)
 {
     return false;
 }
-
-// Number
-static js::number Infinity(std::numeric_limits<double>::infinity());
-static js::number NaN(std::numeric_limits<double>::quiet_NaN());
-
-namespace tmpl
-{
-
-template <typename V>
-number<V>::operator js::string()
-{
-    return js::string(static_cast<std::string>(*this));
-}
-
-template <typename V>
-js::string number<V>::toString()
-{
-    std::ostringstream streamObj2;
-    streamObj2 << _value;
-    return streamObj2.str();
-}
-
-template <typename V>
-js::string number<V>::toString(number_t radix)
-{
-    return js::string(std::to_string(_value));
-}
-
-} // namespace tmpl
-
-static struct js::number _0_N(0);
-static struct js::number _1_N(1);
-static struct js::number _2_N(2);
-static struct js::number _3_N(3);
-static struct js::number _4_N(4);
-static struct js::number _5_N(5);
-static struct js::number _6_N(6);
-static struct js::number _7_N(7);
-static struct js::number _8_N(8);
-static struct js::number _9_N(9);
 
 } // namespace js
 
