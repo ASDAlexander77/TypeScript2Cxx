@@ -2889,6 +2889,7 @@ struct shared
     std::shared_ptr<T> _value;
 
     shared(T t) : _value(std::make_shared<T>(t)) {}
+    shared(std::shared_ptr<T> t) : _value(t) {}
 
     template <typename V>
     shared_type &operator=(const V &v)
