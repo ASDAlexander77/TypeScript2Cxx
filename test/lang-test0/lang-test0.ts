@@ -14,7 +14,7 @@ type int16 number;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {
-		await 3f();
+		thread(f);
 	}
 
 	function dmesg(s: string): void {

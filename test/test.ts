@@ -14,7 +14,7 @@ type int16 number;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {
-		await 3f();
+		await f();
 	}
 
 	function dmesg(s: string): void {
@@ -22,7 +22,7 @@ namespace control {
 }
 
 function pause(t: number) {
-	declare sleep: (t: number) => void;
+	declare var sleep: (t: number) => void;
 	sleep(t);
 }
 
@@ -85,122 +85,47 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
+function defaultArgs(x: number, y = 3, z = 7) {
+    return x + y + z;
+}
 
+function optargs(x: number, y?: number, z?: number) {
+    if (y == undefined)
+        y = 0
+    return x + y;
+}
 
-function testRefLocals(): void {
-    msg("start test ref locals");
-    let s = "";
-    for (let i of [3, 2, 1]) {
-        let copy = i;
-        control.runInBackground(() => {
-            pause(10 * i);
-            copy = copy + 10;
-        });
-        control.runInBackground(() => {
-            pause(20 * i);
-            s = s + copy;
-        });
+function optstring(x: number, s?: string) {
+    if (s != null) {
+        return parseInt(s) + x;
     }
-    pause(200);
-    assert(s == "111213", "reflocals");
+    return x * 2;
 }
 
-function byRefParam_0(p: number): void {
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + p;
-    });
-    p = p + 1;
-}
-
-function byRefParam_2(pxx: number): void {
-    pxx = pxx + 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + pxx;
-    });
-}
-
-function testByRefParams(): void {
-    msg("testByRefParams");
-    refparamWrite("a" + "b");
-    refparamWrite2(new Testrec());
-    refparamWrite3(new Testrec());
-    sum = 0;
-    let x = 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + x;
-    });
-    x = 2;
-    byRefParam_0(4);
-    byRefParam_2(10);
-    pause(330);
-    assert(sum == 18, "by ref");
-    sum = 0
-    msg("byref done")
-}
-
-function refparamWrite(s: string): void {
-    s = s + "c";
-    assert(s == "abc", "abc");
-}
-
-function refparamWrite2(testrec: Testrec): void {
-    testrec = new Testrec();
-    if (hasFloat)
-        assert(testrec._bool === undefined, "rw2f");
-    else
-        assert(testrec._bool == false, "rw2");
-}
-
-function refparamWrite3(testrecX: Testrec): void {
-    control.runInBackground(() => {
-        pause(1);
-        assert(testrecX.str == "foo", "ff");
-        testrecX.str = testrecX.str + "x";
-    });
-    testrecX = new Testrec();
-    testrecX.str = "foo";
-    pause(130);
-    assert(testrecX.str == "foox", "ff2");
-}
-
-function allocImage(): void {
-    let tmp = createObj();
-}
-
-function runOnce(fn: Action): void {
-    fn();
-}
-
-function createObj() {
-    return new Testrec();
-}
-
-function testMemoryFreeHOF(): void {
-    msg("testMemoryFreeHOF");
-    for (let i = 0; i < 1000; i++) {
-        runOnce(() => {
-            let tmp = createObj();
-        });
+function optstring2(x: number, s: string = null) {
+    if (s != null) {
+        return parseInt(s) + x;
     }
+    return x * 2;
 }
 
-testMemoryFreeHOF();
+function testDefaultArgs() {
+    msg("testDefaultArgs");
+    assert(defaultArgs(1) == 11, "defl0")
+    assert(defaultArgs(1, 4) == 12, "defl1")
+    assert(defaultArgs(1, 4, 8) == 13, "defl2")
 
+    assert(optargs(1) == 1, "opt0");
+    assert(optargs(1, 2) == 3, "opt1");
+    assert(optargs(1, 2, 3) == 3, "opt2");
 
-function testMemoryFree(): void {
-    msg("testMemoryFree");
-    for (let i = 0; i < 1000; i++) {
-        allocImage();
-    }
+    assert(optstring(3) == 6, "os0")
+    assert(optstring(3, "7") == 10, "os1")
+    assert(optstring2(3) == 6, "os0")
+    assert(optstring2(3, "7") == 10, "os1")
 }
 
-
-testRefLocals();
-testByRefParams();
-testMemoryFree();
+testDefaultArgs();
 clean()
 msg("test OK!")
 

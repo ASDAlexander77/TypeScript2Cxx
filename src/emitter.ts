@@ -3300,9 +3300,9 @@ export class Emitter {
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
-        this.writer.writeString('std::async([=]() {');
+        this.writer.writeString('std::async([=]() { ');
         this.processExpression(node.expression);
-        this.writer.writeString('})');
+        this.writer.writeString('; })');
     }
 
     private processIdentifier(node: ts.Identifier): void {
