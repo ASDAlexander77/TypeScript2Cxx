@@ -537,6 +537,10 @@ struct number
     {
     }
 
+    number(js::pointer_t p) : _value{static_cast<V>(intptr_t(p._ptr))}
+    {
+    }
+
     number(const undefined_t &undef) : _value{-std::numeric_limits<V>::quiet_NaN()}
     {
     }
