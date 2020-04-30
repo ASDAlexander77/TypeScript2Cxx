@@ -26,7 +26,6 @@ del "packages\tsc-cxx\cpplib\*.h"
 copy __out\*.js "packages\tsc-cxx\lib"
 copy __out\*.js.map "packages\tsc-cxx\lib"
 
-copy Playground\core.h "packages\tsc-cxx\cpplib"
-copy Playground\core.cpp "packages\tsc-cxx\cpplib"
+copy cpplib\core.h "packages\tsc-cxx\cpplib"
 
 cd ..\..
