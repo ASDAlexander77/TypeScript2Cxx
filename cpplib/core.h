@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <numeric>
 #include <variant>
+#include <future>
 
 namespace js
 {

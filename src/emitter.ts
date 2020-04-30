@@ -3293,7 +3293,9 @@ export class Emitter {
     }
 
     private processAwaitExpression(node: ts.AwaitExpression): void {
-        /* TODO: finish it */
+        this.writer.writeString('std::async([=]() {');
+        this.processExpression(node.expression);
+        this.writer.writeString('})');
     }
 
     private processIdentifier(node: ts.Identifier): void {
