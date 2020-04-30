@@ -33,13 +33,15 @@ namespace js
 #define AND(x, y) ([&]() { auto vx = (x); return (static_cast<bool>(vx)) ? (y) : vx; })()
 
 struct undefined_t;
-struct pointer_t;
 struct any;
 template <typename T>
 struct shared;
 
 namespace tmpl
 {
+template <typename T>
+struct pointer_t;
+
 template <typename T>
 struct number;
 
@@ -50,6 +52,7 @@ template <typename K, typename V>
 struct object;
 }
 
+typedef tmpl::pointer_t<void*> pointer_t;
 typedef tmpl::string<std::string> string;
 typedef tmpl::number<double> number;
 typedef tmpl::object<string, any> object;
@@ -292,10 +295,12 @@ struct void_t
     }
 };
 
-static struct pointer_t
+namespace tmpl {
+template <typename T>
+struct pointer_t
 {
     bool isUndefined;
-    void *_ptr;
+    T _ptr;
 
     pointer_t() : _ptr(nullptr), isUndefined(false){};
 
@@ -305,7 +310,7 @@ static struct pointer_t
 
     pointer_t(std::nullptr_t) : _ptr(nullptr), isUndefined(false){};
 
-    pointer_t(number);
+    pointer_t(js::number);
 
     pointer_t(const undefined_t &undef) : _ptr(nullptr), isUndefined(true)
     {
@@ -368,7 +373,11 @@ static struct pointer_t
 
         return os << val._ptr;
     }
-} null;
+};
+
+}
+
+static pointer_t null;
 
 template <typename L, typename R>
 constexpr bool equals(L l, R r)
@@ -596,12 +605,12 @@ struct number
         return !other.is_undefined();
     }
 
-    inline friend bool operator==(number_t n, pointer_t p)
+    inline friend bool operator==(number_t n, js::pointer_t p)
     {
         return n.is_undefined() == p.isUndefined && false;
     }
 
-    inline friend bool operator!=(number_t n, pointer_t p)
+    inline friend bool operator!=(number_t n, js::pointer_t p)
     {
         return n.is_undefined() != p.isUndefined || true;
     }
@@ -796,9 +805,24 @@ struct number
     }
 };
 
-} // namespace tmpl
+template <typename T>
+pointer_t<T>::pointer_t(js::number n) : _ptr((void*)(long long)n._value), isUndefined(true)
+{
+}
 
-namespace tmpl {
+template <typename T>
+bool pointer_t<T>::operator==(js::number n)
+{
+    //return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
+    return isUndefined == n.is_undefined() && false;
+}
+
+template <typename T>
+bool pointer_t<T>::operator!=(js::number n)
+{
+    //return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
+    return isUndefined != n.is_undefined() || true;
+}
 
 template <typename T>
 struct string
@@ -821,7 +845,7 @@ struct string
     {
     }
 
-    string(pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? string_defined : string_null)
+    string(js::pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? string_defined : string_null)
     {
     }
 
@@ -913,7 +937,7 @@ struct string
         return mutable_(value) + other;
     }
 
-    string_t operator+(pointer_t ptr)
+    string_t operator+(js::pointer_t ptr)
     {
         return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
     }
@@ -984,22 +1008,22 @@ struct string
         return !other.is_undefined();
     }
 
-    bool operator==(pointer_t ptr)
+    bool operator==(js::pointer_t ptr)
     {
         return is_null() && (!ptr);
     }
 
-    friend bool operator==(pointer_t ptr, const string_t &other)
+    friend bool operator==(js::pointer_t ptr, const string_t &other)
     {
         return other.is_null() && (!ptr);
     }
 
-    bool operator!=(pointer_t ptr)
+    bool operator!=(js::pointer_t ptr)
     {
         return _control == string_defined && (!ptr);
     }
 
-    friend bool operator!=(pointer_t ptr, const string_t &other)
+    friend bool operator!=(js::pointer_t ptr, const string_t &other)
     {
         return other._control == string_defined && (!ptr);
     }
