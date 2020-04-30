@@ -806,7 +806,7 @@ struct number
 };
 
 template <typename T>
-pointer_t<T>::pointer_t(js::number n) : _ptr((void*)(long long)n._value), isUndefined(true)
+pointer_t<T>::pointer_t(js::number n) : _ptr((void*)(long long)n._value), isUndefined(false)
 {
 }
 
@@ -2021,7 +2021,7 @@ struct any
             return pointer_t(number_ref());
         }
 
-        return get<pointer_t>();
+        return pointer_t(0xffffffff);
     }
 
     operator js::boolean()
@@ -3036,7 +3036,7 @@ js::string number<V>::toString(number_t radix)
 
 // String
 template <typename T>
-string<T>::string(any val) : _value(val.operator std::string()), _control(string_defined)
+string<T>::string(any val) : _value(val != null ? val.operator std::string() : string_empty._value), _control(val != null ? string_defined : string_null)
 {
 }    
 
