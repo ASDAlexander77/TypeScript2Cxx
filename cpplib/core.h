@@ -48,6 +48,9 @@ struct number;
 template <typename T>
 struct string;
 
+template <typename T>
+struct array;
+
 template <typename K, typename V>
 struct object;
 }
@@ -55,6 +58,7 @@ struct object;
 typedef tmpl::pointer_t<void*> pointer_t;
 typedef tmpl::string<std::string> string;
 typedef tmpl::number<double> number;
+typedef tmpl::array<any> array;
 typedef tmpl::object<string, any> object;
 
 template <class _Ty>
@@ -345,12 +349,17 @@ struct pointer_t
 
     bool operator!=(js::number n);
 
-    /*
-    constexpr operator std::nullptr_t()
+    template <typename _Ty>
+    bool operator==(std::shared_ptr<_Ty> sp)
     {
-        return nullptr;
+        return false;
     }
-*/
+
+    template <typename _Ty>
+    bool operator!=(std::shared_ptr<_Ty> sp)
+    {
+        return false;
+    }
 
     template <typename T>
     constexpr operator std::shared_ptr<T>()
@@ -1520,7 +1529,7 @@ struct array
 
     js::string join(js::string s)
     {
-        return std::accumulate(get().begin(), get().end(), string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
+        return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
             return res += (res) ? s + piece : piece;
         });
     }
@@ -1541,8 +1550,6 @@ struct array
 };
 
 } // namespace tmpl
-
-typedef tmpl::array<any> array;
 
 template <typename TKey, typename TMap>
 struct ObjectKeys
@@ -2925,6 +2932,18 @@ struct shared
     {
         return get()++;
     }
+
+    template <class Tv>
+    auto operator+(Tv other) const
+    {
+        return get() + other;
+    }
+
+    template <class Tv>
+    auto operator-(Tv other) const
+    {
+        return get() - other;
+    }    
 
     template <class Tv>
     friend bool operator==(const Tv &other, const shared_type &val)
