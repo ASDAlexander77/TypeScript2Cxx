@@ -1931,7 +1931,7 @@ export class Emitter {
                 this.writer.writeString(moduleDeclaration.name.text);
                 break;
             case ts.SyntaxKind.TypeQuery:
-                const exprName = (<any>type).exprName
+                const exprName = (<any>type).exprName;
 
                 if ((<any>exprName).symbol
                     && (<any>exprName).symbol.parent
@@ -2777,8 +2777,7 @@ export class Emitter {
         }
 
         this.writer.writeString(`${node.text}`);
-        if (applyNSuffix)
-        {
+        if (applyNSuffix) {
             this.writer.writeString(`_N`);
         } else {
             this.writer.writeString(`${suffix}`);
