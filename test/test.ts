@@ -14,7 +14,7 @@ type int16 number;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {
-		await f();
+		thread(f);
 	}
 
 	function dmesg(s: string): void {
@@ -22,7 +22,6 @@ namespace control {
 }
 
 function pause(t: number) {
-	declare var sleep: (t: number) => void;
 	sleep(t);
 }
 
@@ -85,47 +84,128 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-function defaultArgs(x: number, y = 3, z = 7) {
-    return x + y + z;
+function inBg() {
+    let k = 7
+    let q = 14
+    let rec = new Testrec();
+    glb1 = 0
+    control.runInBackground(() => {
+        glb1 = glb1 + 10 + (q - k)
+        rec.str = "foo"
+    })
+    control.runInBackground(() => {
+        glb1 = glb1 + 1
+    })
+    pause(50)
+    assert(glb1 == 18, "inbg0")
+    assert(rec.str == "foo", "inbg1")
+    glb1 = 0
 }
 
-function optargs(x: number, y?: number, z?: number) {
-    if (y == undefined)
-        y = 0
-    return x + y;
+function runTwice(fn: Action): void {
+    msg("r2 start");
+    fn();
+    fn();
+    msg("r2 stop");
 }
 
-function optstring(x: number, s?: string) {
-    if (s != null) {
-        return parseInt(s) + x;
+function iter(max: number, fn: (v: number) => void) {
+    for (let i = 0; i < max; ++i) {
+        fn(i);
     }
-    return x * 2;
 }
 
-function optstring2(x: number, s: string = null) {
-    if (s != null) {
-        return parseInt(s) + x;
+function testIter() {
+    x = 0
+    iter(10, v => {
+        x = x + (v + 1)
+    })
+    assert(x == 55, "55")
+    x = 0
+}
+
+function testAction(p: number): void {
+    msg("testActionStart")
+    let s = "hello" + "1";
+    let coll = [] as number[];
+    let p2 = p * 2;
+    x = 42;
+    runTwice(() => {
+        x = x + p + p2;
+        coll.push(x);
+        msg(s + x);
+    });
+    assert(x == 42 + p * 6, "run2");
+    assert(coll.length == 2, "run2");
+    x = 0
+    msg("testActionDone")
+}
+
+function add7() {
+    sum = sum + 7;
+}
+
+function testFunDecl() {
+    msg("testFunDecl");
+    let x = 12;
+    sum = 0;
+    function addX() {
+        sum = sum + x;
     }
-    return x * 2;
+    function add10() {
+        sum = sum + 10;
+    }
+    runTwice(addX)
+    assert(sum == 24, "cap")
+    msg("testAdd10");
+    runTwice(add10);
+    msg("end-testAdd10");
+    assert(sum == 44, "nocap");
+    runTwice(add7);
+    assert(sum == 44 + 14, "glb")
+    addX();
+    add10();
+    assert(sum == 44 + 14 + x + 10, "direct");
+    sum = 0
 }
 
-function testDefaultArgs() {
-    msg("testDefaultArgs");
-    assert(defaultArgs(1) == 11, "defl0")
-    assert(defaultArgs(1, 4) == 12, "defl1")
-    assert(defaultArgs(1, 4, 8) == 13, "defl2")
-
-    assert(optargs(1) == 1, "opt0");
-    assert(optargs(1, 2) == 3, "opt1");
-    assert(optargs(1, 2, 3) == 3, "opt2");
-
-    assert(optstring(3) == 6, "os0")
-    assert(optstring(3, "7") == 10, "os1")
-    assert(optstring2(3) == 6, "os0")
-    assert(optstring2(3, "7") == 10, "os1")
+function saveAction(fn: Action): void {
+    action = fn;
 }
 
-testDefaultArgs();
-clean()
+function saveGlobalAction(): void {
+    let s = "foo" + "42";
+    tot = "";
+    saveAction(() => {
+        tot = tot + s;
+    });
+}
+
+function testActionSave(): void {
+    saveGlobalAction();
+    msg("saveAct")
+    runTwice(action);
+    msg("saveActDONE")
+    msg(tot);
+    assert(tot == "foo42foo42", "");
+    tot = "";
+    action = null;
+}
+
+function testLoopScope() {
+    for (let i = 0; i < 3; ++i) {
+        let val: number
+        assert(val === undefined, "loopscope");
+        val = i
+    }
+}
+
+inBg();
+testAction(1);
+testAction(7);
+testIter();
+testActionSave();
+testFunDecl();
+testLoopScope();clean()
 msg("test OK!")
 

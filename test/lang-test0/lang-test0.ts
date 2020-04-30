@@ -22,7 +22,6 @@ namespace control {
 }
 
 function pause(t: number) {
-	declare var sleep: (t: number) => void;
 	sleep(t);
 }
 
