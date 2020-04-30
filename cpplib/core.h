@@ -3357,11 +3357,11 @@ namespace js
 
 template<class _Fn, class... _Args>
 static void thread(_Fn f, _Args... args) {
-    std::thread run(f, args...);
+    new std::thread(f, args...);
 }
 
 static void sleep(js::number n) {
-    std::this_thread::sleep_for(std::chrono::seconds(static_cast<size_t>(n)));
+    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(n) * 1000));
 }
 
 static number parseInt(const js::string &value, int base = 10)
