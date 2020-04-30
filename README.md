@@ -127,7 +127,7 @@ int main(int argc, char** argv)
 3) Compile it.
 
 ```
-cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib ../cpplib/core.cpp test.cpp
+cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib test.cpp
 ```
 
 4) Run it.

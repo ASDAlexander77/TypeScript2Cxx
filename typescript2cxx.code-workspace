@@ -13,8 +13,8 @@
 			"path": "./test"
 		},
 		{
-			"name": "Cxx Playground",
-			"path": "./Playground"
+			"name": "Cxx Lib",
+			"path": "./cpplib"
 		}
 	],
     "settings": {
