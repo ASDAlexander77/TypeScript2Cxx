@@ -358,7 +358,7 @@ export class Emitter {
 
             sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
-                .filter(s => this.isDeclarationStatement(s) && s.kind !== ts.SyntaxKind.EnumDeclaration || this.isVariableStatement(s))
+                .filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s))
                 .forEach(s => {
                     if (this.isVariableStatement(s)) {
                         this.processForwardDeclaration(s);
