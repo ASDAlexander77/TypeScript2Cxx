@@ -3053,6 +3053,9 @@ export class Emitter {
 
     private processPrefixUnaryExpression(node: ts.PrefixUnaryExpression): void {
 
+        const typeInfo = this.resolver.getOrResolveTypeOf(node.operand);
+        const isEnum = this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumDeclaration);
+
         const op = this.opsMap[node.operator];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
@@ -3061,7 +3064,15 @@ export class Emitter {
             this.writer.writeString(op);
         }
 
+        if (isEnum) {
+            this.writer.writeString('js::number(');
+        }
+
         this.processExpression(node.operand);
+
+        if (isEnum) {
+            this.writer.writeString(')');
+        }
 
         if (isFunction) {
             this.writer.writeString(')');
