@@ -3051,9 +3051,9 @@ string<T> string<T>::operator+(any value)
 template <typename T>
 string<T> &string<T>::operator+=(any value)
 {
-    auto value = value.operator std::string();
+    auto value_string = value.operator std::string();
     _control = string_defined;
-    _value.append(value);
+    _value.append(value_string);
     return *this;
 }
 

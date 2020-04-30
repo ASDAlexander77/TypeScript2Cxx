@@ -35,17 +35,6 @@ describe('Basic Types', () => {
         console.log(color);             \
     '])));
 
-    it.skip('Template Strings', () => expect(
-        'Hello, my name is Bob Bobbington.                                                                                \
-I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
-        'let fullName: string = `Bob Bobbington`;                   \
-        let age: number = 37;                                       \
-        let sentence: string = `Hello, my name is ${ fullName }.    \
-                                                                    \
-        I\'ll be ${ age + 1 } years old next month.`;               \
-        console.log(sentence);                                      \
-    '])));
-
     it('Template Strings', () => expect(
         'Hello, my name is Bob Bobbington.                                                                                \
 I\'ll be 38 years old next month.\r\n').to.equals(new Run().test([
