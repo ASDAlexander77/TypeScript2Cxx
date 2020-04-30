@@ -14,7 +14,7 @@ type int16 number;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {
-		f();
+		await 3f();
 	}
 
 	function dmesg(s: string): void {
@@ -22,6 +22,8 @@ namespace control {
 }
 
 function pause(t: number) {
+	declare var sleep: (t: number) => void;
+	sleep(t);
 }
 
 function msg(s: string): void {

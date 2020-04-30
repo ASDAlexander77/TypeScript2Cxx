@@ -82,7 +82,16 @@
             "ranges": "cpp",
             "numeric": "cpp",
             "optional": "cpp",
-            "variant": "cpp"
+            "variant": "cpp",
+            "chrono": "cpp",
+            "thread": "cpp",
+            "atomic": "cpp",
+            "condition_variable": "cpp",
+            "resumable": "cpp",
+            "future": "cpp",
+            "mutex": "cpp",
+            "ratio": "cpp",
+            "xthread": "cpp"
         }
     }
 }

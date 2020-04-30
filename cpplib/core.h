@@ -23,6 +23,8 @@
 #include <algorithm>
 #include <numeric>
 #include <variant>
+#include <chrono>
+#include <thread>
 #include <future>
 
 namespace js
@@ -3352,6 +3354,10 @@ constexpr bool in(V v, O o)
 // JS Core classes
 namespace js
 {
+
+static void sleep(js::number n) {
+    std::this_thread::sleep_for(std::chrono::seconds(static_cast<size_t>(n)));
+}
 
 static number parseInt(const js::string &value, int base = 10)
 {

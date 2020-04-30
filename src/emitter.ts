@@ -490,6 +490,7 @@ export class Emitter {
             case ts.SyntaxKind.ExportDeclaration: this.processExportDeclaration(<ts.ExportDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.NamespaceExportDeclaration: this.processNamespaceDeclaration(<ts.NamespaceDeclaration>node); return;
+            case ts.SyntaxKind.LabeledStatement: this.processLabeledStatement(<ts.LabeledStatement>node); return;
             case ts.SyntaxKind.ImportEqualsDeclaration: /*this.processImportEqualsDeclaration(<ts.ImportEqualsDeclaration>node);*/ return;
             case ts.SyntaxKind.ImportDeclaration:
                 /*done in forward declaration*/ /*this.processImportDeclaration(<ts.ImportDeclaration>node);*/ return;
@@ -886,6 +887,12 @@ export class Emitter {
         statements.forEach(s => {
             this.processStatementInternal(s);
         });
+    }
+
+    private processLabeledStatement(node: ts.LabeledStatement): void {
+        this.processExpression(node.label);
+        this.writer.writeStringNewLine(':');
+        this.processStatement(node.statement);
     }
 
     private processTryStatement(node: ts.TryStatement): void {
