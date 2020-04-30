@@ -1392,7 +1392,7 @@ export class Emitter {
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
             block.statements.forEach(s => {
-                if (this.isDeclarationStatement(s)) {
+                if (this.isDeclarationStatement(s) || this.isVariableStatement(s)) {
                     this.processStatement(s);
                 } else if (this.isNamespaceStatement(s)) {
                     this.processModuleDeclaration(<ts.ModuleDeclaration>s);
