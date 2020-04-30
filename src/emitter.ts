@@ -599,7 +599,7 @@ export class Emitter {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleForwardDeclaration(<ts.ModuleDeclaration>node); return;
-            case ts.SyntaxKind.EnumDeclaration: this.processEnumDeclaration(<ts.EnumDeclaration>node); return;
+            case ts.SyntaxKind.EnumDeclaration: this.processEnumForwardDeclaration(<ts.EnumDeclaration>node); return;
             default:
                 return;
         }
@@ -982,6 +982,23 @@ export class Emitter {
         this.writer.writeString('__asm { int 3 }');
     }
 
+    private processEnumForwardDeclaration(node: ts.EnumDeclaration): void {
+        this.scope.push(node);
+        this.processEnumForwardDeclarationInternal(node);
+        this.scope.pop();
+    }
+
+    private processEnumForwardDeclarationInternal(node: ts.EnumDeclaration): void {
+
+        if (!this.isHeader()) {
+            return;
+        }
+
+        this.writer.writeString('enum struct ');
+        this.processIdentifier(node.name);
+        this.writer.EndOfStatement();
+    }
+
     private processEnumDeclaration(node: ts.EnumDeclaration): void {
         this.scope.push(node);
         this.processEnumDeclarationInternal(node);
@@ -1031,7 +1048,7 @@ export class Emitter {
 
         this.writer.writeString('enum struct ');
         this.processIdentifier(node.name);
-        this.writer.writeString(' : int ');
+        this.writer.writeString(' ');
         this.writer.BeginBlock();
 
         let next = false;
@@ -1761,6 +1778,7 @@ export class Emitter {
                     || (typeInfo && (<any>typeInfo).intrinsicName === 'number')
                     || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.TypeParameter)
                     || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumMember)
+                    || this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumDeclaration)
                     || this.resolver.isTypeFromSymbol((<any>type).typeName, ts.SyntaxKind.EnumDeclaration)
                     || isEnum
                     || skipPointerInType
@@ -2757,6 +2775,9 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
+
+        const isWithinEnum = this.scope[this.scope.length - 1]?.kind === ts.SyntaxKind.EnumDeclaration;
+
         const val = parseInt(node.text, 10);
         const isInt = val.toString() === node.text;
         const isNegative = node.parent
@@ -2777,7 +2798,7 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
-        const applyNSuffix = !(<any>node).__skip_boxing && (!node.parent || node.parent.kind !== ts.SyntaxKind.EnumMember);
+        const applyNSuffix = !(<any>node).__skip_boxing && (!node.parent || !isWithinEnum);
         if (applyNSuffix && isInt && val >= 0 && val <= 9) {
             // use predefined const
             this.writer.writeString(`_`);

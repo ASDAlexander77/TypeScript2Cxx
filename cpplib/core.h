@@ -533,7 +533,7 @@ struct number
     }
 
     template <typename T>
-    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value{static_cast<int>(initValue)}
+    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value{static_cast<V>(static_cast<size_t>(initValue))}
     {
     }
 
@@ -564,6 +564,12 @@ struct number
     constexpr operator long long()
     {
         return static_cast<long long>(_value);
+    }
+
+    template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+    constexpr operator T()
+    {
+        return static_cast<T>(_value);
     }
 
     constexpr number_t *operator->()
@@ -1152,6 +1158,31 @@ static js::number operator+(const string &v)
 static js::number operator+(pointer_t ptr)
 {
     return number(reinterpret_cast<size_t>(ptr._ptr));
+}
+
+template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+T operator&(T t1, T t2) {
+    return static_cast<T>(static_cast<size_t>(t1) & static_cast<size_t>(t2));
+}
+
+template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+T operator&=(T& t1, T t2) {
+    return t1 = static_cast<T>(static_cast<size_t>(t1) & static_cast<size_t>(t2));
+}
+
+template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+T operator|(T t1, T t2) {
+    return static_cast<T>(static_cast<size_t>(t1) & static_cast<size_t>(t2));
+}
+
+template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+T operator|=(T& t1, T t2) {
+    return t1 = static_cast<T>(static_cast<size_t>(t1) | static_cast<size_t>(t2));
+}
+
+template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
+T operator~(T t1) {
+    return static_cast<T>(~static_cast<size_t>(t1));
 }
 
 // function ///////////////////////////////////////////////////////////////////////
