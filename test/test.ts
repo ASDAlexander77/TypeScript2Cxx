@@ -22,7 +22,7 @@ namespace control {
 }
 
 function pause(t: number) {
-	sleep(t);
+	sleep(t / 100);
 }
 
 function msg(s: string): void {

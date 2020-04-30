@@ -3361,7 +3361,7 @@ static void thread(_Fn f, _Args... args) {
 }
 
 static void sleep(js::number n) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(n) * 1000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(n)));
 }
 
 static number parseInt(const js::string &value, int base = 10)
