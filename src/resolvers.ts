@@ -411,7 +411,8 @@ export class IdentifierResolver {
                         || locationWithLocals.kind === ts.SyntaxKind.FunctionExpression
                         || locationWithLocals.kind === ts.SyntaxKind.ArrowFunction
                         || locationWithLocals.kind === ts.SyntaxKind.MethodDeclaration
-                        || locationWithLocals.kind === ts.SyntaxKind.ClassDeclaration) {
+                        || locationWithLocals.kind === ts.SyntaxKind.ClassDeclaration
+                        || locationWithLocals.kind === ts.SyntaxKind.Block) {
                         level++;
                     }
                     break;
