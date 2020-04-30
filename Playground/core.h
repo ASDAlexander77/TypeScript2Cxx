@@ -35,7 +35,6 @@ namespace js
 struct undefined_t;
 struct pointer_t;
 struct any;
-struct string;
 template <typename T>
 struct shared;
 
@@ -44,10 +43,14 @@ namespace tmpl
 template <typename T>
 struct number;
 
+template <typename T>
+struct string;
+
 template <typename K, typename V>
 struct object;
 }
 
+typedef tmpl::string<std::string> string;
 typedef tmpl::number<double> number;
 typedef tmpl::object<string, any> object;
 
@@ -62,9 +65,9 @@ constexpr bool is_stringish_v = is_stringish<_Ty>::value;
 template <typename T>
 struct _Deduction_MethodPtr;
 
-inline std::size_t hash_combine(const std::size_t hivalue, const std::size_t lovalue)
+inline std::size_t hash_combine(const std::size_t hi_value, const std::size_t lo_value)
 {
-    return lovalue + 0x9e3779b9 + (hivalue << 6) + (hivalue >> 2);
+    return lo_value + 0x9e3779b9 + (hi_value << 6) + (hi_value >> 2);
 }
 
 static std::ostream &operator<<(std::ostream &os, std::nullptr_t ptr)
@@ -561,7 +564,7 @@ struct number
         return streamObj2.str();
     }
 
-    operator string();
+    operator js::string();
 
     inline bool operator==(undefined_t)
     {
@@ -795,15 +798,20 @@ struct number
 
 } // namespace tmpl
 
+namespace tmpl {
+
+template <typename T>
 struct string
 {
+    using string_t = string<T>;
+
     enum
     {
         string_defined = 0,
         string_null = 1,
         string_undefined = 2
     } _control;
-    std::string _value;
+    T _value;
 
     string() : _value(), _control(string_undefined)
     {
@@ -880,46 +888,46 @@ struct string
         return this;
     }
 
-    string operator[](number n) const
+    string_t operator[](js::number n) const
     {
         return string(_value[n]);
     }
 
-    string operator+(boolean b)
+    string_t operator+(boolean b)
     {
         return string(_value + (b ? "true" : "false"));
     }
 
-    string operator+(number value)
+    string_t operator+(js::number value)
     {
         return string(_value + value.operator std::string());
     }
 
-    string operator+(string value)
+    string_t operator+(string value)
     {
         return string(_value + value._value);
     }
 
-    friend string operator+(const string &value, string other)
+    friend string_t operator+(const string &value, string other)
     {
         return mutable_(value) + other;
     }
 
-    string operator+(pointer_t ptr)
+    string_t operator+(pointer_t ptr)
     {
         return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
     }
 
-    string operator+(any value);
+    string_t operator+(any value);
 
-    string &operator+=(char c)
+    string_t &operator+=(char c)
     {
         _control = string_defined;
         _value.append(string(c)._value);
         return *this;
     }
 
-    string &operator+=(number n)
+    string_t &operator+=(js::number n)
     {
         auto value = n.operator std::string();
         _control = string_defined;
@@ -927,31 +935,31 @@ struct string
         return *this;
     }
 
-    string &operator+=(string value)
+    string_t &operator+=(string value)
     {
         _control = string_defined;
         _value.append(value._value);
         return *this;
     }
 
-    string &operator+=(any value);
+    string_t &operator+=(any value);
 
-    bool operator==(const js::string &other) const
+    bool operator==(const string_t &other) const
     {
         return _control == string_defined && _value.compare(other._value) == 0;
     }
 
-    bool operator==(const js::string &other)
+    bool operator==(const string_t &other)
     {
         return _control == string_defined && _value.compare(other._value) == 0;
     }
 
-    bool operator!=(const js::string &other) const
+    bool operator!=(const string_t &other) const
     {
         return _control == string_defined && _value.compare(other._value) != 0;
     }
 
-    bool operator!=(const js::string &other)
+    bool operator!=(const string_t &other)
     {
         return _control == string_defined && _value.compare(other._value) != 0;
     }
@@ -961,7 +969,7 @@ struct string
         return is_undefined();
     }
 
-    friend bool operator==(undefined_t, const js::string &other)
+    friend bool operator==(undefined_t, const string_t &other)
     {
         return other.is_undefined();
     }
@@ -971,7 +979,7 @@ struct string
         return !is_undefined();
     }
 
-    friend bool operator!=(undefined_t, const js::string &other)
+    friend bool operator!=(undefined_t, const string_t &other)
     {
         return !other.is_undefined();
     }
@@ -981,7 +989,7 @@ struct string
         return is_null() && (!ptr);
     }
 
-    friend bool operator==(pointer_t ptr, const js::string &other)
+    friend bool operator==(pointer_t ptr, const string_t &other)
     {
         return other.is_null() && (!ptr);
     }
@@ -991,32 +999,32 @@ struct string
         return _control == string_defined && (!ptr);
     }
 
-    friend bool operator!=(pointer_t ptr, const js::string &other)
+    friend bool operator!=(pointer_t ptr, const string_t &other)
     {
         return other._control == string_defined && (!ptr);
     }
 
-    string concat(string value)
+    string_t concat(string value)
     {
         return _value + value._value;
     }
 
-    string charAt(number n) const
+    string_t charAt(js::number n) const
     {
         return _value[n];
     }
 
-    number charCodeAt(number n) const
+    js::number charCodeAt(js::number n) const
     {
         return _value[n];
     }
 
-    string fromCharCode(number n) const
+    string_t fromCharCode(js::number n) const
     {
         return static_cast<char>(static_cast<size_t>(n));
     }
 
-    string toUpperCase()
+    string_t toUpperCase()
     {
         std::string result(this->operator std::string &());
         for (auto &c : result)
@@ -1027,7 +1035,7 @@ struct string
         return string(result);
     }
 
-    string toLowerCase()
+    string_t toLowerCase()
     {
         std::string result(this->operator std::string &());
         for (auto &c : result)
@@ -1038,21 +1046,21 @@ struct string
         return string(result);
     }
 
-    string substring(number begin, number end)
+    string_t substring(js::number begin, js::number end)
     {
         return _value.substr(begin, end - begin);
     }
 
-    string slice(number begin)
+    string_t slice(js::number begin)
     {
-        return _value.substr(begin < number(0) ? get_length() + begin : begin, get_length() - begin);
+        return _value.substr(begin < js::number(0) ? get_length() + begin : begin, get_length() - begin);
     }
 
-    string slice(number begin, number end)
+    string_t slice(js::number begin, js::number end)
     {
-        auto endStart = end < number(0) ? get_length() + end : end;
-        auto endPosition = begin < number(0) ? get_length() + begin : begin;
-        return _value.substr(begin < number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : number(0));
+        auto endStart = end < js::number(0) ? get_length() + end : end;
+        auto endPosition = begin < js::number(0) ? get_length() + begin : begin;
+        return _value.substr(begin < js::number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : js::number(0));
     }
 
     auto begin() -> decltype(_value.begin())
@@ -1081,7 +1089,9 @@ struct string
     }
 };
 
-static struct string string_empty("");
+} // namespace tmpl
+
+static string string_empty("");
 
 static js::string operator""_S(const char *s, std::size_t size)
 {
@@ -1484,7 +1494,7 @@ struct array
         return std::any_of(get().begin(), get().end(), p);
     }
 
-    string join(string s)
+    js::string join(js::string s)
     {
         return std::accumulate(get().begin(), get().end(), string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
             return res += (res) ? s + piece : piece;
@@ -1651,7 +1661,7 @@ struct object
 
     any &operator[](std::string s) const;
 
-    any &operator[](string s) const;
+    any &operator[](js::string s) const;
 
     any &operator[](js::number n);
 
@@ -1659,7 +1669,7 @@ struct object
 
     any &operator[](std::string s);
 
-    any &operator[](string s);
+    any &operator[](js::string s);
 
     any &operator[](undefined_t undef);
 
@@ -1728,7 +1738,7 @@ struct any
         }
     };
 
-    enum struct anyTypeId
+    enum anyTypeId
     {
         undefined_type = 0,
         boolean_type,
@@ -3000,6 +3010,29 @@ js::string number<V>::toString(number_t radix)
     return js::string(std::to_string(_value));
 }
 
+// String
+template <typename T>
+string<T>::string(any val) : _value(val.operator std::string()), _control(string_defined)
+{
+}    
+
+template <typename T>
+string<T> string<T>::operator+(any value)
+{
+    string tmp(_value);
+    tmp._value.append(value.operator std::string());
+    return tmp;
+}
+
+template <typename T>
+string<T> &string<T>::operator+=(any value)
+{
+    auto value = value.operator std::string();
+    _control = string_defined;
+    _value.append(value);
+    return *this;
+}
+
 // Object
 template <typename K, typename V>
 object<K, V>::object() : _values(object<K, V>::object_traits<object<K, V>::object_type>::create()), isUndefined(false)
@@ -3057,7 +3090,7 @@ any &object<K, V>::operator[](std::string s) const
 }
 
 template <typename K, typename V>
-any &object<K, V>::operator[](string s) const
+any &object<K, V>::operator[](js::string s) const
 {
     return mutable_(get())[(std::string)s];
 }
@@ -3075,7 +3108,7 @@ any &object<K, V>::operator[](std::string s)
 }
 
 template <typename K, typename V>
-any &object<K, V>::operator[](string s)
+any &object<K, V>::operator[](js::string s)
 {
     return get()[(std::string)s];
 }
@@ -3571,6 +3604,15 @@ static struct math_t
         return number(d < 0 ? -1 : d > 0 ? 1 : 0);
     }
 } Math;
+
+static number E(2.718281828459045);
+static number LN10(2.302585092994046);
+static number LN2(0.6931471805599453);
+static number LOG2E(1.4426950408889634);
+static number LOG10E(0.4342944819032518);
+static number PI(3.141592653589793);
+static number SQRT1_2(0.7071067811865476);
+static number SQRT2(1.4142135623730951);
 
 static struct Console
 {
