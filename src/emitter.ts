@@ -3304,10 +3304,11 @@ export class Emitter {
     }
 
     private processAsExpression(node: ts.AsExpression): void {
-        this.writer.writeString('(');
+        this.writer.writeString('as<');
         this.processType(node.type);
-        this.writer.writeString(')');
+        this.writer.writeString('>(');
         this.processExpression(node.expression);
+        this.writer.writeString(')');
     }
 
     private processSpreadElement(node: ts.SpreadElement): void {

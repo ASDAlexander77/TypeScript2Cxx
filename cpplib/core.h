@@ -103,6 +103,24 @@ inline bool __is(T *t)
     return std::type_index(typeid(I *)) == std::type_index(typeid(t)) || is<I>(t);
 }
 
+template <typename I, typename T>
+inline I as(T t)
+{
+    return dynamic_cast<I>(t);
+}
+
+template <typename I, typename T>
+inline I *as(T *t)
+{
+    return dynamic_cast<I *>(t);
+}
+
+template <typename I, typename T>
+inline std::shared_ptr<I> as(const std::shared_ptr<T> &t)
+{
+    return std::dynamic_pointer_cast<std::shared_ptr<I>>(t);
+}
+
 template <class T>
 static string type_of(T value);
 
