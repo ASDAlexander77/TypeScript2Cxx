@@ -1741,6 +1741,8 @@ struct object
         return object_traits<object_type>::access(_values);
     }
 
+    static ObjectKeys<js::string, object_type> keys(const object &);
+
     ObjectKeys<js::string, object_type> keys();
 
     constexpr object *operator->()
@@ -1771,6 +1773,26 @@ struct object
         // TODO - finish it
         return isUndefined == other.isUndefined && isUndefined == true;
     }
+
+    void Delete(js::number field)
+    {
+        get().erase(field.operator std::string &());
+    }    
+
+    void Delete(js::string field)
+    {
+        get().erase(field.operator std::string &());
+    }
+
+    void Delete(js::any field)
+    {
+        get().erase(field.operator std::string &());
+    }
+
+    void Delete(js::undefined_t)
+    {
+        get().erase("undefined");
+    }    
 
     void Delete(const char *field)
     {
@@ -3163,6 +3185,12 @@ object<K, V>::object(std::initializer_list<pair> values) : _values(object<K, V>:
 template <typename K, typename V>
 object<K, V>::object(const undefined_t &) : _values(object<K, V>::object_traits<object<K, V>::object_type>::create()), isUndefined(true)
 {
+}
+
+template <typename K, typename V>
+static ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys(const object<K, V> &obj)
+{
+    return ObjectKeys<js::string, object<K, V>::object_type>(obj->get());
 }
 
 template <typename K, typename V>
