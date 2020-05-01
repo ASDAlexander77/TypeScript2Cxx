@@ -3188,7 +3188,7 @@ object<K, V>::object(const undefined_t &) : _values(object<K, V>::object_traits<
 }
 
 template <typename K, typename V>
-static ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys(const object<K, V> &obj)
+ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys(const object<K, V> &obj)
 {
     return ObjectKeys<js::string, object<K, V>::object_type>(obj->get());
 }

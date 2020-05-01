@@ -84,46 +84,87 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-namespace Generics {
-
-    function swap<T>(arr: T[], i: number, j: number): void {
-        let temp: T = arr[i];
-        arr[i] = arr[j];
-        arr[j] = temp;
+namespace DynamicMaps {
+    interface V {
+        foo: number;
+        bar: string;
     }
 
-    function sortHelper<T>(arr: T[], callbackfn?: (value1: T, value2: T) => number): T[] {
-        if (arr.length <= 0 || !callbackfn) {
-            return arr;
-        }
-        let len = arr.length;
-        // simple selection sort.
-        for (let i = 0; i < len - 1; ++i) {
-            for (let j = i + 1; j < len; ++j) {
-                if (callbackfn(arr[i], arr[j]) > 0) {
-                    swap<T>(arr, i, j);
-                }
-            }
-        }
-        return arr;
+    class Blah {
+        foo: number;
+        bar: string;
     }
 
-    export function arraySort<T>(arr: T[], callbackfn?: (value1: T, value2: T) => number): T[] {
-        return sortHelper(arr, callbackfn);
+    function check(v: V) {
+        return `${v.foo + 1}/${v.bar}`
+    }
+
+    function checkA(v: any) {
+        return `${v.foo + 1}/${v.bar}`
+    }
+
+    function upd(v: V) {
+        v.foo += 1
+        v.bar += "a"
+    }
+
+    function updA(v: any) {
+        v.foo = v.foo + 1
+        v.bar = v.bar + "a"
+    }
+
+    function updI(v: any) {
+        v["foo"] = v["foo"] + 1
+        v["bar"] = v["bar"] + "a"
+    }
+
+    function updIP(v: any, foo: string, bar: string) {
+        v[foo] = v[foo] + 1
+        v[bar] = v[bar] + "a"
+    }
+
+    function allChecks(v: V) {
+        assert(check(v) == "2/foo", ".v")
+
+        msg(checkA(v))
+        msg(check(v))
+
+        assert(checkA(v) == check(v), ".z2")
+        upd(v)
+        assert(check(v) == "3/fooa", ".v2")
+        updA(v)
+        assert(check(v) == "4/fooaa", ".v3")
+        updI(v)
+        assert(check(v) == "5/fooaaa", ".v4")
+        updIP(v, "foo", "bar")
+        assert(check(v) == "6/fooaaaa", ".v6")
+        assert(checkA(v) == check(v), ".z3")
+    }
+
+    export function run() {
+        msg("dynamicMaps")
+        
+        let v: any = {
+            foo: 1,
+            bar: "foo"
+        }
+
+        let z = new Blah()
+        z.foo = 12
+        z.bar = "blah"
+
+        assert(check(z) == "13/blah", ".z")
+
+        z.foo = 1
+        z.bar = "foo"
+
+        allChecks(v)
+        msg("dynamic class")
+        allChecks(z)
     }
 }
 
-function testGenerics() {
-    msg("testGenerics")
-    let inArray = [4, 3, 4593, 23, 43, -1]
-    Generics.arraySort<number>(inArray, (x: number, y: number) => { return x - y })
-    let expectedArray = [-1, 3, 4, 23, 43, 4593]
-    for (let i = 0; i < expectedArray.length; i++) {
-        assert(inArray[i] == expectedArray[i])
-    }
-}
-
-testGenerics()
+DynamicMaps.run()
 clean()
 msg("test OK!")
 
