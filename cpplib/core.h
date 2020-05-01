@@ -1334,8 +1334,8 @@ template <typename E>
 struct array
 {
     using array_type_base = std::vector<E>;
-    using array_type = array_type_base; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
-    //using array_type = std::shared_ptr<array_type_base>; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
+    //using array_type = array_type_base; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
+    using array_type = std::shared_ptr<array_type_base>; // array_type_base - value type, std::shared_ptr<array_type_base> - reference type
     using array_type_ref = array_type_base &;
 
     template <typename _Ty> 
@@ -1679,8 +1679,8 @@ struct object
     };
 
     using object_type_base = std::unordered_map<K, V, K_hash, K_equal_to>;
-    using object_type = object_type_base; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
-    //using object_type = std::shared_ptr<object_type_base>; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
+    //using object_type = object_type_base; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
+    using object_type = std::shared_ptr<object_type_base>; // object_type_base - value type, std::shared_ptr<object_type_base> - reference type
     using object_type_ref = object_type_base &;
     using pair = std::pair<const K, V>;
 
