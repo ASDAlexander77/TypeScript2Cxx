@@ -597,6 +597,7 @@ export class Emitter {
 
         switch (node.kind) {
             case ts.SyntaxKind.VariableStatement: this.processVariablesForwardDeclaration(<ts.VariableStatement>node); return;
+            case ts.SyntaxKind.InterfaceDeclaration:
             case ts.SyntaxKind.ClassDeclaration: this.processClassForwardDeclaration(<ts.ClassDeclaration>node); return;
             case ts.SyntaxKind.ModuleDeclaration: this.processModuleForwardDeclaration(<ts.ModuleDeclaration>node); return;
             case ts.SyntaxKind.EnumDeclaration: this.processEnumForwardDeclaration(<ts.EnumDeclaration>node); return;
