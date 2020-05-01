@@ -561,7 +561,7 @@ struct number
     {
     }
 
-    number(js::pointer_t p) : _value{static_cast<V>(intptr_t(p._ptr))}
+    number(js::pointer_t p) : _value{p._ptr != nullptr ? static_cast<V>(intptr_t(p._ptr)) : -std::numeric_limits<V>::quiet_NaN()}
     {
     }
 

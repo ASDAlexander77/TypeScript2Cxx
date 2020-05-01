@@ -84,72 +84,80 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-function testLazyRef() {
-    msg("testLazyRef")
-    let x = ("x" + "Y") || "foo"
-    let y = "" || "bXr" + "2"
-    assert(x.length == 2, "two")
-    assert(y.length == 4, "emp")
-    y = null || "foo"
-    assert(y == "foo", "ln")
 
-    x = "x" + "12x" && "7" + "xx"
-    assert(x.length == 3, "and")
-
-    x = "" && "blah"
-    assert(x == "", "andemp")
-    x = "foo" && "x" + "Y"
-    assert(x.length == 2, "twoand")
-    x = "x" + "Y" && "bar"
-    assert(x.length == 3, "threeand")
-
-    let tw = 12
-    let z = 0 || tw
-    assert(z == 12, "12")
-    z = tw || 13
-    assert(z == 12, "12.2")
-    z = tw && 13
-    assert(z == 13, "13")
-
-    let q = new Testrec()
-    let r: Testrec = null
-    let qq = q && r
-    assert(qq == null, "&n")
-    qq = r && q
-    assert(qq == null, "&r")
+function testNullJS() {
+    let x: number
+    assert(x === undefined, "undef0")
+    assert(x == null, "null0")
+    x = null
+    //assert(x === null, "null1")
+    assert(x == null, "null1")
+    assert(x == undefined, "undef1")
+    x = 0
+    assert(x != null, "null2")
 }
-testLazyRef()
 
-// https://github.com/microsoft/pxt-arcade/issues/1519
-namespace InlinePlusCond {
-    interface MFX {
-        _dummy: any;
+function testNull() {
+    msg("testNull")
+    if (hasFloat) {
+        testNullJS()
+        return
     }
-    
-    const zero = 0 as any as MFX
-    const one = 1 as any as MFX
-    function sub(a:MFX, b:MFX) {
-        return ((a as any as number) - (b as any as number)) as any as MFX
-    }
-    class Foobar {
-        constructor(public x: MFX, public y: MFX) {}
-    }
-    
-    function testIt() {
-        let s = new Foobar(zero, one)
-        let right = true
-    
-        let vv = zero
-    
-        s.x = sub(
-            right ? vv : vv,
-            s.y
-        );
+    let x = 0
+    let y = 0
+    x = null
+    assert(x == y, "null")
+    x = undefined
+    assert(x == y, "undef")
+    y = 1
+    assert(x != y, "null")
+}
 
-        assert(s.x as any as number == -1, "mfx")
+testNull()
+
+
+namespace UndefinedReturn {
+    function bar() {
+        return "foo123"
+    }
+    function foo(): any {
+        let x = bar()
+        if (!x)
+            return 12
+	return
+    }
+    function foo2(): any {
+        let x = bar()
+        if (x)
+            return 12
+	return
+    }
+    function foo3(): any {
+        let x = bar()
+    }
+    function foo4(): any {
+        let x = bar()
+        return
+    }
+    function foo5() {
+        let x = bar()
+    }
+    function foo6() {
+        let x = bar()
+        return
     }
 
-    testIt()
+    function testUndef() {
+        msg("testUndef")
+        assert(foo() === undefined)
+        assert(foo2() === 12)
+        assert(foo3() === undefined)
+        assert(foo4() === undefined)
+        //assert(foo5() === undefined)
+        //assert(foo6() === undefined)
+    }
+
+    testUndef()
 }
 clean()
 msg("test OK!")
