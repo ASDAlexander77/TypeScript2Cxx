@@ -3029,7 +3029,19 @@ struct shared
     }
 
     template <class Tv>
+    auto operator+=(Tv other) const
+    {
+        return get() += other;
+    }    
+
+    template <class Tv>
     auto operator-(Tv other) const
+    {
+        return get() - other;
+    }    
+
+    template <class Tv>
+    auto operator-=(Tv other) const
     {
         return get() - other;
     }    

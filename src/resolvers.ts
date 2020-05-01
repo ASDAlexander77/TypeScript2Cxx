@@ -407,28 +407,30 @@ export class IdentifierResolver {
         while (true) {
             while (locationWithLocals) {
                 if ((<any>locationWithLocals).locals) {
+                    resolvedSymbol = (<any>locationWithLocals).locals.get(name);
+                    if (resolvedSymbol) {
+                        break;
+                    }
+
                     if (locationWithLocals.kind === ts.SyntaxKind.FunctionDeclaration
                         || locationWithLocals.kind === ts.SyntaxKind.FunctionExpression
                         || locationWithLocals.kind === ts.SyntaxKind.ArrowFunction
                         || locationWithLocals.kind === ts.SyntaxKind.MethodDeclaration
-                        || locationWithLocals.kind === ts.SyntaxKind.ClassDeclaration
-                        || locationWithLocals.kind === ts.SyntaxKind.Block) {
+                        || locationWithLocals.kind === ts.SyntaxKind.ClassDeclaration) {
                         level++;
                     }
-                    break;
                 }
 
                 locationWithLocals = locationWithLocals.parent;
             }
 
+            if (resolvedSymbol) {
+                return [resolvedSymbol.valueDeclaration ? level === 0 : undefined, resolvedSymbol];
+            }
+
             if (!locationWithLocals) {
                 // todo function, method etc can't be found
                 return undefined;
-            }
-
-            resolvedSymbol = (<any>locationWithLocals).locals.get(name);
-            if (resolvedSymbol) {
-                return [level <= 1, resolvedSymbol];
             }
 
             locationWithLocals = locationWithLocals.parent;
