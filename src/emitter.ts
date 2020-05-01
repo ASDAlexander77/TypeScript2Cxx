@@ -2071,7 +2071,8 @@ export class Emitter {
                 && ((<any>node).body.statements).isMissingList)) {
             // function without body;
             if ((<any>node).nextContainer
-                && node.kind === (<any>node).nextContainer.kind) {
+                && node.kind === (<any>node).nextContainer.kind
+                && (<any>node).name.text === (<any>node).nextContainer.name.text) {
                 return true;
             }
 
@@ -2522,11 +2523,9 @@ export class Emitter {
         const skip = this.processFunctionExpression(<ts.FunctionExpression><any>node, implementationMode);
         if (!skip && !this.isClassMemberDeclaration(node)) {
             this.writer.EndOfStatement();
-            this.writer.writeStringNewLine();
-        }
-
-        if (this.isClassMemberSignature(node)) {
-            this.writer.cancelNewLine();
+            if (!this.isClassMemberSignature(node)) {
+                this.writer.writeStringNewLine();
+            }
         }
 
         return skip;
@@ -2703,7 +2702,7 @@ export class Emitter {
             this.writer.writeString('static ');
         }
 
-        this.writer.writeString(`std::unordered_map<any, int, any::any_hash, any::any_equal_to> ${switchName} = `);
+        this.writer.writeString(`switch_type ${switchName} = `);
         this.writer.BeginBlock();
 
         let caseNumber = 0;

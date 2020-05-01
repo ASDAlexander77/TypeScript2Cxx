@@ -84,81 +84,54 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-
-function testNullJS() {
-    let x: number
-    assert(x === undefined, "undef0")
-    assert(x == null, "null0")
-    x = null
-    //assert(x === null, "null1")
-    assert(x == null, "null1")
-    assert(x == undefined, "undef1")
-    x = 0
-    assert(x != null, "null2")
-}
-
-function testNull() {
-    msg("testNull")
-    if (hasFloat) {
-        testNullJS()
-        return
+namespace Ifaces {
+    interface IFoo {
+        foo(): number;
+        bar(x: number): string;
+        twoArg(x: number, y: number): number;
+        baz: string;
     }
-    let x = 0
-    let y = 0
-    x = null
-    assert(x == y, "null")
-    x = undefined
-    assert(x == y, "undef")
-    y = 1
-    assert(x != y, "null")
-}
 
-testNull()
-
-
-namespace UndefinedReturn {
-    function bar() {
-        return "foo123"
-    }
-    function foo(): any {
-        let x = bar()
-        if (!x)
+    class A {
+        constructor() {
+            this.baz = "Q" + "A"
+        }
+        foo() {
             return 12
-	return
+        }
+        bar(v: number) {
+            return v.toString()
+        }
+        twoArg(x: number) {
+           return x
+        }
+        baz: string;
     }
-    function foo2(): any {
-        let x = bar()
-        if (x)
-            return 12
-	return
-    }
-    function foo3(): any {
-        let x = bar()
-    }
-    function foo4(): any {
-        let x = bar()
-        return
-    }
-    function foo5() {
-        let x = bar()
-    }
-    function foo6() {
-        let x = bar()
-        return
+    class B extends A {
+        foo() {
+            return 13
+        }
     }
 
-    function testUndef() {
-        msg("testUndef")
-        assert(foo() === undefined)
-        assert(foo2() === 12)
-        assert(foo3() === undefined)
-        assert(foo4() === undefined)
-        //assert(foo5() === undefined)
-        //assert(foo6() === undefined)
+    function foo(f: IFoo) {
+        return f.foo() + f.baz + f.bar(42)
     }
 
-    testUndef()
+    export function run() {
+        msg("Ifaces.run")
+        let a = new A()
+        assert(foo(a) + "X" == "12QA42X")
+        assert((a as IFoo).twoArg(1, 2) == 1, "t")
+        a = new B()
+        assert(foo(a) + "X" == "13QA42X", "b")
+        let q = a as IFoo
+        q.baz = "Z"
+        assert(foo(q) + "X" == "13Z42X", "x")
+        msg("Ifaces.runDONE")
+    }
 }
+
+Ifaces.run()
 clean()
 msg("test OK!")
 

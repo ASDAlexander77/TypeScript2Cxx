@@ -3085,6 +3085,8 @@ static js::number operator+(const boolean &v)
     return number((mutable_(v)) ? 1 : 0);
 }
 
+// typedefs
+typedef std::unordered_map<any, int, any::any_hash, any::any_equal_to> switch_type;
 
 // Number
 static js::number Infinity(std::numeric_limits<double>::infinity());
