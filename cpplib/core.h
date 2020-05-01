@@ -3357,18 +3357,19 @@ inline bool is<js::function>(js::any t)
     return t && t.get_type() == any::anyTypeId::function_type;
 }
 
-struct Finally
+namespace utils
+{
+
+struct finally
 {
 private:
     std::function<void()> _dtor;
 
 public:
-    Finally(std::function<void()> dtor) : _dtor(dtor){};
-    ~Finally() { _dtor(); }
+    finally(std::function<void()> dtor) : _dtor(dtor){};
+    ~finally() { _dtor(); }
 };
 
-namespace Utils
-{
 template <typename... Args>
 object assign(object &dst, const Args &... args)
 {
@@ -3382,6 +3383,7 @@ object assign(object &dst, const Args &... args)
 
     return dst;
 }
+
 }; // namespace Utils
 
 template <typename V>

@@ -899,12 +899,11 @@ export class Emitter {
     private processTryStatement(node: ts.TryStatement): void {
         let anyCase = false;
 
-        this.writer.writeStringNewLine('try');
-        this.writer.BeginBlock();
-
         if (node.finallyBlock) {
+            this.writer.BeginBlock();
+
             const finallyName = `__finally${node.finallyBlock.getFullStart()}_${node.finallyBlock.getEnd()}`;
-            this.writer.writeString(`Finally ${finallyName}(`);
+            this.writer.writeString(`utils::finally ${finallyName}(`);
 
             const newArrowFunctions =
                 ts.createArrowFunction(
@@ -923,6 +922,9 @@ export class Emitter {
             this.writer.writeString(')');
             this.writer.EndOfStatement();
         }
+
+        this.writer.writeStringNewLine('try');
+        this.writer.BeginBlock();
 
         node.tryBlock.statements.forEach(element => this.processStatement(element));
 
@@ -958,6 +960,10 @@ export class Emitter {
             this.writer.BeginBlock();
             this.writer.writeString('throw');
             this.writer.EndOfStatement();
+            this.writer.EndBlock();
+        }
+
+        if (node.finallyBlock) {
             this.writer.EndBlock();
         }
     }
@@ -2857,7 +2863,7 @@ export class Emitter {
         const hasSpreadAssignment = node.properties.some(e => e.kind === ts.SyntaxKind.SpreadAssignment);
 
         if (hasSpreadAssignment) {
-            this.writer.writeString('Utils::assign(');
+            this.writer.writeString('utils::assign(');
         }
 
         this.writer.writeString('object');

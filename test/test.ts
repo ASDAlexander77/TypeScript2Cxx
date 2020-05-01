@@ -84,122 +84,125 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-
-
-function testRefLocals(): void {
-    msg("start test ref locals");
-    let s = "";
-    for (let i of [3, 2, 1]) {
-        let copy = i;
-        control.runInBackground(() => {
-            pause(10 * i);
-            copy = copy + 10;
-        });
-        control.runInBackground(() => {
-            pause(20 * i);
-            s = s + copy;
-        });
+namespace exceptions {
+    function immediate(k: number) {
+        try {
+            pause(1)
+            if (k > 0)
+                throw "hl" + k
+            pause(1)
+            glb1++
+        } catch (e) {
+            assert(e == "hl" + k)
+            glb1 += 10
+            if (k >= 10)
+                throw e
+        } finally {
+            x += glb1
+        }
     }
-    pause(200);
-    assert(s == "111213", "reflocals");
-}
 
-function byRefParam_0(p: number): void {
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + p;
-    });
-    p = p + 1;
-}
+    function throwVal(n: number) {
+        pause(1)
+        if (n > 0)
+            throw "hel" + n
+        pause(1)
+    }
 
-function byRefParam_2(pxx: number): void {
-    pxx = pxx + 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + pxx;
-    });
-}
 
-function testByRefParams(): void {
-    msg("testByRefParams");
-    refparamWrite("a" + "b");
-    refparamWrite2(new Testrec());
-    refparamWrite3(new Testrec());
-    sum = 0;
-    let x = 1;
-    control.runInBackground(() => {
-        pause(1);
-        sum = sum + x;
-    });
-    x = 2;
-    byRefParam_0(4);
-    byRefParam_2(10);
-    pause(330);
-    assert(sum == 18, "by ref");
-    sum = 0
-    msg("byref done")
-}
+    function higherorder(k: number) {
+        try {
+            [1].map(() => throwVal(k))
+            glb1++
+        } catch (e) {
+            assert(e == "hel" + k)
+            glb1 += 10
+            if (k >= 10)
+                throw e
+        } finally {
+            x += glb1
+        }
+    }
 
-function refparamWrite(s: string): void {
-    s = s + "c";
-    assert(s == "abc", "abc");
-}
+    function lambda(k:number) {
+        function inner() {
+            try {
+                throwVal(k)
+                glb1++
+            } catch (e) {
+                assert(e == "hel" + k)
+                glb1 += 10
+                if (k >= 10)
+                    throw e
+            } finally {
+                x += glb1
+            }
+        }
+        inner()
+    }
 
-function refparamWrite2(testrec: Testrec): void {
-    testrec = new Testrec();
-    if (hasFloat)
-        assert(testrec._bool === undefined, "rw2f");
-    else
-        assert(testrec._bool == false, "rw2");
-}
+    function callingThrowVal(k: number) {
+        try {
+            pause(1)
+            throwVal(k)
+            pause(1)
+            glb1++
+        } catch (e) {
+            assert(e == "hel" + k)
+            glb1 += 10
+            if (k >= 10)
+                throw e
+        } finally {
+            x += glb1
+        }
+    }
 
-function refparamWrite3(testrecX: Testrec): void {
-    control.runInBackground(() => {
-        pause(1);
-        assert(testrecX.str == "foo", "ff");
-        testrecX.str = testrecX.str + "x";
-    });
-    testrecX = new Testrec();
-    testrecX.str = "foo";
-    pause(130);
-    assert(testrecX.str == "foox", "ff2");
-}
+    function nested() {
+        try {
+            try {
+                callingThrowVal(10)
+            } catch (e) {
+                assert(glb1 == 10 && x == 10)
+                glb1++
+                throw e
+            }
+        } catch (ee) {
+            assert(glb1 == 11)
+        }
+    }
 
-function allocImage(): void {
-    let tmp = createObj();
-}
+    function test3(fn:(k:number)=>void) {
+        glb1 = x = 0
+        fn(1)
+        assert(glb1 == 10 && x == 10)
+        fn(0)
+        assert(glb1 == 11 && x == 21)
+        fn(3)
+        assert(glb1 == 21 && x == 42)
+    }
 
-function runOnce(fn: Action): void {
-    fn();
-}
+    export function run() {
+        msg("test exn")
+        glb1 = x = 0
+        callingThrowVal(1)
+        assert(glb1 == 10 && x == 10)
+        callingThrowVal(0)
+        assert(glb1 == 11 && x == 21)
+        callingThrowVal(3)
+        assert(glb1 == 21 && x == 42)
 
-function createObj() {
-    return new Testrec();
-}
+        test3(callingThrowVal)
+        test3(immediate)
+        test3(higherorder)
+        test3(lambda)
 
-function testMemoryFreeHOF(): void {
-    msg("testMemoryFreeHOF");
-    for (let i = 0; i < 1000; i++) {
-        runOnce(() => {
-            let tmp = createObj();
-        });
+        glb1 = x = 0
+        nested()
+        assert(glb1 == 11)
+        msg("test exn done")
     }
 }
 
-testMemoryFreeHOF();
-
-
-function testMemoryFree(): void {
-    msg("testMemoryFree");
-    for (let i = 0; i < 1000; i++) {
-        allocImage();
-    }
-}
-
-
-testRefLocals();
-testByRefParams();
-testMemoryFree();
-clean()
+exceptions.run();clean()
 msg("test OK!")
 
