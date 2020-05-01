@@ -1792,11 +1792,11 @@ export class Emitter {
 
                 // writing namespace
                 if (this.isWritingMain) {
-                    const symbol = (<any>typeReference.typeName).symbol;
+                    const symbol = (<any>typeReference.typeName).symbol || typeInfo && typeInfo.symbol;
                     if (symbol) {
-                        const valDecl = symbol.valueDeclaration;
-                        if (valDecl) {
-                            let parent = valDecl.parent;
+                        const symbolDecl = symbol.valueDeclaration || symbol.declarations[0];
+                        if (symbolDecl) {
+                            let parent = symbolDecl.parent;
                             if (parent) {
                                 parent = parent.parent;
                             }

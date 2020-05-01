@@ -2196,13 +2196,11 @@ struct any
     }
 
     template <typename T>
-    using std_shared_ptr = std::shared_ptr<T>;
-    template <typename T>
-    operator std_shared_ptr<T>()
+    operator std::shared_ptr<T>()
     {
         if (get_type() == anyTypeId::class_type)
         {
-            return std::shared_ptr<T>(*(std::shared_ptr<js::object> *)_value._data);
+            return std::dynamic_pointer_cast<T>(std::get<std::shared_ptr<js::object>>(_value));
         }
 
         throw "wrong type";
