@@ -1496,7 +1496,7 @@ struct array
     array filter(std::function<bool(E, js::number)> p)
     {
         std::vector<E> result;
-        auto first = &(*_values.get())[0];
+        auto first = &(get())[0];
         std::copy_if(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
@@ -1533,7 +1533,7 @@ struct array
     array map(std::function<E(E, js::number)> p)
     {
         std::vector<E> result;
-        auto first = &(*_values.get())[0];
+        auto first = &(get())[0];
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
             return p(v, index);
