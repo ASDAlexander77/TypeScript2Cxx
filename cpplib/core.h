@@ -899,7 +899,7 @@ struct string
     {
     }
 
-    string(const char *value) : _value(value), _control(value == nullptr ? string_null : string_defined)
+    string(const char *value) : _value(value == nullptr ? "" : value), _control(value == nullptr ? string_null : string_defined)
     {
     }
 
@@ -2147,7 +2147,12 @@ struct any
             {
             }    
         */
-        
+
+        if (get_type() == anyTypeId::undefined_type)
+        {
+            return js::string();
+        }
+
         if (get_type() == anyTypeId::string_type)
         {
             return string_ref();
@@ -2157,6 +2162,11 @@ struct any
         {
             return js::string(number_ref().operator std::string());
         }
+
+        if (get_type() == anyTypeId::pointer_type)
+        {
+            return js::string(get<js::pointer_t>());
+        }        
 
         throw "wrong type";
     }

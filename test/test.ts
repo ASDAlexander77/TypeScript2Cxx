@@ -84,125 +84,41 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-namespace exceptions {
-    function immediate(k: number) {
-        try {
-            pause(1)
-            if (k > 0)
-                throw "hl" + k
-            pause(1)
-            glb1++
-        } catch (e) {
-            assert(e == "hl" + k)
-            glb1 += 10
-            if (k >= 10)
-                throw e
-        } finally {
-            x += glb1
-        }
-    }
+function eqOp() {
+    msg("eqOp")
+    let x = 12
+    assert((x += 10) == 22, "Y0")
+    assert(x == 22, "Y1")
+    x /= 2
+    assert(x == 11, "Y2")
 
-    function throwVal(n: number) {
-        pause(1)
-        if (n > 0)
-            throw "hel" + n
-        pause(1)
-    }
-
-
-    function higherorder(k: number) {
-        try {
-            [1].map(() => throwVal(k))
-            glb1++
-        } catch (e) {
-            assert(e == "hel" + k)
-            glb1 += 10
-            if (k >= 10)
-                throw e
-        } finally {
-            x += glb1
-        }
-    }
-
-    function lambda(k:number) {
-        function inner() {
-            try {
-                throwVal(k)
-                glb1++
-            } catch (e) {
-                assert(e == "hel" + k)
-                glb1 += 10
-                if (k >= 10)
-                    throw e
-            } finally {
-                x += glb1
-            }
-        }
-        inner()
-    }
-
-    function callingThrowVal(k: number) {
-        try {
-            pause(1)
-            throwVal(k)
-            pause(1)
-            glb1++
-        } catch (e) {
-            assert(e == "hel" + k)
-            glb1 += 10
-            if (k >= 10)
-                throw e
-        } finally {
-            x += glb1
-        }
-    }
-
-    function nested() {
-        try {
-            try {
-                callingThrowVal(10)
-            } catch (e) {
-                assert(glb1 == 10 && x == 10)
-                glb1++
-                throw e
-            }
-        } catch (ee) {
-            assert(glb1 == 11)
-        }
-    }
-
-    function test3(fn:(k:number)=>void) {
-        glb1 = x = 0
-        fn(1)
-        assert(glb1 == 10 && x == 10)
-        fn(0)
-        assert(glb1 == 11 && x == 21)
-        fn(3)
-        assert(glb1 == 21 && x == 42)
-    }
-
-    export function run() {
-        msg("test exn")
-        glb1 = x = 0
-        callingThrowVal(1)
-        assert(glb1 == 10 && x == 10)
-        callingThrowVal(0)
-        assert(glb1 == 11 && x == 21)
-        callingThrowVal(3)
-        assert(glb1 == 21 && x == 42)
-
-        test3(callingThrowVal)
-        test3(immediate)
-        test3(higherorder)
-        test3(lambda)
-
-        glb1 = x = 0
-        nested()
-        assert(glb1 == 11)
-        msg("test exn done")
-    }
+    let s = ("fo" + 1)
+    let t = ("ba" + 2)
+    s += t
+    assert(s == "fo1b" + "a2", "fb")
 }
 
-exceptions.run();clean()
+function eqOpString() {
+    msg("eqOpStr")
+    let x = "fo"
+    assert((x += "ba") == "foba", "SY0")
+    assert(x == "foba", "SY1")
+}
+
+eqOp()
+eqOpString()
+
+function eq<A, B>(a: A, b: B) { return a == b as any as A }
+
+function eqG() {
+    assert(eq("2", 2), "2")
+    assert(eq(2, "2"), "2'")
+    assert(!eq("null", null), "=1")
+    assert(!eq(null, "null"), "=2")
+    assert(!eq("2", 3), "=3")
+}
+
+eqG()
+clean()
 msg("test OK!")
 

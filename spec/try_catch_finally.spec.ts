@@ -19,7 +19,7 @@ describe('Try/Finally', () => {
         } catch (e) {}                              \
     '])));
 
-    it('Simple Try/Catch/Finally', () => expect('1\r\n1\r\nerror\r\n10\r\n1\r\n').to.equals(new Run().test([
+    it('Simple Try/Catch/Finally', () => expect('1\r\nerror\r\n10\r\n1\r\n1\r\n').to.equals(new Run().test([
         'let i = 1;                             \
         try {                                   \
             console.log(i);                     \
