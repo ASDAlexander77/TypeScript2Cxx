@@ -911,8 +911,6 @@ struct string
     {
     }
 
-    string(any val);
-
     inline operator const char *()
     {
         return _value.c_str();
@@ -1741,9 +1739,9 @@ struct object
         return object_traits<object_type>::access(_values);
     }
 
-    static ObjectKeys<js::string, object_type> keys(const object &);
+    static ObjectKeys<js::string, object_type_base> keys(const object &);
 
-    ObjectKeys<js::string, object_type> keys();
+    ObjectKeys<js::string, object_type_base> keys();
 
     constexpr object *operator->()
     {
@@ -2142,6 +2140,14 @@ struct any
 
     operator js::string()
     {
+        /*
+            // String
+            template <typename T>
+            string<T>::string(any val) : _value(val != null ? val.operator std::string() : string_empty._value), _control(val != null ? string_defined : string_null)
+            {
+            }    
+        */
+        
         if (get_type() == anyTypeId::string_type)
         {
             return string_ref();
@@ -3138,12 +3144,6 @@ js::string number<V>::toString(number_t radix)
     return js::string(std::to_string(_value));
 }
 
-// String
-template <typename T>
-string<T>::string(any val) : _value(val != null ? val.operator std::string() : string_empty._value), _control(val != null ? string_defined : string_null)
-{
-}    
-
 template <typename T>
 string<T> string<T>::operator+(any value)
 {
@@ -3188,15 +3188,15 @@ object<K, V>::object(const undefined_t &) : _values(object<K, V>::object_traits<
 }
 
 template <typename K, typename V>
-ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys(const object<K, V> &obj)
+ObjectKeys<js::string, typename object<K, V>::object_type_base> object<K, V>::keys(const object<K, V> &obj)
 {
-    return ObjectKeys<js::string, object<K, V>::object_type>(obj->get());
+    return ObjectKeys<js::string, object<K, V>::object_type_base>(obj->get());
 }
 
 template <typename K, typename V>
-ObjectKeys<js::string, typename object<K, V>::object_type> object<K, V>::keys()
+ObjectKeys<js::string, typename object<K, V>::object_type_base> object<K, V>::keys()
 {
-    return ObjectKeys<js::string, object<K, V>::object_type>(get());
+    return ObjectKeys<js::string, object<K, V>::object_type_base>(get());
 }
 
 template <typename K, typename V>
