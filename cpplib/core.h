@@ -106,7 +106,7 @@ inline bool __is(T *t)
 template <typename I, typename T>
 inline I as(T t)
 {
-    return dynamic_cast<I>(t);
+    return static_cast<I>(t);
 }
 
 template <typename I, typename T>
