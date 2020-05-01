@@ -115,10 +115,16 @@ inline I *as(T *t)
     return dynamic_cast<I *>(t);
 }
 
-template <typename I, typename T>
+template <typename I, typename T, class = std::enable_if_t<!std::is_same_v<I, any>>>
 inline std::shared_ptr<I> as(const std::shared_ptr<T> &t)
 {
-    return std::dynamic_pointer_cast<std::shared_ptr<I>>(t);
+    return std::dynamic_pointer_cast<I>(t);
+}
+
+template <typename I, typename T, class = std::enable_if_t<std::is_same_v<I, any>>>
+inline I as(const std::shared_ptr<T> &t)
+{
+    return I(t);
 }
 
 template <class T>
