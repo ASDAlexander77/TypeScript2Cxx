@@ -15,7 +15,7 @@ namespace Generics {
         for (let i = 0; i < len - 1; ++i) {
             for (let j = i + 1; j < len; ++j) {
                 if (callbackfn(arr[i], arr[j]) > 0) {
-                    swap<T>(arr, i, j);
+                    swap(arr, i, j);
                 }
             }
         }
@@ -30,7 +30,7 @@ namespace Generics {
 function testGenerics() {
     msg("testGenerics")
     let inArray = [4, 3, 4593, 23, 43, -1]
-    Generics.arraySort<number>(inArray, (x: number, y: number) => { return x - y })
+    Generics.arraySort(inArray, (x: number, y: number) => { return x - y })
     let expectedArray = [-1, 3, 4, 23, 43, 4593]
     for (let i = 0; i < expectedArray.length; i++) {
         assert(inArray[i] == expectedArray[i])
