@@ -1,6 +1,6 @@
 {
   "name": "typescript-cxx",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "TypeScript to C++ transpiler",
   "keywords": [
     "typescript",
@@ -18,9 +18,10 @@
   "dependencies": {
     "cross-spawn": "^6.0.5",
     "fs-extra": "^7.0.1",
+    "install": "^0.12.2",
     "path": "^0.12.7",
     "source-map": "^0.7.3",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.8.3"
   },
   "engines": {
     "node": ">=4.2.0"
@@ -28,6 +29,7 @@
   "files": [
     "bin/",
     "lib/",
+    "cpplib/",
     "README.md"
   ],
   "author": "Alexander Duzhar",
