@@ -31,3 +31,4 @@ out1
 /packages/tsc-cxx/lib
 /packages/tsc-cxx/cpplib
 /packages/tsc-cxx/node_modules
+__build
