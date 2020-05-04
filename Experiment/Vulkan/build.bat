@@ -1,7 +1,7 @@
 echo off
 
 :: Specify UTF-8 for character encoding
-#chcp 65001
+rem chcp 65001
 
 :: Check that cmake is configured
 where cmake.exe > nul 2>&1

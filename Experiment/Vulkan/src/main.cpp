@@ -4,7 +4,7 @@
 
 #define APP_SHORT_NAME "vulkansamples_instance"
 
-int main(int argc, char *argv[]) {
+int sample_main(int argc, char *argv[]) {
     struct sample_info info = {};
     init_global_layer_properties(info);
 

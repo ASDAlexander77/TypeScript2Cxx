@@ -22,17 +22,25 @@ message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 message("VULKAN_SDK  = $ENV{VULKAN_SDK}")
 
+set (GLMINCLUDES "$ENV{VULKAN_SDK}/Samples/API-Samples/utils")
+set (SAMPLES_DATA_DIR "$ENV{VULKAN_SDK}/Samples/API-Samples/data")
+set (UTILS_NAME vsamputils)
+add_definitions(-DVULKAN_SAMPLES_BASE_DIR="$ENV{VULKAN_SDK}/Samples")
+
 # files
-file(GLOB_RECURSE prj_SRC
-    "*.cpp"
+file(GLOB prj_SRC "src/*.cpp"
 )
 
 include_directories("./src")
 include_directories("../../cpplib")
+include_directories("${GLMINCLUDES}" "${SAMPLES_DATA_DIR}")
+include_directories(SYSTEM "${GLMINCLUDES}")
 link_directories("./")
 
 # add vulkan
 include_directories($ENV{VULKAN_SDK}/Include)
+link_directories($ENV{VULKAN_SDK}/Lib)
+set (EXTRA_LIBS ${EXTRA_LIBS} "vulkan-1" "${UTILS_NAME}")
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     SET(BUILD_TYPE "debug")
@@ -53,8 +61,14 @@ endif()
 
 add_executable (${PROJECT_NAME} "${prj_SRC}")
 
+add_subdirectory("$ENV{VULKAN_SDK}/Samples/API-Samples/utils" "utils")
+
+message("EXTRA_LIBS  = ${EXTRA_LIBS}")
+
 if (MSVC)
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})
 else()
 target_link_libraries (${PROJECT_NAME} "stdc++" ${EXTRA_LIBS})
 endif()
+
+
