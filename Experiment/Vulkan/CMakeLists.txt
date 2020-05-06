@@ -23,6 +23,7 @@ message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 message("VULKAN_SDK  = $ENV{VULKAN_SDK}")
 
 set (GLMINCLUDES "$ENV{VULKAN_SDK}/Samples/API-Samples/utils")
+set (ShaderHeaders_INCLUDES "$ENV{VULKAN_SDK}/Samples/build/API-Samples/ShaderHeaders")
 set (SAMPLES_DATA_DIR "$ENV{VULKAN_SDK}/Samples/API-Samples/data")
 set (UTILS_NAME vsamputils)
 add_definitions(-DVULKAN_SAMPLES_BASE_DIR="$ENV{VULKAN_SDK}/Samples")
@@ -33,7 +34,7 @@ file(GLOB prj_SRC "src/*.cpp"
 
 include_directories("./src")
 include_directories("../../cpplib")
-include_directories("${GLMINCLUDES}" "${SAMPLES_DATA_DIR}")
+include_directories("${GLMINCLUDES}" "${SAMPLES_DATA_DIR}" "${ShaderHeaders_INCLUDES}")
 include_directories(SYSTEM "${GLMINCLUDES}")
 link_directories("./")
 
