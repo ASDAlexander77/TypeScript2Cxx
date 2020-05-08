@@ -1,0 +1,7 @@
+{
+    "files.exclude": {
+        "**/node_modules/*/**": true
+    },
+
+    "clang-format.executable": "clang-format.exe"
+}
