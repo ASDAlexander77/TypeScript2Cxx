@@ -222,6 +222,8 @@ export class Run {
             }
         }
 
+        const rootFolder = process.cwd();
+
         sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
             // track version
             const paths = sources.filter(sf => s.fileName.endsWith(sf));
@@ -268,7 +270,11 @@ export class Run {
             emitterSource.SourceMode = true;
             emitterSource.processNode(s);
 
-            const fileNameNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+            let fileNameNoExt = s.fileName.endsWith('.ts') ? s.fileName.substr(0, s.fileName.length - 3) : s.fileName;
+            if (fileNameNoExt.startsWith(rootFolder)) {
+                fileNameNoExt = fileNameNoExt.substring(rootFolder.length);
+            }
+
             const fileNameHeader = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'h'));
             const fileNameCpp = Helpers.correctFileNameForCxx(fileNameNoExt.concat('.', 'cpp'));
 

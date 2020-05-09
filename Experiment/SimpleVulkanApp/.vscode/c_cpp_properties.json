@@ -44,7 +44,9 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
                 "${workspaceRoot}",
-                "${workspaceRoot}/../cpplib"
+                "${workspaceRoot}/src",
+                "${workspaceRoot}/src/cpp",
+                "${workspaceRoot}/../../cpplib"
             ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
@@ -55,7 +57,9 @@
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
                     "${workspaceRoot}",
-	            "${workspaceRoot}/../cpplib"
+                    "${workspaceRoot}/src",
+                    "${workspaceRoot}/src/cpp",
+                    "${workspaceRoot}/../../cpplib"
                 ]
             },
             "intelliSenseMode": "msvc-x64",
