@@ -2,7 +2,7 @@ echo off
 
 set START_DIR=%CD%
 
-# convert ts to cpp
+rem convert ts to cpp
 cd src
 node ..\..\..\__out\main.js      
 cd %START_DIR%

@@ -222,7 +222,11 @@ export class Run {
             }
         }
 
-        const rootFolder = process.cwd();
+        let rootFolder = process.cwd().replace(/\\/g, '/');
+        const lastChar2  = rootFolder[rootFolder.length - 1];
+        if (lastChar2 !== '/' && lastChar2 !== '\\') {
+            rootFolder += '/';
+        }
 
         sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
             // track version
@@ -284,7 +288,7 @@ export class Run {
                     + 'Writing to file: '
                     + resetEscapeSequence
                     + ForegroundColorEscapeSequences.White
-                    + s.fileName
+                    + outDir + fileNameCpp
                     + resetEscapeSequence);
             }
 
