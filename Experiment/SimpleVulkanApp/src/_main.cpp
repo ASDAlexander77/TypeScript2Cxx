@@ -3,7 +3,7 @@
 
 int main(int argc, char** args) 
 {
-	auto w = std::shared_ptr<Window>();
+	auto w = std::make_shared<Window>();
 	w->run();
 	return 0;
 }
