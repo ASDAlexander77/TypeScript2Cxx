@@ -1,5 +1,12 @@
 echo off
 
+set START_DIR=%CD%
+
+# convert ts to cpp
+cd src
+node ..\..\..\__out\main.js      
+cd %START_DIR%
+
 :: Specify UTF-8 for character encoding
 rem chcp 65001
 
@@ -24,8 +31,6 @@ if %msbuild_version% lss 16 (
     exit /b 1
 )
 set version_string=Visual Studio %msbuild_version%
-
-set START_DIR=%CD%
 
 :: Build
 md __build

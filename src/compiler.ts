@@ -130,6 +130,7 @@ export class Run {
         const parsedCommandLine = ts.parseJsonSourceFileConfigFileContent(configFile, parseConfigHost, './');
 
         const watch = cmdLineOptions && 'watch' in cmdLineOptions;
+        cmdLineOptions.outDir = parsedCommandLine.options && parsedCommandLine.options.outDir;
 
         if (!watch) {
             // simple case, just compile
@@ -209,6 +210,18 @@ export class Run {
 
         const sourceFiles = program.getSourceFiles();
 
+        let outDir = cmdLineOptions.outDir || '';
+        if (outDir) {
+            const lastChar  = outDir[outDir.length - 1];
+            if (lastChar !== '/' && lastChar !== '\\') {
+                outDir += '/';
+            }
+
+            if (!fs.pathExistsSync(outDir)) {
+                fs.mkdirSync(outDir);
+            }
+        }
+
         sourceFiles.filter(s => !s.fileName.endsWith('.d.ts') && sources.some(sf => s.fileName.endsWith(sf))).forEach(s => {
             // track version
             const paths = sources.filter(sf => s.fileName.endsWith(sf));
@@ -269,8 +282,8 @@ export class Run {
                     + resetEscapeSequence);
             }
 
-            fs.writeFileSync(fileNameHeader, emitterHeader.writer.getText());
-            fs.writeFileSync(fileNameCpp, emitterSource.writer.getText());
+            fs.writeFileSync(outDir + fileNameHeader, emitterHeader.writer.getText());
+            fs.writeFileSync(outDir + fileNameCpp, emitterSource.writer.getText());
         });
 
         if (!cmdLineOptions.suppressOutput) {

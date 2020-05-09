@@ -22,6 +22,8 @@ __build_win32_release
 /Experiment/src
 /Experiment/__build
 /Experiment/out
+/Experiment/SimpleVulkanApp/src/cpp
+/Experiment/SimpleVulkanApp/__build
 *.ilk
 *.pdb
 *.ipch

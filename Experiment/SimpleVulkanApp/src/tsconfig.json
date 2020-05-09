@@ -1,0 +1,31 @@
+{
+    "compileOnSave": false,
+    "compilerOptions": {
+      "module": "commonjs",
+      "noUnusedLocals": true,
+      "noUnusedParameters": true,
+      "outDir": "./cpp",
+      "baseUrl": "./",
+      "sourceMap": true,
+      "declaration": false,
+      "moduleResolution": "node",
+      "emitDecoratorMetadata": true,
+      "experimentalDecorators": true,
+      "target": "es5",
+      "alwaysStrict": false,
+      "noImplicitUseStrict": true,
+      "typeRoots": [
+      ],
+      "types": [],
+      "lib": [
+        "es5",
+        "dom"
+      ]
+    },
+    "include": [
+      "*.ts"
+    ],
+    "exclude": [
+      "node_modules"
+    ]
+  }
