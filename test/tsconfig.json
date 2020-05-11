@@ -4,7 +4,7 @@
       "module": "commonjs",
       "noUnusedLocals": true,
       "noUnusedParameters": true,
-      "outDir": "./__out/tests",
+      "outDir": ".",
       "baseUrl": "./",
       "sourceMap": true,
       "declaration": false,
