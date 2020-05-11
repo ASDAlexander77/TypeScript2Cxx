@@ -3466,6 +3466,12 @@ constexpr bool in(V v, O o)
 namespace js
 {
 
+template <class T>
+constexpr T* addressof(T& arg) 
+{
+    return std::addressof(arg);
+}    
+
 template<class _Fn, class... _Args>
 static void thread(_Fn f, _Args... args) {
     new std::thread(f, args...);
@@ -3871,8 +3877,36 @@ static struct Console
     void error(Args&&... args)
     {
         error_req(args...);
-        std::cerr << std::endl;
+        std::cerror << std::endl;
     }
+
+    template <class Arg1>
+    inline void debug_req(Arg1&& arg1)
+    {
+        if constexpr (std::is_enum_v<Arg1>)
+        {
+            std::clog << static_cast<int>(arg1);
+        }
+        else
+        {
+            std::clog << arg1;
+        }
+    }
+
+    template <class Arg1, class... Args>
+    inline void debug_req(Arg1&& arg1, Args&&... args)
+    {
+        std::cerr << arg1;
+        debug_req(args...);
+    }
+
+    template <class... Args>
+    void debug(Args&&... args)
+    {
+        debug_req(args...);
+        std::clog << std::endl;
+    }
+
 
 } console;
 

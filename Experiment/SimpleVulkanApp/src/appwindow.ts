@@ -1,13 +1,12 @@
-declare namespace std {
-}
-
 class AppWindow {
     constructor() {
-        const v = 10;
-        const pv = std.addressof(v);
+    }
+
+    intialize(commandLine: string): void {
+        console.debug('cmd line: ', commandLine);
     }
 
     onPaint(): void {
-        console.log('on paint...');
+        console.debug('on paint...');
     }
 }

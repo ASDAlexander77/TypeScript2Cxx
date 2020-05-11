@@ -1,27 +1,31 @@
 #ifndef UNICODE
-#define UNICODE
+//#define UNICODE
 #endif 
 
 #pragma comment(linker, "/subsystem:windows")
 
 #include <winsock2.h>
 #include <windows.h>
+#include <tchar.h>
 
-#include <vulkan/vulkan.h>
+#include "vulkan.win32.h"
 
 #undef min
 #undef max
-
 #include "appwindow.h"
 
-auto appWindow = std::make_shared<AppWindow>();
+auto appWindow = std::make_unique<AppWindow>();
+VulkanApi vulkanApi;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
 {
+    vulkanApi.initialize();
+    appWindow->intialize(js::string(pCmdLine));
+
     // Register the window class.
-    const auto CLASS_NAME  = L"Application Window Class";
+    const auto CLASS_NAME  = _T("Application Window Class");
     
     WNDCLASS wc = { };
 
@@ -36,7 +40,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
     auto hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        L"Application Window",    // Window text
+        _T("Application Window"),       // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
