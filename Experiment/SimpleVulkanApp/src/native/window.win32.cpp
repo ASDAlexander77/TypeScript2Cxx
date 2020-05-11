@@ -1,6 +1,11 @@
+#ifndef UNICODE
+#define UNICODE
+#endif 
+
+#pragma comment(linker, "/subsystem:windows")
+
 #include <winsock2.h>
 #include <windows.h>
-#include <assert.h>
 
 #include <vulkan/vulkan.h>
 
@@ -9,94 +14,79 @@
 
 #include "appwindow.h"
 
-struct window_data
+
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
-    HINSTANCE connection;        // hInstance - Windows Instance
-    HWND window;                 // hWnd - window handle
+    // Register the window class.
+    const wchar_t CLASS_NAME[]  = L"Sample Window Class";
+    
+    WNDCLASS wc = { };
 
-    VkInstance inst;
-    VkSurfaceKHR surface;
+    wc.lpfnWndProc   = WindowProc;
+    wc.hInstance     = hInstance;
+    wc.lpszClassName = CLASS_NAME;
 
-    std::shared_ptr<AppWindow> appWindow;
+    RegisterClass(&wc);
 
-    window_data(std::shared_ptr<AppWindow> appWindow_) : appWindow(appWindow_) {}
-};
+    // Create the window.
 
-// MS-Windows event handling function:
-LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-    auto data = reinterpret_cast<window_data*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    switch (uMsg) {
-        case WM_CLOSE:
-            delete data;
-            PostQuitMessage(0);
-            break;
-        case WM_PAINT:
-            data->appWindow->onPaint();
-            return 0;
-        default:
-            break;
+    HWND hwnd = CreateWindowEx(
+        0,                              // Optional window styles.
+        CLASS_NAME,                     // Window class
+        L"Application Window",    // Window text
+        WS_OVERLAPPEDWINDOW,            // Window style
+
+        // Size and position
+        CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
+
+        NULL,       // Parent window    
+        NULL,       // Menu
+        hInstance,  // Instance handle
+        NULL        // Additional application data
+        );
+
+    if (hwnd == NULL)
+    {
+        return 0;
     }
 
-    return (DefWindowProc(hWnd, uMsg, wParam, lParam));
-}
+    ShowWindow(hwnd, nCmdShow);
 
-void init_window(std::shared_ptr<AppWindow> appWindow) {
-    auto* data = new window_data(appWindow);
-    data->appWindow = appWindow;
+    // Run the message loop.
 
-    WNDCLASSEX win_class;
-    assert(appWindow->width > 0);
-    assert(appWindow->height > 0);
-
-    data.connection = GetModuleHandle(NULL);
-
-    // Initialize the window class structure:
-    win_class.cbSize = sizeof(WNDCLASSEX);
-    win_class.style = CS_HREDRAW | CS_VREDRAW;
-    win_class.lpfnWndProc = WndProc;
-    win_class.cbClsExtra = 0;
-    win_class.cbWndExtra = 0;
-    win_class.hInstance = data.connection;  // hInstance
-    win_class.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    win_class.hCursor = LoadCursor(NULL, IDC_ARROW);
-    win_class.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
-    win_class.lpszMenuName = NULL;
-    win_class.lpszClassName = appWindow->name;
-    win_class.hIconSm = LoadIcon(NULL, IDI_WINLOGO);
-    // Register window class:
-    if (!RegisterClassEx(&win_class)) {
-        // It didn't work, so try to give a useful error:
-        std::cerr << "Unexpected error trying to start the application!" << std::endl;
-        exit(1);
-    }
-    // Create window with the registered class:
-    RECT wr = {0, 0, appWindow->width, appWindow->height};
-    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
-    data->window = CreateWindowEx(0,
-                                 appWindow->name,        // class name
-                                 appWindow->name,        // app name
-                                 WS_OVERLAPPEDWINDOW |// window style
-                                     WS_VISIBLE | WS_SYSMENU,
-                                 100, 100,            // x/y coords
-                                 wr.right - wr.left,  // width
-                                 wr.bottom - wr.top,  // height
-                                 NULL,                // handle to parent
-                                 NULL,                // handle to menu
-                                 data.connection,  // hInstance
-                                 NULL);               // no extra parameters
-    if (!data->window) {
-        // It didn't work, so try to give a useful error:
-        std::cerr << "Cannot create a window in which to draw!" << std::endl;
-        exit(1);
+    MSG msg = { };
+    while (GetMessage(&msg, NULL, 0, 0))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 
-    SetWindowLongPtr(data->window, GWLP_USERDATA, (LONG_PTR)&data);
+    return 0;
 }
 
-/*
-void destroy_window(std::shared_ptr<AppWindow> window) {
-    vkDestroySurfaceKHR(data.inst, data.surface, NULL);
-    DestroyWindow(data.window);
-}
-*/
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    switch (uMsg)
+    {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        return 0;
 
+    case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hwnd, &ps);
+
+
+
+            FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
+
+            EndPaint(hwnd, &ps);
+        }
+        return 0;
+
+    }
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
