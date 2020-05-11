@@ -3,5 +3,6 @@ class AppWindow {
     }
 
     onPaint(): void {
+        console.log('on paint...');
     }
 }

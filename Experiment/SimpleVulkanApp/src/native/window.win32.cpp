@@ -14,13 +14,14 @@
 
 #include "appwindow.h"
 
-
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow)
 {
+    auto appWindow = new AppWindow();
+
     // Register the window class.
-    const wchar_t CLASS_NAME[]  = L"Sample Window Class";
+    const wchar_t CLASS_NAME[]  = L"Application Window Class";
     
     WNDCLASS wc = { };
 
@@ -52,6 +53,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
         return 0;
     }
 
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)appWindow);
+
     ShowWindow(hwnd, nCmdShow);
 
     // Run the message loop.
@@ -68,9 +71,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE, PWSTR pCmdLine, int nCmdShow
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    auto* appWindow = reinterpret_cast<AppWindow *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
     switch (uMsg)
     {
     case WM_DESTROY:
+        delete appWindow;
         PostQuitMessage(0);
         return 0;
 
@@ -79,14 +85,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
 
-
-
             FillRect(hdc, &ps.rcPaint, (HBRUSH) (COLOR_WINDOW+1));
+
+            appWindow->onPaint();
 
             EndPaint(hwnd, &ps);
         }
-        return 0;
 
+        return 0;
     }
+
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
