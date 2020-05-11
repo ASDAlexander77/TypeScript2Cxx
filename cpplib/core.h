@@ -3676,70 +3676,70 @@ static struct math_t
         return this;
     }
 
-    static number pow(number op, number op2)
+    static number pow(number op1, number op2)
     {
-        return number(std::pow(static_cast<double>(op), static_cast<double>(op2)));
+        return number(std::pow(static_cast<double>(op1), static_cast<double>(op2)));
     }
 
-    static number min(number op, number op2)
+    static number min(number op1, number op2)
     {
-        return number(std::min(static_cast<double>(op), static_cast<double>(op2)));
+        return number(std::min(static_cast<double>(op1), static_cast<double>(op2)));
     }
 
-    static number max(number op, number op2)
+    static number max(number op1, number op2)
     {
-        return number(std::max(static_cast<double>(op), static_cast<double>(op2)));
+        return number(std::max(static_cast<double>(op1), static_cast<double>(op2)));
     }
 
-    static number sin(number op)
+    static number sin(number op1)
     {
-        return number(std::sin(static_cast<double>(op)));
+        return number(std::sin(static_cast<double>(op1)));
     }
 
-    static number cos(number op)
+    static number cos(number op1)
     {
-        return number(std::cos(static_cast<double>(op)));
+        return number(std::cos(static_cast<double>(op1)));
     }
 
-    static number asin(number op)
+    static number asin(number op1)
     {
-        return number(std::asin(static_cast<double>(op)));
+        return number(std::asin(static_cast<double>(op1)));
     }
 
-    static number acos(number op)
+    static number acos(number op1)
     {
-        return number(std::acos(static_cast<double>(op)));
+        return number(std::acos(static_cast<double>(op1)));
     }
 
-    static number abs(number op)
+    static number abs(number op1)
     {
-        return number(std::abs(static_cast<double>(op)));
+        return number(std::abs(static_cast<double>(op1)));
     }
 
-    static number floor(number op)
+    static number floor(number op1)
     {
-        return number(std::floor(static_cast<double>(op)));
+        return number(std::floor(static_cast<double>(op1)));
     }
 
-    static number round(number op, int numDecimalPlaces = 0)
+    static number round(number op1, int numDecimalPlaces = 0)
     {
         const auto mult = 10 ^ (numDecimalPlaces);
-        return number(std::floor(static_cast<double>(op) * mult + 0.5) / mult);
+        return number(std::floor(static_cast<double>(op1) * mult + 0.5) / mult);
     }
 
-    static number sqrt(number op)
+    static number sqrt(number op1)
     {
-        return number(std::sqrt(static_cast<double>(op)));
+        return number(std::sqrt(static_cast<double>(op1)));
     }
 
-    static number tan(number op)
+    static number tan(number op1)
     {
-        return number(std::tan(static_cast<double>(op)));
+        return number(std::tan(static_cast<double>(op1)));
     }
 
-    static number atan(number op)
+    static number atan(number op1)
     {
-        return number(std::atan(static_cast<double>(op)));
+        return number(std::atan(static_cast<double>(op1)));
     }
 
     static number atan2(number op1, number op2)
@@ -3747,14 +3747,14 @@ static struct math_t
         return number(std::atan2(static_cast<double>(op1), static_cast<double>(op2)));
     }
 
-    static number log(number op)
+    static number log(number op1)
     {
-        return number(std::log(static_cast<double>(op)));
+        return number(std::log(static_cast<double>(op1)));
     }
 
-    static number exp(number op)
+    static number exp(number op1)
     {
-        return number(std::exp(static_cast<double>(op)));
+        return number(std::exp(static_cast<double>(op1)));
     }
 
     static number random()
@@ -3765,9 +3765,9 @@ static struct math_t
         return number(rnd);
     }
 
-    static number sign(number op)
+    static number sign(number op1)
     {
-        auto d = static_cast<double>(op);
+        auto d = static_cast<double>(op1);
         return number(d < 0 ? -1 : d > 0 ? 1 : 0);
     }
 } Math;

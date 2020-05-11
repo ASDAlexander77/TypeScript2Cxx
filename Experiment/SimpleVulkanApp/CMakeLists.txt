@@ -23,7 +23,7 @@ message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 message("VULKAN_SDK  = $ENV{VULKAN_SDK}")
 
 # files
-file(GLOB SRC "src/*.cpp" "src/cpp/*.cpp")
+file(GLOB SRC "src/*.cpp" "src/cpp/*.cpp" "src/native/*.cpp")
 
 include_directories("./src")
 include_directories("./src/cpp")

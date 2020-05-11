@@ -1,9 +1,9 @@
 #include "core.h"
-#include "main.h"
+#include "appwindow.h"
 
 int main(int argc, char** args) 
 {
-	auto w = std::make_shared<Window>();
+	auto w = std::make_shared<AppWindow>();
 	w->run();
 	return 0;
 }
