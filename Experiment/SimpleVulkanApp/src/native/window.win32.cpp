@@ -59,12 +59,17 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
 
     ShowWindow(hwnd, nCmdShow);
 
-    // Run the message loop.
-
-    vulkanApi.create_surface_win32(hInstance, hwnd);
+    vulkanApi.on_create_surface = 
+        std::function<void(vk::Instance& inst, vk::SurfaceKHR& surface)>([=] (vk::Instance& inst, vk::SurfaceKHR& surface) {
+            auto const createInfo = vk::Win32SurfaceCreateInfoKHR().setHinstance(hInstance).setHwnd(hwnd);
+            auto result = inst.createWin32SurfaceKHR(&createInfo, nullptr, &surface);
+            VERIFY(result == vk::Result::eSuccess);
+            return true;
+        });
     vulkanApi.initialize_swapchain();
     vulkanApi.prepare();
 
+    // Run the message loop.
     auto run = true;
     auto exit_code = 0;
     MSG msg = { };
@@ -99,23 +104,45 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     switch (uMsg)
     {
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        return 0;
-
-    case WM_PAINT:
-        {
-            PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hwnd, &ps);
-
-            FillRect(hdc, &ps.rcPaint, reinterpret_cast<HBRUSH>((COLOR_WINDOW+1)));
-
-            appWindow->onPaint();
-
-            EndPaint(hwnd, &ps);
-        }
-
-        return 0;
+        case WM_CLOSE:
+            PostQuitMessage(0);
+            break;
+        case WM_PAINT:
+            vulkanApi.run();
+            break;
+        case WM_GETMINMAXINFO:  // set window's minimum size
+            ((MINMAXINFO *)lParam)->ptMinTrackSize = POINT{100, 100};
+            return 0;
+        case WM_ERASEBKGND:
+            return 1;
+        case WM_SIZE:
+            // Resize the application to the new window size, except when
+            // it was minimized. Vulkan doesn't support images or swapchains
+            // with width=0 and height=0.
+            if (wParam != SIZE_MINIMIZED) {
+                vulkanApi.width = lParam & 0xffff;
+                vulkanApi.height = (lParam & 0xffff0000) >> 16;
+                vulkanApi.resize();
+            }
+            break;
+        case WM_KEYDOWN:
+            switch (wParam) {
+                case VK_ESCAPE:
+                    PostQuitMessage(0);
+                    break;
+                case VK_LEFT:
+                    vulkanApi.spin_angle -= vulkanApi.spin_increment;
+                    break;
+                case VK_RIGHT:
+                    vulkanApi.spin_angle += vulkanApi.spin_increment;
+                    break;
+                case VK_SPACE:
+                    vulkanApi.pause = !vulkanApi.pause;
+                    break;
+            }
+            return 0;
+        default:
+            break;
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
