@@ -243,7 +243,41 @@ public:
 
     std::function<void(vk::Instance& inst, vk::SurfaceKHR& surface)> on_create_surface;
 
-    VulkanApi() {};
+    VulkanApi() :
+        prepared{false},
+        use_staging_buffer{false},
+        graphics_queue_family_index{0},
+        present_queue_family_index{0},
+        width{0},
+        height{0},
+        swapchainImageCount{0},
+        presentMode{vk::PresentModeKHR::eFifo},
+        frame_index{0},
+        spin_angle{0.0f},
+        spin_increment{0.0f},
+        pause{false},
+        current_buffer{0},
+        projection_matrix{},
+        view_matrix{},
+        model_matrix{} {
+
+        vec3 eye = {0.0f, 3.0f, 5.0f};
+        vec3 origin = {0, 0, 0};
+        vec3 up = {0.0f, 1.0f, 0.0};
+
+        width = 500;
+        height = 500;
+
+        spin_angle = 4.0f;
+        spin_increment = 0.2f;
+        pause = false;
+
+        mat4x4_perspective(projection_matrix, (float)degreesToRadians(45.0f), 1.0f, 0.1f, 100.0f);
+        mat4x4_look_at(view_matrix, eye, origin, up);
+        mat4x4_identity(model_matrix);
+
+        projection_matrix[1][1] *= -1;  // Flip projection matrix from GL to Vulkan orientation.            
+    }
 
     auto initialize() {
         return validate() 
