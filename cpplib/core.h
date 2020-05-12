@@ -3799,111 +3799,31 @@ static struct Console
         return this;
     }
 
-    template <class Arg1>
-    inline void log_req(Arg1&& arg1)
-    {
-        if constexpr (std::is_enum_v<Arg1>)
-        {
-            std::cout << static_cast<int>(arg1);
-        }
-        else
-        {
-            std::cout << arg1;
-        }
-    }
-
-    template <class Arg1, class... Args>
-    inline void log_req(Arg1&& arg1, Args&&... args)
-    {
-        std::cout << arg1;
-        log_req(args...);
-    }
-
     template <class... Args>
     void log(Args&&... args)
     {
-        log_req(args...);
+        auto dummy = { (std::cout << args, 0)... };
         std::cout << std::endl;
-    }
-
-    template <class Arg1>
-    inline void warn_req(Arg1&& arg1)
-    {
-        if constexpr (std::is_enum_v<Arg1>)
-        {
-            std::clog << static_cast<int>(arg1);
-        }
-        else
-        {
-            std::clog << arg1;
-        }
-    }
-
-    template <class Arg1, class... Args>
-    inline void warn_req(Arg1&& arg1, Args&&... args)
-    {
-        std::clog << arg1;
-        warn_req(args...);
     }
 
     template <class... Args>
     void warn(Args&&... args)
     {
-        warn_req(args...);
+        auto dummy = { (std::clog << args, 0)... };
         std::clog << std::endl;
-    }
-
-    template <class Arg1>
-    inline void error_req(Arg1&& arg1)
-    {
-        if constexpr (std::is_enum_v<Arg1>)
-        {
-            std::cerr << static_cast<int>(arg1);
-        }
-        else
-        {
-            std::cerr << arg1;
-        }
-    }
-
-    template <class Arg1, class... Args>
-    inline void error_req(Arg1&& arg1, Args&&... args)
-    {
-        std::cerr << arg1;
-        error_req(args...);
     }
 
     template <class... Args>
     void error(Args&&... args)
     {
-        error_req(args...);
-        std::cerror << std::endl;
-    }
-
-    template <class Arg1>
-    inline void debug_req(Arg1&& arg1)
-    {
-        if constexpr (std::is_enum_v<Arg1>)
-        {
-            std::clog << static_cast<int>(arg1);
-        }
-        else
-        {
-            std::clog << arg1;
-        }
-    }
-
-    template <class Arg1, class... Args>
-    inline void debug_req(Arg1&& arg1, Args&&... args)
-    {
-        std::cerr << arg1;
-        debug_req(args...);
+        auto dummy = { (std::cerr << args, 0)... };
+        std::cerr << std::endl;
     }
 
     template <class... Args>
     void debug(Args&&... args)
     {
-        debug_req(args...);
+        auto dummy = { (std::clog << args, 0)... };
         std::clog << std::endl;
     }
 
