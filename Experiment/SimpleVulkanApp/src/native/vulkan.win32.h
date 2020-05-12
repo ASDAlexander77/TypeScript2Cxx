@@ -19,7 +19,114 @@
 
 static char const *const tex_files[] = {"lunarg.ppm"};
 
+#include "linmath.h"
 #include "lunarg.ppm.h"
+
+struct vkcube_vs_uniform {
+    // Must start with MVP
+    float mvp[4][4];
+    float position[12 * 3][4];
+    float color[12 * 3][4];
+};
+
+struct vktexcube_vs_uniform {
+    // Must start with MVP
+    float mvp[4][4];
+    float position[12 * 3][4];
+    float attr[12 * 3][4];
+};
+
+//--------------------------------------------------------------------------------------
+// Mesh and VertexFormat Data
+//--------------------------------------------------------------------------------------
+// clang-format off
+static const float g_vertex_buffer_data[] = {
+    -1.0f,-1.0f,-1.0f,  // -X side
+    -1.0f,-1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+
+    -1.0f,-1.0f,-1.0f,  // -Z side
+     1.0f, 1.0f,-1.0f,
+     1.0f,-1.0f,-1.0f,
+    -1.0f,-1.0f,-1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+
+    -1.0f,-1.0f,-1.0f,  // -Y side
+     1.0f,-1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f,-1.0f,
+     1.0f,-1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+
+    -1.0f, 1.0f,-1.0f,  // +Y side
+    -1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f, 1.0f,-1.0f,
+     1.0f, 1.0f, 1.0f,
+     1.0f, 1.0f,-1.0f,
+
+     1.0f, 1.0f,-1.0f,  // +X side
+     1.0f, 1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f,-1.0f,-1.0f,
+     1.0f, 1.0f,-1.0f,
+
+    -1.0f, 1.0f, 1.0f,  // +Z side
+    -1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+    -1.0f,-1.0f, 1.0f,
+     1.0f,-1.0f, 1.0f,
+     1.0f, 1.0f, 1.0f,
+};
+
+static const float g_uv_buffer_data[] = {
+    0.0f, 1.0f,  // -X side
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+
+    1.0f, 1.0f,  // -Z side
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+
+    1.0f, 0.0f,  // -Y side
+    1.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    0.0f, 0.0f,
+
+    1.0f, 0.0f,  // +Y side
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+
+    1.0f, 0.0f,  // +X side
+    0.0f, 0.0f,
+    0.0f, 1.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+
+    0.0f, 0.0f,  // +Z side
+    0.0f, 1.0f,
+    1.0f, 0.0f,
+    0.0f, 1.0f,
+    1.0f, 1.0f,
+    1.0f, 0.0f,
+};
 
 typedef struct {
     vk::Image image;
@@ -113,6 +220,10 @@ public:
         vk::DeviceMemory mem;
         vk::DescriptorBufferInfo buffer_info;
     } uniform_data;
+
+    mat4x4 projection_matrix;
+    mat4x4 view_matrix;
+    mat4x4 model_matrix;
 
     VulkanApi() {};
 
@@ -792,12 +903,61 @@ private:
         return true;
     }
 
+    void prepare_texture_buffer(const char *filename, texture_object *tex_obj) {
+        int32_t tex_width;
+        int32_t tex_height;
+
+        if (!loadTexture(filename, NULL, NULL, &tex_width, &tex_height)) {
+            error("Failed to load textures", "Load Texture Failure");
+        }
+
+        tex_obj->tex_width = tex_width;
+        tex_obj->tex_height = tex_height;
+
+        auto const buffer_create_info = vk::BufferCreateInfo()
+                                            .setSize(tex_width * tex_height * 4)
+                                            .setUsage(vk::BufferUsageFlagBits::eTransferSrc)
+                                            .setSharingMode(vk::SharingMode::eExclusive)
+                                            .setQueueFamilyIndexCount(0)
+                                            .setPQueueFamilyIndices(nullptr);
+
+        auto result = device.createBuffer(&buffer_create_info, nullptr, &tex_obj->buffer);
+        VERIFY(result == vk::Result::eSuccess);
+
+        vk::MemoryRequirements mem_reqs;
+        device.getBufferMemoryRequirements(tex_obj->buffer, &mem_reqs);
+
+        tex_obj->mem_alloc.setAllocationSize(mem_reqs.size);
+        tex_obj->mem_alloc.setMemoryTypeIndex(0);
+
+        vk::MemoryPropertyFlags requirements = vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
+        auto pass = memory_type_from_properties(mem_reqs.memoryTypeBits, requirements, &tex_obj->mem_alloc.memoryTypeIndex);
+        VERIFY(pass == true);
+
+        result = device.allocateMemory(&tex_obj->mem_alloc, nullptr, &(tex_obj->mem));
+        VERIFY(result == vk::Result::eSuccess);
+
+        result = device.bindBufferMemory(tex_obj->buffer, tex_obj->mem, 0);
+        VERIFY(result == vk::Result::eSuccess);
+
+        vk::SubresourceLayout layout;
+        layout.rowPitch = tex_width * 4;
+        auto data = device.mapMemory(tex_obj->mem, 0, tex_obj->mem_alloc.allocationSize);
+        VERIFY(data.result == vk::Result::eSuccess);
+
+        if (!loadTexture(filename, (uint8_t *)data.value, &layout, &tex_width, &tex_height)) {
+            fprintf(stderr, "Error loading texture: %s\n", filename);
+        }
+
+        device.unmapMemory(tex_obj->mem);
+    }
+
     void prepare_texture_image(const char *filename, texture_object *tex_obj, vk::ImageTiling tiling, vk::ImageUsageFlags usage,
                                     vk::MemoryPropertyFlags required_props) {
         int32_t tex_width;
         int32_t tex_height;
         if (!loadTexture(filename, nullptr, nullptr, &tex_width, &tex_height)) {
-            ERR_EXIT("Failed to load textures", "Load Texture Failure");
+            error("Failed to load textures", "Load Texture Failure");
         }
 
         tex_obj->tex_width = tex_width;
@@ -851,6 +1011,55 @@ private:
         }
 
         tex_obj->imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    }
+
+    void set_image_layout(vk::Image image, vk::ImageAspectFlags aspectMask, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+                                vk::AccessFlags srcAccessMask, vk::PipelineStageFlags src_stages, vk::PipelineStageFlags dest_stages) {
+        assert(cmd);
+
+        auto DstAccessMask = [](vk::ImageLayout const &layout) {
+            vk::AccessFlags flags;
+
+            switch (layout) {
+                case vk::ImageLayout::eTransferDstOptimal:
+                    // Make sure anything that was copying from this image has
+                    // completed
+                    flags = vk::AccessFlagBits::eTransferWrite;
+                    break;
+                case vk::ImageLayout::eColorAttachmentOptimal:
+                    flags = vk::AccessFlagBits::eColorAttachmentWrite;
+                    break;
+                case vk::ImageLayout::eDepthStencilAttachmentOptimal:
+                    flags = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+                    break;
+                case vk::ImageLayout::eShaderReadOnlyOptimal:
+                    // Make sure any Copy or CPU writes to image are flushed
+                    flags = vk::AccessFlagBits::eShaderRead | vk::AccessFlagBits::eInputAttachmentRead;
+                    break;
+                case vk::ImageLayout::eTransferSrcOptimal:
+                    flags = vk::AccessFlagBits::eTransferRead;
+                    break;
+                case vk::ImageLayout::ePresentSrcKHR:
+                    flags = vk::AccessFlagBits::eMemoryRead;
+                    break;
+                default:
+                    break;
+            }
+
+            return flags;
+        };
+
+        auto const barrier = vk::ImageMemoryBarrier()
+                                .setSrcAccessMask(srcAccessMask)
+                                .setDstAccessMask(DstAccessMask(newLayout))
+                                .setOldLayout(oldLayout)
+                                .setNewLayout(newLayout)
+                                .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                                .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+                                .setImage(image)
+                                .setSubresourceRange(vk::ImageSubresourceRange(aspectMask, 0, 1, 0, 1));
+
+        cmd.pipelineBarrier(src_stages, dest_stages, vk::DependencyFlagBits(), 0, nullptr, 0, nullptr, 1, &barrier);
     }
 
     bool prepare_textures() {
@@ -1099,6 +1308,26 @@ private:
         return true;
     }    
 
+    vk::ShaderModule prepare_vs() {
+        const uint32_t vertShaderCode[] = {
+    #include "cube.vert.inc"
+        };
+
+        vert_shader_module = prepare_shader_module(vertShaderCode, sizeof(vertShaderCode));
+
+        return vert_shader_module;
+    }
+
+    vk::ShaderModule prepare_fs() {
+        const uint32_t fragShaderCode[] = {
+    #include "cube.frag.inc"
+        };
+
+        frag_shader_module = prepare_shader_module(fragShaderCode, sizeof(fragShaderCode));
+
+        return frag_shader_module;
+    }
+
     bool prepare_pipeline() {
         vk::PipelineCacheCreateInfo const pipelineCacheInfo;
         auto result = device.createPipelineCache(&pipelineCacheInfo, nullptr, &pipelineCache);
@@ -1315,6 +1544,13 @@ private:
         cmd = vk::CommandBuffer();        
 
         return true;
+    }
+
+    void destroy_texture(texture_object *tex_objs) {
+        // clean up staging resources
+        device.freeMemory(tex_objs->mem, nullptr);
+        if (tex_objs->image) device.destroyImage(tex_objs->image, nullptr);
+        if (tex_objs->buffer) device.destroyBuffer(tex_objs->buffer, nullptr);
     }
 
     bool destroy_textures() {
