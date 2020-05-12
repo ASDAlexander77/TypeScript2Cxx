@@ -61,6 +61,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
 
     // Run the message loop.
 
+    vulkanApi.create_surface_win32(hInstance, hwnd);
+    vulkanApi.initialize_swapchain();
+
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
     {

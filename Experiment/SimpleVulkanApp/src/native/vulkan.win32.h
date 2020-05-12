@@ -19,17 +19,40 @@ public:
     std::vector<std::string> enabled_layers;
     vk::Instance inst;
     vk::PhysicalDevice gpu;
+    vk::PhysicalDeviceProperties gpu_props;
+    std::vector<vk::QueueFamilyProperties> queue_props;    
+    vk::PhysicalDeviceFeatures physDevFeatures;
+    uint32_t graphics_queue_family_index;
+    uint32_t present_queue_family_index;
+    bool separate_present_queue;
+    vk::SurfaceKHR surface;
 
-    VulkanApi() : enabled_extensions{}, enabled_layers{} {
-    }
+    VulkanApi() = default;
 
     auto initialize() {
         return validate() 
-            || load_surface_extentions()
-            || create_instance()
-            || load_swapchain_extention();
+            && load_surface_extentions()
+            && create_instance()
+            && load_swapchain_extention()
+            && load_gpu_and_queue_properties();
     }
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    bool create_surface_win32(HINSTANCE hInstance, HWND hwnd) {
+        auto const createInfo = vk::Win32SurfaceCreateInfoKHR().setHinstance(hInstance).setHwnd(hwnd);
+
+        auto result = inst.createWin32SurfaceKHR(&createInfo, nullptr, &surface);
+        VERIFY(result == vk::Result::eSuccess);
+        return true;
+    }
+#endif        
+
+    bool initialize_swapchain() {
+        // create surface before
+        return set_graphics_and_present_family_indexes();
+    }
+
+private:
     bool validate() {
         uint32_t instance_layer_count = 0;
         std::array<std::string_view, 1> instance_validation_layers = {"VK_LAYER_KHRONOS_validation"};
@@ -216,7 +239,76 @@ public:
         return swapchainExtFound;
     }
 
-private:
+    bool load_gpu_and_queue_properties() {
+        gpu.getProperties(&gpu_props);
+
+        /* Call with nullptr data to get count */
+        uint32_t queue_family_count = 0;
+        gpu.getQueueFamilyProperties(&queue_family_count, static_cast<vk::QueueFamilyProperties *>(nullptr));
+        VERIFY(queue_family_count >= 1);
+
+        auto queue_props_ptrs = std::make_unique<vk::QueueFamilyProperties[]>(queue_family_count);
+        gpu.getQueueFamilyProperties(&queue_family_count, queue_props_ptrs.get());
+
+        std::for_each_n(queue_props_ptrs.get(), queue_family_count, [&] (auto& queue_prop) {
+            queue_props.push_back(queue_prop);
+        });
+
+        // Query fine-grained feature support for this device.
+        //  If app has specific feature requirements it should check supported
+        //  features based on this query
+        gpu.getFeatures(&physDevFeatures);        
+        return true;
+    }
+
+    bool set_graphics_and_present_family_indexes() {
+        // Iterate over each queue to learn whether it supports presenting:
+        auto queue_family_count = queue_props.size();
+        auto supportsPresent = std::make_unique<vk::Bool32[]>(queue_family_count);
+        for (auto i = 0; i < queue_family_count; i++) {
+            gpu.getSurfaceSupportKHR(i, surface, &supportsPresent[i]);
+        }
+
+        auto graphicsQueueFamilyIndex = UINT32_MAX;
+        auto presentQueueFamilyIndex = UINT32_MAX;
+        for (auto i = 0; i < queue_family_count; i++) {
+            if (queue_props[i].queueFlags & vk::QueueFlagBits::eGraphics) {
+                if (graphicsQueueFamilyIndex == UINT32_MAX) {
+                    graphicsQueueFamilyIndex = i;
+                }
+
+                if (supportsPresent[i] == VK_TRUE) {
+                    graphicsQueueFamilyIndex = i;
+                    presentQueueFamilyIndex = i;
+                    break;
+                }
+            }
+        }
+
+        if (presentQueueFamilyIndex == UINT32_MAX) {
+            // If didn't find a queue that supports both graphics and present,
+            // then
+            // find a separate present queue.
+            for (auto i = 0; i < queue_family_count; ++i) {
+                if (supportsPresent[i] == VK_TRUE) {
+                    presentQueueFamilyIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Generate error if could not find both a graphics and a present queue
+        if (graphicsQueueFamilyIndex == UINT32_MAX || presentQueueFamilyIndex == UINT32_MAX) {
+            error("Could not find both graphics and present queues\n", "Swapchain Initialization Failure");
+        }
+
+        graphics_queue_family_index = graphicsQueueFamilyIndex;
+        present_queue_family_index = presentQueueFamilyIndex;
+        separate_present_queue = (graphics_queue_family_index != present_queue_family_index);        
+
+        return true;
+    }
+
     void error(std::string_view msg, std::string_view group) {
         std::cerr << group << ": " << msg << std::endl;
         exit(1);

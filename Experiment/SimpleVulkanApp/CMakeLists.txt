@@ -22,6 +22,8 @@ message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 message("VULKAN_SDK  = $ENV{VULKAN_SDK}")
 
+
+
 # files
 file(GLOB SRC "src/*.cpp" "src/cpp/*.cpp" "src/native/*.cpp")
 
@@ -40,6 +42,9 @@ if (NOT MSVC)
 	set (EXTRA_LIBS ${EXTRA_LIBS} "stdc++")
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DWIN32_LEAN_AND_MEAN -DVC_EXTRALEAN -DVK_PROTOTYPES -DWIN32)
+endif()
 
 add_executable (${PROJECT_NAME} "${SRC}")
 target_link_libraries (${PROJECT_NAME} ${EXTRA_LIBS})

@@ -50,6 +50,7 @@
                 "${workspaceFolder}/src/native",
                 "C:/VulkanSDK/1.2.135.0/Include"
             ],
+            "defines": ["VK_USE_PLATFORM_WIN32_KHR"],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "",
