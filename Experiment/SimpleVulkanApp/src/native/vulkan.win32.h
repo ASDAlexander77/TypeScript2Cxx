@@ -191,6 +191,7 @@ public:
     vk::CommandPool present_cmd_pool;
 
     vk::CommandBuffer cmd;  // Buffer for initialization commands
+    vk::CommandBufferAllocateInfo cmd_alloc_info;
     vk::PipelineLayout pipeline_layout;
     vk::DescriptorSetLayout desc_layout;
     vk::PipelineCache pipelineCache;
@@ -201,6 +202,12 @@ public:
     vk::SwapchainKHR swapchain;
     std::unique_ptr<SwapchainImageResources[]> swapchain_image_resources;
     vk::PresentModeKHR presentMode;
+
+    vk::ShaderModule vert_shader_module;
+    vk::ShaderModule frag_shader_module;
+
+    vk::DescriptorPool desc_pool;
+    vk::DescriptorSet desc_set;
 
     struct {
         vk::Format format;
@@ -221,6 +228,8 @@ public:
         vk::DescriptorBufferInfo buffer_info;
     } uniform_data;
 
+    uint32_t current_buffer;
+    
     mat4x4 projection_matrix;
     mat4x4 view_matrix;
     mat4x4 model_matrix;
@@ -636,18 +645,20 @@ private:
         auto result = device.createCommandPool(&cmd_pool_info, nullptr, &cmd_pool);
         VERIFY(result == vk::Result::eSuccess);
 
-        auto const cmd = vk::CommandBufferAllocateInfo()
+        cmd_alloc_info = vk::CommandBufferAllocateInfo()
                             .setCommandPool(cmd_pool)
                             .setLevel(vk::CommandBufferLevel::ePrimary)
                             .setCommandBufferCount(1);
 
-        result = device.allocateCommandBuffers(&cmd, &this->cmd);
+        result = device.allocateCommandBuffers(&cmd_alloc_info, &cmd);
         VERIFY(result == vk::Result::eSuccess);
 
         auto const cmd_buf_info = vk::CommandBufferBeginInfo().setPInheritanceInfo(nullptr);
 
-        result = this->cmd.begin(&cmd_buf_info);
-        VERIFY(result == vk::Result::eSuccess);        
+        result = cmd.begin(&cmd_buf_info);
+        VERIFY(result == vk::Result::eSuccess);    
+
+        return true;    
     }
 
     bool prepare_buffers() {
@@ -1308,6 +1319,16 @@ private:
         return true;
     }    
 
+    vk::ShaderModule prepare_shader_module(const uint32_t *code, size_t size) {
+        const auto moduleCreateInfo = vk::ShaderModuleCreateInfo().setCodeSize(size).setPCode(code);
+
+        vk::ShaderModule module;
+        auto result = device.createShaderModule(&moduleCreateInfo, nullptr, &module);
+        VERIFY(result == vk::Result::eSuccess);
+
+        return module;
+    }
+
     vk::ShaderModule prepare_vs() {
         const uint32_t vertShaderCode[] = {
     #include "cube.vert.inc"
@@ -1477,7 +1498,7 @@ private:
 
     bool allocate_command_buffers() {
         for (uint32_t i = 0; i < swapchainImageCount; ++i) {
-            auto result = device.allocateCommandBuffers(&cmd, &swapchain_image_resources[i].cmd);
+            auto result = device.allocateCommandBuffers(&cmd_alloc_info, &swapchain_image_resources[i].cmd);
             VERIFY(result == vk::Result::eSuccess);
         }
 
@@ -1557,6 +1578,8 @@ private:
         if (staging_texture.buffer) {
             destroy_texture(&staging_texture);
         }
+
+        return true;
     }
 
     void build_image_ownership_cmd(uint32_t const &i) {
