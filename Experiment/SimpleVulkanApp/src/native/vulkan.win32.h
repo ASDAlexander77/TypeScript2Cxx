@@ -234,6 +234,8 @@ public:
     mat4x4 view_matrix;
     mat4x4 model_matrix;
 
+    bool pause;
+
     VulkanApi() {};
 
     auto initialize() {
@@ -280,6 +282,65 @@ public:
             && draw_build_cmd()
             && flush_init_cmd()
             && destroy_textures();
+    }
+
+    bool cleanup() {
+        device.waitIdle();
+
+        // Wait for fences from present operations
+        for (uint32_t i = 0; i < FRAME_LAG; i++) {
+            device.waitForFences(1, &fences[i], VK_TRUE, UINT64_MAX);
+            device.destroyFence(fences[i], nullptr);
+            device.destroySemaphore(image_acquired_semaphores[i], nullptr);
+            device.destroySemaphore(draw_complete_semaphores[i], nullptr);
+            if (separate_present_queue) {
+                device.destroySemaphore(image_ownership_semaphores[i], nullptr);
+            }
+        }
+
+        for (uint32_t i = 0; i < swapchainImageCount; i++) {
+            device.destroyFramebuffer(swapchain_image_resources[i].framebuffer, nullptr);
+        }
+        device.destroyDescriptorPool(desc_pool, nullptr);
+
+        device.destroyPipeline(pipeline, nullptr);
+        device.destroyPipelineCache(pipelineCache, nullptr);
+        device.destroyRenderPass(render_pass, nullptr);
+        device.destroyPipelineLayout(pipeline_layout, nullptr);
+        device.destroyDescriptorSetLayout(desc_layout, nullptr);
+
+        for (uint32_t i = 0; i < texture_count; i++) {
+            device.destroyImageView(textures[i].view, nullptr);
+            device.destroyImage(textures[i].image, nullptr);
+            device.freeMemory(textures[i].mem, nullptr);
+            device.destroySampler(textures[i].sampler, nullptr);
+        }
+        device.destroySwapchainKHR(swapchain, nullptr);
+
+        device.destroyImageView(depth.view, nullptr);
+        device.destroyImage(depth.image, nullptr);
+        device.freeMemory(depth.mem, nullptr);
+
+        for (uint32_t i = 0; i < swapchainImageCount; i++) {
+            device.destroyImageView(swapchain_image_resources[i].view, nullptr);
+            device.freeCommandBuffers(cmd_pool, 1, &swapchain_image_resources[i].cmd);
+            device.destroyBuffer(swapchain_image_resources[i].uniform_buffer, nullptr);
+            device.unmapMemory(swapchain_image_resources[i].uniform_memory);
+            device.freeMemory(swapchain_image_resources[i].uniform_memory, nullptr);
+        }
+
+        device.destroyCommandPool(cmd_pool, nullptr);
+
+        if (separate_present_queue) {
+            device.destroyCommandPool(present_cmd_pool, nullptr);
+        }
+        
+        device.waitIdle();
+        device.destroy(nullptr);
+        inst.destroySurfaceKHR(surface, nullptr);
+
+        inst.destroy(nullptr);        
+        return true;
     }
 
 private:

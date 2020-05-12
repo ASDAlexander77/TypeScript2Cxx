@@ -65,14 +65,34 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
     vulkanApi.initialize_swapchain();
     vulkanApi.prepare();
 
+    auto run = true;
+    auto exit_code = 0;
     MSG msg = { };
-    while (GetMessage(&msg, NULL, 0, 0))
+    while (run && GetMessage(&msg, NULL, 0, 0))
     {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        if (vulkanApi.pause) {
+            const BOOL succ = WaitMessage();
+
+            if (!succ) {
+                std::cerr << "WaitMessage() failed on paused app" << std::endl;
+                exit(1);
+            }
+        }
+
+        if (msg.message == WM_QUIT) {
+            exit_code = (int)msg.wParam;
+            run = false;
+        } else {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+
+        RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
 
-    return 0;
+    vulkanApi.cleanup();    
+
+    return exit_code;
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
