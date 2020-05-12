@@ -2,7 +2,7 @@ class AppWindow {
     constructor() {
     }
 
-    intialize(commandLine: string): void {
+    initialize(commandLine: string): void {
         console.debug('cmd line: ', commandLine);
     }
 

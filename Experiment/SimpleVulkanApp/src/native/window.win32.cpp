@@ -22,7 +22,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
 {
     vulkanApi.initialize();
-    appWindow->intialize(js::string(pCmdLine));
+    appWindow->initialize(js::string(pCmdLine));
 
     // Register the window class.
     const auto CLASS_NAME  = _T("Application Window Class");
