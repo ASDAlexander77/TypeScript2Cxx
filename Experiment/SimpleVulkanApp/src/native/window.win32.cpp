@@ -8,33 +8,32 @@
 #include <windows.h>
 #include <tchar.h>
 
-#include "vulkan.win32.h"
+#undef min
+#undef max
+#include "core.h"
 
-VulkanApi vulkanApi;
+static HINSTANCE instance;
+const char* CLASS_NAME = "Application Window";
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
-{
-    vulkanApi.initialize();
-
+void register_window_class() {
     // Register the window class.
-    const auto CLASS_NAME  = _T("Application Window Class");
-    
     WNDCLASS wc = { };
 
     wc.lpfnWndProc   = WindowProc;
-    wc.hInstance     = hInstance;
+    wc.hInstance     = instance;
     wc.lpszClassName = CLASS_NAME;
 
     RegisterClass(&wc);
+}
 
+js::any create_window(js::string title, js::any class_obj) {
     // Create the window.
-
     auto hwnd = CreateWindowEx(
         0,                              // Optional window styles.
         CLASS_NAME,                     // Window class
-        _T("Application Window"),       // Window text
+        title,       // Window text
         WS_OVERLAPPEDWINDOW,            // Window style
 
         // Size and position
@@ -42,67 +41,49 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
 
         NULL,       // Parent window    
         NULL,       // Menu
-        hInstance,  // Instance handle
+        instance,   // Instance handle
         NULL        // Additional application data
         );
 
-    if (hwnd == NULL)
-    {
-        return 0;
-    }
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
 
-    ShowWindow(hwnd, nCmdShow);
+    return hwnd;
+}
 
-    vulkanApi.on_create_surface = 
-        std::function<void(vk::Instance& inst, vk::SurfaceKHR& surface)>([=] (vk::Instance& inst, vk::SurfaceKHR& surface) {
-            auto const createInfo = vk::Win32SurfaceCreateInfoKHR().setHinstance(hInstance).setHwnd(hwnd);
-            auto result = inst.createWin32SurfaceKHR(&createInfo, nullptr, &surface);
-            VERIFY(result == vk::Result::eSuccess);
-            return true;
-        });
-    vulkanApi.initialize_swapchain();
-    vulkanApi.prepare();
-
-    // Run the message loop.
-    auto run = true;
-    auto exit_code = 0;
+int window_loop() {
     MSG msg = { };
-    while (run && GetMessage(&msg, NULL, 0, 0))
+    while (GetMessage(&msg, NULL, 0, 0))
     {
-        if (vulkanApi.pause) {
-            const BOOL succ = WaitMessage();
-
-            if (!succ) {
-                std::cerr << "WaitMessage() failed on paused app" << std::endl;
-                exit(1);
-            }
-        }
-
-        if (msg.message == WM_QUIT) {
-            exit_code = (int)msg.wParam;
-            run = false;
-        } else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-
-        RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
     }
 
-    vulkanApi.cleanup();    
+    return 0;
+}
 
-    return exit_code;
+extern void Main(void);
+
+int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdShow)
+{
+    instance = hInstance;
+    register_window_class();
+
+    // main inject
+    Main();
+
+    return window_loop();
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    auto *class_obj = reinterpret_cast<void*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
     switch (uMsg)
     {
         case WM_CLOSE:
             PostQuitMessage(0);
             break;
         case WM_PAINT:
-            vulkanApi.run();
             break;
         case WM_GETMINMAXINFO:  // set window's minimum size
             ((MINMAXINFO *)lParam)->ptMinTrackSize = POINT{100, 100};
@@ -110,14 +91,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         case WM_ERASEBKGND:
             return 1;
         case WM_SIZE:
-            // Resize the application to the new window size, except when
-            // it was minimized. Vulkan doesn't support images or swapchains
-            // with width=0 and height=0.
-            if (wParam != SIZE_MINIMIZED) {
-                vulkanApi.width = lParam & 0xffff;
-                vulkanApi.height = (lParam & 0xffff0000) >> 16;
-                vulkanApi.resize();
-            }
             break;
         case WM_KEYDOWN:
             switch (wParam) {
@@ -125,13 +98,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                     PostQuitMessage(0);
                     break;
                 case VK_LEFT:
-                    vulkanApi.spin_angle -= vulkanApi.spin_increment;
                     break;
                 case VK_RIGHT:
-                    vulkanApi.spin_angle += vulkanApi.spin_increment;
                     break;
                 case VK_SPACE:
-                    vulkanApi.pause = !vulkanApi.pause;
                     break;
             }
             return 0;
