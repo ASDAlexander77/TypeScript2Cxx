@@ -8,7 +8,7 @@
             "name": "C++ Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/__build/Debug/prj.exe",
+            "program": "${workspaceFolder}/__build/Debug/SimpleVulkanApp.exe",
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],

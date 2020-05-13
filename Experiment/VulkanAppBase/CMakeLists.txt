@@ -1,4 +1,4 @@
-project(SimpleVulkanApp CXX)
+project(VulkanAppBase CXX)
 cmake_minimum_required(VERSION 3.10.2)
 set(PROJECT_VERSION 0.0.0.dev0)
 

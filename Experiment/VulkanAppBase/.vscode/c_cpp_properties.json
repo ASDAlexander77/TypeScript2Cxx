@@ -43,9 +43,14 @@
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/ucrt",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                 "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
-                "${workspaceRoot}",
-                "${workspaceRoot}/../cpplib"
+                "${workspaceFolder}",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/src/cpp",
+                "${workspaceFolder}/../../cpplib",
+                "${workspaceFolder}/src/native",
+                "C:/VulkanSDK/1.2.135.0/Include"
             ],
+            "defines": ["VK_USE_PLATFORM_WIN32_KHR"],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "",
@@ -54,8 +59,12 @@
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/ucrt",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/um",
                     "C:/Program Files (x86)/Windows Kits/10/Include/10.0.16299.0/shared",
-                    "${workspaceRoot}",
-	            "${workspaceRoot}/../cpplib"
+                    "${workspaceFolder}",
+                    "${workspaceFolder}/src",
+                    "${workspaceFolder}/src/cpp",
+                    "${workspaceFolder}/../../cpplib",
+                    "${workspaceFolder}/src/native",
+                    "C:/VulkanSDK/1.2.135.0/Include"
                 ]
             },
             "intelliSenseMode": "msvc-x64",
