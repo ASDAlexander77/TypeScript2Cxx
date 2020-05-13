@@ -2343,7 +2343,7 @@ export class Emitter {
             if (node.kind === ts.SyntaxKind.Constructor && this.hasThisAsShared(node)) {
                 // adding header to constructor
                 this.processType(this.resolver.getOrResolveTypeOfAsTypeNode(node.parent));
-                this.writer.writeStringNewLine(' _this(this);');
+                this.writer.writeStringNewLine(' _this(this, [] (auto&) {/*to be finished*/});');
             }
 
             this.markRequiredCapture(node);
