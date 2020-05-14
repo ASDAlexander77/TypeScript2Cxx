@@ -120,6 +120,21 @@ export class IdentifierResolver {
         return false;
     }
 
+    public isNumberType(typeInfo: ts.Type) {
+        if (!typeInfo) {
+            return false;
+        }
+
+        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
+            const type = (<any>typeInfo.symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return typeInfo.symbol.name === 'Number';
+            }
+        }
+
+        return false;
+    }
+
     public isArrayOrStringType(typeInfo: ts.Type) {
         if (!typeInfo) {
             return false;

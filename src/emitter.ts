@@ -12,6 +12,7 @@ export class Emitter {
     private sourceFileName: string;
     private scope: Array<ts.Node> = new Array<ts.Node>();
     private opsMap: Map<number, string> = new Map<number, string>();
+    private embededCPPTypes: Array<string>;
     private isWritingMain = false;
 
     public constructor(
@@ -67,6 +68,62 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.BarBarToken] = '__OR';
 
         this.opsMap[ts.SyntaxKind.CommaToken] = ',';
+
+        // embeded types
+        this.embededCPPTypes = [
+            'bool',
+            'short',
+            'short int',
+            'signed short',
+            'signed short int',
+            'unsigned short',
+            'unsigned short int',
+            'int',
+            'signed',
+            'signed int',
+            'unsigned',
+            'unsigned int',
+            'long',
+            'long int',
+            'signed long',
+            'signed long int',
+            'unsigned long',
+            'unsigned long int',
+            'long long',
+            'long long int',
+            'signed long long',
+            'signed long long int',
+            'unsigned long long',
+            'unsigned long long int',
+            'int8_t',
+            'int16_t',
+            'int32_t',
+            'int64_t',
+            'int_fast8_t',
+            'int_fast16_t',
+            'int_fast32_t',
+            'int_fast64_t',
+            'int_least8_t',
+            'int_least16_t',
+            'int_least32_t',
+            'int_least64_t',
+            'intmax_t',
+            'intptr_t',
+            'uint8_t',
+            'uint16_t',
+            'uint32_t',
+            'uint64_t',
+            'uint_fast8_t',
+            'uint_fast16_t',
+            'uint_fast32_t',
+            'uint_fast64_t',
+            'uint_least8_t',
+            'uint_least16_t',
+            'uint_least32_t',
+            'uint_least64_t',
+            'uintmax_t',
+            'uintptr_t'
+        ];
     }
 
     public HeaderMode: boolean;
@@ -1360,16 +1417,11 @@ export class Emitter {
         }
 
         const name = node.name.text;
-        if (name === 'float' || name === 'double' || name === 'long double'
-            || name === 'long long' || name === 'long' || name === 'int'
-            || name === 'unsigned long long' || name === 'unsigned long' || name === 'unsigned int'
-            || name === 'int8_t' || name === 'int16_t' || name === 'int32_t' || name === 'int64_t'
-            || name === 'uint8_t' || name === 'uint16_t' || name === 'uint32_t' || name === 'uint64_t') {
-            return;
-        }
-
         // remove NULL from union types, do we need to remove "undefined" as well?
         let type = node.type;
+        if (type.kind === ts.SyntaxKind.NumberKeyword && this.embededCPPTypes.some((e) => e === name)) {
+            return;
+        }
 
         this.processPredefineType(type);
 
@@ -3406,6 +3458,12 @@ export class Emitter {
                 this.processExpression(<ts.Identifier>node.name);
                 this.writer.writeString(', ');
                 this.processExpression(node.expression);
+
+                const methodDeclaration = <ts.MethodDeclaration>(symbolInfo.valueDeclaration);
+                methodDeclaration.parameters.forEach((p, i) => {
+                    this.writer.writeString(', std::placeholders::_' + (i + 1));
+                });
+
                 this.writer.writeString(')');
             }
         } else {

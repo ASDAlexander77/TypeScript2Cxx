@@ -1,6 +1,7 @@
 #ifndef CORE_H
 #define CORE_H
 
+#include <cinttypes>
 #include <memory>
 #include <string>
 #include <functional>
@@ -63,6 +64,12 @@ typedef tmpl::string<std::string> string;
 typedef tmpl::number<double> number;
 typedef tmpl::array<any> array;
 typedef tmpl::object<string, any> object;
+
+template <class T>
+concept Arithmetic = std::is_arithmetic_v<T> && !std::is_same_v<T, bool> && !std::is_same_v<T, char>;
+
+template <class T>
+concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char>;
 
 template <class _Ty>
 struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char *> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
@@ -337,7 +344,7 @@ struct pointer_t
 
     pointer_t(const pointer_t &other) : _ptr(other._ptr), isUndefined(other.isUndefined){};
 
-    pointer_t(void *ptr) : _ptr(ptr), isUndefined(false){};
+    pointer_t(void *ptr) : _ptr(static_cast<T>(ptr)), isUndefined(false){};
 
     pointer_t(std::nullptr_t) : _ptr(nullptr), isUndefined(false){};
 
@@ -351,6 +358,11 @@ struct pointer_t
     {
         return !isUndefined && _ptr != nullptr;
     }
+
+    constexpr operator void*()
+    {
+        return static_cast<void*>(_ptr);
+    }    
 
     bool operator==(undefined_t)
     {
@@ -584,19 +596,8 @@ struct number
         return std::isnormal(_value);
     }
 
-    constexpr operator double()
-    {
-        return _value;
-    }
-
-    constexpr operator long long()
-    {
-        return static_cast<long long>(_value);
-    }
-
-    template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
-    constexpr operator T()
-    {
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    constexpr operator T() {
         return static_cast<T>(_value);
     }
 
@@ -1910,11 +1911,11 @@ struct any
     {
     }
 
-    any(const js::boolean &value) : _value(value)
+    any(js::boolean value) : _value(value)
     {
     }
 
-    any(const js::number &value) : _value(value)
+    any(js::number value) : _value(value)
     {
     }
 
@@ -1968,7 +1969,7 @@ struct any
     template <typename T>
     inline std::shared_ptr<T> get_ptr() const
     {
-        return mutable_(std::get<std::shared_ptr<T>>(_value));
+        return std::dynamic_pointer_cast<T>(mutable_(std::get<std::shared_ptr<js::object>>(_value)));
     }
 
     template <typename T>
@@ -1980,7 +1981,7 @@ struct any
     template <typename T>
     inline std::shared_ptr<T> get_ptr()
     {
-        return std::get<std::shared_ptr<T>>(_value);
+        return std::dynamic_pointer_cast<T>(std::get<std::shared_ptr<js::object>>(_value));
     }
 
     inline const js::boolean &boolean_ref_const() const
@@ -2108,6 +2109,11 @@ struct any
         if (get_type() == anyTypeId::number_type)
         {
             return pointer_t(number_ref());
+        }
+
+        if (get_type() == anyTypeId::class_type)
+        {
+            return pointer_t(class_ref().get());
         }
 
         return pointer_t(0xffffffff);
@@ -2358,25 +2364,25 @@ struct any
         return static_cast<js::string>(*mutable_(this)) != other;
     }
 
-    any operator+(js::number t)
+    any operator+(js::number n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return number_ref() + t;
+            return number_ref() + n;
         }
 
         throw "not implemented";
     }
 
-    any operator+(string t)
+    any operator+(string s)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return number_ref().operator js::string() + t;
+            return number_ref().operator js::string() + s;
         case anyTypeId::string_type:
-            return any(string_ref() + t);
+            return any(string_ref() + s);
         }
 
         throw "not implemented";
