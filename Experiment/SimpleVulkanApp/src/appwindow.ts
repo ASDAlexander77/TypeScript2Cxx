@@ -6,8 +6,7 @@ class AppWindow {
     private hwnd: uint32_t;
 
     constructor() {
-        const m1 = this.onMessage;
-        this.hwnd = create_window('Hello World!', m1);
+        this.hwnd = create_window('Hello World!', this.onMessage);
     }
 
     public run() {

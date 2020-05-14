@@ -3,7 +3,6 @@ import { IdentifierResolver } from './resolvers';
 import { Helpers } from './helpers';
 import { Preprocessor } from './preprocessor';
 import { CodeWriter } from './codewriter';
-import { readSync } from 'fs-extra';
 
 export class Emitter {
     public writer: CodeWriter;
@@ -3437,7 +3436,7 @@ export class Emitter {
         const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
         const methodAccess = symbolInfo
             && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.MethodDeclaration
-            && node.parent.kind !== ts.SyntaxKind.CallExpression;
+            && !(node.parent.kind === ts.SyntaxKind.CallExpression && (<ts.CallExpression>node.parent).expression === node);
         const isStaticMethodAccess = symbolInfo && symbolInfo.valueDeclaration && this.isStatic(symbolInfo.valueDeclaration);
 
         const getAccess = symbolInfo
@@ -3453,12 +3452,9 @@ export class Emitter {
                 this.processExpression(<ts.Identifier>node.name);
             } else {
                 this.writer.writeString('std::bind(&');
-                if (node.parent.kind === ts.SyntaxKind.VariableDeclaration) {
-                    const valueDeclaration = <ts.ClassDeclaration>symbolInfo.valueDeclaration.parent;
-                    this.processExpression(<ts.Identifier>valueDeclaration.name);
-                    this.writer.writeString('::');
-                }
-
+                const valueDeclaration = <ts.ClassDeclaration>symbolInfo.valueDeclaration.parent;
+                this.processExpression(<ts.Identifier>valueDeclaration.name);
+                this.writer.writeString('::');
                 this.processExpression(<ts.Identifier>node.name);
                 this.writer.writeString(', ');
                 this.processExpression(node.expression);
