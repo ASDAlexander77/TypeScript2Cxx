@@ -3534,9 +3534,9 @@ struct Date
     }
 };
 
-struct any Action;
+typedef any Action;
 
-struct any Function;
+typedef any Function;
 
 struct RegExp
 {
