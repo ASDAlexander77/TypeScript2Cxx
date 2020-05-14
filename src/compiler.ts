@@ -218,7 +218,7 @@ export class Run {
             }
 
             if (!fs.pathExistsSync(outDir)) {
-                fs.mkdirSync(outDir);
+                fs.mkdirSync(outDir, {recursive: true});
             }
         }
 
