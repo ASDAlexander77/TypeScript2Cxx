@@ -623,6 +623,21 @@ struct number
         return this;
     }
 
+#ifdef UNICODE
+    operator std::wstring() const
+    {
+        std::wostringstream streamObj2;
+        streamObj2 << _value;
+        return streamObj2.str();
+    }
+
+    operator std::wstring()
+    {
+        std::wostringstream streamObj2;
+        streamObj2 << _value;
+        return streamObj2.str();
+    }
+#else
     operator std::string() const
     {
         std::ostringstream streamObj2;
@@ -636,6 +651,7 @@ struct number
         streamObj2 << _value;
         return streamObj2.str();
     }
+#endif    
 
     operator js::string();
 
@@ -913,9 +929,15 @@ struct string
     {
     }
 
+#ifdef UNICODE
+    string(std::wstring value) : _value(value), _control(string_defined)
+    {
+    }
+#else
     string(std::string value) : _value(value), _control(string_defined)
     {
     }
+#endif    
 
     string(const char_t *value) : _value(value == nullptr ? TXT("") : value), _control(value == nullptr ? string_null : string_defined)
     {
@@ -1948,9 +1970,15 @@ struct any
     {
     }
 
+#ifdef UNICODE
+    any(const std::wstring &value) : _value(js::string(value))
+    {
+    }
+#else
     any(const std::string &value) : _value(js::string(value))
     {
     }
+#endif    
 
     any(const js::string &value) : _value(value)
     {
@@ -2200,7 +2228,11 @@ struct any
 
         if (get_type() == anyTypeId::number_type)
         {
+#ifdef UNICODE
+            return js::string(number_ref().operator std::wstring());
+#else
             return js::string(number_ref().operator std::string());
+#endif            
         }
 
         if (get_type() == anyTypeId::pointer_type)
@@ -3013,7 +3045,7 @@ struct any
         switch (val.get_type())
         {
         case anyTypeId::undefined_type:
-            return os << "undefined";
+            return os << TXT("undefined");
 
         case anyTypeId::boolean_type:
             return os << val.boolean_ref();
@@ -3022,25 +3054,25 @@ struct any
             return os << val.number_ref();
 
         case anyTypeId::pointer_type:
-            return os << "null";
+            return os << TXT("null");
 
         case anyTypeId::string_type:
             return os << val.string_ref();
 
         case anyTypeId::function_type:
-            return os << "[function]";
+            return os << TXT("[function]");
 
         case anyTypeId::array_type:
-            return os << "[array]";
+            return os << TXT("[array]");
 
         case anyTypeId::object_type:
-            return os << "[object]";
+            return os << TXT("[object]");
 
         case anyTypeId::class_type:
             return os << val.class_ref().get()->toString();
 
         default:
-            return os << "[any]";
+            return os << TXT("[any]");
         }
     }
 #endif    
