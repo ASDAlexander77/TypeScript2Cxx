@@ -869,20 +869,37 @@ struct number
     js::string toString();
     js::string toString(number_t radix);
 
-    friend std::ostream &operator<<(std::ostream &os, number_t val)
+#ifdef UNICODE
+    friend std::wostream &operator<<(std::wostream &os, number_t val)
     {
         if (val.is_undefined())
         {
-            return os << "undefined";
+            return os << TXT("undefined");
         }
 
         if (std::isnan(static_cast<double>(val)))
         {
-            return os << "NaN";
+            return os << TXT("NaN");
         }
 
         return os << val._value;
     }
+#else
+    friend std::ostream &operator<<(std::ostream &os, number_t val)
+    {
+        if (val.is_undefined())
+        {
+            return os << TXT("undefined");
+        }
+
+        if (std::isnan(static_cast<double>(val)))
+        {
+            return os << TXT("NaN");
+        }
+
+        return os << val._value;
+    }
+#endif    
 };
 
 template <typename T>
@@ -966,7 +983,7 @@ struct string
         return !(*this) ? 0 : std::stod(_value);
     }
 
-    inline operator std::string &()
+    inline operator T &()
     {
         return _value;
     }
@@ -1205,7 +1222,7 @@ struct string
 
     size_t hash(void) const noexcept
     {
-        return std::hash<std::string>{}(_value);
+        return std::hash<T>{}(_value);
     }
 };
 
@@ -1862,20 +1879,36 @@ struct object
 
     virtual js::string toString()
     {
+#ifdef UNICODE        
+        std::wostringstream streamObj2;
+#else
         std::ostringstream streamObj2;
+#endif
         streamObj2 << *this;
         return streamObj2.str();
     }
 
+#ifdef UNICODE
+    friend std::wostream &operator<<(std::wostream &os, object val)
+    {
+        if (val.isUndefined)
+        {
+            return os << TXT("undefined");
+        }
+
+        return os << TXT("[object]");
+    }
+#else
     friend std::ostream &operator<<(std::ostream &os, object val)
     {
         if (val.isUndefined)
         {
-            return os << "undefined";
+            return os << TXT("undefined");
         }
 
-        return os << "[object]";
+        return os << TXT("[object]");
     }
+#endif    
 };
 
 } // namespace tmpl
@@ -2993,7 +3026,11 @@ struct any
             break;
 
         case anyTypeId::string_type:
+#ifdef UNICODE        
+            h2 = std::hash<std::wstring>{}(static_cast<std::wstring &>(mutable_(string_ref_const())));
+#else
             h2 = std::hash<std::string>{}(static_cast<std::string &>(mutable_(string_ref_const())));
+#endif            
             break;
 
         default:
@@ -3268,7 +3305,11 @@ namespace tmpl
 template <typename V>
 number<V>::operator js::string()
 {
+#ifdef UNICODE    
+    return js::string(static_cast<std::wstring>(*this));
+#else
     return js::string(static_cast<std::string>(*this));
+#endif    
 }
 
 template <typename V>

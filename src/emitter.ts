@@ -2083,7 +2083,7 @@ export class Emitter {
                 this.writer.writeString('0');
                 break;
             case ts.SyntaxKind.StringKeyword:
-                this.writer.writeString('""_S');
+                this.writer.writeString('STR("")');
                 break;
             case ts.SyntaxKind.ArrayType:
                 this.writer.writeString('{}');
@@ -2886,7 +2886,7 @@ export class Emitter {
         if (text === '') {
             this.writer.writeString(`string_empty`);
         } else {
-            this.writer.writeString(`"${text}"_S`);
+            this.writer.writeString(`STR("${text}")`);
         }
     }
 
