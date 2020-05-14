@@ -3534,9 +3534,9 @@ struct Date
     }
 };
 
-struct Function
-{
-};
+struct any Action;
+
+struct any Function;
 
 struct RegExp
 {
