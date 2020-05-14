@@ -16,9 +16,7 @@ static HINSTANCE instance;
 static int cmdShow;
 const char* CLASS_NAME = "Application Window";
 
-typedef std::function<js::number(js::number, js::number, js::number)> callback_function;
-
-std::vector<std::shared_ptr<callback_function>> callbacks;
+typedef std::function<uint64_t(uint64_t, uint64_t, uint64_t)> callback_function;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -33,7 +31,7 @@ void register_window_class() {
     RegisterClass(&wc);
 }
 
-js::number create_window(js::string title, callback_function window_callback) {
+uint64_t create_window(js::string title, callback_function window_callback) {
     // Create the window.
     auto hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -50,22 +48,21 @@ js::number create_window(js::string title, callback_function window_callback) {
         NULL        // Additional application data
         );
 
-    auto call_func_ptr = std::make_shared<callback_function>(window_callback);
-    callbacks.push_back(call_func_ptr);
-    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) call_func_ptr.get());
+    auto method_ptr = new callback_function(window_callback);
+    SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) method_ptr);
 
     ShowWindow(hwnd, cmdShow);
 
-    return hwnd;
+    return (uint64_t)hwnd;
 }
 
-void messages_loop(js::number hwnd) {
+void messages_loop(uint64_t hwnd) {
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-        RedrawWindow((HWND)static_cast<size_t>(hwnd), nullptr, nullptr, RDW_INTERNALPAINT);
+        RedrawWindow((HWND)hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
 }
 
@@ -87,20 +84,24 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     bool result = false;
-    auto *callback_function_ptr = reinterpret_cast<callback_function*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+    auto callback_function_ptr = reinterpret_cast<callback_function*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     if (callback_function_ptr) {
-        auto &callback = *callback_function_ptr;
-        callback(js::number(uMsg), js::number(wParam), js::number(lParam));
+        callback_function_ptr->operator()(uMsg, wParam, lParam);
     }
 
     switch (uMsg) {
-        case WM_CLOSE:
+        case WM_DESTROY:
             PostQuitMessage(0);
+            if (callback_function_ptr) {
+                SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
+                delete callback_function_ptr;
+            }
+
             return 0;
         case WM_KEYDOWN:
             switch (wParam) {
                 case VK_ESCAPE:
-                    PostQuitMessage(0);
+                    DestroyWindow(hwnd);
                     return 0;
             }
 

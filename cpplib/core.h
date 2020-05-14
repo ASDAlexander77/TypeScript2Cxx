@@ -3472,12 +3472,6 @@ constexpr bool in(V v, O o)
 namespace js
 {
 
-template <class T>
-constexpr T* addressof(T& arg) 
-{
-    return std::addressof(arg);
-}    
-
 template<class _Fn, class... _Args>
 static void thread(_Fn f, _Args... args) {
     new std::thread(f, args...);

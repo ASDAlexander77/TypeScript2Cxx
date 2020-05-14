@@ -1,9 +1,10 @@
-declare function create_window(title: string, winObj: (uMsg: number, wParam: number, lParam: number) => number): number;
-declare function messages_loop(hwnd: number): void;
-type uint32_t = number;
+type callback_function = (uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t) => uint64_t;
+declare function create_window(title: string, handler: callback_function): uint64_t;
+declare function messages_loop(hwnd: uint64_t): void;
+type uint64_t = number;
 
 class AppWindow {
-    private hwnd: uint32_t;
+    private hwnd: uint64_t;
 
     constructor() {
         this.hwnd = create_window('Hello World!', this.onMessage);
@@ -13,7 +14,7 @@ class AppWindow {
         messages_loop(this.hwnd);
     }
 
-    protected onMessage(uMsg: number, wParam: number, lParam: number): number {
+    protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint64_t {
         return 0;
     }
 }
