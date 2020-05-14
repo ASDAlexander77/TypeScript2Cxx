@@ -1419,7 +1419,8 @@ export class Emitter {
         const name = node.name.text;
         // remove NULL from union types, do we need to remove "undefined" as well?
         let type = node.type;
-        if (type.kind === ts.SyntaxKind.NumberKeyword && this.embededCPPTypes.some((e) => e === name)) {
+        if (type.kind === ts.SyntaxKind.AnyKeyword
+            || type.kind === ts.SyntaxKind.NumberKeyword && this.embededCPPTypes.some((e) => e === name)) {
             return;
         }
 
