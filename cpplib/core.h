@@ -3588,8 +3588,9 @@ constexpr bool in(V v, O o)
 
 } // namespace js
 
+#ifdef UNICODE
 #define MAIN                                                             \
-    int main(int argc, char_t **argv)                                      \
+    int _tmain(int argc, char_t **argv)                                  \
     {                                                                    \
         try                                                              \
         {                                                                \
@@ -3597,30 +3598,65 @@ constexpr bool in(V v, O o)
         }                                                                \
         catch (const js::string &s)                                      \
         {                                                                \
-            std::cout << "Exception: " << s << std::endl;                \
+            std::wcout << TXT("Exception: ") << s << std::endl;          \
         }                                                                \
         catch (const js::any &a)                                         \
         {                                                                \
-            std::cout << "Exception: " << a << std::endl;                \
+            std::wcout << TXT("Exception: ") << a << std::endl;          \
         }                                                                \
         catch (const std::exception &exception)                          \
         {                                                                \
-            std::cout << "Exception: " << exception.what() << std::endl; \
+            std::wcout << TXT("Exception: ") << exception.what() << std::endl;\
         }                                                                \
         catch (const std::string &s)                                     \
         {                                                                \
-            std::cout << "Exception: " << s << std::endl;                \
+            std::wcout << TXT("Exception: ") << s << std::endl;          \
         }                                                                \
-        catch (const char_t *s)                                            \
+        catch (const char_t *s)                                          \
         {                                                                \
-            std::cout << "Exception: " << s << std::endl;                \
+            std::wcout << TXT("Exception: ") << s << std::endl;          \
         }                                                                \
         catch (...)                                                      \
         {                                                                \
-            std::cout << "General failure." << std::endl;                \
+            std::wcout << TXT("General failure.") << std::endl;          \
         }                                                                \
         return 0;                                                        \
     }
+#else
+#define MAIN                                                             \
+    int _tmain(int argc, char_t **argv)                                  \
+    {                                                                    \
+        try                                                              \
+        {                                                                \
+            Main();                                                      \
+        }                                                                \
+        catch (const js::string &s)                                      \
+        {                                                                \
+            std::cout << TXT("Exception: ") << s << std::endl;           \
+        }                                                                \
+        catch (const js::any &a)                                         \
+        {                                                                \
+            std::cout << TXT("Exception: ") << a << std::endl;           \
+        }                                                                \
+        catch (const std::exception &exception)                          \
+        {                                                                \
+            std::cout << TXT("Exception: ") << exception.what() << std::endl; \
+        }                                                                \
+        catch (const std::string &s)                                     \
+        {                                                                \
+            std::cout << TXT("Exception: ") << s << std::endl;           \
+        }                                                                \
+        catch (const char_t *s)                                          \
+        {                                                                \
+            std::cout << TXT("Exception: ") << s << std::endl;           \
+        }                                                                \
+        catch (...)                                                      \
+        {                                                                \
+            std::cout << TXT("General failure.") << std::endl;           \
+        }                                                                \
+        return 0;                                                        \
+    }
+#endif
 
 // JS Core classes
 namespace js

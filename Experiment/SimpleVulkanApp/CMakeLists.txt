@@ -42,6 +42,7 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DVK_USE_PLATFORM_WIN32_KHR -DWIN32_LEAN_AND_MEAN -DVC_EXTRALEAN -DVK_PROTOTYPES -DWIN32 -D_USE_MATH_DEFINES)
+    add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
 add_executable (${PROJECT_NAME} "${SRC}")

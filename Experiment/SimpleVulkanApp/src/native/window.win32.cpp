@@ -1,8 +1,3 @@
-#ifndef UNICODE
-#define UNICODE
-#define _UNICODE
-#endif 
-
 #pragma comment(linker, "/subsystem:windows")
 
 #include <winsock2.h>
