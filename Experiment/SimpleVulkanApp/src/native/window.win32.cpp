@@ -1,5 +1,6 @@
 #ifndef UNICODE
-//#define UNICODE
+#define UNICODE
+#define _UNICODE
 #endif 
 
 #pragma comment(linker, "/subsystem:windows")
@@ -14,7 +15,7 @@
 
 static HINSTANCE instance;
 static int cmdShow;
-const char* CLASS_NAME = "Application Window";
+const TCHAR* CLASS_NAME = TEXT("Application Window");
 
 typedef std::function<uint64_t(uint64_t, uint64_t, uint64_t)> callback_function;
 

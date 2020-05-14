@@ -60,19 +60,36 @@ struct object;
 }
 
 typedef tmpl::pointer_t<void*> pointer_t;
+#ifdef UNICODE
+typedef tmpl::string<std::wstring> string;
+typedef wchar_t char_t;
+#define TXT(quote) L##quote
+#define STR(quote) L##quote##_S
+#else
 typedef tmpl::string<std::string> string;
+typedef char char_t;
+#define TXT(quote) quote
+#define STR(quote) quote##_S
+#endif
 typedef tmpl::number<double> number;
 typedef tmpl::array<any> array;
 typedef tmpl::object<string, any> object;
 
 template <class T>
-concept Arithmetic = std::is_arithmetic_v<T> && !std::is_same_v<T, bool> && !std::is_same_v<T, char>;
+concept Arithmetic = std::is_arithmetic_v<T> && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
 
 template <class T>
-concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char>;
+concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
 
 template <class _Ty>
-struct is_stringish : std::bool_constant<std::is_same_v<_Ty, const char *> || std::is_same_v<_Ty, std::string> || std::is_same_v<_Ty, string> || std::is_same_v<_Ty, any>>
+struct is_stringish : 
+    std::bool_constant<std::is_same_v<_Ty, const char_t *> 
+    || std::is_same_v<_Ty, std::string> 
+    || std::is_same_v<_Ty, std::wstring> 
+    || std::is_same_v<_Ty, std::string_view> 
+    || std::is_same_v<_Ty, std::wstring_view> 
+    || std::is_same_v<_Ty, string> 
+    || std::is_same_v<_Ty, any>>
 {
 };
 
@@ -892,7 +909,7 @@ struct string
     {
     }
 
-    string(js::pointer_t v) : _value(v ? static_cast<const char *>(v) : ""), _control(v ? string_defined : string_null)
+    string(js::pointer_t v) : _value(v ? static_cast<const char_t *>(v) : TXT("")), _control(v ? string_defined : string_null)
     {
     }
 
@@ -900,11 +917,11 @@ struct string
     {
     }
 
-    string(const char *value) : _value(value == nullptr ? "" : value), _control(value == nullptr ? string_null : string_defined)
+    string(const char_t *value) : _value(value == nullptr ? TXT("") : value), _control(value == nullptr ? string_null : string_defined)
     {
     }
 
-    string(const char value) : _value(1, value), _control(string_defined)
+    string(const char_t value) : _value(1, value), _control(string_defined)
     {
     }
 
@@ -912,7 +929,7 @@ struct string
     {
     }
 
-    inline operator const char *()
+    inline operator const char_t *()
     {
         return _value.c_str();
     }
@@ -989,7 +1006,7 @@ struct string
 
     string_t operator+(any value);
 
-    string_t &operator+=(char c)
+    string_t &operator+=(char_t c)
     {
         _control = string_defined;
         _value.append(string(c)._value);
@@ -1090,7 +1107,7 @@ struct string
 
     string_t fromCharCode(js::number n) const
     {
-        return static_cast<char>(static_cast<size_t>(n));
+        return static_cast<char_t>(static_cast<size_t>(n));
     }
 
     string_t toUpperCase()
@@ -1142,6 +1159,17 @@ struct string
         return _value.end();
     }
 
+#ifdef UNICODE
+    friend std::wostream &operator<<(std::wostream &os, string val)
+    {
+        if (val._control == 2)
+        {
+            return os << "undefined";
+        }
+
+        return os << val._value;
+    }
+#else
     friend std::ostream &operator<<(std::ostream &os, string val)
     {
         if (val._control == 2)
@@ -1151,6 +1179,7 @@ struct string
 
         return os << val._value;
     }
+#endif
 
     size_t hash(void) const noexcept
     {
@@ -1160,9 +1189,9 @@ struct string
 
 } // namespace tmpl
 
-static string string_empty("");
+static string string_empty(TXT(""));
 
-static js::string operator""_S(const char *s, std::size_t size)
+static js::string operator""_S(const char_t *s, std::size_t size)
 {
     return js::string(s);
 }
@@ -1751,7 +1780,7 @@ struct object
 
     any &operator[](js::number n) const;
 
-    any &operator[](const char *s) const;
+    any &operator[](const char_t *s) const;
 
     any &operator[](std::string s) const;
 
@@ -1759,7 +1788,7 @@ struct object
 
     any &operator[](js::number n);
 
-    any &operator[](const char *s);
+    any &operator[](const char_t *s);
 
     any &operator[](std::string s);
 
@@ -1793,7 +1822,7 @@ struct object
         get().erase("undefined");
     }    
 
-    void Delete(const char *field)
+    void Delete(const char_t *field)
     {
         get().erase(field);
     }
@@ -1907,7 +1936,7 @@ struct any
     {
     }
 
-    any(char value) : _value(js::string(value))
+    any(char_t value) : _value(js::string(value))
     {
     }
 
@@ -2138,7 +2167,12 @@ struct any
 
         if (get_type() == anyTypeId::string_type)
         {
-            return js::number(std::atof(string_ref().operator const char *()));
+            #ifdef UNICODE
+            wchar_t* end;
+            return js::number(std::wcstof(string_ref().operator const char_t *(), &end));
+            #else
+            return js::number(std::atof(string_ref().operator const char_t *()));
+            #endif
         }
 
         throw "wrong type";
@@ -2264,12 +2298,21 @@ struct any
         throw "wrong type";
     }
 
+#ifdef UNICODE        
+    operator std::wstring()
+    {
+        std::wostringstream streamObj2;
+        streamObj2 << *this;
+        return streamObj2.str();
+    }
+#else
     operator std::string()
     {
         std::ostringstream streamObj2;
         streamObj2 << *this;
         return streamObj2.str();
     }
+#endif    
 
     bool operator==(const js::any &other) const
     {
@@ -2828,29 +2871,29 @@ struct any
         switch (get_type())
         {
         case anyTypeId::undefined_type:
-            return "undefined";
+            return TXT("undefined");
 
         case anyTypeId::boolean_type:
-            return "boolean";
+            return TXT("boolean");
 
         case anyTypeId::number_type:
-            return "number";
+            return TXT("number");
 
         case anyTypeId::string_type:
-            return "string";
+            return TXT("string");
 
         case anyTypeId::array_type:
-            return "array";
+            return TXT("array");
 
         case anyTypeId::object_type:
-            return "object";
+            return TXT("object");
 
         default:
-            return "error";
+            return TXT("error");
         }
     }
 
-    void Delete(const char *field)
+    void Delete(const char_t *field)
     {
         switch (get_type())
         {
@@ -2928,6 +2971,43 @@ struct any
         return hash_combine(h1, h2);
     }
 
+#ifdef UNICODE
+    friend std::wostream &operator<<(std::wostream &os, any val)
+    {
+        switch (val.get_type())
+        {
+        case anyTypeId::undefined_type:
+            return os << TXT("undefined");
+
+        case anyTypeId::boolean_type:
+            return os << val.boolean_ref();
+
+        case anyTypeId::number_type:
+            return os << val.number_ref();
+
+        case anyTypeId::pointer_type:
+            return os << TXT("null");
+
+        case anyTypeId::string_type:
+            return os << val.string_ref();
+
+        case anyTypeId::function_type:
+            return os << TXT("[function]");
+
+        case anyTypeId::array_type:
+            return os << TXT("[array]");
+
+        case anyTypeId::object_type:
+            return os << TXT("[object]");
+
+        case anyTypeId::class_type:
+            return os << val.class_ref().get()->toString();
+
+        default:
+            return os << TXT("[any]");
+        }
+    }
+#else
     friend std::ostream &operator<<(std::ostream &os, any val)
     {
         switch (val.get_type())
@@ -2963,6 +3043,7 @@ struct any
             return os << "[any]";
         }
     }
+#endif    
 };
 
 template <typename... Args>
@@ -3240,7 +3321,7 @@ any &object<K, V>::operator[](js::number n)
 }
 
 template <typename K, typename V>
-any &object<K, V>::operator[](const char *s) const
+any &object<K, V>::operator[](const char_t *s) const
 {
     return mutable_(get())[std::string(s)];
 }
@@ -3258,7 +3339,7 @@ any &object<K, V>::operator[](js::string s) const
 }
 
 template <typename K, typename V>
-any &object<K, V>::operator[](const char *s)
+any &object<K, V>::operator[](const char_t *s)
 {
     return get()[std::string(s)];
 }
@@ -3298,25 +3379,25 @@ static js::number _9_N(9);
 template <>
 string type_of(boolean value)
 {
-    return "boolean"_S;
+    return STR("boolean");
 }
 
 template <>
 string type_of(number value)
 {
-    return "number"_S;
+    return STR("number");
 }
 
 template <>
 string type_of(string value)
 {
-    return "string"_S;
+    return STR("string");
 }
 
 template <>
 string type_of(object value)
 {
-    return "object"_S;
+    return STR("object");
 }
 
 template <>
@@ -3435,7 +3516,7 @@ constexpr bool in(V v, O o)
 } // namespace js
 
 #define MAIN                                                             \
-    int main(int argc, char **argv)                                      \
+    int main(int argc, char_t **argv)                                      \
     {                                                                    \
         try                                                              \
         {                                                                \
@@ -3457,7 +3538,7 @@ constexpr bool in(V v, O o)
         {                                                                \
             std::cout << "Exception: " << s << std::endl;                \
         }                                                                \
-        catch (const char *s)                                            \
+        catch (const char_t *s)                                            \
         {                                                                \
             std::cout << "Exception: " << s << std::endl;                \
         }                                                                \
@@ -3535,9 +3616,13 @@ typedef any Function;
 struct RegExp
 {
 
+#ifdef UNICODE
+    std::wregex re;
+#else
     std::regex re;
+#endif    
 
-    RegExp(js::string pattern) : re((const char *)pattern)
+    RegExp(js::string pattern) : re((const char_t *)pattern)
     {
     }
 
@@ -3545,7 +3630,7 @@ struct RegExp
     {
         try
         {
-            if (std::regex_search((const char *)val, re))
+            if (std::regex_search((const char_t *)val, re))
             {
                 return true;
             }

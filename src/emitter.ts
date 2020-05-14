@@ -71,6 +71,9 @@ export class Emitter {
         // embeded types
         this.embededCPPTypes = [
             'bool',
+            'char',
+            'signed char',
+            'unsigned char',
             'short',
             'short int',
             'signed short',
@@ -124,7 +127,11 @@ export class Emitter {
             'uint_least32_t',
             'uint_least64_t',
             'uintmax_t',
-            'uintptr_t'
+            'uintptr_t',
+            'wchar_t',
+            'char16_t',
+            'char32_t',
+            'char8_t'
         ];
     }
 
