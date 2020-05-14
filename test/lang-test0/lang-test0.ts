@@ -6,7 +6,7 @@
 //
 
 // pause(2000)
-type Action any;
+type Action object;
 type uint8 number;
 type int8 number;
 type uint16 number;
