@@ -67,6 +67,8 @@ typedef wchar_t char_t;
 #define STR(quote) L##quote##_S
 using tstring = std::wstring;
 using tostream = std::wostream;
+using tostringstream = std::wostringstream;
+#define to_tstring std::to_wstring
 #else
 typedef tmpl::string<std::string> string;
 typedef char char_t;
@@ -74,6 +76,8 @@ typedef char char_t;
 #define STR(quote) quote##_S
 using tstring = std::string;
 using tostream = std::ostream;
+using tostringstream = std::ostringstream;
+#define to_tstring std::to_string
 #endif
 typedef tmpl::number<double> number;
 typedef tmpl::array<any> array;
@@ -627,35 +631,19 @@ struct number
         return this;
     }
 
-#ifdef UNICODE
-    operator std::wstring() const
+    operator tstring() const
     {
-        std::wostringstream streamObj2;
+        tostringstream streamObj2;
         streamObj2 << _value;
         return streamObj2.str();
     }
 
-    operator std::wstring()
+    operator tstring()
     {
-        std::wostringstream streamObj2;
+        tostringstream streamObj2;
         streamObj2 << _value;
         return streamObj2.str();
     }
-#else
-    operator std::string() const
-    {
-        std::ostringstream streamObj2;
-        streamObj2 << _value;
-        return streamObj2.str();
-    }
-
-    operator std::string()
-    {
-        std::ostringstream streamObj2;
-        streamObj2 << _value;
-        return streamObj2.str();
-    }
-#endif    
 
     operator js::string();
 
@@ -950,15 +938,9 @@ struct string
     {
     }
 
-#ifdef UNICODE
-    string(std::wstring value) : _value(value), _control(string_defined)
+    string(tstring value) : _value(value), _control(string_defined)
     {
     }
-#else
-    string(std::string value) : _value(value), _control(string_defined)
-    {
-    }
-#endif    
 
     string(const char_t *value) : _value(value == nullptr ? TXT("") : value), _control(value == nullptr ? string_null : string_defined)
     {
@@ -1044,7 +1026,7 @@ struct string
 
     string_t operator+(js::pointer_t ptr)
     {
-        return string(_value + ((!ptr) ? "null" : std::to_string(ptr)));
+        return string(_value + ((!ptr) ? TXT("null") : to_tstring(ptr)));
     }
 
     string_t operator+(any value);
@@ -2007,15 +1989,9 @@ struct any
     {
     }
 
-#ifdef UNICODE
-    any(const std::wstring &value) : _value(js::string(value))
+    any(const tstring &value) : _value(js::string(value))
     {
     }
-#else
-    any(const std::string &value) : _value(js::string(value))
-    {
-    }
-#endif    
 
     any(const js::string &value) : _value(value)
     {
@@ -2265,11 +2241,7 @@ struct any
 
         if (get_type() == anyTypeId::number_type)
         {
-#ifdef UNICODE
-            return js::string(number_ref().operator std::wstring());
-#else
-            return js::string(number_ref().operator std::string());
-#endif            
+            return js::string(number_ref().operator tstring());
         }
 
         if (get_type() == anyTypeId::pointer_type)
@@ -2367,21 +2339,12 @@ struct any
         throw "wrong type";
     }
 
-#ifdef UNICODE        
-    operator std::wstring()
+    operator tstring()
     {
-        std::wostringstream streamObj2;
+        tostringstream streamObj2;
         streamObj2 << *this;
         return streamObj2.str();
     }
-#else
-    operator std::string()
-    {
-        std::ostringstream streamObj2;
-        streamObj2 << *this;
-        return streamObj2.str();
-    }
-#endif    
 
     bool operator==(const js::any &other) const
     {
@@ -3030,11 +2993,7 @@ struct any
             break;
 
         case anyTypeId::string_type:
-#ifdef UNICODE        
-            h2 = std::hash<std::wstring>{}(static_cast<std::wstring &>(mutable_(string_ref_const())));
-#else
-            h2 = std::hash<std::string>{}(static_cast<std::string &>(mutable_(string_ref_const())));
-#endif            
+            h2 = std::hash<tstring>{}(static_cast<tstring &>(mutable_(string_ref_const())));
             break;
 
         default:
@@ -3044,8 +3003,7 @@ struct any
         return hash_combine(h1, h2);
     }
 
-#ifdef UNICODE
-    friend std::wostream &operator<<(std::wostream &os, any val)
+    friend tostream &operator<<(tostream &os, any val)
     {
         switch (val.get_type())
         {
@@ -3080,43 +3038,6 @@ struct any
             return os << TXT("[any]");
         }
     }
-#else
-    friend std::ostream &operator<<(std::ostream &os, any val)
-    {
-        switch (val.get_type())
-        {
-        case anyTypeId::undefined_type:
-            return os << TXT("undefined");
-
-        case anyTypeId::boolean_type:
-            return os << val.boolean_ref();
-
-        case anyTypeId::number_type:
-            return os << val.number_ref();
-
-        case anyTypeId::pointer_type:
-            return os << TXT("null");
-
-        case anyTypeId::string_type:
-            return os << val.string_ref();
-
-        case anyTypeId::function_type:
-            return os << TXT("[function]");
-
-        case anyTypeId::array_type:
-            return os << TXT("[array]");
-
-        case anyTypeId::object_type:
-            return os << TXT("[object]");
-
-        case anyTypeId::class_type:
-            return os << val.class_ref().get()->toString();
-
-        default:
-            return os << TXT("[any]");
-        }
-    }
-#endif    
 };
 
 template <typename... Args>
@@ -3309,17 +3230,13 @@ namespace tmpl
 template <typename V>
 number<V>::operator js::string()
 {
-#ifdef UNICODE    
-    return js::string(static_cast<std::wstring>(*this));
-#else
-    return js::string(static_cast<std::string>(*this));
-#endif    
+    return js::string(static_cast<tstring>(*this));
 }
 
 template <typename V>
 js::string number<V>::toString()
 {
-    std::ostringstream streamObj2;
+    tstringstream streamObj2;
     streamObj2 << _value;
     return streamObj2.str();
 }
@@ -3327,7 +3244,7 @@ js::string number<V>::toString()
 template <typename V>
 js::string number<V>::toString(number_t radix)
 {
-    return js::string(std::to_string(_value));
+    return js::string(to_tstring(_value));
 }
 
 template <typename T>
