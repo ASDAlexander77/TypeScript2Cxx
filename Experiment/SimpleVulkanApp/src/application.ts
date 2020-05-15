@@ -1,9 +1,10 @@
 import {AppWindow} from 'appwindow';
 
-class Application {
+export class Application {
+    static appWindow: AppWindow;
+
     static run() {
-        const appWindow = new AppWindow();
-        appWindow.run();
+        this.appWindow = new AppWindow();
     }
 }
 

@@ -12,7 +12,7 @@ static HINSTANCE instance;
 static int cmdShow;
 const TCHAR* CLASS_NAME = TEXT("Application Window");
 
-typedef std::function<uint64_t(uint64_t, uint64_t, uint64_t)> callback_function;
+typedef std::function<uint32_t(uint64_t, uint64_t, uint64_t)> callback_function;
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -27,7 +27,19 @@ void register_window_class() {
     RegisterClass(&wc);
 }
 
-uint64_t create_window(js::string title, callback_function window_callback) {
+uint32_t show_window(intptr_t hwnd, uint32_t cmdShow) {
+    return ShowWindow(reinterpret_cast<HWND>(hwnd), cmdShow);
+}
+
+uint32_t destroy_window(intptr_t hwnd) {
+    return DestroyWindow(reinterpret_cast<HWND>(hwnd));
+}
+
+void close_window(uint32_t exitCode) {
+    PostQuitMessage(exitCode);
+}
+
+intptr_t create_window(js::string title, intptr_t parent_hwnd, callback_function window_callback) {
     // Create the window.
     auto hwnd = CreateWindowEx(
         0,                              // Optional window styles.
@@ -38,7 +50,7 @@ uint64_t create_window(js::string title, callback_function window_callback) {
         // Size and position
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-        NULL,       // Parent window    
+        (HWND)parent_hwnd,       // Parent window    
         NULL,       // Menu
         instance,   // Instance handle
         NULL        // Additional application data
@@ -47,18 +59,17 @@ uint64_t create_window(js::string title, callback_function window_callback) {
     auto method_ptr = new callback_function(window_callback);
     SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) method_ptr);
 
-    ShowWindow(hwnd, cmdShow);
+    show_window(reinterpret_cast<intptr_t>(hwnd), cmdShow);
 
-    return (uint64_t)hwnd;
+    return reinterpret_cast<intptr_t>(hwnd);
 }
 
-void messages_loop(uint64_t hwnd) {
+void messages_loop() {
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-        RedrawWindow((HWND)hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
 }
 
@@ -74,6 +85,8 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
     // main inject
     Main();
 
+    messages_loop();
+
     return 0;
 }
 
@@ -83,27 +96,15 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     auto callback_function_ptr = reinterpret_cast<callback_function*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     if (callback_function_ptr) {
         callback_function_ptr->operator()(uMsg, wParam, lParam);
-    }
 
-    switch (uMsg) {
-        case WM_DESTROY:
-            PostQuitMessage(0);
-            if (callback_function_ptr) {
+        switch (uMsg) {
+            case WM_DESTROY:
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
-                delete callback_function_ptr;
-            }
-
-            return 0;
-        case WM_KEYDOWN:
-            switch (wParam) {
-                case VK_ESCAPE:
-                    DestroyWindow(hwnd);
-                    return 0;
-            }
-
-        default:
-            break;
+                delete callback_function_ptr;                
+        }
     }
+
+    RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

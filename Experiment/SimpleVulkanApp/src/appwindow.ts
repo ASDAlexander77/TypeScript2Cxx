@@ -1,20 +1,46 @@
-type callback_function = (uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t) => uint64_t;
-declare function create_window(title: string, handler: callback_function): uint64_t;
-declare function messages_loop(hwnd: uint64_t): void;
+type uint32_t = number;
 type uint64_t = number;
+type intptr_t = number;
+type callback_function = (uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t) => uint32_t;
+declare function create_window(title: string, parent_hwnd: intptr_t, handler: callback_function): intptr_t;
+declare function close_window(exitCode: uint32_t): void;
+declare function destroy_window(hwnd: intptr_t): uint32_t;
 
-class AppWindow {
-    private hwnd: uint64_t;
+enum Messages {
+    Size = 0x0005,
+    Paint = 0x000F,
+    KeyDown = 0x0100
+}
 
-    constructor() {
-        this.hwnd = create_window('Hello World!', this.onMessage);
+enum Keys {
+    Escape = 0x1b,
+    Space = 0x20
+}
+
+export class AppWindow {
+
+    private handler_window: intptr_t;
+
+    constructor(parent_handler_window?: intptr_t) {
+        this.handler_window = create_window('Hello World!', parent_handler_window, this.onMessage);
     }
 
-    public run() {
-        messages_loop(this.hwnd);
-    }
+    protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {
+        switch (<Messages>uMsg) {
+            case Messages.KeyDown: // key down
+                switch (<Keys>wParam) {
+                    case Keys.Escape: // key escape
+                        // open new window
+                        close_window(0);
+                        return 0;
+                    case Keys.Space: // key space
+                        // open new window
+                        return 0;
+                }
 
-    protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint64_t {
+                break;
+        }
+
         return 0;
     }
 }

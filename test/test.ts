@@ -83,89 +83,73 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
+function testLazyRef() {
+    msg("testLazyRef")
+    let x = ("x" + "Y") || "foo"
+    let y = "" || "bXr" + "2"
+    assert(x.length == 2, "two")
+    assert(y.length == 4, "emp")
+    y = null || "foo"
+    assert(y == "foo", "ln")
 
-function doubleIt(f: (x: number) => number) {
-    return f(1) - f(2)
+    x = "x" + "12x" && "7" + "xx"
+    assert(x.length == 3, "and")
+
+    x = "" && "blah"
+    assert(x == "", "andemp")
+    x = "foo" && "x" + "Y"
+    assert(x.length == 2, "twoand")
+    x = "x" + "Y" && "bar"
+    assert(x.length == 3, "threeand")
+
+    let tw = 12
+    let z = 0 || tw
+    assert(z == 12, "12")
+    z = tw || 13
+    assert(z == 12, "12.2")
+    z = tw && 13
+    assert(z == 13, "13")
+
+    let q = new Testrec()
+    let r: Testrec = null
+    let qq = q && r
+    assert(qq == null, "&n")
+    qq = r && q
+    assert(qq == null, "&r")
 }
+testLazyRef()
 
-function triple(f: (x: number, y: number, z: number) => number) {
-    return f(5, 20, 8)
-}
-
-function checkLen(f: (x: string) => string, k: number) {
-    // make sure strings are GCed
-    f("baz")
-    let s = f("foo")
-    assert(s.length == k, "len")
-}
-
-function testLambdas() {
-    let x = doubleIt(k => {
-        return k * 108
-    })
-    assert(x == -108, "l0")
-    x = triple((x, y, z) => {
-        return x * y + z
-    })
-    assert(x == 108, "l1")
-    checkLen((s) => {
-        return s + "XY1"
-    }, 6)
-    checkLen((s) => s + "1212", 7)
-}
-
-function testLambdaDecrCapture() {
-    let x = 6
-    function b(s: string) {
-        assert(s.length == x, "dc")
+// https://github.com/microsoft/pxt-arcade/issues/1519
+namespace InlinePlusCond {
+    interface MFX {
+        _dummy: any;
     }
-    b("fo0" + "bAr")
+    
+    const zero = 0 as any as MFX
+    const one = 1 as any as MFX
+    function sub(a:MFX, b:MFX) {
+        return ((a as any as number) - (b as any as number)) as any as MFX
+    }
+    class Foobar {
+        constructor(public x: MFX, public y: MFX) {}
+    }
+    
+    function testIt() {
+        let s = new Foobar(zero, one)
+        let right = true
+    
+        let vv = zero
+    
+        s.x = sub(
+            right ? vv : vv,
+            s.y
+        );
+
+        assert(s.x as any as number == -1, "mfx")
+    }
+
+    testIt()
 }
-
-function testNested() {
-    glb1 = 0
-
-    const x = 7
-    let y = 1
-
-    function bar(v: number) {
-        assert(x == 7 && y == v)
-        glb1++
-    }
-    function bar2() {
-        glb1 += 10
-    }
-
-    bar(1)
-    y++
-    bar(2)
-    bar2()
-    assert(glb1 == 12)
-    glb1 = 0
-    const arr = [1,20,300]
-    for (let k of arr) {
-        function qux() {
-            glb1 += k
-        }
-        qux()
-    }
-    assert(glb1 == 321)
-
-    const fns: any[] = []
-    for (let k of arr) {
-        const kk = k
-        function qux2() {
-            glb1 += kk
-        }
-        fns.push(qux2)
-    }
-    glb1 = 0
-    for (let f of fns) f()
-    assert(glb1 == 321)
-}
-
-testLambdas();
-testLambdaDecrCapture();
-testNested()clean()
+clean()
 msg("test OK!")
 
