@@ -2788,8 +2788,26 @@ export class Emitter {
     }
 
     private processSwitchStatementForBasicTypesInternal(node: ts.SwitchStatement) {
+        const caseExpressions = node.caseBlock.clauses
+            .filter(c => c.kind === ts.SyntaxKind.CaseClause)
+            .map(element => (<ts.CaseClause>element).expression);
+
+        const isNumeric = this.resolver.isNumberType(this.resolver.getOrResolveTypeOf(node.expression));
+        const isInteger = caseExpressions.every(expression => expression.kind === ts.SyntaxKind.NumericLiteral
+            && this.isInt((<ts.NumericLiteral>expression).text));
+
         this.writer.writeString(`switch (`);
+
+        if (isInteger && isNumeric) {
+            this.writer.writeString(`static_cast<size_t>(`);
+        }
+
         this.processExpression(node.expression);
+
+        if (isInteger && isNumeric) {
+            this.writer.writeString(`)`);
+        }
+
         this.writer.writeStringNewLine(')');
 
         this.writer.BeginBlock();
@@ -2900,6 +2918,11 @@ export class Emitter {
 
     private processNullLiteral(node: ts.NullLiteral): void {
         this.writer.writeString(node && node.parent.kind === ts.SyntaxKind.TypeAssertionExpression ? 'nullptr' : 'null');
+    }
+
+    private isInt(valAsString: string | number) {
+        const val = parseInt(valAsString, 10);
+        return val.toString() === valAsString;
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {

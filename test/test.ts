@@ -1,11 +1,45 @@
-enum e1 {
-	v1, v2
-};
-
-const e = e1.v1;
-switch (e)
-{
-	case e1.v1:
-	case e1.v2:
-		break;
-}
+type uint32_t = number;
+let a: uint32_t = 1;                                             
+        switch (a) {                                            
+            case 1:                                             
+            case 2:                                             
+                console.log("Hello!");                          
+                break;                                          
+            case 3:                                             
+                break;                                          
+            default:                                            
+                break;                                          
+        }                                                       
+        a = 2;                                                  
+        switch (a) {                                            
+            case 1:                                             
+            case 2:                                             
+                console.log("Hello!");                           
+                break;                                          
+            case 3:                                             
+                break;                                          
+            default:                                            
+                break;                                          
+        }                                                       
+        a = 3;                                                  
+        switch (a) {                                            
+            case 1:                                             
+            case 2:                                             
+                break;                                          
+            case 3:                                             
+                console.log("Hello!");                          
+                break;                                          
+            default:                                            
+                break;                                          
+        }                                                       
+        a = 4;                                                  
+        switch (a) {                                            
+            case 1:                                             
+            case 2:                                             
+                break;                                          
+            case 3:                                             
+                break;                                          
+            default:                                            
+                console.log("Hello!");                          
+                break;                                          
+        }   

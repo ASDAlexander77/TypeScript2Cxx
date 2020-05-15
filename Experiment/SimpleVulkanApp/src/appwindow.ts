@@ -26,9 +26,9 @@ export class AppWindow {
     }
 
     protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {
-        switch (<Messages>uMsg) {
+        switch (uMsg) {
             case Messages.KeyDown: // key down
-                switch (<Keys>wParam) {
+                switch (wParam) {
                     case Keys.Escape: // key escape
                         close_window(0);
                         return 0;
