@@ -1,45 +1,20 @@
-type uint32_t = number;
-let a: uint32_t = 1;                                             
-        switch (a) {                                            
-            case 1:                                             
+const grade = 0;                                       
+        var i = 0;                                              
+        switch(grade) {                                         
+           case 0:                                              
+              console.log("Excellent");                         
+              break;                                            
+           case 1:                                              
+              for (i; i < 10; i++) {                            
+                  console.log("failed");                        
+              }                                                 
+              console.log("failed");                            
+              for (i; i < 10; i++) {                            
+                  console.log("failed");                        
+              }                                                 
+              console.log("failed");                            
+            break;                                              
             case 2:                                             
-                console.log("Hello!");                          
-                break;                                          
-            case 3:                                             
-                break;                                          
-            default:                                            
-                break;                                          
-        }                                                       
-        a = 2;                                                  
-        switch (a) {                                            
-            case 1:                                             
-            case 2:                                             
-                console.log("Hello!");                           
-                break;                                          
-            case 3:                                             
-                break;                                          
-            default:                                            
-                break;                                          
-        }                                                       
-        a = 3;                                                  
-        switch (a) {                                            
-            case 1:                                             
-            case 2:                                             
-                break;                                          
-            case 3:                                             
-                console.log("Hello!");                          
-                break;                                          
-            default:                                            
-                break;                                          
-        }                                                       
-        a = 4;                                                  
-        switch (a) {                                            
-            case 1:                                             
-            case 2:                                             
-                break;                                          
-            case 3:                                             
-                break;                                          
-            default:                                            
-                console.log("Hello!");                          
-                break;                                          
-        }   
+              console.log("failed");                            
+            break;                                              
+        } 

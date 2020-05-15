@@ -2920,7 +2920,7 @@ export class Emitter {
         this.writer.writeString(node && node.parent.kind === ts.SyntaxKind.TypeAssertionExpression ? 'nullptr' : 'null');
     }
 
-    private isInt(valAsString: string | number) {
+    private isInt(valAsString: string) {
         const val = parseInt(valAsString, 10);
         return val.toString() === valAsString;
     }

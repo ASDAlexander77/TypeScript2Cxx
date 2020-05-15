@@ -129,7 +129,7 @@ export class IdentifierResolver {
             return true;
         }
 
-        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) === 'number') {
+        if (!typeInfo.symbol && (<any>typeInfo).value !== undefined && typeof((<any>typeInfo).value) === 'number') {
             return true;
         }
 
