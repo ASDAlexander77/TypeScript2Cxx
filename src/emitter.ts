@@ -2757,14 +2757,74 @@ export class Emitter {
     }
 
     private processSwitchStatement(node: ts.SwitchStatement) {
+        const caseExpressions = node.caseBlock.clauses
+            .filter(c => c.kind === ts.SyntaxKind.CaseClause)
+            .map(element => (<ts.CaseClause>element).expression);
+
+        if (!caseExpressions || caseExpressions.length === 0) {
+            this.processSwitchStatementForBasicTypesInternal(node);
+            return;
+        }
+
+        const isAllStatic = caseExpressions
+            .every(expression => expression.kind === ts.SyntaxKind.NumericLiteral
+                || expression.kind === ts.SyntaxKind.StringLiteral
+                || expression.kind === ts.SyntaxKind.TrueKeyword
+                || expression.kind === ts.SyntaxKind.FalseKeyword
+                || this.resolver.isTypeFromSymbol(this.resolver.getOrResolveTypeOf(expression), ts.SyntaxKind.EnumMember));
+
+        const firstExpression = caseExpressions[0];
+        const firstType = this.resolver.getOrResolveTypeOf(firstExpression);
+        const firstTypeNode = this.resolver.typeToTypeNode(firstType);
+        const isTheSameTypes = caseExpressions.every(
+            ce => this.resolver.typesAreTheSame(this.resolver.getOrResolveTypeOfAsTypeNode(ce), firstTypeNode));
+
+        if (isTheSameTypes && isAllStatic && !this.resolver.isStringType(firstType)) {
+            this.processSwitchStatementForBasicTypesInternal(node);
+            return;
+        }
+
+        this.processSwitchStatementForAnyInternal(node);
+    }
+
+    private processSwitchStatementForBasicTypesInternal(node: ts.SwitchStatement) {
+        this.writer.writeString(`switch (`);
+        this.processExpression(node.expression);
+        this.writer.writeStringNewLine(')');
+
+        this.writer.BeginBlock();
+
+        node.caseBlock.clauses.forEach(element => {
+            this.writer.DecreaseIntent();
+            if (element.kind === ts.SyntaxKind.CaseClause) {
+                this.writer.writeString(`case `);
+                (<any>element.expression).__skip_boxing = true;
+                this.processExpression(element.expression);
+            } else {
+                this.writer.writeString('default');
+            }
+
+            this.writer.IncreaseIntent();
+
+            this.writer.writeStringNewLine(':');
+            element.statements.forEach(elementCase => {
+                this.processStatement(elementCase);
+            });
+        });
+
+        this.writer.EndBlock();
+    }
+
+    private processSwitchStatementForAnyInternal(node: ts.SwitchStatement) {
 
         const switchName = `__switch${node.getFullStart()}_${node.getEnd()}`;
         const isAllStatic = node.caseBlock.clauses
             .filter(c => c.kind === ts.SyntaxKind.CaseClause)
-            .every(element => (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.NumericLiteral
-                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.StringLiteral
-                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.TrueKeyword
-                || (<ts.CaseClause>element).expression.kind === ts.SyntaxKind.FalseKeyword);
+            .map(element => (<ts.CaseClause>element).expression)
+            .every(expression => expression.kind === ts.SyntaxKind.NumericLiteral
+                || expression.kind === ts.SyntaxKind.StringLiteral
+                || expression.kind === ts.SyntaxKind.TrueKeyword
+                || expression.kind === ts.SyntaxKind.FalseKeyword);
 
         if (isAllStatic) {
             this.writer.writeString('static ');

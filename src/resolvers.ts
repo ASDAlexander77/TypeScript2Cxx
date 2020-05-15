@@ -125,10 +125,49 @@ export class IdentifierResolver {
             return false;
         }
 
-        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
-            const type = (<any>typeInfo.symbol.valueDeclaration).type;
+        if ((<any>typeInfo).intrinsicName === 'number') {
+            return true;
+        }
+
+        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) === 'number') {
+            return true;
+        }
+
+        return this.isNumberTypeFromSymbol(typeInfo.symbol);
+    }
+
+    public isNumberTypeFromSymbol(symbol: ts.Symbol) {
+        if (symbol && symbol.valueDeclaration) {
+            const type = (<any>symbol.valueDeclaration).type;
             if (type && type.kind === ts.SyntaxKind.TypeReference) {
-                return typeInfo.symbol.name === 'Number';
+                return symbol.name === 'Number';
+            }
+        }
+
+        return false;
+    }
+
+    public isStringType(typeInfo: ts.Type) {
+        if (!typeInfo) {
+            return false;
+        }
+
+        if ((<any>typeInfo).intrinsicName === 'string') {
+            return true;
+        }
+
+        if (!typeInfo.symbol && (<any>typeInfo).value && typeof((<any>typeInfo).value) === 'string') {
+            return true;
+        }
+
+        return this.isStringTypeFromSymbol(typeInfo.symbol);
+    }
+
+    public isStringTypeFromSymbol(symbol: ts.Symbol) {
+        if (symbol && symbol.valueDeclaration) {
+            const type = (<any>symbol.valueDeclaration).type;
+            if (type && type.kind === ts.SyntaxKind.TypeReference) {
+                return symbol.name === 'String';
             }
         }
 
