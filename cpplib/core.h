@@ -1838,7 +1838,7 @@ struct object
 
     virtual js::string toString()
     {
-        tstringstream streamObj2;
+        tostringstream streamObj2;
         streamObj2 << *this;
         return streamObj2.str();
     }
@@ -3193,7 +3193,7 @@ number<V>::operator js::string()
 template <typename V>
 js::string number<V>::toString()
 {
-    tstringstream streamObj2;
+    tostringstream streamObj2;
     streamObj2 << _value;
     return streamObj2.str();
 }
