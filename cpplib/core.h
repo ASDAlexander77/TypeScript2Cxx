@@ -68,6 +68,7 @@ typedef wchar_t char_t;
 using tstring = std::wstring;
 using tostream = std::wostream;
 using tostringstream = std::wostringstream;
+using tstringstream = std::wstringstream;
 #define to_tstring std::to_wstring
 #else
 typedef tmpl::string<std::string> string;
@@ -77,6 +78,7 @@ typedef char char_t;
 using tstring = std::string;
 using tostream = std::ostream;
 using tostringstream = std::ostringstream;
+using tstringstream = std::stringstream;
 #define to_tstring std::to_string
 #endif
 typedef tmpl::number<double> number;
@@ -861,8 +863,7 @@ struct number
     js::string toString();
     js::string toString(number_t radix);
 
-#ifdef UNICODE
-    friend std::wostream &operator<<(std::wostream &os, number_t val)
+    friend tostream &operator<<(tostream &os, number_t val)
     {
         if (val.is_undefined())
         {
@@ -876,22 +877,6 @@ struct number
 
         return os << val._value;
     }
-#else
-    friend std::ostream &operator<<(std::ostream &os, number_t val)
-    {
-        if (val.is_undefined())
-        {
-            return os << TXT("undefined");
-        }
-
-        if (std::isnan(static_cast<double>(val)))
-        {
-            return os << TXT("NaN");
-        }
-
-        return os << val._value;
-    }
-#endif    
 };
 
 template <typename T>
@@ -1184,8 +1169,7 @@ struct string
         return _value.end();
     }
 
-#ifdef UNICODE
-    friend std::wostream &operator<<(std::wostream &os, string val)
+    friend tostream &operator<<(tostream &os, string val)
     {
         if (val._control == 2)
         {
@@ -1194,17 +1178,6 @@ struct string
 
         return os << val._value;
     }
-#else
-    friend std::ostream &operator<<(std::ostream &os, string val)
-    {
-        if (val._control == 2)
-        {
-            return os << "undefined";
-        }
-
-        return os << val._value;
-    }
-#endif
 
     size_t hash(void) const noexcept
     {
@@ -1865,17 +1838,12 @@ struct object
 
     virtual js::string toString()
     {
-#ifdef UNICODE        
-        std::wostringstream streamObj2;
-#else
-        std::ostringstream streamObj2;
-#endif
+        tstringstream streamObj2;
         streamObj2 << *this;
         return streamObj2.str();
     }
 
-#ifdef UNICODE
-    friend std::wostream &operator<<(std::wostream &os, object val)
+    friend tostream &operator<<(tostream &os, object val)
     {
         if (val.isUndefined)
         {
@@ -1884,17 +1852,6 @@ struct object
 
         return os << TXT("[object]");
     }
-#else
-    friend std::ostream &operator<<(std::ostream &os, object val)
-    {
-        if (val.isUndefined)
-        {
-            return os << TXT("undefined");
-        }
-
-        return os << TXT("[object]");
-    }
-#endif    
 };
 
 } // namespace tmpl
@@ -3906,7 +3863,11 @@ static struct Console
 {
     Console()
     {
+#ifdef UNICODE        
+        std::wcout << std::boolalpha;
+#else        
         std::cout << std::boolalpha;
+#endif        
     }
 
     constexpr Console *operator->()
@@ -3917,29 +3878,49 @@ static struct Console
     template <class... Args>
     void log(Args&&... args)
     {
+#ifdef UNICODE        
+        auto dummy = { (std::wcout << args, 0)... };
+        std::wcout << std::endl;
+#else
         auto dummy = { (std::cout << args, 0)... };
         std::cout << std::endl;
+#endif        
     }
 
     template <class... Args>
     void warn(Args&&... args)
     {
+#ifdef UNICODE 
+        auto dummy = { (std::wclog << args, 0)... };
+        std::wclog << std::endl;
+#else        
         auto dummy = { (std::clog << args, 0)... };
         std::clog << std::endl;
+#endif          
     }
 
     template <class... Args>
     void error(Args&&... args)
     {
+#ifdef UNICODE 
+        auto dummy = { (std::wcerr << args, 0)... };
+        std::wcerr << std::endl;
+#else        
         auto dummy = { (std::cerr << args, 0)... };
         std::cerr << std::endl;
+#endif          
     }
 
     template <class... Args>
     void debug(Args&&... args)
     {
+#ifdef UNICODE 
+        auto dummy = { (std::wclog << args, 0)... };
+        std::wclog << std::endl;
+#else        
         auto dummy = { (std::clog << args, 0)... };
         std::clog << std::endl;
+#endif          
     }
 
 
