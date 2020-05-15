@@ -60,6 +60,7 @@ struct object;
 }
 
 typedef tmpl::pointer_t<void*> pointer_t;
+
 #ifdef UNICODE
 typedef tmpl::string<std::wstring> string;
 typedef wchar_t char_t;
@@ -81,6 +82,7 @@ using tostringstream = std::ostringstream;
 using tstringstream = std::stringstream;
 #define to_tstring std::to_string
 #endif
+
 typedef tmpl::number<double> number;
 typedef tmpl::array<any> array;
 typedef tmpl::object<string, any> object;
@@ -2043,7 +2045,7 @@ struct any
 
     inline std::shared_ptr<function> function_ptr()
     {
-        return get_ptr<function>();
+        return get<std::shared_ptr<function>>();
     }
 
     inline const array &array_ref_const() const

@@ -83,47 +83,89 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-function defaultArgs(x: number, y = 3, z = 7) {
-    return x + y + z;
+
+function doubleIt(f: (x: number) => number) {
+    return f(1) - f(2)
 }
 
-function optargs(x: number, y?: number, z?: number) {
-    if (y == undefined)
-        y = 0
-    return x + y;
+function triple(f: (x: number, y: number, z: number) => number) {
+    return f(5, 20, 8)
 }
 
-function optstring(x: number, s?: string) {
-    if (s != null) {
-        return parseInt(s) + x;
+function checkLen(f: (x: string) => string, k: number) {
+    // make sure strings are GCed
+    f("baz")
+    let s = f("foo")
+    assert(s.length == k, "len")
+}
+
+function testLambdas() {
+    let x = doubleIt(k => {
+        return k * 108
+    })
+    assert(x == -108, "l0")
+    x = triple((x, y, z) => {
+        return x * y + z
+    })
+    assert(x == 108, "l1")
+    checkLen((s) => {
+        return s + "XY1"
+    }, 6)
+    checkLen((s) => s + "1212", 7)
+}
+
+function testLambdaDecrCapture() {
+    let x = 6
+    function b(s: string) {
+        assert(s.length == x, "dc")
     }
-    return x * 2;
+    b("fo0" + "bAr")
 }
 
-function optstring2(x: number, s: string = null) {
-    if (s != null) {
-        return parseInt(s) + x;
+function testNested() {
+    glb1 = 0
+
+    const x = 7
+    let y = 1
+
+    function bar(v: number) {
+        assert(x == 7 && y == v)
+        glb1++
     }
-    return x * 2;
+    function bar2() {
+        glb1 += 10
+    }
+
+    bar(1)
+    y++
+    bar(2)
+    bar2()
+    assert(glb1 == 12)
+    glb1 = 0
+    const arr = [1,20,300]
+    for (let k of arr) {
+        function qux() {
+            glb1 += k
+        }
+        qux()
+    }
+    assert(glb1 == 321)
+
+    const fns: any[] = []
+    for (let k of arr) {
+        const kk = k
+        function qux2() {
+            glb1 += kk
+        }
+        fns.push(qux2)
+    }
+    glb1 = 0
+    for (let f of fns) f()
+    assert(glb1 == 321)
 }
 
-function testDefaultArgs() {
-    msg("testDefaultArgs");
-    assert(defaultArgs(1) == 11, "defl0")
-    assert(defaultArgs(1, 4) == 12, "defl1")
-    assert(defaultArgs(1, 4, 8) == 13, "defl2")
-
-    assert(optargs(1) == 1, "opt0");
-    assert(optargs(1, 2) == 3, "opt1");
-    assert(optargs(1, 2, 3) == 3, "opt2");
-
-    assert(optstring(3) == 6, "os0")
-    assert(optstring(3, "7") == 10, "os1")
-    assert(optstring2(3) == 6, "os0")
-    assert(optstring2(3, "7") == 10, "os1")
-}
-
-testDefaultArgs();
-clean()
+testLambdas();
+testLambdaDecrCapture();
+testNested()clean()
 msg("test OK!")
 

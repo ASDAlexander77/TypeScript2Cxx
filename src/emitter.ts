@@ -11,7 +11,7 @@ export class Emitter {
     private sourceFileName: string;
     private scope: Array<ts.Node> = new Array<ts.Node>();
     private opsMap: Map<number, string> = new Map<number, string>();
-    private embededCPPTypes: Array<string>;
+    private embeddedCPPTypes: Array<string>;
     private isWritingMain = false;
 
     public constructor(
@@ -69,7 +69,7 @@ export class Emitter {
         this.opsMap[ts.SyntaxKind.CommaToken] = ',';
 
         // embeded types
-        this.embededCPPTypes = [
+        this.embeddedCPPTypes = [
             'bool',
             'char',
             'signed char',
@@ -1429,7 +1429,7 @@ export class Emitter {
         // remove NULL from union types, do we need to remove "undefined" as well?
         let type = node.type;
         if (type.kind === ts.SyntaxKind.AnyKeyword
-            || type.kind === ts.SyntaxKind.NumberKeyword && this.embededCPPTypes.some((e) => e === name)) {
+            || type.kind === ts.SyntaxKind.NumberKeyword && this.embeddedCPPTypes.some((e) => e === name)) {
             return;
         }
 

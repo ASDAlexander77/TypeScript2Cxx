@@ -91,7 +91,8 @@
             "future": "cpp",
             "mutex": "cpp",
             "ratio": "cpp",
-            "xthread": "cpp"
+            "xthread": "cpp",
+            "cinttypes": "cpp"
         }
     }
 }
