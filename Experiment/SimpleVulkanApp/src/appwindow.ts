@@ -30,7 +30,6 @@ export class AppWindow {
             case Messages.KeyDown: // key down
                 switch (<Keys>wParam) {
                     case Keys.Escape: // key escape
-                        // open new window
                         close_window(0);
                         return 0;
                     case Keys.Space: // key space
