@@ -65,11 +65,15 @@ typedef tmpl::string<std::wstring> string;
 typedef wchar_t char_t;
 #define TXT(quote) L##quote
 #define STR(quote) L##quote##_S
+using tstring = std::wstring;
+using tostream = std::wostream;
 #else
 typedef tmpl::string<std::string> string;
 typedef char char_t;
 #define TXT(quote) quote
 #define STR(quote) quote##_S
+using tstring = std::string;
+using tostream = std::ostream;
 #endif
 typedef tmpl::number<double> number;
 typedef tmpl::array<any> array;
@@ -3590,7 +3594,7 @@ constexpr bool in(V v, O o)
 
 #ifdef UNICODE
 #define MAIN                                                             \
-    int _tmain(int argc, char_t **argv)                                  \
+    int wmain(int argc, char_t **argv)                                   \
     {                                                                    \
         try                                                              \
         {                                                                \
@@ -3606,9 +3610,9 @@ constexpr bool in(V v, O o)
         }                                                                \
         catch (const std::exception &exception)                          \
         {                                                                \
-            std::wcout << TXT("Exception: ") << exception.what() << std::endl;\
+            std::cout << "Exception: " << exception.what() << std::endl; \
         }                                                                \
-        catch (const std::string &s)                                     \
+        catch (const tstring &s)                                         \
         {                                                                \
             std::wcout << TXT("Exception: ") << s << std::endl;          \
         }                                                                \
@@ -3624,7 +3628,7 @@ constexpr bool in(V v, O o)
     }
 #else
 #define MAIN                                                             \
-    int _tmain(int argc, char_t **argv)                                  \
+    int main(int argc, char_t **argv)                                    \
     {                                                                    \
         try                                                              \
         {                                                                \
@@ -3640,9 +3644,9 @@ constexpr bool in(V v, O o)
         }                                                                \
         catch (const std::exception &exception)                          \
         {                                                                \
-            std::cout << TXT("Exception: ") << exception.what() << std::endl; \
+            std::cout << "Exception: " << exception.what() << std::endl;\
         }                                                                \
-        catch (const std::string &s)                                     \
+        catch (const tstring &s)                                         \
         {                                                                \
             std::cout << TXT("Exception: ") << s << std::endl;           \
         }                                                                \
