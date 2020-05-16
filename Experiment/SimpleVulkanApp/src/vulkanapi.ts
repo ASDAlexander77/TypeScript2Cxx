@@ -1,8 +1,8 @@
-declare function vk_create_device(): void;
+type struct_val = [string, number];
 
 export class VulkanApi {
 
     public CreateContext() {
-        vk_create_device();
+        let v:struct_val;
     }
 }
