@@ -12,7 +12,8 @@
             ],
             "windowsSdkVersion": "10.0.18362.0",
             "intelliSenseMode": "msvc-x64",
-            "configurationProvider": "vector-of-bool.cmake-tools"
+            "configurationProvider": "vector-of-bool.cmake-tools",
+            "compileCommands": "D:/Developing/TypeScript2Cxx/test/build/compile_commands.json"
         }
     ],
     "version": 4

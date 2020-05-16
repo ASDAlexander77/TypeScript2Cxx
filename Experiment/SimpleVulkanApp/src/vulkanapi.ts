@@ -1,8 +1,11 @@
-type struct_val = [string, number];
+import * from 'vulkan.win32';
 
-export class VulkanApi {
+namespace Vulkan {
+    
+    export class Api {
 
-    public CreateContext() {
-        let v:struct_val;
+        public CreateContext() {
+        }
     }
+
 }

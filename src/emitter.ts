@@ -186,6 +186,15 @@ export class Emitter {
         }
     }
 
+    private isImportStatement(f: ts.Statement | ts.Declaration): boolean {
+        if (f.kind === ts.SyntaxKind.ImportDeclaration
+            || f.kind === ts.SyntaxKind.ImportEqualsDeclaration) {
+            return true;
+        }
+
+        return false;
+    }
+
     private isDeclarationStatement(f: ts.Statement | ts.Declaration): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
@@ -193,9 +202,7 @@ export class Emitter {
             || f.kind === ts.SyntaxKind.InterfaceDeclaration
             || f.kind === ts.SyntaxKind.ModuleDeclaration
             || f.kind === ts.SyntaxKind.NamespaceExportDeclaration
-            || f.kind === ts.SyntaxKind.ImportDeclaration
-            || f.kind === ts.SyntaxKind.TypeAliasDeclaration
-            || f.kind === ts.SyntaxKind.ImportEqualsDeclaration) {
+            || f.kind === ts.SyntaxKind.TypeAliasDeclaration) {
             return true;
         }
 
@@ -408,6 +415,14 @@ export class Emitter {
             // added header
             this.WriteHeader();
 
+            sourceFile.statements.filter(s => this.isImportStatement(s)).forEach(s => {
+                this.processInclude(s);
+            });            
+
+            this.writer.writeStringNewLine('');
+            this.writer.writeStringNewLine('using namespace js;');
+            this.writer.writeStringNewLine('');
+    
             const position = this.writer.newSection();
 
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
@@ -441,6 +456,14 @@ export class Emitter {
         if (this.isSource()) {
             // added header
             this.WriteHeader();
+
+            sourceFile.statements.filter(s => this.isImportStatement(s)).forEach(s => {
+                this.processImplementation(s);
+            });
+
+            this.writer.writeStringNewLine('');
+            this.writer.writeStringNewLine('using namespace js;');
+            this.writer.writeStringNewLine('');
 
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
                 this.processImplementation(s);
@@ -509,10 +532,6 @@ export class Emitter {
             this.writer.writeStringNewLine(`#define ${headerName}`);
             this.writer.writeStringNewLine(`#include "core.h"`);
         }
-
-        this.writer.writeStringNewLine('');
-        this.writer.writeStringNewLine('using namespace js;');
-        this.writer.writeStringNewLine('');
     }
 
     private processBundle(bundle: ts.Bundle): void {
@@ -1829,7 +1848,7 @@ export class Emitter {
                     next = true;
                 });
 
-                this.writer.writeString(' >');
+                this.writer.writeString('>');
                 break;
             case ts.SyntaxKind.TypeReference:
                 const typeReference = <ts.TypeReferenceNode>type;
