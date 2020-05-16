@@ -46,6 +46,7 @@
                 "${workspaceFolder}",
                 "${workspaceFolder}/src",
                 "${workspaceFolder}/src/cpp",
+                "${workspaceFolder}/src/native",
                 "${workspaceFolder}/../../cpplib",
                 "${workspaceFolder}/src/native",
                 "C:/VulkanSDK/1.2.135.0/Include"
@@ -62,8 +63,8 @@
                     "${workspaceFolder}",
                     "${workspaceFolder}/src",
                     "${workspaceFolder}/src/cpp",
-                    "${workspaceFolder}/../../cpplib",
                     "${workspaceFolder}/src/native",
+                    "${workspaceFolder}/../../cpplib",
                     "C:/VulkanSDK/1.2.135.0/Include"
                 ]
             },

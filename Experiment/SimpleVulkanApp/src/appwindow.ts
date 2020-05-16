@@ -1,4 +1,4 @@
-import {Vulkan} from 'vulkanapi';
+import {vulkan} from 'vulkanapi';
 
 type uint32_t = number;
 type uint64_t = number;
@@ -23,12 +23,13 @@ enum Keys {
 export class AppWindow {
 
     private handler_window: intptr_t;
-    private vulkanApi: Vulkan.Api;
+
 
     constructor(parent_handler_window?: intptr_t) {
         this.handler_window = create_window('Hello World!', parent_handler_window, this.onMessage);
 
-        vulkanApi.CreateContext();
+
+        vulkan.Instance.Create();
     }
 
     protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {

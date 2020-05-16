@@ -1,10 +1,10 @@
-import * from 'vulkan.win32';
+import 'vulkan.win32';
 
-export namespace Vulkan {
-    export class Api {
-
-        public CreateContext() {
+export module vulkan {
+    export class Instance {
+        static Create(): Instance {
+            const inst = new Instance();
+            return inst;
         }
     }
-
 }
