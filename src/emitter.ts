@@ -417,12 +417,12 @@ export class Emitter {
 
             sourceFile.statements.filter(s => this.isImportStatement(s)).forEach(s => {
                 this.processInclude(s);
-            });            
+            });
 
             this.writer.writeStringNewLine('');
             this.writer.writeStringNewLine('using namespace js;');
             this.writer.writeStringNewLine('');
-    
+
             const position = this.writer.newSection();
 
             sourceFile.statements.filter(s => this.isDeclarationStatement(s)).forEach(s => {
@@ -3106,6 +3106,8 @@ export class Emitter {
     private processArrayLiteralExpression(node: ts.ArrayLiteralExpression): void {
         let next = false;
 
+        const isDeconstruct = node.parent && node.parent.kind === ts.SyntaxKind.BinaryExpression
+            && (<ts.BinaryExpression>node.parent).left === node;
         let isTuple = false;
         const type = this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node));
         if (type.kind === ts.SyntaxKind.TupleType) {
@@ -3123,6 +3125,22 @@ export class Emitter {
             } else if (elementsType.typeArguments && elementsType.typeArguments[0]) {
                 elementsType = elementsType.typeArguments[0];
             }
+        }
+
+        if (isDeconstruct) {
+            this.writer.writeString('std::tie(');
+            node.elements.forEach(element => {
+                if (next) {
+                    this.writer.writeString(', ');
+                }
+
+                this.processExpression(element);
+
+                next = true;
+            });
+
+            this.writer.writeString(')');
+            return;
         }
 
         if (!isTuple) {
