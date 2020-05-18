@@ -1,2 +1,3 @@
-var a,b,c;
-[a, b] = c;
+function f() {
+	const [a, b] = [ 1, 2 ];
+}

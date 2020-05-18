@@ -1660,7 +1660,7 @@ export class Emitter {
         declarationList.declarations.forEach(d => {
                 result =
                     this.processVariableDeclarationOne(
-                        <ts.Identifier>d.name, d.initializer, d.type, next, forwardDeclaration, forceCaptureRequired)
+                        d.name, d.initializer, d.type, next, forwardDeclaration, forceCaptureRequired)
                     || result;
             } );
 
@@ -1668,7 +1668,7 @@ export class Emitter {
     }
 
     private processVariableDeclarationOne(
-        name: ts.Identifier,
+        name: ts.BindingName,
         initializer: ts.Expression,
         type: ts.TypeNode,
         next?: { next: boolean },
@@ -1678,7 +1678,23 @@ export class Emitter {
             this.writer.writeString(', ');
         }
 
-        this.writer.writeString(name.text);
+        if (name.kind === ts.SyntaxKind.ArrayBindingPattern) {
+            this.writer.writeString('[');
+            let hasNext = false;
+            name.elements.forEach(element => {
+                if (hasNext) {
+                    this.writer.writeString(', ');
+                }
+
+                hasNext = true;
+                this.writer.writeString((<ts.Identifier>(<ts.BindingElement>element).name).text);
+            });
+            this.writer.writeString(']');
+        } else if (name.kind === ts.SyntaxKind.Identifier) {
+            this.writer.writeString(name.text);
+        } else {
+            throw new Error('Not implemented!');
+        }
 
         if (!forwardDeclaration) {
             if (initializer) {
