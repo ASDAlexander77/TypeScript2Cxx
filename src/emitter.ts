@@ -2948,7 +2948,7 @@ export class Emitter {
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         // find if you need to box value
-        this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? 'true_t' : 'false_t'}`);
+        this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'}`);
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {

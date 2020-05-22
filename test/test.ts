@@ -1,2 +1,3 @@
-enum Color {Red = 1, Green, Blue}      
-        console.log(Color.Green);
+let r;                                     
+        r = ~ false;                                
+        console.log(r);
