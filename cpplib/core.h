@@ -93,6 +93,9 @@ concept Arithmetic = std::is_arithmetic_v<T> && !std::is_same_v<T, bool> && !std
 template <class T>
 concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
 
+template <class T>
+concept ArithmeticOrEnumOrNumber = (std::is_arithmetic_v<T> || std::is_enum_v<T> || std::is_same_v<T, number>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
+
 template <class _Ty>
 struct is_stringish : 
     std::bool_constant<std::is_same_v<_Ty, const char_t *> 
@@ -592,13 +595,8 @@ struct number
     {
     }
 
-    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
+    template <typename T = void> requires ArithmeticOrEnum<T>
     number(T initValue) : _value{static_cast<V>(initValue)}
-    {
-    }
-
-    template <typename T>
-    number(T initValue, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value{static_cast<V>(static_cast<size_t>(initValue))}
     {
     }
 
@@ -709,9 +707,10 @@ struct number
         return tmp;
     }
 
-    friend number_t operator+(const number_t n, number_t value)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator+(const number_t n, T value)
     {
-        return n._value + value._value;
+        return n._value + static_cast<V>(value);
     }
 
     number_t &operator+=(number_t other)
@@ -1931,8 +1930,8 @@ struct any
     {
     }
 
-    template <typename T>
-    any(T value, std::enable_if_t<std::is_enum_v<T>, int> = 0) : _value(js::number((int)value))
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    any(N value) : _value(js::number(value))
     {
     }
 
