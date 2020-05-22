@@ -2987,12 +2987,12 @@ export class Emitter {
         const applyNSuffix = !(<any>node).__skip_boxing && (!node.parent || !isWithinEnum);
         if (applyNSuffix && isInt && val >= 0 && val <= 9) {
             // use predefined const
-            this.writer.writeString(`_`);
+            ////this.writer.writeString(`_`);
         }
 
         this.writer.writeString(`${node.text}`);
         if (applyNSuffix) {
-            this.writer.writeString(`_N`);
+            ////this.writer.writeString(`_N`);
         } else {
             this.writer.writeString(`${suffix}`);
         }
