@@ -3861,6 +3861,16 @@ static number PI(3.141592653589793);
 static number SQRT1_2(0.7071067811865476);
 static number SQRT2(1.4142135623730951);
 
+template <typename I, class = std::enable_if_t<!std::is_enum_v<I>>>
+constexpr inline I pass(I i) {
+    return i;
+}
+
+template <typename I, class = std::enable_if_t<std::is_enum_v<I>>>
+constexpr inline size_t pass(I i) {
+    return static_cast<size_t>(i);
+}
+
 static struct Console
 {
     Console()
@@ -3881,10 +3891,10 @@ static struct Console
     void log(Args&&... args)
     {
 #ifdef UNICODE        
-        auto dummy = { (std::wcout << args, 0)... };
+        auto dummy = { (std::wcout << pass(args), 0)... };
         std::wcout << std::endl;
 #else
-        auto dummy = { (std::cout << args, 0)... };
+        auto dummy = { (std::cout << pass(args), 0)... };
         std::cout << std::endl;
 #endif        
     }
@@ -3893,10 +3903,10 @@ static struct Console
     void warn(Args&&... args)
     {
 #ifdef UNICODE 
-        auto dummy = { (std::wclog << args, 0)... };
+        auto dummy = { (std::wclog << pass(args), 0)... };
         std::wclog << std::endl;
 #else        
-        auto dummy = { (std::clog << args, 0)... };
+        auto dummy = { (std::clog << pass(args), 0)... };
         std::clog << std::endl;
 #endif          
     }
@@ -3905,10 +3915,10 @@ static struct Console
     void error(Args&&... args)
     {
 #ifdef UNICODE 
-        auto dummy = { (std::wcerr << args, 0)... };
+        auto dummy = { (std::wcerr << pass(args), 0)... };
         std::wcerr << std::endl;
 #else        
-        auto dummy = { (std::cerr << args, 0)... };
+        auto dummy = { (std::cerr << pass(args), 0)... };
         std::cerr << std::endl;
 #endif          
     }
@@ -3917,10 +3927,10 @@ static struct Console
     void debug(Args&&... args)
     {
 #ifdef UNICODE 
-        auto dummy = { (std::wclog << args, 0)... };
+        auto dummy = { (std::wclog << pass(args), 0)... };
         std::wclog << std::endl;
 #else        
-        auto dummy = { (std::clog << args, 0)... };
+        auto dummy = { (std::clog << pass(args), 0)... };
         std::clog << std::endl;
 #endif          
     }

@@ -1,3 +1,2 @@
-function f() {
-	const [a, b] = [ 1, 2 ];
-}
+enum Color {Red = 1, Green, Blue}      
+        console.log(Color.Green);
