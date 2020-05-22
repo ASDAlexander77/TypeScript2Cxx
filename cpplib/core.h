@@ -2083,8 +2083,8 @@ struct any
         return *this;
     }
 
-    template <typename T, class = std::enable_if_t<std::is_arithmetic_v<T>>>
-    any &operator=(T other)
+    template <typename N>
+    any &operator=(N other) requires ArithmeticOrEnumOrNumber<N>
     {
         _value = js::number(other);
         return *this;

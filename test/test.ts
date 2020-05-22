@@ -1,6 +1,9 @@
-let list: number[] = [1, 2, 3];        
-        console.log(list[0]);                   
-        console.log(list[1]);                   
-        console.log(list[2]);                   
-        list[2] = 10;                           
-        console.log(list[2]);
+var x;                              
+            x = true;                           
+            console.log(x);                     
+            x = 1;                              
+            console.log(x);                     
+            x = 1.5;                            
+            console.log(x);                     
+            x = "Hello World!";                 
+            console.log(x);
