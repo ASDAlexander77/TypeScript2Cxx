@@ -1877,10 +1877,16 @@ struct object
         get().erase(field);
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    bool exists(N n) const
+    {
+        return get().find(js::string(to_tstring(n))) != get().end();
+    }
+
     template <class T>
     bool exists(T i) const
     {
-        if constexpr (std::is_same_v<T, js::number> || is_stringish_v<T>)
+        if constexpr (is_stringish_v<T>)
         {
             return get().find(i) != get().end();
         }
