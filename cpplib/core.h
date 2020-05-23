@@ -900,7 +900,7 @@ struct number
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     friend bool operator>=(const number_t value, N n)
     {
-        return value._value > static_cast<V>(n);
+        return value._value >= static_cast<V>(n);
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>

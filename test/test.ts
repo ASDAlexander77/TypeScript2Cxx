@@ -1,3 +1,9 @@
-let c = {1: 2};                            
-        let b = 1 in c;                             
-        console.log(b);
+	let r:boolean; let x = 1, y = 1;           
+        r = x > y;                                  
+        console.log(r);                             
+        r = x < y;                                  
+        console.log(r);                             
+        r = x >= y;                                 
+        console.log(r);                             
+        r = x <= y;                                 
+        console.log(r);
