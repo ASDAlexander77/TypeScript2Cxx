@@ -96,6 +96,9 @@ concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !st
 template <class T>
 concept ArithmeticOrEnumOrNumber = (std::is_arithmetic_v<T> || std::is_enum_v<T> || std::is_same_v<T, number>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
 
+template<typename T>
+concept can_cast_to_size_t = requires(T t) { static_cast<size_t>(t); };
+
 template <class _Ty>
 struct is_stringish : 
     std::bool_constant<std::is_same_v<_Ty, const char_t *> 
@@ -1573,9 +1576,10 @@ struct array
         return os << "[array]";
     }
 
-    bool exists(js::number i) const
+    template <typename N = void> requires can_cast_to_size_t<N>
+    bool exists(N n) const
     {
-        return static_cast<size_t>(i) < get().size();
+        return static_cast<size_t>(n) < get().size();
     }
 
     template <class T>
