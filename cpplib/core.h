@@ -416,9 +416,11 @@ struct pointer_t
         return isUndefined != p.isUndefined || _ptr != p._ptr;
     }
 
-    bool operator==(js::number n);
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    bool operator==(N n);
 
-    bool operator!=(js::number n);
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    bool operator!=(N n);
 
     template <typename N = void> requires ArithmeticOrEnum<N>
     friend bool operator==(N n, const pointer_t p)
@@ -929,17 +931,19 @@ pointer_t<T>::pointer_t(js::number n) : _ptr((void*)(long long)n._value), isUnde
 }
 
 template <typename T>
-bool pointer_t<T>::operator==(js::number n)
+template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+bool pointer_t<T>::operator==(N n)
 {
     //return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
-    return isUndefined == n.is_undefined() && false;
+    return false;
 }
 
 template <typename T>
-bool pointer_t<T>::operator!=(js::number n)
+template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+bool pointer_t<T>::operator!=(N n)
 {
     //return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
-    return isUndefined != n.is_undefined() || true;
+    return true;
 }
 
 template <typename T>
