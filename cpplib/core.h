@@ -420,6 +420,18 @@ struct pointer_t
 
     bool operator!=(js::number n);
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator==(N n, const pointer_t p)
+    {
+        return !p.isUndefined && false;
+    }
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator!=(N n, const pointer_t p)
+    {
+        return p.isUndefined || true;
+    }
+
     template <typename _Ty>
     bool operator==(std::shared_ptr<_Ty> sp)
     {
@@ -659,16 +671,6 @@ struct number
         return !is_undefined();
     }
 
-    inline friend bool operator==(const number_t n, number_t other)
-    {
-        return n._value == other._value;
-    }
-
-    inline friend bool operator!=(const number_t n, number_t other)
-    {
-        return n._value != other._value;
-    }
-
     inline friend bool operator==(const undefined_t, number_t other)
     {
         return other.is_undefined();
@@ -679,14 +681,14 @@ struct number
         return !other.is_undefined();
     }
 
-    inline friend bool operator==(number_t n, js::pointer_t p)
+    inline friend bool operator==(const number_t n, js::pointer_t p)
     {
-        return n.is_undefined() == p.isUndefined && false;
+        return mutable_(n).is_undefined() == p.isUndefined && false;
     }
 
-    inline friend bool operator!=(number_t n, js::pointer_t p)
+    inline friend bool operator!=(const number_t n, js::pointer_t p)
     {
-        return n.is_undefined() != p.isUndefined || true;
+        return mutable_(n).is_undefined() != p.isUndefined || true;
     }
 
     number_t operator+()
@@ -841,24 +843,46 @@ struct number
         return ~static_cast<long>(_value);
     }
 
-    bool operator<(number_t n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator==(const number_t value, N n)
     {
-        return _value < n._value;
+        return value._value == static_cast<V>(n);
     }
 
-    bool operator<=(number_t n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator!=(const number_t value, N n)
     {
-        return _value <= n._value;
+        return value._value != static_cast<V>(n);
     }
 
-    bool operator>(number_t n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator<(const number_t value, N n)
     {
-        return _value > n._value;
+        return value._value < static_cast<V>(n);
     }
 
-    bool operator>=(number_t n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator<=(const number_t value, N n)
     {
-        return _value >= n._value;
+        return value._value <= static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator>(const number_t value, N n)
+    {
+        return value._value > static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator>=(const number_t value, N n)
+    {
+        return value._value > static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend int operator<=>(const number_t value, N n)
+    {
+        return value._value <=> static_cast<V>(n);
     }
 
     js::string toString();

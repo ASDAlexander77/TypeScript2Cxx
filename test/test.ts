@@ -1,9 +1,5 @@
-var x;                              
-            x = true;                           
-            console.log(x);                     
-            x = 1;                              
-            console.log(x);                     
-            x = 1.5;                            
-            console.log(x);                     
-            x = "Hello World!";                 
-            console.log(x);
+for (let i = 0; i < 3; i++) {          
+            console.log(i);                     
+            if (i == 0) continue;               
+            break;                              
+        }
