@@ -322,6 +322,12 @@ static struct undefined_t
         return true;
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    bool operator==(N n);
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    bool operator!=(N n);    
+
     friend std::ostream &operator<<(std::ostream &os, undefined_t)
     {
         return os << "undefined";
@@ -949,6 +955,22 @@ bool pointer_t<T>::operator!=(N n)
     return true;
 }
 
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+bool undefined_t::operator==(N n)
+{
+    return false;
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+bool undefined_t::operator!=(N n)
+{
+    return true;
+}
+
+namespace tmpl 
+{
 template <typename T>
 struct string
 {
