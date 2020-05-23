@@ -2307,7 +2307,8 @@ struct any
         return false;
     }
 
-    operator double()
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    operator N()
     {
         switch (get_type())
         {
@@ -2527,35 +2528,38 @@ struct any
         throw "not implemented";
     }
 
-    any &operator+=(js::number other)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator+=(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            number_ref() += other;
+            number_ref() += n;
             return *this;
         }
 
         throw "not implemented";
     }
 
-    friend js::number operator+=(js::number &t, any value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator+=(N &n, any value)
     {
         switch (value.get_type())
         {
         case anyTypeId::number_type:
-            return t += value.number_ref();
+            return n += value.number_ref();
         }
 
         throw "not implemented";
     }
 
-    any operator-(js::number t)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any operator-(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return number_ref() - t;
+            return number_ref() - n;
         }
 
         throw "not implemented";
@@ -2602,35 +2606,38 @@ struct any
         throw "not implemented";
     }
 
-    any &operator-=(js::number other)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator-=(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            number_ref() -= other;
+            number_ref() -= n;
             return *this;
         }
 
         throw "not implemented";
     }
 
-    friend js::number operator-=(js::number &t, any value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator-=(N &n, any value)
     {
         switch (value.get_type())
         {
         case anyTypeId::number_type:
-            return t -= value.number_ref();
+            return n -= value.number_ref();
         }
 
         throw "not implemented";
     }
 
-    any operator*(js::number t)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any operator*(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return any(number_ref() * t);
+            return any(number_ref() * n);
         }
 
         throw "not implemented";
@@ -2652,19 +2659,21 @@ struct any
         throw "not implemented";
     }
 
-    any &operator*=(js::number other)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator*=(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            number_ref() *= other;
+            number_ref() *= n;
             return *this;
         }
 
         throw "not implemented";
     }
 
-    friend any operator*(js::number n, any value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend any operator*(N n, any value)
     {
         switch (value.get_type())
         {
@@ -2675,12 +2684,13 @@ struct any
         throw "not implemented";
     }
 
-    any operator/(js::number t)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any operator/(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return any(number_ref() / t);
+            return any(number_ref() / n);
         }
 
         throw "not implemented";
@@ -2702,35 +2712,38 @@ struct any
         throw "not implemented";
     }
 
-    friend any operator/(js::number t, any value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend any operator/(N n, any value)
     {
         switch (value.get_type())
         {
         case anyTypeId::number_type:
-            return any(t / value.number_ref());
+            return any(n / value.number_ref());
         }
 
         throw "not implemented";
     }
 
-    any &operator/=(js::number other)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator/=(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            number_ref() /= other;
+            number_ref() /= n;
             return *this;
         }
 
         throw "not implemented";
     }
 
-    any operator%(number t)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any operator%(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return any(number_ref() % t);
+            return any(number_ref() % n);
         }
 
         throw "not implemented";
@@ -2752,18 +2765,20 @@ struct any
         throw "not implemented";
     }
 
-    friend any operator%(number t, any value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend any operator%(N n, any value)
     {
         switch (value.get_type())
         {
         case anyTypeId::number_type:
-            return any(t % value.number_ref());
+            return any(n % value.number_ref());
         }
 
         throw "not implemented";
     }
 
-    any &operator%=(js::number other)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator%=(N other)
     {
         switch (get_type())
         {
@@ -2775,7 +2790,8 @@ struct any
         throw "not implemented";
     }
 
-    bool operator>(js::number n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    bool operator>(N n)
     {
         switch (get_type())
         {
@@ -2802,7 +2818,8 @@ struct any
         throw "not implemented";
     }
 
-    bool operator>=(js::number n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    bool operator>=(N n)
     {
         switch (get_type())
         {
@@ -2829,7 +2846,8 @@ struct any
         throw "not implemented";
     }
 
-    bool operator<(js::number n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    bool operator<(N n)
     {
         switch (get_type())
         {
