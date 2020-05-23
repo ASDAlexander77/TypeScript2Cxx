@@ -715,15 +715,17 @@ struct number
         return n._value + static_cast<V>(value);
     }
 
-    number_t &operator+=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator+=(T value)
     {
-        _value += other._value;
+        _value += static_cast<V>(value);
         return *this;
     }
 
-    number_t operator-(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator-(const number_t n, T value)
     {
-        return _value - n._value;
+        return n._value - static_cast<V>(value);
     }
 
     number_t operator-()
@@ -744,97 +746,114 @@ struct number
         return tmp;
     }
 
-    number_t &operator-=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator-=(T value)
     {
-        _value -= other._value;
+        _value -= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator*(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator*(const number_t n, T value)
     {
-        return _value * n._value;
+        return n._value * static_cast<V>(value);
     }
 
-    number_t &operator*=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator*=(T value)
     {
-        _value *= other._value;
+        _value *= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator/(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator/(const number_t n, T value)
     {
-        return _value / n._value;
+        return n._value / static_cast<V>(value);
     }
 
-    number_t &operator/=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator/=(T value)
     {
-        _value /= other._value;
+        _value /= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator^(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator^(const number_t n, T value)
     {
-        return number_t(static_cast<long>(_value) ^ static_cast<long>(n._value));
+        return n._value ^ static_cast<V>(value);
     }
 
-    number_t &operator^=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator^=(T value)
     {
-        _value = static_cast<long>(_value) ^ static_cast<long>(other._value);
+        _value ^= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator|(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator|(const number_t n, T value)
     {
-        return number_t(static_cast<long>(_value) | static_cast<long>(n._value));
+        return n._value | static_cast<V>(value);
     }
 
-    number_t &operator|=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator|=(T value)
     {
-        _value = static_cast<long>(_value) | static_cast<long>(other._value);
+        _value |= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator&(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator&(const number_t n, T value)
     {
-        return number_t(static_cast<long>(_value) & static_cast<long>(n._value));
+        return n._value & static_cast<V>(value);
     }
 
-    number_t &operator&=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator&=(T value)
     {
-        _value = static_cast<long>(_value) & static_cast<long>(other._value);
+        _value &= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator%(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    friend number_t operator%(const number_t n, T value)
     {
-        return number_t(static_cast<long>(_value) % static_cast<long>(n._value));
+        return n._value % static_cast<V>(value);
     }
 
-    number_t &operator%=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator%=(T value)
     {
-        _value = static_cast<long>(_value) % static_cast<long>(other._value);
+        _value %= static_cast<V>(value);
         return *this;
     }
 
-    number_t operator<<(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t operator<<(T value)
     {
-        return number_t(static_cast<long>(_value) << static_cast<long>(n._value));
+        return number_t(static_cast<long>(_value) << static_cast<long>(static_cast<V>(value)));
     }
 
-    number_t &operator<<=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator<<=(T value)
     {
-        _value = static_cast<long>(_value) << static_cast<long>(other._value);
+        _value = static_cast<long>(_value) << static_cast<long>(static_cast<V>(value));
         return *this;
     }
 
-    number_t operator>>(number_t n)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t operator>>(T value)
     {
-        return number_t(static_cast<long>(_value) >> static_cast<long>(n._value));
+        return number_t(static_cast<long>(_value) >> static_cast<long>(static_cast<V>(value)));
     }
 
-    number_t &operator>>=(number_t other)
+    template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
+    number_t &operator>>=(T value)
     {
-        _value = static_cast<long>(_value) >> static_cast<long>(other._value);
+        _value = static_cast<long>(_value) >> static_cast<long>(static_cast<V>(value));
         return *this;
     }
 
