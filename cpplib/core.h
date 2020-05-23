@@ -2428,7 +2428,8 @@ struct any
         return static_cast<js::string>(*mutable_(this)) != other;
     }
 
-    any operator+(js::number n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any operator+(N n)
     {
         switch (get_type())
         {
