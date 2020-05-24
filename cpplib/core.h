@@ -62,25 +62,25 @@ struct object;
 typedef tmpl::pointer_t<void*> pointer_t;
 
 #ifdef UNICODE
-typedef tmpl::string<std::wstring> string;
+typedef tmpl::string<::std::wstring> string;
 typedef wchar_t char_t;
 #define TXT(quote) L##quote
 #define STR(quote) L##quote##_S
-using tstring = std::wstring;
-using tostream = std::wostream;
-using tostringstream = std::wostringstream;
-using tstringstream = std::wstringstream;
-#define to_tstring std::to_wstring
+using tstring = ::std::wstring;
+using tostream = ::std::wostream;
+using tostringstream = ::std::wostringstream;
+using tstringstream = ::std::wstringstream;
+#define to_tstring ::std::to_wstring
 #else
-typedef tmpl::string<std::string> string;
+typedef tmpl::string<::std::string> string;
 typedef char char_t;
 #define TXT(quote) quote
 #define STR(quote) quote##_S
-using tstring = std::string;
-using tostream = std::ostream;
-using tostringstream = std::ostringstream;
-using tstringstream = std::stringstream;
-#define to_tstring std::to_string
+using tstring = ::std::string;
+using tostream = ::std::ostream;
+using tostringstream = ::std::ostringstream;
+using tstringstream = ::std::stringstream;
+#define to_tstring ::std::to_string
 #endif
 
 typedef tmpl::number<double> number;
@@ -95,6 +95,9 @@ concept ArithmeticOrEnum = (std::is_arithmetic_v<T> || std::is_enum_v<T>) && !st
 
 template <class T>
 concept ArithmeticOrEnumOrNumber = (std::is_arithmetic_v<T> || std::is_enum_v<T> || std::is_same_v<T, number>) && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
+
+template <class T>
+concept BoolOrBoolean = (std::is_same_v<T, bool> || std::is_same_v<T, boolean>);
 
 template<typename T>
 concept can_cast_to_size_t = requires(T t) { static_cast<size_t>(t); };
@@ -409,6 +412,20 @@ struct pointer_t
     constexpr operator void*()
     {
         return static_cast<void*>(_ptr);
+    }    
+
+    operator tstring() const
+    {
+        tostringstream streamObj2;
+        streamObj2 << TXT("null");
+        return streamObj2.str();
+    }
+
+    operator tstring()
+    {
+        tostringstream streamObj2;
+        streamObj2 << TXT("null");
+        return streamObj2.str();
     }    
 
     bool operator==(undefined_t)
@@ -732,6 +749,12 @@ struct number
         return n._value + static_cast<V>(value);
     }
 
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator+(T value, const number_t n)
+    {
+        return static_cast<V>(value) + n._value;
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     number_t &operator+=(T value)
     {
@@ -741,6 +764,12 @@ struct number
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     friend number_t operator-(const number_t n, T value)
+    {
+        return n._value - static_cast<V>(value);
+    }
+
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator-(T value, const number_t n)
     {
         return n._value - static_cast<V>(value);
     }
@@ -776,6 +805,12 @@ struct number
         return n._value * static_cast<V>(value);
     }
 
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator*(T value, const number_t n)
+    {
+        return static_cast<V>(value) * n._value;
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     number_t &operator*=(T value)
     {
@@ -787,6 +822,12 @@ struct number
     friend number_t operator/(const number_t n, T value)
     {
         return n._value / static_cast<V>(value);
+    }
+
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator/(T value, const number_t n)
+    {
+        return static_cast<V>(value) / n._value;
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -802,6 +843,12 @@ struct number
         return n._value ^ static_cast<V>(value);
     }
 
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator^(T value, const number_t n)
+    {
+        return static_cast<V>(value) ^ n._value;
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     number_t &operator^=(T value)
     {
@@ -813,6 +860,12 @@ struct number
     friend number_t operator|(const number_t n, T value)
     {
         return n._value | static_cast<V>(value);
+    }
+
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator|(T value, const number_t n)
+    {
+        return static_cast<V>(value) | n._value;
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -828,6 +881,12 @@ struct number
         return n._value & static_cast<V>(value);
     }
 
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator&(T value, const number_t n)
+    {
+        return static_cast<V>(value) & n._value;
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     number_t &operator&=(T value)
     {
@@ -839,6 +898,12 @@ struct number
     friend number_t operator%(const number_t n, T value)
     {
         return number_t(static_cast<long>(n._value) % static_cast<long>(static_cast<V>(value)));
+    }
+
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    friend number_t operator%(T value, const number_t n)
+    {
+        return number_t(static_cast<long>(static_cast<V>(value)) % static_cast<long>(n._value));
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -885,10 +950,22 @@ struct number
         return value._value == static_cast<V>(n);
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator==(N n, const number_t value)
+    {
+        return static_cast<V>(n) == value._value;
+    }
+
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     friend bool operator!=(const number_t value, N n)
     {
         return value._value != static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator!=(N n, const number_t value)
+    {
+        return static_cast<V>(n) != value._value;
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
@@ -897,10 +974,22 @@ struct number
         return value._value < static_cast<V>(n);
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator<(N n, const number_t value)
+    {
+        return static_cast<V>(n) < value._value;
+    }
+
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     friend bool operator<=(const number_t value, N n)
     {
         return value._value <= static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator<=(N n, const number_t value)
+    {
+        return static_cast<V>(n) <= value._value;
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
@@ -909,16 +998,34 @@ struct number
         return value._value > static_cast<V>(n);
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator>(N n, const number_t value)
+    {
+        return static_cast<V>(n) > value._value;
+    }
+
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     friend bool operator>=(const number_t value, N n)
     {
         return value._value >= static_cast<V>(n);
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator>=(N n, const number_t value)
+    {
+        return static_cast<V>(n) >= value._value;
+    }
+
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     friend int operator<=>(const number_t value, N n)
     {
         return value._value <=> static_cast<V>(n);
+    }
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator<=>(N n, const number_t value)
+    {
+        return static_cast<V>(n) <=> value._value;
     }
 
     js::string toString();
@@ -961,7 +1068,7 @@ bool pointer_t<T>::operator!=(N n)
     return true;
 }
 
-}
+} // impl
 
 template <typename N> requires ArithmeticOrEnum<N>
 bool undefined_t::operator==(N n) const
@@ -1038,6 +1145,11 @@ struct string
         return _control == 0 && !_value.empty();
     }
 
+    inline operator int()
+    {
+        return !(*this) ? 0 : std::stoi(_value);
+    }
+
     inline operator double()
     {
         return !(*this) ? 0 : std::stod(_value);
@@ -1073,19 +1185,22 @@ struct string
         return this;
     }
 
-    string_t operator[](js::number n) const
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t operator[](N n) const
     {
         return string(_value[n]);
     }
 
-    string_t operator+(boolean b)
+    template <typename B = void> requires BoolOrBoolean<B>
+    string_t operator+(B b)
     {
         return string(_value + (b ? "true" : "false"));
     }
 
-    string_t operator+(js::number value)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t operator+(N value)
     {
-        return string(_value + value.operator std::string());
+        return string(_value + to_tstring(value));
     }
 
     string_t operator+(string value)
@@ -1112,9 +1227,10 @@ struct string
         return *this;
     }
 
-    string_t &operator+=(js::number n)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t &operator+=(N n)
     {
-        auto value = n.operator std::string();
+        auto value = t_tostring(n);
         _control = string_defined;
         _value.append(value);
         return *this;
@@ -1194,17 +1310,20 @@ struct string
         return _value + value._value;
     }
 
-    string_t charAt(js::number n) const
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t charAt(N n) const
     {
         return _value[n];
     }
 
-    js::number charCodeAt(js::number n) const
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    js::number charCodeAt(N n) const
     {
         return _value[n];
     }
 
-    string_t fromCharCode(js::number n) const
+    template <typename N = void> requires can_cast_to_size_t<N>
+    string_t fromCharCode(N n) const
     {
         return static_cast<char_t>(static_cast<size_t>(n));
     }
@@ -1231,17 +1350,20 @@ struct string
         return string(result);
     }
 
-    string_t substring(js::number begin, js::number end)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t substring(N begin, N end)
     {
         return _value.substr(begin, end - begin);
     }
 
-    string_t slice(js::number begin)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t slice(N begin)
     {
         return _value.substr(begin < js::number(0) ? get_length() + begin : begin, get_length() - begin);
     }
 
-    string_t slice(js::number begin, js::number end)
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    string_t slice(N begin, N end)
     {
         auto endStart = end < js::number(0) ? get_length() + end : end;
         auto endPosition = begin < js::number(0) ? get_length() + begin : begin;
@@ -3439,17 +3561,6 @@ any &object<K, V>::operator[](undefined_t)
 
 } // namespace tmpl
 
-static js::number _0_N(0);
-static js::number _1_N(1);
-static js::number _2_N(2);
-static js::number _3_N(3);
-static js::number _4_N(4);
-static js::number _5_N(5);
-static js::number _6_N(6);
-static js::number _7_N(7);
-static js::number _8_N(8);
-static js::number _9_N(9);
-
 // typeof
 template <>
 string type_of(boolean value)
@@ -4129,5 +4240,25 @@ struct WebGLTexture
 
 // end of HTML
 } // namespace js
+
+namespace std {
+#ifdef UNICODE    
+    static ::std::wstring to_wstring(js::number value) {
+        return value.operator std::wstring();
+    }
+
+    static ::std::wstring to_wstring(js::pointer_t value) {
+        return value.operator std::wstring();
+    }
+#else
+    static ::std::string to_string(js::number value) {
+        return value.operator std::string();
+    }
+
+    static ::std::string to_string(js::pointer_t value) {
+        return value.operator std::string();
+    }
+#endif    
+} // std
 
 #endif // CORE_H
