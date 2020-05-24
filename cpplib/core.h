@@ -323,10 +323,16 @@ static struct undefined_t
     }
 
     template <typename N = void> requires ArithmeticOrEnum<N>
-    bool operator==(N n);
+    bool operator==(N n) const;
 
     template <typename N = void> requires ArithmeticOrEnum<N>
-    bool operator!=(N n);    
+    bool operator!=(N n) const;    
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator==(N n, const undefined_t& u);
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend bool operator!=(N n, const undefined_t& u);    
 
     friend std::ostream &operator<<(std::ostream &os, undefined_t)
     {
@@ -940,7 +946,7 @@ pointer_t<T>::pointer_t(js::number n) : _ptr((void*)(long long)n._value), isUnde
 }
 
 template <typename T>
-template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+template <typename N> requires ArithmeticOrEnumOrNumber<N>
 bool pointer_t<T>::operator==(N n)
 {
     //return isUndefined == n.isUndefined && intptr_t(_ptr) == intptr_t(static_cast<size_t>(n));
@@ -948,7 +954,7 @@ bool pointer_t<T>::operator==(N n)
 }
 
 template <typename T>
-template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+template <typename N> requires ArithmeticOrEnumOrNumber<N>
 bool pointer_t<T>::operator!=(N n)
 {
     //return isUndefined != n.isUndefined || intptr_t(_ptr) != intptr_t(static_cast<size_t>(n));
@@ -958,14 +964,24 @@ bool pointer_t<T>::operator!=(N n)
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-bool undefined_t::operator==(N n)
+bool undefined_t::operator==(N n) const
 {
     return false;
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-bool undefined_t::operator!=(N n)
+bool undefined_t::operator!=(N n) const
 {
+    return true;
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+bool operator==(N n, const undefined_t& u) {
+    return false;
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+bool operator!=(N n, const undefined_t& u) {
     return true;
 }
 
