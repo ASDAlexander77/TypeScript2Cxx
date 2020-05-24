@@ -2056,7 +2056,7 @@ struct object
     template <typename N = void> requires ArithmeticOrEnum<N>
     bool exists(N n) const
     {
-        return get().find(toString(n)) != get().end();
+        return get().find(js::string(to_tstring(n))) != get().end();
     }
 
     template <class T>
