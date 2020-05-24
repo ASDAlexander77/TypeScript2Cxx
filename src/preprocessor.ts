@@ -31,6 +31,8 @@ export class Preprocessor {
         switch (node.kind) {
             case ts.SyntaxKind.BinaryExpression:
                 return this.preprocessBinaryExpression(<ts.BinaryExpression>node);
+            case ts.SyntaxKind.PropertyAccessExpression:
+                return this.preprocessPropertyAccessExpression(<ts.PropertyAccessExpression>node);
         }
 
         return node;
@@ -143,6 +145,31 @@ export class Preprocessor {
                 }
 
                 break;
+        }
+
+        return node;
+    }
+
+    private preprocessPropertyAccessExpression(node: ts.PropertyAccessExpression): ts.Expression {
+        let expression = <ts.Expression>node.expression;
+        const callExpression = node.parent && node.parent.kind === ts.SyntaxKind.CallExpression && <ts.CallExpression>node.parent;
+        if (!callExpression) {
+            return node;
+        }
+
+        while (expression.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            expression = (<ts.ParenthesizedExpression>expression).expression;
+        }
+
+        const isConstValue = expression.kind ===
+            ts.SyntaxKind.NumericLiteral
+            || expression.kind === ts.SyntaxKind.StringLiteral
+            || expression.kind === ts.SyntaxKind.TrueKeyword
+            || expression.kind === ts.SyntaxKind.FalseKeyword;
+
+        if (isConstValue) {
+            (<any>callExpression.arguments).push(expression);
+            return <ts.Expression>node.name;
         }
 
         return node;

@@ -120,6 +120,9 @@ constexpr bool is_stringish_v = is_stringish<_Ty>::value;
 template <typename T>
 struct _Deduction_MethodPtr;
 
+template<typename T>
+string toString(const T& val);
+
 inline std::size_t hash_combine(const std::size_t hi_value, const std::size_t lo_value)
 {
     return lo_value + 0x9e3779b9 + (hi_value << 6) + (hi_value >> 2);
@@ -1197,10 +1200,15 @@ struct string
         return string(_value + (b ? "true" : "false"));
     }
 
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    template <typename N = void> requires ArithmeticOrEnum<N>
     string_t operator+(N value)
     {
         return string(_value + to_tstring(value));
+    }
+
+    string_t operator+(js::number value)
+    {
+        return string(_value + value.operator tstring());
     }
 
     string_t operator+(string value)
@@ -1319,7 +1327,7 @@ struct string
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     js::number charCodeAt(N n) const
     {
-        return _value[n];
+        return static_cast<size_t>(_value[n]);
     }
 
     template <typename N = void> requires can_cast_to_size_t<N>
@@ -1397,6 +1405,14 @@ struct string
 };
 
 } // namespace tmpl
+
+
+template<typename T>
+string toString(const T& val) {
+  tostringstream os;
+  os << val;
+  return string(os.str());
+}
 
 static string string_empty(TXT(""));
 
@@ -2040,7 +2056,7 @@ struct object
     template <typename N = void> requires ArithmeticOrEnum<N>
     bool exists(N n) const
     {
-        return get().find(js::string(to_tstring(n))) != get().end();
+        return get().find(toString(n)) != get().end();
     }
 
     template <class T>
@@ -4240,25 +4256,5 @@ struct WebGLTexture
 
 // end of HTML
 } // namespace js
-
-namespace std {
-#ifdef UNICODE    
-    static ::std::wstring to_wstring(js::number value) {
-        return value.operator std::wstring();
-    }
-
-    static ::std::wstring to_wstring(js::pointer_t value) {
-        return value.operator std::wstring();
-    }
-#else
-    static ::std::string to_string(js::number value) {
-        return value.operator std::string();
-    }
-
-    static ::std::string to_string(js::pointer_t value) {
-        return value.operator std::string();
-    }
-#endif    
-} // std
 
 #endif // CORE_H
