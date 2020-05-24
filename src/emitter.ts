@@ -2970,7 +2970,7 @@ export class Emitter {
             && node.parent.kind === ts.SyntaxKind.PrefixUnaryExpression
             && (<ts.PrefixUnaryExpression>node.parent).operator === ts.SyntaxKind.MinusToken;
         let suffix = '';
-        if (isInt && isNegative && val >= 2147483648) {
+        if (isInt && val >= 2147483648) {
             suffix = 'll';
         }
 
@@ -2984,18 +2984,8 @@ export class Emitter {
             currentNode = <ts.Expression>currentNode.parent;
         }
 
-        const applyNSuffix = !(<any>node).__skip_boxing && (!node.parent || !isWithinEnum);
-        if (applyNSuffix && isInt && val >= 0 && val <= 9) {
-            // use predefined const
-            // this.writer.writeString(`_`);
-        }
-
         this.writer.writeString(`${node.text}`);
-        if (applyNSuffix) {
-            // this.writer.writeString(`_N`);
-        } else {
-            this.writer.writeString(`${suffix}`);
-        }
+        this.writer.writeString(`${suffix}`);
     }
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
