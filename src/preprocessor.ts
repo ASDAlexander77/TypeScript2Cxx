@@ -152,11 +152,6 @@ export class Preprocessor {
 
     private preprocessPropertyAccessExpression(node: ts.PropertyAccessExpression): ts.Expression {
         let expression = <ts.Expression>node.expression;
-        const callExpression = node.parent && node.parent.kind === ts.SyntaxKind.CallExpression && <ts.CallExpression>node.parent;
-        if (!callExpression) {
-            return node;
-        }
-
         while (expression.kind === ts.SyntaxKind.ParenthesizedExpression) {
             expression = (<ts.ParenthesizedExpression>expression).expression;
         }
@@ -168,8 +163,7 @@ export class Preprocessor {
             || expression.kind === ts.SyntaxKind.FalseKeyword;
 
         if (isConstValue) {
-            (<any>callExpression.arguments).push(expression);
-            return <ts.Expression>node.name;
+            (<any>expression).__boxing = true;
         }
 
         return node;

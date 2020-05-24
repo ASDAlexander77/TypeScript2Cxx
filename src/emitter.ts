@@ -2948,7 +2948,8 @@ export class Emitter {
 
     private processBooleanLiteral(node: ts.BooleanLiteral): void {
         // find if you need to box value
-        this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? 'true' : 'false'}`);
+        const boxing = (<any>node).__boxing;
+        this.writer.writeString(`${node.kind === ts.SyntaxKind.TrueKeyword ? ('true' + boxing ? '_t' : '') : ('false' + boxing ? '_t' : '')}`);
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
@@ -2961,9 +2962,7 @@ export class Emitter {
     }
 
     private processNumericLiteral(node: ts.NumericLiteral): void {
-
-        const isWithinEnum = this.scope[this.scope.length - 1]?.kind === ts.SyntaxKind.EnumDeclaration;
-
+        const boxing = (<any>node).__boxing;
         const val = parseInt(node.text, 10);
         const isInt = val.toString() === node.text;
         const isNegative = node.parent
@@ -2985,7 +2984,11 @@ export class Emitter {
         }
 
         this.writer.writeString(`${node.text}`);
-        this.writer.writeString(`${suffix}`);
+        if (boxing) {
+            this.writer.writeString(`_N`);
+        } else {
+            this.writer.writeString(`${suffix}`);
+        }
     }
 
     private processStringLiteral(node: ts.StringLiteral | ts.LiteralLikeNode
