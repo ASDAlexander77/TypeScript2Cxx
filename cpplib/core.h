@@ -2406,11 +2406,11 @@ struct any
 
         if (get_type() == anyTypeId::string_type)
         {
+            char_t* end;
             #ifdef UNICODE
-            wchar_t* end;
             return js::number(std::wcstof(string_ref().operator const char_t *(), &end));
             #else
-            return js::number(std::atof(string_ref().operator const char_t *()));
+            return js::number(std::strtof(string_ref().operator const char_t *(), &end));
             #endif
         }
 
@@ -2508,6 +2508,13 @@ struct any
             return boolean_ref() ? 1 : 0;
         case anyTypeId::number_type:
             return number_ref();
+        case anyTypeId::string_type:
+            char_t* end;
+            #ifdef UNICODE
+            return static_cast<N>(std::wcstof(string_ref().operator const char_t *(), &end));
+            #else
+            return static_cast<N>(std::strtof(string_ref().operator const char_t *(), &end));
+            #endif
         }
 
         throw "wrong type";
