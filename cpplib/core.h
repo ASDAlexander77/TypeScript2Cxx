@@ -3346,6 +3346,12 @@ struct shared
     }
 
     template <class Tv>
+    friend auto operator+(Tv other, const shared_type &val)
+    {
+        return other + val.get();
+    }
+
+    template <class Tv>
     auto operator+=(Tv other) const
     {
         return get() += other;
