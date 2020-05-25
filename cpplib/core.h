@@ -877,7 +877,7 @@ struct number
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     friend number_t operator|(const number_t n, T value)
     {
-        return n._value | static_cast<V>(value);
+        return static_cast<long>(n._value) | static_cast<long>(static_cast<V>(value));
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
