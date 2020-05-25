@@ -85,128 +85,122 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-function inBg() {
-    let k = 7
-    let q = 14
-    let rec = new Testrec();
-    glb1 = 0
-    control.runInBackground(() => {
-        glb1 = glb1 + 10 + (q - k)
-        rec.str = "foo"
-    })
-    control.runInBackground(() => {
-        glb1 = glb1 + 1
-    })
-    pause(50)
-    assert(glb1 == 18, "inbg0")
-    assert(rec.str == "foo", "inbg1")
-    glb1 = 0
-}
 
-function runTwice(fn: Action): void {
-    msg("r2 start");
-    fn();
-    fn();
-    msg("r2 stop");
-}
 
-function iter(max: number, fn: (v: number) => void) {
-    for (let i = 0; i < max; ++i) {
-        fn(i);
+function testRefLocals(): void {
+    msg("start test ref locals");
+    let s = "";
+    for (let i of [3, 2, 1]) {
+        let copy = i;
+        control.runInBackground(() => {
+            pause(10 * i);
+            copy = copy + 10;
+        });
+        control.runInBackground(() => {
+            pause(20 * i);
+            s = s + copy;
+        });
     }
+    pause(200);
+    assert(s == "111213", "reflocals");
 }
 
-function testIter() {
-    x = 0
-    iter(10, v => {
-        x = x + (v + 1)
-    })
-    assert(x == 55, "55")
-    x = 0
-}
-
-function testAction(p: number): void {
-    msg("testActionStart")
-    let s = "hello" + "1";
-    let coll = [] as number[];
-    let p2 = p * 2;
-    x = 42;
-    runTwice(() => {
-        x = x + p + p2;
-        coll.push(x);
-        msg(s + x);
+function byRefParam_0(p: number): void {
+    control.runInBackground(() => {
+        pause(1);
+        sum = sum + p;
     });
-    assert(x == 42 + p * 6, "run2");
-    assert(coll.length == 2, "run2");
-    x = 0
-    msg("testActionDone")
+    p = p + 1;
 }
 
-function add7() {
-    sum = sum + 7;
+function byRefParam_2(pxx: number): void {
+    pxx = pxx + 1;
+    control.runInBackground(() => {
+        pause(1);
+        sum = sum + pxx;
+    });
 }
 
-function testFunDecl() {
-    msg("testFunDecl");
-    let x = 12;
+function testByRefParams(): void {
+    msg("testByRefParams");
+    refparamWrite("a" + "b");
+    refparamWrite2(new Testrec());
+    refparamWrite3(new Testrec());
     sum = 0;
-    function addX() {
+    let x = 1;
+    control.runInBackground(() => {
+        pause(1);
         sum = sum + x;
-    }
-    function add10() {
-        sum = sum + 10;
-    }
-    runTwice(addX)
-    assert(sum == 24, "cap")
-    msg("testAdd10");
-    runTwice(add10);
-    msg("end-testAdd10");
-    assert(sum == 44, "nocap");
-    runTwice(add7);
-    assert(sum == 44 + 14, "glb")
-    addX();
-    add10();
-    assert(sum == 44 + 14 + x + 10, "direct");
-    sum = 0
-}
-
-function saveAction(fn: Action): void {
-    action = fn;
-}
-
-function saveGlobalAction(): void {
-    let s = "foo" + "42";
-    tot = "";
-    saveAction(() => {
-        tot = tot + s;
     });
+    x = 2;
+    byRefParam_0(4);
+    byRefParam_2(10);
+    pause(330);
+    assert(sum == 18, "by ref");
+    sum = 0
+    msg("byref done")
 }
 
-function testActionSave(): void {
-    saveGlobalAction();
-    msg("saveAct")
-    runTwice(action);
-    msg("saveActDONE")
-    msg(tot);
-    assert(tot == "foo42foo42", "");
-    tot = "";
-    action = null;
+function refparamWrite(s: string): void {
+    s = s + "c";
+    assert(s == "abc", "abc");
 }
 
-function testLoopScope() {
-    for (let i = 0; i < 3; ++i) {
-        let val: number
-        assert(val === undefined, "loopscope");
-        val = i
+function refparamWrite2(testrec: Testrec): void {
+    testrec = new Testrec();
+    if (hasFloat)
+        assert(testrec._bool === undefined, "rw2f");
+    else
+        assert(testrec._bool == false, "rw2");
+}
+
+function refparamWrite3(testrecX: Testrec): void {
+    control.runInBackground(() => {
+        pause(1);
+        assert(testrecX.str == "foo", "ff");
+        testrecX.str = testrecX.str + "x";
+    });
+    testrecX = new Testrec();
+    testrecX.str = "foo";
+    pause(130);
+    assert(testrecX.str == "foox", "ff2");
+}
+
+function allocImage(): void {
+    let tmp = createObj();
+}
+
+function runOnce(fn: Action): void {
+    fn();
+}
+
+function createObj() {
+    return new Testrec();
+}
+
+function testMemoryFreeHOF(): void {
+    msg("testMemoryFreeHOF");
+    for (let i = 0; i < 1000; i++) {
+        runOnce(() => {
+            let tmp = createObj();
+        });
     }
 }
 
-inBg();
-testAction(1);
-testAction(7);
-testIter();
-testActionSave();
-testFunDecl();
-testLoopScope();clean()
+testMemoryFreeHOF();
+
+
+function testMemoryFree(): void {
+    msg("testMemoryFree");
+    for (let i = 0; i < 1000; i++) {
+        allocImage();
+    }
+}
+
+
+testRefLocals();
+testByRefParams();
+testMemoryFree();
+clean()
 msg("test OK!")
 

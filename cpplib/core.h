@@ -604,9 +604,24 @@ struct boolean
         return true;
     }
 
-    friend inline bool operator==(boolean n, boolean other)
+    inline bool operator==(boolean other)
     {
-        return static_cast<bool>(n) == static_cast<bool>(other);
+        return this->operator bool() == static_cast<bool>(other);
+    }
+
+    inline bool operator!=(boolean other)
+    {
+        return this->operator bool() != static_cast<bool>(other);
+    }
+
+    inline bool operator==(bool other)
+    {
+        return this->operator bool() == other;
+    }
+
+    inline bool operator!=(bool other)
+    {
+        return this->operator bool() != other;
     }
 
     boolean operator~()
