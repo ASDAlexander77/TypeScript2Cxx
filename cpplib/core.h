@@ -1263,7 +1263,7 @@ struct string
 
     string_t operator+(js::pointer_t ptr)
     {
-        return string(_value + ((!ptr) ? TXT("null") : to_tstring(ptr)));
+        return string(_value + ((!ptr) ? TXT("null") : to_tstring(static_cast<size_t>(ptr))));
     }
 
     string_t operator+(any value);
