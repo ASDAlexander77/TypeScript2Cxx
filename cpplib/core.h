@@ -3429,6 +3429,12 @@ struct shared
     }    
 
     template <class Tv>
+    friend auto operator+=(Tv& other, const shared_type &val)
+    {
+        return other += mutable_(val).get();
+    }    
+
+    template <class Tv>
     auto operator-(Tv other) const
     {
         return get() - other;
@@ -3444,6 +3450,12 @@ struct shared
     auto operator-=(Tv other) const
     {
         return get() -= other;
+    }    
+
+    template <class Tv>
+    friend auto operator-=(Tv& other, const shared_type &val)
+    {
+        return other -= mutable_(val).get();
     }    
 
     template <class Tv>
@@ -3465,6 +3477,12 @@ struct shared
     }    
 
     template <class Tv>
+    friend auto operator*=(Tv& other, const shared_type &val)
+    {
+        return other *= mutable_(val).get();
+    }    
+
+    template <class Tv>
     auto operator/(Tv other) const
     {
         return get() / other;
@@ -3481,6 +3499,12 @@ struct shared
     {
         return get() /= other;
     }        
+
+    template <class Tv>
+    friend auto operator/=(Tv& other, const shared_type &val)
+    {
+        return other /= mutable_(val).get();
+    }    
 
     template <class Tv>
     friend bool operator==(const Tv &other, const shared_type &val)
