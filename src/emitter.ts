@@ -3347,11 +3347,36 @@ export class Emitter {
             this.writer.writeString(op.substr(2) + '(');
         }
 
+        const leftType = this.resolver.getOrResolveTypeOf(node.left);
+        const rightType = this.resolver.getOrResolveTypeOf(node.right);
+
+        const isLeftEnum = this.resolver.isTypeFromSymbol(leftType, ts.SyntaxKind.EnumDeclaration)
+        const isRightEnum = this.resolver.isTypeFromSymbol(rightType, ts.SyntaxKind.EnumDeclaration)
+
+        const leftSouldBePointer = isLeftEnum && 
+            (opCode === ts.SyntaxKind.EqualsToken 
+            || opCode === ts.SyntaxKind.AmpersandToken
+            || opCode === ts.SyntaxKind.BarEqualsToken
+            || opCode === ts.SyntaxKind.CaretEqualsToken
+            || opCode === ts.SyntaxKind.PercentEqualsToken)
+
         if (wrapIntoRoundBrackets) {
             this.writer.writeString('(');
         }
 
+        if (isLeftEnum) {
+            if (leftSouldBePointer) {
+                this.writer.writeString('*reinterpret_cast<long*>(&');
+            } else {
+                this.writer.writeString('static_cast<long>(');
+            }
+        }
+
         this.processExpression(node.left);
+
+        if (isLeftEnum) {
+            this.writer.writeString(')');
+        }
 
         if (wrapIntoRoundBrackets) {
             this.writer.writeString(')');
@@ -3367,7 +3392,15 @@ export class Emitter {
             this.writer.writeString('(');
         }
 
+        if (isRightEnum) {
+            this.writer.writeString('static_cast<long>(');
+        }
+
         this.processExpression(node.right);
+
+        if (isRightEnum) {
+            this.writer.writeString(')');
+        }
 
         if (wrapIntoRoundBrackets) {
             this.writer.writeString(')');
