@@ -3288,9 +3288,16 @@ any function_t<F, _MethodType>::invoke(std::initializer_list<any> args_)
 }
 
 template <typename T>
+struct shared;
+
+template <class T1, class T2>
+concept NotShared = !std::is_same_v<T1, shared<T2>>;
+
+template <typename T>
 struct shared
 {
     using shared_type = shared<T>;
+
     std::shared_ptr<T> _value;
 
     shared(T t) : _value(std::make_shared<T>(t)) {}
@@ -3346,7 +3353,7 @@ struct shared
     }
 
     template <class Tv>
-    friend auto operator+(Tv other, const shared_type &val)
+    friend auto operator+(Tv other, const shared_type &val) requires NotShared<Tv, T>
     {
         return other + val.get();
     }
@@ -3364,7 +3371,7 @@ struct shared
     }    
 
     template <class Tv>
-    friend auto operator-(Tv other, const shared_type &val)
+    friend auto operator-(Tv other, const shared_type &val) requires NotShared<Tv, T>
     {
         return other - val.get();
     }
@@ -3382,7 +3389,7 @@ struct shared
     }    
 
     template <class Tv>
-    friend auto operator*(Tv other, const shared_type &val)
+    friend auto operator*(Tv other, const shared_type &val) requires NotShared<Tv, T>
     {
         return other * val.get();
     }
@@ -3400,7 +3407,7 @@ struct shared
     }    
 
     template <class Tv>
-    friend auto operator/(Tv other, const shared_type &val)
+    friend auto operator/(Tv other, const shared_type &val) requires NotShared<Tv, T>
     {
         return other / val.get();
     }
