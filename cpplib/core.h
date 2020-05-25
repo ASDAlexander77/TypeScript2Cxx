@@ -780,6 +780,11 @@ struct number
         return *this;
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend N operator+=(N& n, const number& other) {
+        return n += static_cast<N>(mutable_(other));
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     friend number_t operator-(const number_t n, T value)
     {
@@ -817,6 +822,11 @@ struct number
         return *this;
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend N operator-=(N& n, const number& other) {
+        return n -= static_cast<N>(mutable_(other));
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     friend number_t operator*(const number_t n, T value)
     {
@@ -836,6 +846,11 @@ struct number
         return *this;
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend N operator*=(N& n, const number& other) {
+        return n *= static_cast<N>(mutable_(other));
+    }
+
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
     friend number_t operator/(const number_t n, T value)
     {
@@ -853,6 +868,11 @@ struct number
     {
         _value /= static_cast<V>(value);
         return *this;
+    }
+
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend N operator/=(N& n, const number& other) {
+        return n /= static_cast<N>(mutable_(other));
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -1108,26 +1128,6 @@ bool operator==(N n, const undefined_t& u) {
 template <typename N> requires ArithmeticOrEnum<N>
 bool operator!=(N n, const undefined_t& u) {
     return true;
-}
-
-template <typename N> requires ArithmeticOrEnum<N>
-N operator+=(N& n, const number& other) {
-    return n += static_cast<N>(mutable_(other));
-}
-
-template <typename N> requires ArithmeticOrEnum<N>
-N operator-=(N& n, const number& other) {
-    return n -= static_cast<N>(mutable_(other));
-}
-
-template <typename N> requires ArithmeticOrEnum<N>
-N operator*=(N& n, const number& other) {
-    return n *= static_cast<N>(mutable_(other));
-}
-
-template <typename N> requires ArithmeticOrEnum<N>
-N operator/=(N& n, const number& other) {
-    return n /= static_cast<N>(mutable_(other));
 }
 
 namespace tmpl 
