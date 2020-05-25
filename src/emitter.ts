@@ -1934,7 +1934,7 @@ export class Emitter {
                     this.writeTypeName(typeReference);
                 }
 
-                if (!typeReference.typeArguments) {
+                if (typeReference.typeArguments) {
                     this.writer.writeString('<');
 
                     let next1 = false;
