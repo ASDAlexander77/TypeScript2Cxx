@@ -85,101 +85,77 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-namespace EnumsTest {
-    enum En {
-        A,
-        B,
-        C,
-        D = 4200,
-        E,
+function testForOf() {
+    let arr = [1, 7, 8]
+    let sum = 0
+    for (let e of arr) {
+        msg("FO:" + e)
+        sum += (e - 1)
     }
+    assert(sum == 13, "fo1")
+    msg("loop1 done")
 
-    enum En2 {
-        D0 = En.D,
-        D1,
-        D2 = 1,
+    // make sure we incr reference count of the array during the loop execution
+    for (let q of [3, 4, 12]) {
+        sum += (q - 2)
     }
+    assert(sum == 26, "fo2")
 
+    // iteration over a string
+    let s = "hello, world!"
+    let s2 = ""
+    for (let c of s) {
+        s2 += c
+    }
+    assert(s == s2, "fo3")
 
-    function testEnums() {
-        msg("enums")
-
-        let k = En.C as number
-        assert(k == 2, "e0")
-        k = En.D as number
-        assert(k == 4200, "e1")
-        k = En.E as number
-        assert(k == 4201, "e43")
-
-        k = En2.D0 as number
-        assert(k == 4200, "eX0")
-        k = En2.D1 as number
-        assert(k == 4201, "eX1")
-
-        msg("enums0")
-        assert(switchA(En.A) == 7, "s1")
-        assert(switchA(En.B) == 7, "s2")
-        let two = 2
-        assert(switchA((3 - two) as En) == 7, "s2")
-        assert(switchA(En.C) == 12, "s3")
-        assert(switchA(En.D) == 13, "s4")
-        assert(switchA(En.E) == 12, "s5")
-        assert(switchA(-3 as En) == 12, "s6")
-
-        msg("enums1")
-        assert(switchB(En.A) == 7, "x1")
-        assert(switchB(En.B) == 7, "x2")
-        assert(switchB(En.C) == 17, "x3")
-        assert(switchB(En.D) == 13, "x4")
-        assert(switchB(En.E) == 14, "x5")
-
-        pause(3)
-
-        let kk = 1
-        if (kk & En2.D2) {
-        } else {
-            assert(false, "e&")
+    // mutation of array during iteration
+    let fibs = [0, 1]
+    for (let x of fibs) {
+        if (fibs.length < 10) {
+            fibs.push(fibs[fibs.length - 2] + fibs[fibs.length - 1])
         }
-        kk = 2
-        if (kk & En2.D2) {
-            assert(false, "e&")
+    }
+    assert(fibs.length == 10, "fo4")
+
+    // mutation of array during iteration
+    let xs = [10, 9, 8]
+    for (let x of xs) {
+        //assert(xs.removeElement(x), "fo5")
+    }
+
+    // array concatenation
+    let yss = [[1, 2, 3], [4, 5], [6, 7, 8], [9, 10]]
+    let concat: number[] = []
+    for (let ys of yss) {
+        for (let y of ys) {
+            concat.push(y)
         }
-
-        // https://github.com/microsoft/pxt-arcade/issues/774
-        let bar = Foo.B;  // inferred to type Foo
-        bar |= Foo.A;
-        bar = ~(~bar | Foo.B);
     }
+    assert(concat.length == 10, "fo6")
 
-
-    function switchA(e: En) {
-        let r = 12;
-        switch (e) {
-            case En.A:
-            case En.B: return 7;
-            case En.D: r = 13; break;
-        }
-        return r
+    sum = 0
+    for (let y of concat) {
+        sum += y
     }
+    assert(sum == 55, "fo7")
 
-    function switchB(e: En) {
-        let r = 33;
-        switch (e) {
-            case En.A:
-            case En.B: return 7;
-            case En.D: r = 13; break;
-            case En.E: r = 14; break;
-            default: return 17;
-        }
-        return r;
+
+    let f = []
+    glb1 = 0
+    for (const q of [1, 12]) {
+        f.push(() => {
+            glb1 += q
+        })
     }
+    f[0]()
+    f[1]()
+    assert(glb1 == 13, "foc")
 
-    enum Foo {
-        A = 1 << 0,
-        B = 1 << 1
-    }
+    msg("for of done")
+}
 
-    testEnums()
-}clean()
+testForOf()
+clean()
 msg("test OK!")
 

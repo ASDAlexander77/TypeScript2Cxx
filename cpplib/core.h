@@ -1110,6 +1110,26 @@ bool operator!=(N n, const undefined_t& u) {
     return true;
 }
 
+template <typename N> requires ArithmeticOrEnum<N>
+N& operator+=(N& n, const number& other) {
+    return n += static_cast<N>(n);
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+N& operator-=(N& n, const number& other) {
+    return n -= static_cast<N>(n);
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+N& operator*=(N& n, const number& other) {
+    return n *= static_cast<N>(n);
+}
+
+template <typename N> requires ArithmeticOrEnum<N>
+N& operator/=(N& n, const number& other) {
+    return n /= static_cast<N>(n);
+}
+
 namespace tmpl 
 {
 template <typename T>
