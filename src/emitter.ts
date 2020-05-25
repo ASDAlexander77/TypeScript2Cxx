@@ -1934,7 +1934,7 @@ export class Emitter {
                     this.writeTypeName(typeReference);
                 }
 
-                if (!isArray && typeReference.typeArguments) {
+                if (!typeReference.typeArguments) {
                     this.writer.writeString('<');
 
                     let next1 = false;
@@ -1947,7 +1947,7 @@ export class Emitter {
                         next1 = true;
                     });
 
-                    this.writer.writeString(' >');
+                    this.writer.writeString('>');
                 }
 
                 if (!skipPointerIf) {
@@ -2433,9 +2433,12 @@ export class Emitter {
             node.parameters
                 .filter(e => e.dotDotDotToken)
                 .forEach(element => {
-                    this.writer.writeString('array ');
+                    this.processType(element.type, false);
+                    this.writer.writeString(' ');
                     this.processExpression(<ts.Identifier>element.name);
-                    this.writer.writeString(' = {');
+                    this.writer.writeString(' = ');
+                    this.processType(element.type, false);
+                    this.writer.writeString('{');
                     this.processExpression(<ts.Identifier>element.name);
                     this.writer.writeStringNewLine('_...};');
                 });
