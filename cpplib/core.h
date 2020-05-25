@@ -417,6 +417,23 @@ struct pointer_t
         return static_cast<void*>(_ptr);
     }    
 
+    template <typename T>
+    constexpr operator std::shared_ptr<T>()
+    {
+        return std::shared_ptr<T>(static_cast<T *>(_ptr));
+    }
+
+    template <typename T>
+    constexpr operator const T *()
+    {
+        return isUndefined ? static_cast<const T *>(nullptr) : static_cast<const T *>(_ptr);
+    }
+
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    constexpr operator T() {
+        return static_cast<T>(reinterpret_cast<intptr_t>(_ptr));
+    }    
+
     operator tstring() const
     {
         tostringstream streamObj2;
@@ -479,18 +496,6 @@ struct pointer_t
     bool operator!=(std::shared_ptr<_Ty> sp)
     {
         return false;
-    }
-
-    template <typename T>
-    constexpr operator std::shared_ptr<T>()
-    {
-        return std::shared_ptr<T>(static_cast<T *>(_ptr));
-    }
-
-    template <typename T>
-    constexpr operator const T *()
-    {
-        return isUndefined ? static_cast<const T *>(nullptr) : static_cast<const T *>(_ptr);
     }
 
     friend std::ostream &operator<<(std::ostream &os, pointer_t val)
@@ -3341,7 +3346,7 @@ struct shared
     template <typename V>
     shared_type &operator=(const V &v)
     {
-        *_value = v;
+        *_value = mutable_(v);
         return *this;
     }
 
