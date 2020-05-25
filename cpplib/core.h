@@ -1111,23 +1111,23 @@ bool operator!=(N n, const undefined_t& u) {
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-N& operator+=(N& n, const number& other) {
-    return n += static_cast<N>(n);
+N operator+=(N& n, const number& other) {
+    return n += static_cast<N>(mutable_(other));
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-N& operator-=(N& n, const number& other) {
-    return n -= static_cast<N>(n);
+N operator-=(N& n, const number& other) {
+    return n -= static_cast<N>(mutable_(other));
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-N& operator*=(N& n, const number& other) {
-    return n *= static_cast<N>(n);
+N operator*=(N& n, const number& other) {
+    return n *= static_cast<N>(mutable_(other));
 }
 
 template <typename N> requires ArithmeticOrEnum<N>
-N& operator/=(N& n, const number& other) {
-    return n /= static_cast<N>(n);
+N operator/=(N& n, const number& other) {
+    return n /= static_cast<N>(mutable_(other));
 }
 
 namespace tmpl 
