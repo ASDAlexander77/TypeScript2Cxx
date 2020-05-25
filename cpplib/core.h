@@ -2699,6 +2699,18 @@ struct any
         throw "not implemented";
     }
 
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator+(N n, const any& val)
+    {
+        switch (val.get_type())
+        {
+        case anyTypeId::number_type:
+            return n + mutable_(val).number_ref();
+        }
+
+        throw "not implemented";
+    }
+
     any operator+(string s)
     {
         switch (get_type())
@@ -2804,6 +2816,18 @@ struct any
         throw "not implemented";
     }
 
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator-(N n, const any& val)
+    {
+        switch (val.get_type())
+        {
+        case anyTypeId::number_type:
+            return n - mutable_(val).number_ref();
+        }
+
+        throw "not implemented";
+    }    
+
     any operator-(any t)
     {
         switch (get_type())
@@ -2882,6 +2906,18 @@ struct any
         throw "not implemented";
     }
 
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator*(N n, const any& val)
+    {
+        switch (val.get_type())
+        {
+        case anyTypeId::number_type:
+            return n * mutable_(val).number_ref();
+        }
+
+        throw "not implemented";
+    }    
+
     any operator*(any t)
     {
         switch (get_type())
@@ -2912,24 +2948,24 @@ struct any
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend any operator*(N n, any value)
-    {
-        switch (value.get_type())
-        {
-        case anyTypeId::number_type:
-            return any(n * value.number_ref());
-        }
-
-        throw "not implemented";
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     any operator/(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
             return any(number_ref() / n);
+        }
+
+        throw "not implemented";
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend N operator/(N n, const any& val)
+    {
+        switch (val.get_type())
+        {
+        case anyTypeId::number_type:
+            return n / mutable_(val).number_ref();
         }
 
         throw "not implemented";
@@ -2946,18 +2982,6 @@ struct any
                 return any(number_ref() / t.number_ref());
             }
             break;
-        }
-
-        throw "not implemented";
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend any operator/(N n, any value)
-    {
-        switch (value.get_type())
-        {
-        case anyTypeId::number_type:
-            return any(n / value.number_ref());
         }
 
         throw "not implemented";
