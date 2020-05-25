@@ -2,6 +2,21 @@ import * as ts from 'typescript';
 
 export class IdentifierResolver {
 
+    public constructor(private typeChecker: ts.TypeChecker) {
+    }
+
+    public getFirstDeclaration(typeInfo: ts.Type): ts.Declaration {
+        return  typeInfo && typeInfo.symbol && typeInfo.symbol.declarations[0];
+    }
+
+    public getValueDeclaration(typeInfo: ts.Type): ts.Declaration {
+        return typeInfo.symbol && typeInfo.symbol.valueDeclaration;
+    }
+
+    public getValueDeclarationType(typeInfo: ts.Type) {
+        return (<any>this.getValueDeclaration(typeInfo))?.type;
+    }
+
     public typesAreTheSame(typeReturnIn: ts.TypeNode, functionReturnIn: ts.TypeNode): boolean {
         let typeReturn = typeReturnIn;
         let functionReturn = functionReturnIn;
@@ -49,9 +64,6 @@ export class IdentifierResolver {
         return (<any>typeReturn).typeName.text === (<any>functionReturn).typeName.text;
     }
 
-    public constructor(private typeChecker: ts.TypeChecker) {
-    }
-
     public isAnyLikeType(typeInfo: ts.Type): boolean {
         if (!typeInfo) {
             return false;
@@ -80,11 +92,9 @@ export class IdentifierResolver {
             return true;
         }
 
-        if (typeInfo.symbol && typeInfo.symbol.valueDeclaration) {
-            const type = (<any>typeInfo.symbol.valueDeclaration).type;
-            if (type && type.kind === ts.SyntaxKind.TypeReference) {
-                return typeInfo.symbol.name === 'Date' || typeInfo.symbol.name === 'RegExp';
-            }
+        const type = this.getValueDeclarationType(typeInfo);
+        if (type && type.kind === ts.SyntaxKind.TypeReference) {
+            return typeInfo.symbol.name === 'Date' || typeInfo.symbol.name === 'RegExp';
         }
 
         return false;

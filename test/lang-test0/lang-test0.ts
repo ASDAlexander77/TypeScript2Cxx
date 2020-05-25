@@ -10,6 +10,8 @@ type uint8 number;
 type int8 number;
 type uint16 number;
 type int16 number;
+type Function any;
+type Action any;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {

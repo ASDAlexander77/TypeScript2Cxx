@@ -10,6 +10,8 @@ type uint8 number;
 type int8 number;
 type uint16 number;
 type int16 number;
+type Function any;
+type Action any;
 
 namespace control {
 	function runInBackground(f: ()=>void): void {
@@ -83,41 +85,128 @@ function clean() {
     lazyAcc = 0
     sum = 0
 }
-function eqOp() {
-    msg("eqOp")
-    let x = 12
-    assert((x += 10) == 22, "Y0")
-    assert(x == 22, "Y1")
-    x /= 2
-    assert(x == 11, "Y2")
-
-    let s = ("fo" + 1)
-    let t = ("ba" + 2)
-    s += t
-    assert(s == "fo1b" + "a2", "fb")
+function inBg() {
+    let k = 7
+    let q = 14
+    let rec = new Testrec();
+    glb1 = 0
+    control.runInBackground(() => {
+        glb1 = glb1 + 10 + (q - k)
+        rec.str = "foo"
+    })
+    control.runInBackground(() => {
+        glb1 = glb1 + 1
+    })
+    pause(50)
+    assert(glb1 == 18, "inbg0")
+    assert(rec.str == "foo", "inbg1")
+    glb1 = 0
 }
 
-function eqOpString() {
-    msg("eqOpStr")
-    let x = "fo"
-    assert((x += "ba") == "foba", "SY0")
-    assert(x == "foba", "SY1")
+function runTwice(fn: Action): void {
+    msg("r2 start");
+    fn();
+    fn();
+    msg("r2 stop");
 }
 
-eqOp()
-eqOpString()
-
-function eq<A, B>(a: A, b: B) { return a == b as any as A }
-
-function eqG() {
-    assert(eq("2", 2), "2")
-    assert(eq(2, "2"), "2'")
-    assert(!eq("null", null), "=1")
-    assert(!eq(null, "null"), "=2")
-    assert(!eq("2", 3), "=3")
+function iter(max: number, fn: (v: number) => void) {
+    for (let i = 0; i < max; ++i) {
+        fn(i);
+    }
 }
 
-eqG()
-clean()
+function testIter() {
+    x = 0
+    iter(10, v => {
+        x = x + (v + 1)
+    })
+    assert(x == 55, "55")
+    x = 0
+}
+
+function testAction(p: number): void {
+    msg("testActionStart")
+    let s = "hello" + "1";
+    let coll = [] as number[];
+    let p2 = p * 2;
+    x = 42;
+    runTwice(() => {
+        x = x + p + p2;
+        coll.push(x);
+        msg(s + x);
+    });
+    assert(x == 42 + p * 6, "run2");
+    assert(coll.length == 2, "run2");
+    x = 0
+    msg("testActionDone")
+}
+
+function add7() {
+    sum = sum + 7;
+}
+
+function testFunDecl() {
+    msg("testFunDecl");
+    let x = 12;
+    sum = 0;
+    function addX() {
+        sum = sum + x;
+    }
+    function add10() {
+        sum = sum + 10;
+    }
+    runTwice(addX)
+    assert(sum == 24, "cap")
+    msg("testAdd10");
+    runTwice(add10);
+    msg("end-testAdd10");
+    assert(sum == 44, "nocap");
+    runTwice(add7);
+    assert(sum == 44 + 14, "glb")
+    addX();
+    add10();
+    assert(sum == 44 + 14 + x + 10, "direct");
+    sum = 0
+}
+
+function saveAction(fn: Action): void {
+    action = fn;
+}
+
+function saveGlobalAction(): void {
+    let s = "foo" + "42";
+    tot = "";
+    saveAction(() => {
+        tot = tot + s;
+    });
+}
+
+function testActionSave(): void {
+    saveGlobalAction();
+    msg("saveAct")
+    runTwice(action);
+    msg("saveActDONE")
+    msg(tot);
+    assert(tot == "foo42foo42", "");
+    tot = "";
+    action = null;
+}
+
+function testLoopScope() {
+    for (let i = 0; i < 3; ++i) {
+        let val: number
+        assert(val === undefined, "loopscope");
+        val = i
+    }
+}
+
+inBg();
+testAction(1);
+testAction(7);
+testIter();
+testActionSave();
+testFunDecl();
+testLoopScope();clean()
 msg("test OK!")
 
