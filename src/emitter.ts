@@ -1847,7 +1847,10 @@ export class Emitter {
                 this.writer.writeString('object');
                 break;
             case ts.SyntaxKind.ArrayType:
-                this.writer.writeString('array');
+                const arrayType = <ts.ArrayTypeNode>type;
+                this.writer.writeString('array<');
+                this.processType(arrayType.elementType, false);
+                this.writer.writeString('>');
                 break;
             case ts.SyntaxKind.TupleType:
                 const tupleType = <ts.TupleTypeNode>type;
@@ -3153,7 +3156,9 @@ export class Emitter {
         }
 
         if (!isTuple) {
-            this.writer.writeString('array');
+            this.writer.writeString('array<');
+            this.processType(elementsType, false);
+            this.writer.writeString('>');
         }
 
         if (node.elements.length !== 0) {
@@ -3353,8 +3358,8 @@ export class Emitter {
         const isLeftEnum = this.resolver.isTypeFromSymbol(leftType, ts.SyntaxKind.EnumDeclaration)
         const isRightEnum = this.resolver.isTypeFromSymbol(rightType, ts.SyntaxKind.EnumDeclaration)
 
-        const leftSouldBePointer = isLeftEnum && 
-            (opCode === ts.SyntaxKind.EqualsToken 
+        const leftSouldBePointer = isLeftEnum &&
+            (opCode === ts.SyntaxKind.EqualsToken
             || opCode === ts.SyntaxKind.AmpersandToken
             || opCode === ts.SyntaxKind.BarEqualsToken
             || opCode === ts.SyntaxKind.CaretEqualsToken

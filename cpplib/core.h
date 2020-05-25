@@ -84,8 +84,11 @@ using tstringstream = ::std::stringstream;
 #endif
 
 typedef tmpl::number<double> number;
-typedef tmpl::array<any> array;
 typedef tmpl::object<string, any> object;
+template<typename T>
+using array = tmpl::array<T>;
+
+typedef array<any> array_any;
 
 template <class T>
 concept Arithmetic = std::is_arithmetic_v<T> && !std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
@@ -2172,7 +2175,7 @@ struct any
         js::pointer_t,
         js::number,
         js::string,
-        js::array,
+        js::array_any,
         js::object,
         std::shared_ptr<js::function>,
         std::shared_ptr<js::object>>;
@@ -2228,7 +2231,7 @@ struct any
     {
     }
 
-    any(const js::array &value) : _value(value)
+    any(const js::array_any &value) : _value(value)
     {
     }
 
@@ -2320,14 +2323,14 @@ struct any
         return get<std::shared_ptr<function>>();
     }
 
-    inline const array &array_ref_const() const
+    inline const array_any &array_ref_const() const
     {
-        return get<array>();
+        return get<array_any>();
     }
 
-    inline array &array_ref()
+    inline array_any &array_ref()
     {
-        return get<array>();
+        return get<array_any>();
     }
 
     inline const object &object_ref_const() const
@@ -2500,7 +2503,7 @@ struct any
         throw "wrong type";
     }
 
-    operator js::array()
+    operator js::array_any()
     {
         if (get_type() == anyTypeId::array_type)
         {
@@ -3789,7 +3792,7 @@ inline bool is<js::string>(js::any t)
 }
 
 template <>
-inline bool is<js::array>(js::any t)
+inline bool is<js::array_any>(js::any t)
 {
     return t && t.get_type() == any::anyTypeId::array_type;
 }
@@ -3836,7 +3839,7 @@ object assign(object &dst, const Args &... args)
 }; // namespace Utils
 
 template <typename V>
-constexpr bool in(V v, const array &a)
+constexpr bool in(V v, const array_any &a)
 {
     return a.exists(v);
 }
