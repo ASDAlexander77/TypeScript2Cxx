@@ -3364,10 +3364,52 @@ struct shared
     }    
 
     template <class Tv>
+    friend auto operator-(Tv other, const shared_type &val)
+    {
+        return other - val.get();
+    }
+
+    template <class Tv>
     auto operator-=(Tv other) const
     {
-        return get() - other;
+        return get() -= other;
     }    
+
+    template <class Tv>
+    auto operator*(Tv other) const
+    {
+        return get() * other;
+    }    
+
+    template <class Tv>
+    friend auto operator*(Tv other, const shared_type &val)
+    {
+        return other * val.get();
+    }
+
+    template <class Tv>
+    auto operator*=(Tv other) const
+    {
+        return get() *= other;
+    }    
+
+    template <class Tv>
+    auto operator/(Tv other) const
+    {
+        return get() / other;
+    }    
+
+    template <class Tv>
+    friend auto operator/(Tv other, const shared_type &val)
+    {
+        return other / val.get();
+    }
+
+    template <class Tv>
+    auto operator/=(Tv other) const
+    {
+        return get() /= other;
+    }        
 
     template <class Tv>
     friend bool operator==(const Tv &other, const shared_type &val)
