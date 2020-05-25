@@ -3416,8 +3416,8 @@ struct shared
         return get() + other;
     }
 
-    template <class Tv>
-    friend auto operator+(Tv other, const shared_type &val) requires NotShared<Tv, T>
+    template <class Tv = void> requires NotShared<Tv, T>
+    friend auto operator+(Tv other, const shared_type &val)
     {
         return other + val.get();
     }
@@ -3440,8 +3440,8 @@ struct shared
         return get() - other;
     }    
 
-    template <class Tv>
-    friend auto operator-(Tv other, const shared_type &val) requires NotShared<Tv, T>
+    template <class Tv = void> requires NotShared<Tv, T>
+    friend auto operator-(Tv other, const shared_type &val)
     {
         return other - val.get();
     }
@@ -3464,8 +3464,8 @@ struct shared
         return get() * other;
     }    
 
-    template <class Tv>
-    friend auto operator*(Tv other, const shared_type &val) requires NotShared<Tv, T>
+    template <class Tv = void> requires NotShared<Tv, T>
+    friend auto operator*(Tv other, const shared_type &val)
     {
         return other * val.get();
     }
@@ -3488,8 +3488,8 @@ struct shared
         return get() / other;
     }    
 
-    template <class Tv>
-    friend auto operator/(Tv other, const shared_type &val) requires NotShared<Tv, T>
+    template <class Tv = void> requires NotShared<Tv, T>
+    friend auto operator/(Tv other, const shared_type &val)
     {
         return other / val.get();
     }
