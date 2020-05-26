@@ -2689,9 +2689,21 @@ struct any
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator==(const N &n, const any& val)
+    {
+        return n == static_cast<js::number>(mutable_(val));
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
     bool operator!=(const N &n) const
     {
         return static_cast<js::number>(*mutable_(this)) != n;
+    }
+
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    friend bool operator!=(const N &n, const any& val)
+    {
+        return n != static_cast<js::number>(mutable_(val));
     }
 
     bool operator==(const js::string &other) const
