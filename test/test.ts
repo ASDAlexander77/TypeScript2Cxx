@@ -1,7 +1,3 @@
-class Matrix {                                                 
-            public m = [];                                              
-        }                                                               
-                                                                        
-        var result = new Matrix();                                      
-        result.m[0] = 10;                                               
-        console.log(result.m[0]);
+let c = [1, 2, 3];                         
+        let b = 2 in c;                             
+        console.log(b); 

@@ -105,6 +105,9 @@ concept BoolOrBoolean = (std::is_same_v<T, bool> || std::is_same_v<T, boolean>);
 template<typename T>
 concept can_cast_to_size_t = requires(T t) { static_cast<size_t>(t); };
 
+template<typename T>
+concept has_exists_member = requires { T::exists; };
+
 template <class _Ty>
 struct is_stringish : 
     std::bool_constant<std::is_same_v<_Ty, const char_t *> 
@@ -3849,25 +3852,13 @@ object assign(object &dst, const Args &... args)
 
 }; // namespace Utils
 
-template <typename V>
-constexpr bool in(V v, const array_any &a)
-{
-    return a.exists(v);
-}
-
-template <typename V>
-constexpr bool in(V v, const object &a)
-{
-    return a.exists(v);
-}
-
-template <typename V, class Ax, class = std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+template <typename V, class Ax = void> requires has_exists_member<Ax>
 constexpr bool in(V v, const Ax &a)
 {
     return a.exists(v);
 }
 
-template <typename V, class Ax, class = std::enable_if_t<std::is_member_function_pointer_v<decltype(&Ax::exists)>>>
+template <typename V, class Ax = void> requires has_exists_member<Ax>
 constexpr bool in(V v, Ax *a)
 {
     return a->exists(v);
