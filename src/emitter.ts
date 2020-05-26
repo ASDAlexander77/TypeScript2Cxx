@@ -415,6 +415,12 @@ export class Emitter {
             // added header
             this.WriteHeader();
 
+            sourceFile.referencedFiles.forEach(f => {
+                this.writer.writeString('#include \"');
+                this.writer.writeString(f.fileName.replace('.d.ts', ''));
+                this.writer.writeStringNewLine('.h\"');
+            });
+
             sourceFile.statements.filter(s => this.isImportStatement(s)).forEach(s => {
                 this.processInclude(s);
             });

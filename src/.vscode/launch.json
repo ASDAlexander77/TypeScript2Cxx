@@ -10,7 +10,7 @@
             "name": "Launch Node.js (Test)",
             "preLaunchTask": "npm",
             "program": "${workspaceFolder}/../__out/main.js",
-            "cwd": "${workspaceFolder}/../Experiment/SimpleVulkanApp/src",
+            "cwd": "${workspaceFolder}/../test",
             "args": [
                 "tsconfig.json"
             ]

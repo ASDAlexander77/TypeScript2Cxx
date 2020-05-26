@@ -1,1 +1,1 @@
-console.log(10 == 20);
+/// <reference path="./vulkan.win32.d.ts" />
