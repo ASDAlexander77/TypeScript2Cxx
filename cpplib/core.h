@@ -1711,9 +1711,14 @@ struct array
     E &operator[](js::number i) const
     {
         if (static_cast<size_t>(i) >= get().size())
-        {
-            static E empty;
-            return empty;
+        {                        
+            if constexpr (std::is_same_v<decltype(E{undefined}), E>) {
+                static E empty{undefined};
+                return empty;
+            } else {
+                static E empty;
+                return empty;
+            }
         }
 
         return mutable_(get())[static_cast<size_t>(i)];
