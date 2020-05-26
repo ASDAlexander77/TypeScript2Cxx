@@ -307,33 +307,7 @@ export class IdentifierResolver {
         }
 
         const name = (<ts.Identifier>location).text;
-        let resolvedSymbol;
-
-        // find first node with 'locals'
-        let locationWithLocals = location;
-        while (true) {
-            while (locationWithLocals) {
-                if ((<any>locationWithLocals).locals) {
-                    break;
-                }
-
-                locationWithLocals = locationWithLocals.parent;
-            }
-
-            if (!locationWithLocals) {
-                // todo function, method etc can't be found
-                return null;
-            }
-
-            resolvedSymbol = (<any>this.typeChecker).resolveName(
-                name, locationWithLocals, ((1 << 27) - 1));
-            if (!resolvedSymbol) {
-                locationWithLocals = locationWithLocals.parent;
-                continue;
-            }
-
-            break;
-        }
+        let resolvedSymbol = this.resolveNameFromLocals(location);
 
         if  (this.checkTypeAlias(resolvedSymbol)) {
             return true;
@@ -357,34 +331,7 @@ export class IdentifierResolver {
             return undefined;
         }
 
-        const name = (<ts.Identifier>location).text;
-        let resolvedSymbol;
-
-        // find first node with 'locals'
-        let locationWithLocals = location;
-        while (true) {
-            while (locationWithLocals) {
-                if ((<any>locationWithLocals).locals) {
-                    break;
-                }
-
-                locationWithLocals = locationWithLocals.parent;
-            }
-
-            if (!locationWithLocals) {
-                // todo function, method etc can't be found
-                return null;
-            }
-
-            resolvedSymbol = (<any>this.typeChecker).resolveName(
-                name, locationWithLocals, ((1 << 27) - 1));
-            if (!resolvedSymbol) {
-                locationWithLocals = locationWithLocals.parent;
-                continue;
-            }
-
-            break;
-        }
+        let resolvedSymbol = this.resolveNameFromLocals(location);
 
         if  (!this.checkTypeAlias(resolvedSymbol) && !this.checkImportSpecifier(resolvedSymbol)) {
             return false;
@@ -417,8 +364,26 @@ export class IdentifierResolver {
             return undefined;
         }
 
+        let resolvedSymbol = this.resolveNameFromLocals(location);
+
+        if (this.checkImportSpecifier(resolvedSymbol)) {
+            /* todo: finish it */
+            return undefined;
+        }
+
+        try {
+            return this.typeChecker.getTypeOfSymbolAtLocation(resolvedSymbol, location);
+        } catch (e) {
+        }
+
+        return undefined;
+    }
+
+    public resolveNameFromLocals(location: ts.Node): ts.Symbol {
+
+        let resolvedSymbol: ts.Symbol;
+
         const name = (<ts.Identifier>location).text;
-        let resolvedSymbol;
 
         // find first node with 'locals'
         let locationWithLocals = location;
@@ -446,13 +411,7 @@ export class IdentifierResolver {
             break;
         }
 
-        try {
-            const typeNode = this.typeChecker.getTypeOfSymbolAtLocation(resolvedSymbol, location);
-            return typeNode;
-        } catch (e) {
-        }
-
-        return undefined;
+        return resolvedSymbol;
     }
 
     public isLocal(location: ts.Node): [boolean, any] {
