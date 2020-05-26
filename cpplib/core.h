@@ -240,13 +240,13 @@ constexpr T deref_(T t)
 }
 
 template <typename T>
-constexpr auto keys_(const T &t) -> decltype(mutable_(t)->keys())
+constexpr auto keys_(const T &t)
 {
     return mutable_(t)->keys();
 }
 
 template <typename T>
-constexpr auto keys_(T &t) -> decltype(t->keys())
+constexpr auto keys_(T &t)
 {
     return t->keys();
 }
@@ -1412,12 +1412,12 @@ struct string
         return _value.substr(begin < js::number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : js::number(0));
     }
 
-    auto begin() -> decltype(_value.begin())
+    auto begin()
     {
         return _value.begin();
     }
 
-    auto end() -> decltype(_value.end())
+    auto end()
     {
         return _value.end();
     }
@@ -1777,12 +1777,12 @@ struct array
         return get().erase(std::find(get().cbegin(), get().cend(), e)) != get().cend();
     }
 
-    auto begin() -> decltype(get().begin())
+    auto begin()
     {
         return get().begin();
     }
 
-    auto end() -> decltype(get().end())
+    auto end()
     {
         return get().end();
     }
@@ -1890,7 +1890,7 @@ struct array
 
     js::string join(js::string s)
     {
-        return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, auto &piece) -> decltype(auto) {
+        return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, auto &piece) {
             return res += (res) ? s + piece : piece;
         });
     }
