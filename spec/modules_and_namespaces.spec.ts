@@ -112,4 +112,15 @@ describe('Modules', () => {
         'import \'./test_0\';                        \
         console.log(M.C.Y("test"));                 \
     '])).to.equals('test\r\n'));
+
+    it('Module - static method call with param 2', () => expect(new Run().test([
+        'export module M {                          \
+            export class C {                        \
+                static Y(name: string) { return name; }\
+            }                                       \
+        }                                           \
+        ',
+        'import {M} from \'test_0\';                \
+        console.log(M.C.Y("test"));                 \
+    '])).to.equals('test\r\n'));
 });

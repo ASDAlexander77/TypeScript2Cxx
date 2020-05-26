@@ -1,4 +1,4 @@
-import {vulkan} from 'vulkanapi';
+import './vulkanapi';
 
 type uint32_t = number;
 type uint64_t = number;

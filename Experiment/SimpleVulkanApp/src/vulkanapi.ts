@@ -1,6 +1,6 @@
-import 'vulkan.win32';
+/// <reference path="./vulkan.win32.d.ts" />
 
-export module vulkan {
+module vulkan {
     export class Instance {
         static Create(): Instance {
             const inst = new Instance();
