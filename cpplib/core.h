@@ -1065,18 +1065,6 @@ struct number
         return static_cast<V>(n) >= value._value;
     }
 
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend int operator<=>(const number_t value, N n)
-    {
-        return value._value <=> static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator<=>(N n, const number_t value)
-    {
-        return static_cast<V>(n) <=> value._value;
-    }
-
     js::string toString();
     js::string toString(number_t radix);
 

@@ -1,5 +1,5 @@
-let i: number = 1;
-let j: any = 1;
-
-const r = i == j;
-console.log(r);
+for (let i = 0; i < 3; i++) {          
+            console.log(i);                     
+            if (i == 0) continue;               
+            break;                              
+        }
