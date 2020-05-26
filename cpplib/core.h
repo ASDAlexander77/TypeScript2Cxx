@@ -779,9 +779,9 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator+(T value, const number_t n)
+    friend T operator+(T value, const number_t n)
     {
-        return static_cast<V>(value) + n._value;
+        return value + static_cast<T>(n._value);
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -803,9 +803,9 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator-(T value, const number_t n)
+    friend T operator-(T value, const number_t n)
     {
-        return n._value - static_cast<V>(value);
+        return value - static_cast<T>(n._value);
     }
 
     number_t operator-()
@@ -845,9 +845,9 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator*(T value, const number_t n)
+    friend T operator*(T value, const number_t n)
     {
-        return static_cast<V>(value) * n._value;
+        return value * static_cast<T>(n._value);
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -869,9 +869,9 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator/(T value, const number_t n)
+    friend T operator/(T value, const number_t n)
     {
-        return static_cast<V>(value) / n._value;
+        return value / static_cast<T>(n._value);
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -912,7 +912,7 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator|(T value, const number_t n)
+    friend T operator|(T value, const number_t n)
     {
         return static_cast<long>(static_cast<V>(value)) | static_cast<long>(n._value);
     }
@@ -931,7 +931,7 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator&(T value, const number_t n)
+    friend T operator&(T value, const number_t n)
     {
         return static_cast<long>(static_cast<V>(value)) & static_cast<long>(n._value);
     }
@@ -950,9 +950,9 @@ struct number
     }
 
     template <typename T = void> requires ArithmeticOrEnum<T>
-    friend number_t operator%(T value, const number_t n)
+    friend T operator%(T value, const number_t n)
     {
-        return number_t(static_cast<long>(static_cast<V>(value)) % static_cast<long>(n._value));
+        return static_cast<long>(static_cast<V>(value)) % static_cast<long>(n._value);
     }
 
     template <typename T = void> requires ArithmeticOrEnumOrNumber<T>
@@ -1839,35 +1839,35 @@ struct array
         return result;
     }
 
-    array map(std::function<void()> p)
+    array_any map(std::function<void()> p)
     {
-        std::vector<E> result;
+        std::vector<any> result;
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             p();
-            return E();
+            return any();
         });
         return result;
     }
 
-    array map(std::function<E()> p)
+    array_any map(std::function<any()> p)
     {
-        std::vector<E> result;
+        std::vector<any> result;
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             return p();
         });
         return result;
     }
 
-    array map(std::function<E(E)> p)
+    array_any map(std::function<any(E)> p)
     {
-        std::vector<E> result;
+        std::vector<any> result;
         std::transform(get().begin(), get().end(), std::back_inserter(result), p);
         return result;
     }
 
-    array map(std::function<E(E, js::number)> p)
+    array_any map(std::function<any(E, js::number)> p)
     {
-        std::vector<E> result;
+        std::vector<any> result;
         auto first = &(get())[0];
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
             js::number index = &v - first;
@@ -1877,13 +1877,13 @@ struct array
     }
 
     template <typename P>
-    any reduce(P p)
+    auto reduce(P p)
     {
-        return std::reduce(get().begin(), get().end(), 0_N, p);
+        return std::reduce(get().begin(), get().end(), 0, p);
     }
 
     template <typename P, typename I>
-    any reduce(P p, I initial)
+    auto reduce(P p, I initial)
     {
         return std::reduce(get().begin(), get().end(), initial, p);
     }
