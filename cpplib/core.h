@@ -27,6 +27,7 @@
 #include <chrono>
 #include <thread>
 #include <future>
+#include <compare>
 
 namespace js
 {
@@ -1006,73 +1007,13 @@ struct number
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend bool operator!=(const number_t value, N n)
-    {
-        return value._value != static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator!=(N n, const number_t value)
-    {
-        return static_cast<V>(n) != value._value;
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend bool operator<(const number_t value, N n)
-    {
-        return value._value < static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator<(N n, const number_t value)
-    {
-        return static_cast<V>(n) < value._value;
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend bool operator<=(const number_t value, N n)
-    {
-        return value._value <= static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator<=(N n, const number_t value)
-    {
-        return static_cast<V>(n) <= value._value;
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend bool operator>(const number_t value, N n)
-    {
-        return value._value > static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator>(N n, const number_t value)
-    {
-        return static_cast<V>(n) > value._value;
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend bool operator>=(const number_t value, N n)
-    {
-        return value._value >= static_cast<V>(n);
-    }
-
-    template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator>=(N n, const number_t value)
-    {
-        return static_cast<V>(n) >= value._value;
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    friend int operator<=>(const number_t value, N n)
+    friend std::partial_ordering operator<=>(const number_t value, N n)
     {
         return value._value <=> static_cast<V>(n);
     }
 
     template <typename N = void> requires ArithmeticOrEnum<N>
-    friend bool operator<=>(N n, const number_t value)
+    friend std::strong_ordering operator<=>(N n, const number_t value)
     {
         return static_cast<V>(n) <=> value._value;
     }
@@ -3083,18 +3024,18 @@ struct any
     }
 
     template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    bool operator>(N n)
+    std::strong_ordering operator<=>(N n)
     {
         switch (get_type())
         {
         case anyTypeId::number_type:
-            return number_ref() > n;
+            return number_ref() <=> n;
         }
 
         throw "not implemented";
     }
 
-    any operator>(any t)
+    std::partial_ordering operator<=>(any t)
     {
         switch (get_type())
         {
@@ -3102,90 +3043,7 @@ struct any
             switch (t.get_type())
             {
             case anyTypeId::number_type:
-                return any(number_ref() > t.number_ref());
-            }
-            break;
-        }
-
-        throw "not implemented";
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    bool operator>=(N n)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            return number_ref() >= n;
-        }
-
-        throw "not implemented";
-    }
-
-    any operator>=(any t)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            switch (t.get_type())
-            {
-            case anyTypeId::number_type:
-                return any(number_ref() >= t.number_ref());
-            }
-            break;
-        }
-
-        throw "not implemented";
-    }
-
-    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
-    bool operator<(N n)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            return number_ref() < n;
-        }
-
-        throw "not implemented";
-    }
-
-    any operator<(any t)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            switch (t.get_type())
-            {
-            case anyTypeId::number_type:
-                return any(number_ref() < t.number_ref());
-            }
-            break;
-        }
-
-        throw "not implemented";
-    }
-
-    bool operator<=(js::number n)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            return number_ref() <= n;
-        }
-
-        throw "not implemented";
-    }
-
-    any operator<=(any t)
-    {
-        switch (get_type())
-        {
-        case anyTypeId::number_type:
-            switch (t.get_type())
-            {
-            case anyTypeId::number_type:
-                return any(number_ref() <= t.number_ref());
+                return number_ref() <=> t.number_ref();
             }
             break;
         }

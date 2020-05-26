@@ -92,7 +92,8 @@
             "mutex": "cpp",
             "ratio": "cpp",
             "xthread": "cpp",
-            "cinttypes": "cpp"
+            "cinttypes": "cpp",
+            "compare": "cpp"
         }
     }
 }
