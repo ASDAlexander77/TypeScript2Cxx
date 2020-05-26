@@ -1902,7 +1902,7 @@ struct array
 
     js::string join(js::string s)
     {
-        return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, const auto &piece) -> decltype(auto) {
+        return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, auto &piece) -> decltype(auto) {
             return res += (res) ? s + piece : piece;
         });
     }
@@ -2373,8 +2373,8 @@ struct any
         return *this;
     }
 
-    template <typename N>
-    any &operator=(N other) requires ArithmeticOrEnumOrNumber<N>
+    template <typename N = void> requires ArithmeticOrEnumOrNumber<N>
+    any &operator=(N other)
     {
         _value = js::number(other);
         return *this;
