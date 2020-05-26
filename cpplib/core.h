@@ -1703,12 +1703,13 @@ struct array
         return array_traits<array_type>::access(_values);
     }
 
-    js::number get_length()
+    size_t get_length()
     {
-        return js::number(get().size());
+        return get().size();
     }
 
-    E &operator[](js::number i) const
+    template <typename N> requires can_cast_to_size_t<N>
+    E &operator[](N i) const
     {
         if (static_cast<size_t>(i) >= get().size())
         {                        
@@ -1724,19 +1725,24 @@ struct array
         return mutable_(get())[static_cast<size_t>(i)];
     }
 
-    E &operator[](js::number i)
+    template <typename N> requires can_cast_to_size_t<N>
+    E &operator[](N i)
     {
         while (static_cast<size_t>(i) >= get().size())
         {
-            get().push_back(undefined_t());
+            if constexpr (std::is_same_v<decltype(E{undefined}), E>) {
+                get().push_back(E{undefined});
+            } else {
+                get().push_back(E{});
+            }            
         }
 
         return get()[static_cast<size_t>(i)];
     }
 
-    ArrayKeys<js::number> keys()
+    ArrayKeys<size_t> keys()
     {
-        return ArrayKeys<js::number>(get().size());
+        return ArrayKeys<size_t>(get().size());
     }
 
     void push(E t)

@@ -1849,7 +1849,11 @@ export class Emitter {
             case ts.SyntaxKind.ArrayType:
                 const arrayType = <ts.ArrayTypeNode>type;
                 this.writer.writeString('array<');
-                this.processType(arrayType.elementType, false);
+                if (arrayType.elementType && arrayType.elementType.kind !== ts.SyntaxKind.UndefinedKeyword) {
+                    this.processType(arrayType.elementType, false);
+                } else {
+                    this.writer.writeString('any');
+                }
                 this.writer.writeString('>');
                 break;
             case ts.SyntaxKind.TupleType:
@@ -3160,7 +3164,12 @@ export class Emitter {
 
         if (!isTuple) {
             this.writer.writeString('array<');
-            this.processType(elementsType, false);
+            if (elementsType) {
+                this.processType(elementsType, false);
+            } else {
+                this.writer.writeString('any');
+            }
+
             this.writer.writeString('>');
         }
 

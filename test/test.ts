@@ -1,5 +1,7 @@
-function f(events: { name: string; handler: any; }[]) { 
-            console.log(events[0].name);                                              
-            if (events[1]) console.log("failed");                                     
-        }                                                                             
-        f([{ name: "blur", handler: 1 }]);
+class Matrix {                                                 
+            public m = [];                                              
+        }                                                               
+                                                                        
+        var result = new Matrix();                                      
+        result.m[0] = 10;                                               
+        console.log(result.m[0]);
