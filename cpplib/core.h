@@ -1245,9 +1245,20 @@ struct string
         return string(_value + to_tstring(value));
     }
 
+    template <typename N = void> requires ArithmeticOrEnum<N>
+    friend string_t operator+(N value, const string_t& val)
+    {
+        return string(to_tstring(value) + val._value);
+    }
+
     string_t operator+(js::number value)
     {
         return string(_value + value.operator tstring());
+    }
+
+    friend string_t operator+(js::number value, const string_t& val)
+    {
+        return string(value.operator tstring() + val._value);
     }
 
     string_t operator+(string value)
