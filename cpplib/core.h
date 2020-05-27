@@ -3397,6 +3397,9 @@ struct shared
 
     operator T &() { return *_value.get(); }
 
+    // todo: memory leak here, improve it using any(shared_t<value> s) constuctor
+    operator any() { return *_value.get(); }
+
     T &get() const { return *_value.get(); }
 
     T *operator->() const
@@ -3444,7 +3447,7 @@ struct shared
         return get() += other;
     }    
 
-    template <class Tv>
+    template <class Tv> requires ArithmeticOrEnum<Tv>
     friend auto operator+=(Tv& other, const shared_type &val)
     {
         return other += mutable_(val).get();
@@ -3468,7 +3471,7 @@ struct shared
         return get() -= other;
     }    
 
-    template <class Tv>
+    template <class Tv> requires ArithmeticOrEnum<Tv>
     friend auto operator-=(Tv& other, const shared_type &val)
     {
         return other -= mutable_(val).get();
@@ -3492,7 +3495,7 @@ struct shared
         return get() *= other;
     }    
 
-    template <class Tv>
+    template <class Tv> requires ArithmeticOrEnum<Tv>
     friend auto operator*=(Tv& other, const shared_type &val)
     {
         return other *= mutable_(val).get();
@@ -3516,7 +3519,7 @@ struct shared
         return get() /= other;
     }        
 
-    template <class Tv>
+    template <class Tv> requires ArithmeticOrEnum<Tv>
     friend auto operator/=(Tv& other, const shared_type &val)
     {
         return other /= mutable_(val).get();
