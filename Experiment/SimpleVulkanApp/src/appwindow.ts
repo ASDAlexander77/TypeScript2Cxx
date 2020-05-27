@@ -14,15 +14,15 @@ declare function run_vulkan(): void;
 declare function cleanup_vulkan(): void;
 
 enum Messages {
+    Destroy = 0x0002,
     Size = 0x0005,
-    Paint = 0x000F,
-    KeyDown = 0x0100
+    Paint = 0x000f,
+    KeyDown = 0x0100,
+    Erasebkgnd = 0x0014
 }
 
 enum Keys {
     Escape = 0x1b,
-    Paint = 0x0f,
-    Erasebkgnd = 0x14,
     Space = 0x20
 }
 
@@ -37,24 +37,26 @@ export class AppWindow {
 
     protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {
         switch (uMsg) {
-            case Keys.Paint:
+            case Messages.Erasebkgnd:
+                return 1;
+            case Messages.Paint:
                 run_vulkan();
                 break;
-            case Keys.Erasebkgnd:
-                return 1;
+            case Messages.Destroy:
+                cleanup_vulkan();
+                break;
             case Messages.KeyDown: // key down
                 switch (wParam) {
                     case Keys.Escape: // key escape
                         close_window(0);
-                        cleanup_vulkan();
-                        return 0;
+                        break;
                     case Keys.Space: // key space
                         // open new window
-                        return 0;
+                        break;
                 }
 
-                break;
-    }
+                return 0;
+        }
 
         return 0;
     }

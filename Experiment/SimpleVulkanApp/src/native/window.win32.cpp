@@ -95,12 +95,18 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     bool result = false;
     auto callback_function_ptr = reinterpret_cast<callback_function*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
     if (callback_function_ptr) {
-        callback_function_ptr->operator()(uMsg, wParam, lParam);
+        auto result = callback_function_ptr->operator()(uMsg, wParam, lParam);
 
         switch (uMsg) {
             case WM_DESTROY:
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
                 delete callback_function_ptr;                
+        }
+
+        RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
+
+        if (result) {
+            return result;
         }
     }
 
