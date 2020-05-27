@@ -7,9 +7,10 @@
 #undef max
 #include "core.h"
 
-static HINSTANCE instance;
-static int cmdShow;
 const TCHAR* CLASS_NAME = TEXT("Application Window");
+
+HINSTANCE instance;
+int cmdShow;
 
 typedef std::function<uint32_t(uint64_t, uint64_t, uint64_t)> callback_function;
 
@@ -102,8 +103,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 delete callback_function_ptr;                
         }
     }
-
-    RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }

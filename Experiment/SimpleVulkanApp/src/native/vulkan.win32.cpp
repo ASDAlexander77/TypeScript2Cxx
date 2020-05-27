@@ -287,6 +287,14 @@ public:
             && load_gpu_and_queue_properties();
     }
    
+#ifdef WIN32   
+    void create_surface_win32(HINSTANCE hInstance, HWND hwnd) {
+        auto const createInfo = vk::Win32SurfaceCreateInfoKHR().setHinstance(hInstance).setHwnd(hwnd);
+        auto result = inst.createWin32SurfaceKHR(&createInfo, nullptr, &surface);
+        VERIFY(result == vk::Result::eSuccess);
+    }
+#endif    
+
     bool initialize_swapchain() {
         return create_surface() 
             && set_graphics_and_present_family_indexes()
@@ -415,7 +423,10 @@ private:
     }
 
     bool create_surface() {
-        on_create_surface(inst, surface);
+        if (on_create_surface) {
+            on_create_surface(inst, surface);
+        }
+        
         return true;
     }
 
@@ -1935,3 +1946,21 @@ private:
         exit(1);
     }
 };
+
+VulkanApi vulkanApi;
+extern HINSTANCE instance;
+
+void create_vulkan(intptr_t hwnd) {
+    vulkanApi.initialize();
+    vulkanApi.create_surface_win32(instance, (HWND) hwnd);
+    vulkanApi.initialize_swapchain();
+    vulkanApi.prepare();
+}
+
+void run_vulkan() {
+    vulkanApi.run();
+}
+
+void cleanup_vulkan() {
+    vulkanApi.cleanup();
+}
