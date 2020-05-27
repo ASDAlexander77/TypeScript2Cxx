@@ -1816,52 +1816,51 @@ struct array
         return result;
     }
 
-    array filter(std::function<bool(E, js::number)> p)
+    array filter(std::function<bool(E, size_t)> p)
     {
         std::vector<E> result;
         auto first = &(get())[0];
         std::copy_if(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
-            js::number index = &v - first;
+            auto index = &v - first;
             return p(v, index);
         });
         return result;
     }
 
-    array_any map(std::function<void()> p)
-    {
-        std::vector<any> result;
+    template <typename F, class = decltype(F()())>
+    auto map(F p) -> array< undefined_t >
+    {        
+        std::vector< undefined_t > result;
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
-            p();
-            return any();
+            mutable_(p)(v);
+            return undefined;
         });
-        return result;
+
+        return array< undefined_t > (result);
     }
 
-    array_any map(std::function<any()> p)
-    {
-        std::vector<any> result;
+    template <typename F, class = decltype(F()(E()))>
+    auto map(F p) -> array< decltype(p(E())) >
+    {        
+        std::vector< decltype(p(E())) > result;
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
-            return p();
+            return mutable_(p)(v);
         });
-        return result;
+
+        return array< decltype(p(E())) >(result);
     }
 
-    array_any map(std::function<any(E)> p)
-    {
-        std::vector<any> result;
-        std::transform(get().begin(), get().end(), std::back_inserter(result), p);
-        return result;
-    }
-
-    array_any map(std::function<any(E, js::number)> p)
-    {
-        std::vector<any> result;
+    template <typename F, class = decltype(F()(E(), 0))>
+    auto map(F p) -> array< decltype(p(E(), 0)) >
+    {        
+        std::vector< decltype(p(E(), 0)) > result;
         auto first = &(get())[0];
         std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v) {
-            js::number index = &v - first;
-            return p(v, index);
+            auto index = &v - first;
+            return mutable_(p)(v, index);
         });
-        return result;
+
+        return array< decltype(p(E(), 0)) >(result);
     }
 
     template <typename P>
@@ -1900,11 +1899,11 @@ struct array
         std::for_each(get().begin(), get().end(), p);
     }
 
-    void forEach(std::function<void(E, js::number)> p)
+    void forEach(std::function<void(E, size_t)> p)
     {
         auto first = &(*_values.get())[0];
         std::result(get().begin(), get().end(), [=](auto &v) {
-            js::number index = &v - first;
+            auto index = &v - first;
             return p(v, index);
         });
     }
