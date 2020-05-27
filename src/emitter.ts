@@ -3177,6 +3177,8 @@ export class Emitter {
             }
 
             this.writer.writeString('>');
+        } else {
+            this.processType(type);
         }
 
         if (node.elements.length !== 0) {

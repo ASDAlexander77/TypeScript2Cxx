@@ -675,6 +675,11 @@ struct number
     {
     }
 
+    template <typename T = void> requires ArithmeticOrEnum<T>
+    number(const shared<T>& initValue) : _value{static_cast<V>(initValue.get())}
+    {
+    }
+
     number(js::pointer_t p) : _value{p._ptr != nullptr ? static_cast<V>(intptr_t(p._ptr)) : -std::numeric_limits<V>::quiet_NaN()}
     {
     }
@@ -3395,9 +3400,9 @@ struct shared
         return *_value.get();
     }    
 
-    operator T &() { return *_value.get(); }
+    operator T() { return *_value.get(); }
 
-    // todo: memory leak here, improve it using any(shared_t<value> s) constuctor
+    // todo: memory leak here, improve it using any(shared_t<value> s)
     operator any() { return *_value.get(); }
 
     T &get() const { return *_value.get(); }
