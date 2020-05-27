@@ -1699,7 +1699,7 @@ struct array
         return get().size();
     }
 
-    template <typename N> requires can_cast_to_size_t<N>
+    template <typename N = void> requires can_cast_to_size_t<N>
     E &operator[](N i) const
     {
         if (static_cast<size_t>(i) >= get().size())
@@ -1716,7 +1716,7 @@ struct array
         return mutable_(get())[static_cast<size_t>(i)];
     }
 
-    template <typename N> requires can_cast_to_size_t<N>
+    template <typename N = void> requires can_cast_to_size_t<N>
     E &operator[](N i)
     {
         while (static_cast<size_t>(i) >= get().size())
