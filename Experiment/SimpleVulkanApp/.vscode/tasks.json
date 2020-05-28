@@ -12,6 +12,15 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "watch",
+            "type": "shell",
+            "command": "watch.bat",
+            "isBackground": true,
+            "problemMatcher": [
+                "$tsc-watch"
+            ]
         }
     ]
 }

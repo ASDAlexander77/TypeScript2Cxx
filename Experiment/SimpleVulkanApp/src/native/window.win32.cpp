@@ -39,6 +39,8 @@ void close_window(uint32_t exitCode) {
     PostQuitMessage(exitCode);
 }
 
+HWND main_hwnd;
+
 intptr_t create_window(js::string title, intptr_t parent_hwnd, callback_function window_callback) {
     // Create the window.
     auto hwnd = CreateWindowEx(
@@ -61,6 +63,10 @@ intptr_t create_window(js::string title, intptr_t parent_hwnd, callback_function
 
     show_window(reinterpret_cast<intptr_t>(hwnd), cmdShow);
 
+    if (!main_hwnd) {
+        main_hwnd = hwnd;
+    }
+
     return reinterpret_cast<intptr_t>(hwnd);
 }
 
@@ -70,6 +76,8 @@ void messages_loop() {
     {
         TranslateMessage(&msg);
         DispatchMessage(&msg);
+
+        RedrawWindow(main_hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
 }
 
@@ -102,9 +110,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
                 delete callback_function_ptr;                
         }
-
-        RedrawWindow(hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
-
+      
         if (result) {
             return result;
         }
