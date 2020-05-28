@@ -70,15 +70,21 @@ intptr_t create_window(js::string title, intptr_t parent_hwnd, callback_function
     return reinterpret_cast<intptr_t>(hwnd);
 }
 
-void messages_loop() {
+int messages_loop() {
     MSG msg = { };
     while (GetMessage(&msg, NULL, 0, 0))
     {
+        if (msg.message == WM_QUIT) {
+            return (int)msg.wParam;
+        } 
+
         TranslateMessage(&msg);
         DispatchMessage(&msg);
 
         RedrawWindow(main_hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
+
+    return 0;
 }
 
 extern void Main(void);
@@ -91,11 +97,9 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE, LPTSTR pCmdLine, int nCmdSh
     register_window_class();
 
     // main inject
-    Main();
+    Main();    
 
-    messages_loop();
-
-    return 0;
+    return messages_loop();
 }
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -111,7 +115,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 delete callback_function_ptr;                
         }
       
-        if (result) {
+        if (result != 0xffff) {
             return result;
         }
     }

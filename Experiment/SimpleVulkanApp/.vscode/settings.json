@@ -81,6 +81,7 @@
         "queue": "cpp",
         "shared_mutex": "cpp",
         "stack": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "*.rh": "cpp"
     }
 }

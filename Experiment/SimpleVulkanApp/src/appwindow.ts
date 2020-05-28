@@ -17,6 +17,7 @@ enum Messages {
     Destroy = 0x0002,
     Size = 0x0005,
     Paint = 0x000f,
+    Close = 0x0010,
     KeyDown = 0x0100,
     Erasebkgnd = 0x0014
 }
@@ -37,6 +38,9 @@ export class AppWindow {
 
     protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {
         switch (uMsg) {
+            case Messages.Close:
+                close_window(0);
+                break;
             case Messages.Erasebkgnd:
                 return 1;
             case Messages.Paint:
@@ -58,6 +62,6 @@ export class AppWindow {
                 return 0;
         }
 
-        return 0;
+        return 0xffff;
     }
 }
