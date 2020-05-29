@@ -13,6 +13,13 @@ declare function create_vulkan(hwnd: intptr_t): void;
 declare function run_vulkan(): void;
 declare function cleanup_vulkan(): void;
 
+declare type HWND = number;
+declare type UINT = number;
+declare type WPARAM = number;
+declare type LPARAM = number;
+declare type LRESULT = number;
+declare function DefWindowProc(hWnd: HWND, Msg: UINT, wParam: WPARAM, lParam: LPARAM): LRESULT;
+
 enum Messages {
     Destroy = 0x0002,
     Size = 0x0005,
@@ -62,6 +69,6 @@ export class AppWindow {
                 return 0;
         }
 
-        return 0xffff;
+        return DefWindowProc(<HWND>this.handler_window, <UINT>uMsg, <WPARAM>wParam, <LPARAM>lParam);
     }
 }

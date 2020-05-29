@@ -1,5 +1,9 @@
-        function padLeft<T>(value: string, padding: T) {                        
-            return padding + value;                                         
-        }                                                                       
-                                                                                
-        console.log(padLeft("Hello world", 4));
+declare type a = number;
+declare var b = 1;
+declare function f();
+
+declare class A {
+
+	public show() {
+	}
+};

@@ -840,6 +840,11 @@ export class Emitter {
     }
 
     private processClassImplementationInternal(node: ts.ClassDeclaration, template?: boolean) {
+
+        if (this.isDeclare(node)) {
+            return;
+        }
+
         for (const member of node.members) {
             this.processImplementation(member, template);
         }
@@ -1109,6 +1114,10 @@ export class Emitter {
             return;
         }
 
+        if (this.isDeclare(node)) {
+            return;
+        }
+
         /*
         const properties = [];
         let value = 0;
@@ -1185,9 +1194,9 @@ export class Emitter {
     }
 
     private processVariablesForwardDeclaration(node: ts.VariableStatement) {
-        this.processVariableDeclarationList(node.declarationList, true);
-
-        this.writer.EndOfStatement();
+        if (this.processVariableDeclarationList(node.declarationList, true)) {
+            this.writer.EndOfStatement();
+        }
     }
 
     private processClassForwardDeclaration(node: ts.ClassDeclaration) {
@@ -1435,6 +1444,10 @@ export class Emitter {
 
     private processTypeAliasDeclaration(node: ts.TypeAliasDeclaration): void {
 
+        if (this.isDeclare(node)) {
+            return;
+        }
+
         if (node.type.kind === ts.SyntaxKind.ImportType) {
             const typeLiteral = <ts.ImportTypeNode>node.type;
             const argument = typeLiteral.argument;
@@ -1627,6 +1640,11 @@ export class Emitter {
     }
 
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
+
+        if (this.isDeclare(declarationList.parent) && !forwardDeclaration) {
+            return false;
+        }
+
         const scopeItem = this.scope[this.scope.length - 1];
         const autoAllowed =
             scopeItem.kind !== ts.SyntaxKind.SourceFile
@@ -2179,6 +2197,10 @@ export class Emitter {
             | ts.ConstructorDeclaration | ts.GetAccessorDeclaration | ts.SetAccessorDeclaration,
         implementationMode?: boolean): boolean {
 
+        if (implementationMode && this.isDeclare(node)) {
+            return true;
+        }
+
         // skip function declaration as union
         let noBody = false;
         if (!node.body
@@ -2628,6 +2650,10 @@ export class Emitter {
 
     private isAbstract(node: ts.Node) {
         return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.AbstractKeyword);
+    }
+
+    private isDeclare(node: ts.Node) {
+        return node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DeclareKeyword);
     }
 
     private processFunctionDeclaration(node: ts.FunctionDeclaration | ts.MethodDeclaration, implementationMode?: boolean): boolean {
