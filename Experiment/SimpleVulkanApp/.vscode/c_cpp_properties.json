@@ -49,9 +49,12 @@
                 "${workspaceFolder}/src/native",
                 "${workspaceFolder}/../../cpplib",
                 "${workspaceFolder}/src/native",
-                "C:/VulkanSDK/1.2.135.0/Include"
+                "C:/VulkanSDK/1.2.135.0/Include",
+                "C:/Program Files (x86)/Microsoft Visual Studio/2017/Community/VC/Tools/MSVC/14.16.27023/include"
             ],
-            "defines": ["VK_USE_PLATFORM_WIN32_KHR"],
+            "defines": [
+                "VK_USE_PLATFORM_WIN32_KHR"
+            ],
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "databaseFilename": "",

@@ -1,10 +1,6 @@
 #pragma comment(linker, "/subsystem:windows")
 
-#include <windows.h>
-#include <tchar.h>
-
-#undef min
-#undef max
+#include "window.win32.h"
 #include "core.h"
 
 const TCHAR* CLASS_NAME = TEXT("Application Window");
@@ -37,6 +33,10 @@ uint32_t destroy_window(intptr_t hwnd) {
 
 void close_window(uint32_t exitCode) {
     PostQuitMessage(exitCode);
+}
+
+intptr_t default_window_procedure(intptr_t hwnd, uint64_t msg, uint64_t wparam, uint64_t lparam) {
+    return DefWindowProc((HWND)hwnd, msg, wparam, lparam);
 }
 
 HWND main_hwnd;
@@ -114,10 +114,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) nullptr);
                 delete callback_function_ptr;                
         }
-      
-        if (result != 0xffff) {
-            return result;
-        }
+
+        return result;
     }
 
     return DefWindowProc(hwnd, uMsg, wParam, lParam);

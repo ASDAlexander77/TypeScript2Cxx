@@ -1,3 +1,5 @@
+/// <reference path="window.win32.d.ts" />
+
 import './vulkanapi';
 
 type uint32_t = number;
@@ -8,17 +10,11 @@ type callback_function = (uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t) =>
 declare function create_window(title: string, parent_hwnd: intptr_t, handler: callback_function): intptr_t;
 declare function close_window(exitCode: uint32_t): void;
 declare function destroy_window(hwnd: intptr_t): uint32_t;
+declare function default_window_procedure(hwnd: intptr_t, msg: uint64_t, wparam: uint64_t, lparam: uint64_t): intptr_t;
 
 declare function create_vulkan(hwnd: intptr_t): void;
 declare function run_vulkan(): void;
 declare function cleanup_vulkan(): void;
-
-declare type HWND = number;
-declare type UINT = number;
-declare type WPARAM = number;
-declare type LPARAM = number;
-declare type LRESULT = number;
-declare function DefWindowProc(hWnd: HWND, Msg: UINT, wParam: WPARAM, lParam: LPARAM): LRESULT;
 
 enum Messages {
     Destroy = 0x0002,
@@ -43,7 +39,7 @@ export class AppWindow {
         create_vulkan(this.handler_window);
     }
 
-    protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): uint32_t {
+    protected onMessage(uMsg: uint64_t, wParam: uint64_t, lParam: uint64_t): intptr_t {
         switch (uMsg) {
             case Messages.Close:
                 close_window(0);
@@ -69,6 +65,6 @@ export class AppWindow {
                 return 0;
         }
 
-        return DefWindowProc(<HWND>this.handler_window, <UINT>uMsg, <WPARAM>wParam, <LPARAM>lParam);
+        return default_window_procedure(this.handler_window, uMsg, wParam, lParam);
     }
 }
