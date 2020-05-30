@@ -14,13 +14,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void register_window_class() {
     // Register the window class.
-    WNDCLASS wc = { };
-
-    wc.lpfnWndProc   = WindowProc;
-    wc.hInstance     = instance;
-    wc.lpszClassName = CLASS_NAME;
-
-    RegisterClass(&wc);
+    WNDCLASSEX win_class = {};
+    win_class.cbSize = sizeof(WNDCLASSEX);
+    win_class.style = CS_HREDRAW | CS_VREDRAW;
+    win_class.lpfnWndProc = WindowProc;
+    win_class.hInstance = instance;
+    win_class.hCursor = LoadCursor(nullptr, IDC_ARROW);
+    win_class.lpszClassName = CLASS_NAME;
+    RegisterClassEx(&win_class);
 }
 
 uint32_t show_window(intptr_t hwnd, uint32_t cmdShow) {
@@ -42,21 +43,26 @@ intptr_t default_window_procedure(intptr_t hwnd, uint64_t msg, uint64_t wparam, 
 HWND main_hwnd;
 
 intptr_t create_window(js::string title, intptr_t parent_hwnd, callback_function window_callback) {
+
+    const DWORD win_style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE | WS_OVERLAPPEDWINDOW;
+
     // Create the window.
     auto hwnd = CreateWindowEx(
-        0,                              // Optional window styles.
+        WS_EX_APPWINDOW,                // Optional window styles.
         CLASS_NAME,                     // Window class
-        title,       // Window text
-        WS_OVERLAPPEDWINDOW,            // Window style
+        title,                          // Window text
+        win_style,                      // Window style
 
         // Size and position
         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT,
 
-        (HWND)parent_hwnd,       // Parent window    
-        NULL,       // Menu
-        instance,   // Instance handle
-        NULL        // Additional application data
+        (HWND)parent_hwnd,              // Parent window    
+        nullptr,                        // Menu
+        instance,                       // Instance handle
+        nullptr                         // Additional application data
         );
+
+    SetForegroundWindow(hwnd);
 
     auto method_ptr = new callback_function(window_callback);
     SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR) method_ptr);
@@ -83,6 +89,8 @@ int messages_loop() {
 
         RedrawWindow(main_hwnd, nullptr, nullptr, RDW_INTERNALPAINT);
     }
+
+    DestroyWindow(main_hwnd);
 
     return 0;
 }

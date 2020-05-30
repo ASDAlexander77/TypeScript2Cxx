@@ -69,7 +69,11 @@ export class Run {
                 continue;
             }
 
-            options[item.substring(1)] = true;
+            const option = item.substring(1);
+            options[option] = true;
+            if (option  === 'run_on_compile') {
+                options[option] = cmdLineArgs[++i];
+            }
         }
 
         return options;
@@ -80,6 +84,10 @@ export class Run {
         for (let i = 2; i < cmdLineArgs.length; i++) {
             const item = cmdLineArgs[i];
             if (!item || item[0] === '-') {
+                if (item === '-run_on_compile') {
+                    ++i;
+                }
+
                 continue;
             }
 
@@ -235,7 +243,7 @@ export class Run {
             const fileVersion = (<any>s).version;
             if (fileVersion) {
                 const latestVersion = this.versions[s.fileName];
-                if (latestVersion && parseInt(latestVersion, 10) >= parseInt(fileVersion, 10)) {
+                if (latestVersion && latestVersion === fileVersion) {
                     if (!cmdLineOptions.suppressOutput) {
                         console.log(
                             'File: '
@@ -298,6 +306,22 @@ export class Run {
 
         if (!cmdLineOptions.suppressOutput) {
             console.log(ForegroundColorEscapeSequences.Pink + 'Binary files have been generated...' + resetEscapeSequence);
+        }
+
+        if (cmdLineOptions.run_on_compile) {
+            const result_compile: any = spawn.sync(cmdLineOptions.run_on_compile);
+
+            if (result_compile.error) {
+                console.log(ForegroundColorEscapeSequences.Red + 'Error: ' + result_compile.error);
+            }
+
+            if (result_compile.stdout.length) {
+                console.log(ForegroundColorEscapeSequences.White + 'Result: ' + result_compile.stdout.toString());
+            }
+
+            if (result_compile.stderr.length) {
+                console.log(ForegroundColorEscapeSequences.Red + 'Error output: ' + result_compile.stderr.toString());
+            }
         }
     }
 

@@ -28,7 +28,7 @@ if %msbuild_version% lss 16 (
 set version_string=Visual Studio %msbuild_version%
 
 :: Build
-md __build
+if not exist __build (md __build)
 cd __build
 cmake -G "%version_string%" -A x64 ..
 call msbuild ALL_BUILD.vcxproj /p:Platform=x64 /p:Configuration=Debug /verbosity:quiet

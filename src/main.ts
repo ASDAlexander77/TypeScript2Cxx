@@ -19,8 +19,10 @@ function print() {
     Examples: tsc-cxx hello.ts
               tsc-cxx tsconfig.json
               tsc-cxx
+              tsc-cxx -watch
 
     Options:
-     -varAsLet                                          Use all 'var' variables as 'let'.
+     -watch                                          Watch mode
+     -run_after_compile <app.bat|exe>                Run extra application or batch file after compilation
      `);
 }
