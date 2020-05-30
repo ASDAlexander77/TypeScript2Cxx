@@ -312,15 +312,21 @@ export class Run {
             const result_compile: any = spawn.sync(cmdLineOptions.run_on_compile);
 
             if (result_compile.error) {
-                console.log(ForegroundColorEscapeSequences.Red + 'Error: ' + result_compile.error);
+                console.log(ForegroundColorEscapeSequences.Red + 'Error: ');
+                console.log(result_compile.error);
+                console.log(ForegroundColorEscapeSequences.White + '');
             }
 
             if (result_compile.stdout.length) {
-                console.log(ForegroundColorEscapeSequences.White + 'Result: ' + result_compile.stdout.toString());
+                console.log(ForegroundColorEscapeSequences.Yellow + 'Result: ');
+                console.log(result_compile.stdout.toString());
+                console.log(ForegroundColorEscapeSequences.White + '');
             }
 
             if (result_compile.stderr.length) {
-                console.log(ForegroundColorEscapeSequences.Red + 'Error output: ' + result_compile.stderr.toString());
+                console.log(ForegroundColorEscapeSequences.Red + 'Error output: ');
+                console.log(result_compile.stderr.toString());
+                console.log(ForegroundColorEscapeSequences.White + '');
             }
         }
     }
