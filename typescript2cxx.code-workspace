@@ -93,7 +93,11 @@
             "ratio": "cpp",
             "xthread": "cpp",
             "cinttypes": "cpp",
-            "compare": "cpp"
+            "compare": "cpp",
+            "bit": "cpp",
+            "clocale": "cpp",
+            "coroutine": "cpp",
+            "stop_token": "cpp"
         }
     }
 }

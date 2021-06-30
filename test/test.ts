@@ -1,9 +1,4 @@
-declare type a = number;
-declare var b = 1;
-declare function f();
+function testDefaultArgs() {
+}
 
-declare class A {
-
-	public show() {
-	}
-};
+testDefaultArgs();
