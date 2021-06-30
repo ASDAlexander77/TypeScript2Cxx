@@ -38,6 +38,7 @@ namespace js
 
 struct undefined_t;
 struct any;
+struct boolean;
 template <typename T>
 struct shared;
 
