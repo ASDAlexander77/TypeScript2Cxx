@@ -128,6 +128,9 @@ int main(int argc, char** argv)
 
 ```
 cl /W3 /GR /EHsc /std:c++latest /Fe:test.exe /I ../cpplib test.cpp
+
+llvm(win-msvc) clang13.0.0:
+clang++ -std=c++20 -Wno-deprecated-declarations -Wno-microsoft-template-shadow -Wno-switch test.cpp -I ../cpplib
 ```
 
 4) Run it.

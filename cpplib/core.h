@@ -348,11 +348,11 @@ constexpr const T const_(T t) {
         requires ArithmeticOrEnum<N>
         bool operator!=(N n) const;
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator==(N n, const undefined_t &u);
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator!=(N n, const undefined_t &u);
 
@@ -3884,7 +3884,7 @@ constexpr const T const_(T t) {
         template <typename K, typename V>
         any &object<K, V>::operator[](js::string s) const
         {
-            return mutable_(get())[(std::string)s];
+            return mutable_(get())[std::string(static_cast<const char*>(s))];
         }
 
         template <typename K, typename V>
@@ -3902,7 +3902,7 @@ constexpr const T const_(T t) {
         template <typename K, typename V>
         any &object<K, V>::operator[](js::string s)
         {
-            return get()[(std::string)s];
+            return get()[std::string(static_cast<const char*>(s))];
         }
 
         template <typename K, typename V>
