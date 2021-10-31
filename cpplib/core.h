@@ -348,11 +348,11 @@ constexpr const T const_(T t) {
         requires ArithmeticOrEnum<N>
         bool operator!=(N n) const;
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator==(N n, const undefined_t &u);
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator!=(N n, const undefined_t &u);
 
