@@ -97,7 +97,10 @@
             "bit": "cpp",
             "clocale": "cpp",
             "coroutine": "cpp",
-            "stop_token": "cpp"
+            "stop_token": "cpp",
+            "charconv": "cpp",
+            "format": "cpp",
+            "forward_list": "cpp"
         }
     }
 }
