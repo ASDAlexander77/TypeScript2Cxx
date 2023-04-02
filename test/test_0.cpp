@@ -2,15 +2,18 @@
 
 using namespace js;
 
-array<js::number> list = array<js::number>{ 1, 2, 3 };
+array<js::number> a = array<js::number>{ 10, 20, 30, 40 };
+js::number count = 0;
 
 void Main(void)
 {
-    console->log(const_(list)[0]);
-    console->log(const_(list)[1]);
-    console->log(const_(list)[2]);
-    list[2] = 10;
-    console->log(const_(list)[2]);
+    for (auto& i : keys_(a))
+    {
+        count++;
+        console->log(count);
+        if (equals(count, 1)) continue;
+        break;
+    }
 }
 
 MAIN

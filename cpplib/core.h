@@ -537,7 +537,7 @@ constexpr const T const_(T t) {
     static pointer_t null;
 
     template <typename L, typename R>
-    constexpr bool equals(L l, R r)
+    constexpr bool equals(const L& l, const R& r)
     {
         auto lIsUndef = l == undefined;
         auto lIsNull = l == null;
@@ -2766,6 +2766,16 @@ constexpr const T const_(T t) {
         }
 
         bool operator!=(const js::undefined_t &) const
+        {
+            return get_type() != anyTypeId::undefined_type;
+        }
+
+        bool operator==(const js::undefined_t)
+        {
+            return get_type() == anyTypeId::undefined_type;
+        }
+
+        bool operator!=(const js::undefined_t)
         {
             return get_type() != anyTypeId::undefined_type;
         }

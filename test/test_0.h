@@ -4,5 +4,6 @@
 
 using namespace js;
 
-extern array<js::number> list;
+extern array<js::number> a;
+extern js::number count;
 #endif
