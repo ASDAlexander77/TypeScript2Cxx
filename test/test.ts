@@ -1,12 +1,12 @@
-	var i:any;                                     
-        i = null; console.log(i || null);               
-        i = 0; console.log(i || null);                  
-        i = 1; console.log(i || null);                  
-                                                        
-        i = null; console.log(i || 0);                  
-        i = 0; console.log(i || 0);                     
-        i = 1; console.log(i || 0);                     
-                                                        
-        //i = null; console.log(i || 1);                  
-        //i = 0; console.log(i || 1);                     
-        //i = 1; console.log(i || 1);
+	let deck = {                                                           
+            createCardPicker: function() {                                      
+                return function() {                                             
+                    return {suit: "spades"};                                    
+                };                                                              
+            }                                                                   
+        };                                                                      
+                                                                                
+        let cardPicker = deck.createCardPicker();                               
+        let pickedCard = cardPicker();                                          
+                                                                                
+        console.log(pickedCard.suit);

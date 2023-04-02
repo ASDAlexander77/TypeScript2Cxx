@@ -2705,7 +2705,7 @@ constexpr const T const_(T t) {
         }
 
         template <typename T>
-        operator std::shared_ptr<T>()
+        operator std::shared_ptr<T>() const
         {
             if (get_type() == anyTypeId::class_type)
             {
@@ -2716,7 +2716,7 @@ constexpr const T const_(T t) {
         }
 
         template <typename Rx, typename... Args>
-        operator std::function<Rx(Args...)>()
+        operator std::function<Rx(Args...)>() const
         {
             if (get_type() == anyTypeId::function_type)
             {
