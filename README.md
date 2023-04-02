@@ -135,7 +135,7 @@ cl /W3 /GR /EHsc /std:c++20 /Fe:test.exe /I ../cpplib test.cpp
 or Clang++
 
 ```
-clang++ -std=c++20 -Wno-switch -I ../cpplib test.cpp
+clang++ -std=c++20 -Wno-switch -Wno-deprecated-declarations -I../cpplib test.cpp -o test.exe
 ```
 
 

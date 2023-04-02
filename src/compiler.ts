@@ -381,7 +381,7 @@ export class Run {
             this.run('tsconfig.test.json', { suppressOutput: true });
 
             // compiling
-            const result_compile: any = spawn.sync('ms_test.bat', tempCxxFiles);
+            const result_compile: any = spawn.sync('test.bat', tempCxxFiles);
             if (result_compile.error) {
                 actualOutput = result_compile.error.stack;
             } else if (result_compile.stdout.length) {

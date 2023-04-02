@@ -22,7 +22,7 @@ if not %errorlevel% equ 0 (
 set cmd="msbuild /version | findstr /rxc:"[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*""
 for /f "tokens=1* delims=." %%i in ('%cmd%') do set msbuild_version=%%i
 if %msbuild_version% lss 16 (
-    echo ERROR: MSBuild must be at least version 16 ^(Visual Studio 2019^). Found version %msbuild_version%.
+    echo ERROR: MSBuild must be at least version 16 ^(Visual Studio 2022^). Found version %msbuild_version%.
     exit /b 1
 )
 set version_string=Visual Studio %msbuild_version%
