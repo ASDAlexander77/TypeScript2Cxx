@@ -348,11 +348,11 @@ constexpr const T const_(T t) {
         requires ArithmeticOrEnum<N>
         bool operator!=(N n) const;
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator==(N n, const undefined_t &u);
 
-        template <typename N = void>
+        template <typename N>
         requires ArithmeticOrEnum<N>
         friend bool operator!=(N n, const undefined_t &u);
 
@@ -434,23 +434,23 @@ constexpr const T const_(T t) {
                 return static_cast<void *>(_ptr);
             }
 
-            template <typename T>
-            constexpr operator std::shared_ptr<T>()
+            template <typename T1>
+            constexpr operator std::shared_ptr<T1>()
             {
-                return std::shared_ptr<T>(static_cast<T *>(_ptr));
+                return std::shared_ptr<T1>(static_cast<T1 *>(_ptr));
             }
 
-            template <typename T>
-            constexpr operator const T *()
+            template <typename T1>
+            constexpr operator const T1 *()
             {
-                return isUndefined ? static_cast<const T *>(nullptr) : static_cast<const T *>(_ptr);
+                return isUndefined ? static_cast<const T1 *>(nullptr) : static_cast<const T1 *>(_ptr);
             }
 
-            template <typename T = void>
-            requires ArithmeticOrEnum<T>
-            constexpr operator T()
+            template <typename T1 = void>
+            requires ArithmeticOrEnum<T1>
+            constexpr operator T1()
             {
-                return static_cast<T>(reinterpret_cast<intptr_t>(_ptr));
+                return static_cast<T1>(reinterpret_cast<intptr_t>(_ptr));
             }
 
             operator tstring() const

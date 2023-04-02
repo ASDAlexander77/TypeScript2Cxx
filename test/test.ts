@@ -1,4 +1,6 @@
-function testDefaultArgs() {
+class A
+{
 }
 
-testDefaultArgs();
+const a = new A();
+console.log(a instanceof A);
