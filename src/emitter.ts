@@ -2995,7 +2995,8 @@ export class Emitter {
     }
 
     private processNullLiteral(node: ts.NullLiteral): void {
-        this.writer.writeString(node && node.parent.kind === ts.SyntaxKind.TypeAssertionExpression ? 'nullptr' : 'null');
+        //this.writer.writeString(node && node.parent.kind === ts.SyntaxKind.TypeAssertionExpression ? 'nullptr' : 'null');
+        this.writer.writeString('nullptr');
     }
 
     private isInt(valAsString: string) {

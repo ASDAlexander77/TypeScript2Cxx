@@ -35,11 +35,11 @@ namespace js
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
 #define OR(x, y) ([&]() {                      \
     auto vx = (x);                             \
-    return (static_cast<bool>(vx)) ? vx : (y); \
+    return (static_cast<bool>(vx)) ? vx : static_cast<decltype(vx)>(y); \
 })()
 #define AND(x, y) ([&]() {                     \
     auto vx = (x);                             \
-    return (static_cast<bool>(vx)) ? (y) : vx; \
+    return (static_cast<bool>(vx)) ? static_cast<decltype(vx)>(y) : vx; \
 })()
 
     struct undefined_t;
@@ -2329,6 +2329,10 @@ constexpr const T const_(T t) {
         }
 
         any(undefined_t) : _value(undefined)
+        {
+        }
+
+        any(std::nullptr_t) : _value(pointer_t(nullptr))
         {
         }
 
