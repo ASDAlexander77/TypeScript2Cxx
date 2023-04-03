@@ -536,6 +536,46 @@ constexpr const T const_(T t) {
 
     static pointer_t null;
 
+    constexpr bool equals(std::nullptr_t, std::nullptr_t)
+    {
+        return true;
+    }
+
+    constexpr bool not_equals(std::nullptr_t, std::nullptr_t)
+    {
+        return false;
+    }
+
+    constexpr bool equals(undefined_t, undefined_t)
+    {
+        return true;
+    }
+
+    constexpr bool not_equals(undefined_t, undefined_t)
+    {
+        return false;
+    }
+
+    constexpr bool equals(std::nullptr_t, undefined_t)
+    {
+        return false;
+    }
+
+    constexpr bool not_equals(std::nullptr_t, undefined_t)
+    {
+        return true;
+    }    
+
+    constexpr bool equals(undefined_t, std::nullptr_t)
+    {
+        return false;
+    }
+
+    constexpr bool not_equals(undefined_t, std::nullptr_t)
+    {
+        return true;
+    }    
+
     template <typename L, typename R>
     constexpr bool equals(const L& l, const R& r)
     {
