@@ -1,12 +1,13 @@
-	let deck = {                                                           
-            createCardPicker: function() {                                      
-                return function() {                                             
-                    return {suit: "spades"};                                    
-                };                                                              
-            }                                                                   
-        };                                                                      
-                                                                                
-        let cardPicker = deck.createCardPicker();                               
-        let pickedCard = cardPicker();                                          
-                                                                                
-        console.log(pickedCard.suit);
+	let options = {                                                    
+            b1: false                                                       
+        };                                                                  
+                                                                            
+        let mergedOptions = {                                               
+            bilinearFiltering: false,                                       
+            comparisonFunction: 0,                                          
+            generateStencil: false,                                         
+            ...options                                                      
+        };                                                                  
+                                                                            
+        console.log(mergedOptions.comparisonFunction);                      
+        console.log(mergedOptions.b1);

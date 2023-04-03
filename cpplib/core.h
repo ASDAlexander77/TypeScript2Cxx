@@ -4020,7 +4020,7 @@ constexpr const T const_(T t) {
         };
 
         template <typename... Args>
-        object assign(object &dst, const Args &...args)
+        object assign(const object &dst, const Args &...args)
         {
             for (auto src : {args...})
             {

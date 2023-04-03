@@ -13,6 +13,7 @@
   "scripts": {
     "run": "node __out/main.js",
     "test": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/**/*.spec.ts",
+    "test1": "mocha -u tdd --timeout 10000 --colors -r ts-node/register spec/object.spec.ts",
     "watch": "tsc -w -p ./",
     "lint": "tslint src/**/*.ts -t verbose",
     "build": "tsc -p tsconfig.json",
