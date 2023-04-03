@@ -24,6 +24,26 @@ describe('Undefined/null cases', () => {
         console.log(undefined != undefined);                                   \
     '])).to.equals('true\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\n'));
 
+    it('not strict equals/not equals 2', () => expect(new Run().test([
+        '                                                       \
+        function getNull()                                      \
+        {                                                       \
+            return null;                                        \
+        }	                                                    \
+                                                                \
+        function getUndef()                                     \
+        {                                                       \
+            return undefined;                                   \
+        }	                                                    \
+                                                                \
+        console.log(getNull() == getNull());                    \
+        console.log(getUndef() == getNull());                   \
+        console.log(getUndef() == getUndef());                  \
+        console.log(getNull() != getNull());                    \
+        console.log(getUndef() != getNull());                   \
+        console.log(getUndef() != getUndef());                  \
+    '])).to.equals('true\r\ntrue\r\ntrue\r\nfalse\r\nfalse\r\nfalse\r\n'));
+
     // do we need it?
     it('strict 0', () => expect(new Run().test([
         '                                                    \
