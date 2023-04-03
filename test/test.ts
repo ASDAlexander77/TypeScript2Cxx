@@ -1,16 +1,5 @@
-function getNull()
-{
-	return null;
-}	
-
-function getUndef()
-{
-	return undefined;
-}	
-
-	console.log(getNull() == getNull());                                             
-        console.log(getUndef() == getNull());                                        
-        console.log(getUndef() == getUndef());                                   
-        console.log(getNull() != getNull());                                             
-        console.log(getUndef() != getNull());                                        
-        console.log(getUndef() != getUndef());          
+	for (let i = 0; i < 3; i++) {          
+            console.log(i);                     
+            if (i == 0) continue;               
+            break;                              
+        }

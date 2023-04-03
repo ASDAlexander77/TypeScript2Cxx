@@ -340,6 +340,26 @@ constexpr const T const_(T t) {
             return true;
         }
 
+        constexpr bool operator==(std::nullptr_t)
+        {
+            return false;
+        }
+
+        constexpr bool operator!=(std::nullptr_t)
+        {
+            return true;
+        }
+
+        friend constexpr bool operator==(const undefined_t, std::nullptr_t)
+        {
+            return false;
+        }
+
+        friend constexpr bool operator!=(const undefined_t, std::nullptr_t)
+        {
+            return true;
+        }        
+
         template <typename N = void>
         requires ArithmeticOrEnum<N>
         bool operator==(N n) const;
@@ -576,6 +596,24 @@ constexpr const T const_(T t) {
         return false;
     }    
 
+    template <typename L, typename R = void>
+    requires ArithmeticOrEnum<R>
+    constexpr bool equals(const L& l, R r)
+    {
+        auto lIsUndef = l == undefined;
+        auto lIsNull = l == nullptr;
+        return !lIsUndef && !lIsNull && l == r;
+    }
+
+    template <typename L = void, typename R>
+    requires ArithmeticOrEnum<L>
+    constexpr bool equals(L l, const R& r)
+    {
+        auto rIsUndef = r == undefined;
+        auto rIsNull = r == nullptr;
+        return !rIsUndef && !rIsNull && r == l;
+    }
+
     template <typename L, typename R>
     constexpr bool equals(const L& l, const R& r)
     {
@@ -584,6 +622,20 @@ constexpr const T const_(T t) {
         auto rIsUndef = r == undefined;
         auto rIsNull = r == nullptr;
         return ((lIsUndef || lIsNull) && (rIsUndef || rIsNull)) || l == r;
+    }
+
+    template <typename L, typename R = void>
+    requires ArithmeticOrEnum<R>
+    constexpr bool not_equals(const L& l, R r)
+    {
+        return !equals(l, r);
+    }
+
+    template <typename L = void, typename R>
+    requires ArithmeticOrEnum<L>
+    constexpr bool not_equals(L l, const R& r)
+    {
+        return !equals(l, r);
     }
 
     template <typename L, typename R>
@@ -652,12 +704,22 @@ constexpr const T const_(T t) {
             return true;
         }
 
-        inline bool operator==(undefined_t)
+        inline bool operator==(std::nullptr_t) const
+        {
+            return false;
+        }
+
+        inline bool operator!=(std::nullptr_t) const
+        {
+            return true;
+        }
+
+        inline bool operator==(const undefined_t&)
         {
             return _control == boolean_undefined;
         }
 
-        inline bool operator!=(undefined_t)
+        inline bool operator!=(const undefined_t&)
         {
             return _control != boolean_undefined;
         }
@@ -668,6 +730,16 @@ constexpr const T const_(T t) {
         }
 
         inline bool operator!=(pointer_t)
+        {
+            return true;
+        }
+
+        inline bool operator==(std::nullptr_t)
+        {
+            return false;
+        }
+
+        inline bool operator!=(std::nullptr_t)
         {
             return true;
         }
@@ -818,6 +890,16 @@ constexpr const T const_(T t) {
             inline friend bool operator!=(const number_t n, js::pointer_t p)
             {
                 return mutable_(n).is_undefined() != p.isUndefined || true;
+            }
+
+            inline friend bool operator==(const number_t n, std::nullptr_t)
+            {
+                return mutable_(n).is_undefined();
+            }
+
+            inline friend bool operator!=(const number_t n, std::nullptr_t)
+            {
+                return !mutable_(n).is_undefined();
             }
 
             number_t operator+()
