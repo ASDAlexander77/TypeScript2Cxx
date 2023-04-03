@@ -558,22 +558,22 @@ constexpr const T const_(T t) {
 
     constexpr bool equals(std::nullptr_t, undefined_t)
     {
-        return false;
+        return true;
     }
 
     constexpr bool not_equals(std::nullptr_t, undefined_t)
     {
-        return true;
+        return false;
     }    
 
     constexpr bool equals(undefined_t, std::nullptr_t)
     {
-        return false;
+        return true;
     }
 
     constexpr bool not_equals(undefined_t, std::nullptr_t)
     {
-        return true;
+        return false;
     }    
 
     template <typename L, typename R>
