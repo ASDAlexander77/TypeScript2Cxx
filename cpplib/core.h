@@ -614,6 +614,13 @@ constexpr const T const_(T t) {
         return !rIsUndef && !rIsNull && r == l;
     }
 
+    template <typename L = void, typename R = void>
+    requires (ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
+    constexpr bool equals(L l, R r)
+    {
+        return l == r;
+    }    
+
     template <typename L, typename R>
     constexpr bool equals(const L& l, const R& r)
     {
@@ -637,6 +644,13 @@ constexpr const T const_(T t) {
     {
         return !equals(l, r);
     }
+
+    template <typename L = void, typename R = void>
+    requires (ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
+    constexpr bool not_equals(L l, R r)
+    {
+        return l != r;
+    } 
 
     template <typename L, typename R>
     constexpr bool not_equals(const L& l, const R& r)
