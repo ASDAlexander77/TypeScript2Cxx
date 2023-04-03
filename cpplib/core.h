@@ -2848,6 +2848,30 @@ constexpr const T const_(T t) {
             return !operator==(other);
         }
 
+        bool operator==(std::nullptr_t) const
+        {
+            switch (get_type())
+            {
+            case anyTypeId::undefined_type:
+            case anyTypeId::boolean_type:
+            case anyTypeId::number_type:
+                return false;
+            case anyTypeId::string_type:
+                return string_ref_const().is_null();
+            case anyTypeId::object_type:
+            case anyTypeId::class_type:
+            case anyTypeId::pointer_type:
+                return get<pointer_t>()._ptr == nullptr;
+            }
+
+            throw "not implemented";
+        }
+
+        bool operator!=(std::nullptr_t) const
+        {
+            return !operator==(nullptr);
+        }        
+
         bool operator==(const js::boolean &other) const
         {
             return static_cast<js::boolean>(*mutable_(this)) == other;
