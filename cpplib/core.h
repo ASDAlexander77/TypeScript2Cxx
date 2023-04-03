@@ -540,14 +540,14 @@ constexpr const T const_(T t) {
     constexpr bool equals(const L& l, const R& r)
     {
         auto lIsUndef = l == undefined;
-        auto lIsNull = l == null;
+        auto lIsNull = l == nullptr;
         auto rIsUndef = r == undefined;
-        auto rIsNull = r == null;
+        auto rIsNull = r == nullptr;
         return ((lIsUndef || lIsNull) && (rIsUndef || rIsNull)) || l == r;
     }
 
     template <typename L, typename R>
-    constexpr bool not_equals(L l, R r)
+    constexpr bool not_equals(const L& l, const R& r)
     {
         return !equals(l, r);
     }

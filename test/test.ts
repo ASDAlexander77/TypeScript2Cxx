@@ -1,3 +1,6 @@
-	let r;                                     
-        r = ~ false;                                    
-        console.log(r);
+	console.log(null == null);                                             
+        console.log(undefined == null);                                        
+        console.log(undefined == undefined);                                   
+        console.log(null != null);                                             
+        console.log(undefined != null);                                        
+        console.log(undefined != undefined);
