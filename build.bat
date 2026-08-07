@@ -1,0 +1,1 @@
+node __out/main.js 1.ts
