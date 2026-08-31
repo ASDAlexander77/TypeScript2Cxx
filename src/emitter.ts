@@ -2269,7 +2269,17 @@ export class Emitter {
                     if (isClassMember && (<ts.Identifier>node.name).text === 'toString') {
                         this.writer.writeString('string');
                     } else {
-                        this.writer.writeString('any');
+                        // only for a plain method: a get/set accessor can structurally implement an
+                        // interface method by returning a callable, so it must not be forced to the
+                        // interface method's own return type (e.g. `get xyz()` returning a closure
+                        // that satisfies `xyz(): number` when called)
+                        const baseReturnType = isClassMember && node.kind === ts.SyntaxKind.MethodDeclaration
+                            && this.resolver.getBaseMemberReturnTypeNode(<ts.MethodDeclaration>node);
+                        if (baseReturnType) {
+                            this.processType(baseReturnType);
+                        } else {
+                            this.writer.writeString('any');
+                        }
                     }
                 }
             }

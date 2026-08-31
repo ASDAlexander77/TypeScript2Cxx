@@ -232,6 +232,31 @@ export class IdentifierResolver {
         return this.typeToTypeNode(this.getOrResolveTypeOf(location));
     }
 
+    // finds an explicit return type declared on a same-named member of a base class/interface, so an
+    // overriding method's return type can be emitted covariantly instead of defaulting to a mismatched type
+    public getBaseMemberReturnTypeNode(method: ts.MethodDeclaration): ts.TypeNode {
+        const classDeclaration = method.parent as ts.ClassDeclaration;
+        if (!classDeclaration.heritageClauses || method.name.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+
+        const methodName = (<ts.Identifier>method.name).text;
+        for (const heritageClause of classDeclaration.heritageClauses) {
+            for (const typeExpression of heritageClause.types) {
+                const baseType = this.typeChecker.getTypeAtLocation(typeExpression);
+                const property = baseType && baseType.getProperty(methodName);
+                const declaration = property && property.valueDeclaration;
+                if (declaration
+                    && (declaration.kind === ts.SyntaxKind.MethodDeclaration || declaration.kind === ts.SyntaxKind.MethodSignature)
+                    && (<ts.MethodDeclaration | ts.MethodSignature>declaration).type) {
+                    return (<ts.MethodDeclaration | ts.MethodSignature>declaration).type;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
     public getOrResolveTypeOf(location: ts.Node): ts.Type {
         const type = this.getTypeAtLocation(location);
         if (!type || this.isNotDetected(type)) {
