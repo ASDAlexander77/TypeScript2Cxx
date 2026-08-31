@@ -3801,6 +3801,95 @@ export class Emitter {
     }
 
     private processCallExpression(node: ts.CallExpression | ts.NewExpression): void {
+        // JS guarantees left-to-right evaluation of call arguments; C++ does not guarantee any order
+        // between separate arguments (even in C++20). `f(a(), b())` where a() and b() both have visible
+        // side effects (e.g. mutating a shared variable one reads) can silently evaluate in the wrong
+        // order. When 2+ arguments could each have a side effect, hoist every argument into its own
+        // sequenced temporary (via an immediately-invoked lambda, so this stays purely expression-level)
+        // before making the actual call, pinning the evaluation order to source order.
+        if (this.callNeedsArgumentHoisting(node)) {
+            const tempNames = node.arguments!.map((_, i) => `__arg${i}`);
+            this.writer.writeString('[&]() { ');
+            node.arguments!.forEach((argument, i) => {
+                this.writer.writeString('auto ' + tempNames[i] + ' = ');
+                this.processExpression(argument);
+                this.writer.writeString('; ');
+            });
+
+            this.writer.writeString('return ');
+            this.writeCallExpressionCore(node, tempNames);
+            this.writer.writeString('; }()');
+            return;
+        }
+
+        this.writeCallExpressionCore(node, undefined);
+    }
+
+    private callNeedsArgumentHoisting(node: ts.CallExpression | ts.NewExpression): boolean {
+        if (!node.arguments || node.arguments.length < 2) {
+            return false;
+        }
+
+        let impureCount = 0;
+        for (const argument of node.arguments) {
+            if (this.expressionHasSideEffect(argument)) {
+                impureCount++;
+                if (impureCount >= 2) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private expressionHasSideEffect(node: ts.Node): boolean {
+        const isAssignmentOperator = (k: ts.SyntaxKind) => k === ts.SyntaxKind.EqualsToken
+            || k === ts.SyntaxKind.PlusEqualsToken || k === ts.SyntaxKind.MinusEqualsToken
+            || k === ts.SyntaxKind.AsteriskEqualsToken || k === ts.SyntaxKind.AsteriskAsteriskEqualsToken
+            || k === ts.SyntaxKind.SlashEqualsToken || k === ts.SyntaxKind.PercentEqualsToken
+            || k === ts.SyntaxKind.AmpersandEqualsToken || k === ts.SyntaxKind.BarEqualsToken
+            || k === ts.SyntaxKind.CaretEqualsToken;
+
+        let found = false;
+        const visit = (n: ts.Node): void => {
+            if (found) {
+                return;
+            }
+
+            switch (n.kind) {
+                case ts.SyntaxKind.CallExpression:
+                case ts.SyntaxKind.NewExpression:
+                case ts.SyntaxKind.PostfixUnaryExpression:
+                case ts.SyntaxKind.PrefixUnaryExpression:
+                    found = true;
+                    return;
+                case ts.SyntaxKind.BinaryExpression:
+                    if (isAssignmentOperator((<ts.BinaryExpression>n).operatorToken.kind)) {
+                        found = true;
+                        return;
+                    }
+
+                    break;
+                case ts.SyntaxKind.FunctionExpression:
+                case ts.SyntaxKind.ArrowFunction:
+                    // a nested function's side effects happen later, when IT is called - not while merely
+                    // constructing the closure here, so don't descend into its body
+                    return;
+                default:
+                    break;
+            }
+
+            ts.forEachChild(n, visit);
+        };
+
+        visit(node);
+        return found;
+    }
+
+    // `hoistedArgumentNames`, when set, substitutes each argument with a reference to its already-
+    // evaluated temporary (see processCallExpression) instead of re-emitting the argument expression.
+    private writeCallExpressionCore(node: ts.CallExpression | ts.NewExpression, hoistedArgumentNames: string[] | undefined): void {
 
         const isNew = node.kind === ts.SyntaxKind.NewExpression;
         const typeOfExpression = isNew && this.resolver.getOrResolveTypeOf(node.expression);
@@ -3839,16 +3928,21 @@ export class Emitter {
                     || calleeDeclaration.kind === ts.SyntaxKind.MethodDeclaration)
                 && this.isTemplate(<ts.FunctionDeclaration | ts.MethodDeclaration>calleeDeclaration);
 
-            node.arguments.forEach(element => {
+            node.arguments.forEach((element, index) => {
                 if (next) {
                     this.writer.writeString(', ');
                 }
 
-                if (calleeIsTemplate && element.kind === ts.SyntaxKind.NumericLiteral) {
-                    (<any>element).__boxing = true;
+                if (hoistedArgumentNames) {
+                    this.writer.writeString(hoistedArgumentNames[index]);
+                } else {
+                    if (calleeIsTemplate && element.kind === ts.SyntaxKind.NumericLiteral) {
+                        (<any>element).__boxing = true;
+                    }
+
+                    this.processExpression(element);
                 }
 
-                this.processExpression(element);
                 next = true;
             });
         }

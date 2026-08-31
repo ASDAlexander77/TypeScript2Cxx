@@ -350,24 +350,20 @@ constexpr const T const_(T t) {
             return nullptr;
         }
 
-        constexpr bool operator==(undefined_t)
+        // `const` on both of these: the generic equals()/not_equals() templates always reach them through
+        // a `const undefined_t&`, so a non-const member here is simply uncallable from there. No
+        // hand-written operator!= alongside either: besides being redundant (C++20 derives it from ==), a
+        // hand-written != in the same scope blocks the compiler from synthesizing the REVERSED rewritten
+        // candidate (only the forward `undefined_t == X` order is written here) - needed for e.g.
+        // `nullptr == someUndefinedT` or `equals<js::number, undefined_t>`'s internal `r == nullptr`.
+        constexpr bool operator==(undefined_t) const
         {
             return true;
         }
 
-        constexpr bool operator!=(undefined_t)
+        constexpr bool operator==(const pointer_t &) const
         {
             return false;
-        }
-
-        constexpr bool operator==(const pointer_t &)
-        {
-            return false;
-        }
-
-        constexpr bool operator!=(const pointer_t &)
-        {
-            return true;
         }
 
         // deliberately no direct operator==(std::nullptr_t) here: a real `nullptr` already resolves
