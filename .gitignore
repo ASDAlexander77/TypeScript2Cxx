@@ -36,3 +36,4 @@ out1
 __build
 1.*
 test.*
+test/test_*.*
