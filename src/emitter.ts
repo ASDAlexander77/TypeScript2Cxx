@@ -2433,6 +2433,15 @@ export class Emitter {
         // const noParams = node.parameters.length === 0 && !this.hasArguments(node);
         // const noCapture = !this.requireCapture(node);
 
+        // scan for outer-scope captures up front (not only when about to write the body, further below)
+        // so a parameter that's captured by a nested closure is already flagged by the time the parameter
+        // list itself gets written just below - the header-declaration pass never reaches the body-writing
+        // branch at all, so without this a captured-and-reassigned parameter's declared type would only
+        // ever pick up `shared<T>` wrapping in the .cpp definition, not the .h declaration (a mismatch).
+        if (node.body) {
+            this.markRequiredCapture(node);
+        }
+
         // in case of nested function
         const isNestedFunction = node.parent && node.parent.kind === ts.SyntaxKind.Block;
         if (isNestedFunction) {
@@ -2579,6 +2588,16 @@ export class Emitter {
                 this.writer.writeString('Args...');
             } else if (this.isTemplateType(effectiveType)) {
                 this.writer.writeString('P' + index);
+            } else if ((<any>element).__requireCapture) {
+                // this parameter is captured by a nested closure (and, typically, reassigned after that
+                // closure is created) - same situation as a captured `let`, so it needs the same shared<T>
+                // wrapping for the closure's `[=]` copy-capture to observe later reassignments. skip the
+                // usual std::shared_ptr<...> wrapping for class types here (shared<T>'s own T IS the
+                // pointee already - shared<T> holds a shared_ptr<T> internally) so a class-typed parameter
+                // doesn't end up double-wrapped as shared<std::shared_ptr<T>>.
+                this.writer.writeString('shared<');
+                this.processType(effectiveType, false, true);
+                this.writer.writeString('>');
             } else {
                 // an explicit parameter type annotation (e.g. `v: any`) should be honored even for a
                 // lambda/nested function; only fall back to `auto` when the type is actually inferred
@@ -2701,7 +2720,6 @@ export class Emitter {
                 this.writer.writeStringNewLine(' _this(this, [] (auto&) {/*to be finished*/});');
             }
 
-            this.markRequiredCapture(node);
             (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
                 this.processStatementInternal(element, true);
             });
@@ -3661,6 +3679,31 @@ export class Emitter {
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
             this.writer.writeString(op.substr(2) + '(');
+        }
+
+        // `null === 0` (raw C++ `nullptr == 0`) is `true` in C++ - `0` is a null pointer constant - but
+        // must be `false` in JS. Boxing the numeric literal to `js::number(0)` routes the comparison
+        // through js::number's own operator==(nullptr_t)/(undefined_t) instead, which is null/undefined-
+        // aware and gives the right answer. (The loose `==`/`!=` forms go through equals()/not_equals(),
+        // which already handle this correctly without boxing - boxing there trips a *different*,
+        // pre-existing ambiguity deeper in that template, so it's deliberately left alone here.)
+        if (opCode === ts.SyntaxKind.EqualsEqualsEqualsToken || opCode === ts.SyntaxKind.ExclamationEqualsEqualsToken) {
+            const isNullish = (n: ts.Expression) => n.kind === ts.SyntaxKind.NullKeyword
+                || n.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>n).text === 'undefined';
+            if (isNullish(node.left) && node.right.kind === ts.SyntaxKind.NumericLiteral) {
+                (<any>node.right).__boxing = true;
+            } else if (isNullish(node.right) && node.left.kind === ts.SyntaxKind.NumericLiteral) {
+                (<any>node.left).__boxing = true;
+            }
+        }
+
+        // `1 / 10` between two bare integer literals is C++ integer division (0), not JS's always-float
+        // division (0.1) - box one operand to js::number so js::number's own operator/ (always floating
+        // point) is used instead of the built-in one.
+        if (opCode === ts.SyntaxKind.SlashToken
+            && node.left.kind === ts.SyntaxKind.NumericLiteral
+            && node.right.kind === ts.SyntaxKind.NumericLiteral) {
+            (<any>node.left).__boxing = true;
         }
 
         const leftType = this.resolver.getOrResolveTypeOf(node.left);

@@ -3798,6 +3798,11 @@ constexpr const T const_(T t) {
     template <class T1, class T2>
     concept NotShared = !std::is_same_v<T1, shared<T2>>;
 
+    template <typename V>
+    struct is_shared_ptr : std::false_type {};
+    template <typename V>
+    struct is_shared_ptr<std::shared_ptr<V>> : std::true_type {};
+
     template <typename T>
     struct shared
     {
@@ -3808,10 +3813,34 @@ constexpr const T const_(T t) {
         shared(T t) : _value(std::make_shared<T>(t)) {}
         shared(std::shared_ptr<T> t) : _value(t) {}
 
+        // e.g. `shared<js::number>` constructed from a bare `int` argument at a call site: int->js::number
+        // is one user-defined conversion, js::number->shared<js::number> (via the constructor above) would
+        // be a second, and C++ only allows one per implicit conversion sequence - so that combination is
+        // otherwise rejected. Doing the T-conversion inside this constructor's own body (a `static_cast`,
+        // not part of the caller-visible conversion sequence) keeps it to the one user-defined conversion
+        // the language allows: this converting constructor itself.
+        template <typename U>
+        requires (!std::is_same_v<U, T> && std::is_convertible_v<U, T>)
+        shared(U u) : _value(std::make_shared<T>(static_cast<T>(u))) {}
+
         template <typename V>
         shared_type &operator=(const V &v)
         {
-            *_value = mutable_(v);
+            // reassigning a captured reference to a class instance (e.g. `x = new Testrec()`) rebinds
+            // the TS variable to a new object, but this wrapper deliberately mutates the SAME shared
+            // Testrec in place instead of rebinding _value's pointer - every closure that captured a copy
+            // of this `shared<T>` shares that one std::shared_ptr's pointee, so only an in-place write is
+            // visible through all of them. `v` (a std::shared_ptr<T> here, e.g. from `new`/make_shared)
+            // needs dereferencing first to match that assignment target.
+            if constexpr (is_shared_ptr<V>::value)
+            {
+                *_value = *mutable_(v);
+            }
+            else
+            {
+                *_value = mutable_(v);
+            }
+
             return *this;
         }
 
