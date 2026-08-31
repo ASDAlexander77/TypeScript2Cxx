@@ -2872,16 +2872,21 @@ export class Emitter {
         const isNumeric = this.resolver.isNumberType(this.resolver.getOrResolveTypeOf(node.expression));
         const isInteger = caseExpressions.every(expression => expression.kind === ts.SyntaxKind.NumericLiteral
             && this.isInt((<ts.NumericLiteral>expression).text));
+        // a case label typed as an enum member is emitted as a scoped C++ enum (`enum struct`),
+        // which does not implicitly convert to the (numeric) switch expression's type
+        const hasEnumCase = caseExpressions.some(
+            expression => this.resolver.isTypeFromSymbol(this.resolver.getOrResolveTypeOf(expression), ts.SyntaxKind.EnumMember));
+        const needsSizeTCast = isNumeric && (isInteger || hasEnumCase);
 
         this.writer.writeString(`switch (`);
 
-        if (isInteger && isNumeric) {
+        if (needsSizeTCast) {
             this.writer.writeString(`static_cast<size_t>(`);
         }
 
         this.processExpression(node.expression);
 
-        if (isInteger && isNumeric) {
+        if (needsSizeTCast) {
             this.writer.writeString(`)`);
         }
 
@@ -2894,7 +2899,18 @@ export class Emitter {
             if (element.kind === ts.SyntaxKind.CaseClause) {
                 this.writer.writeString(`case `);
                 (<any>element.expression).__skip_boxing = true;
+
+                const isCaseEnum = needsSizeTCast
+                    && this.resolver.isTypeFromSymbol(this.resolver.getOrResolveTypeOf(element.expression), ts.SyntaxKind.EnumMember);
+                if (isCaseEnum) {
+                    this.writer.writeString(`static_cast<size_t>(`);
+                }
+
                 this.processExpression(element.expression);
+
+                if (isCaseEnum) {
+                    this.writer.writeString(`)`);
+                }
             } else {
                 this.writer.writeString('default');
             }

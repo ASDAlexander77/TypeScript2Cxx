@@ -1,9 +1,8 @@
 #define VULKAN_HPP_NO_SMART_HANDLE
 #define VULKAN_HPP_NO_EXCEPTIONS
-#define VULKAN_HPP_TYPESAFE_CONVERSION
+#define VULKAN_HPP_TYPESAFE_CONVERSION 1
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan.hpp>
-#include <vulkan/vk_sdk_platform.h>
 
 #include <iostream>
 #include <functional>
@@ -445,7 +444,7 @@ private:
             VERIFY(result == vk::Result::eSuccess);
 
             std::for_each_n(instance_layers.get(), instance_layer_count, [&] (auto& instance_layer) {
-                auto& found = std::find_if(instance_validation_layers.begin(), instance_validation_layers.end(), [&] (auto& instance_validation_layer) {
+                auto found = std::find_if(instance_validation_layers.begin(), instance_validation_layers.end(), [&] (auto& instance_validation_layer) {
                     return instance_layer.layerName == instance_validation_layer;
                 });
 
