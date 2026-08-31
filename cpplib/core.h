@@ -597,7 +597,7 @@ constexpr const T const_(T t) {
     }    
 
     template <typename L, typename R = void>
-    requires ArithmeticOrEnum<R>
+    requires (!ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
     constexpr bool equals(const L& l, R r)
     {
         auto lIsUndef = l == undefined;
@@ -606,7 +606,7 @@ constexpr const T const_(T t) {
     }
 
     template <typename L = void, typename R>
-    requires ArithmeticOrEnum<L>
+    requires (ArithmeticOrEnum<L> && !ArithmeticOrEnum<R>)
     constexpr bool equals(L l, const R& r)
     {
         auto rIsUndef = r == undefined;
@@ -622,6 +622,7 @@ constexpr const T const_(T t) {
     }    
 
     template <typename L, typename R>
+    requires (!ArithmeticOrEnum<L> && !ArithmeticOrEnum<R>)
     constexpr bool equals(const L& l, const R& r)
     {
         auto lIsUndef = l == undefined;
@@ -833,7 +834,7 @@ constexpr const T const_(T t) {
             {
             }
 
-            inline bool is_undefined()
+            inline bool is_undefined() const
             {
                 return std::signbit(_value) && std::isnan(_value);
             }
@@ -876,12 +877,12 @@ constexpr const T const_(T t) {
 
             operator js::string();
 
-            inline bool operator==(undefined_t)
+            inline bool operator==(undefined_t) const
             {
                 return is_undefined();
             }
 
-            inline bool operator!=(undefined_t)
+            inline bool operator!=(undefined_t) const
             {
                 return !is_undefined();
             }
