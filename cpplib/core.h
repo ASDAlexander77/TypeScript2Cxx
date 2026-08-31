@@ -859,6 +859,14 @@ constexpr const T const_(T t) {
             {
             }
 
+            // a direct overload (rather than relying on the pointer_t(nullptr_t) conversion below) since
+            // C++ only allows one user-defined conversion per implicit sequence - `nullptr -> pointer_t ->
+            // number` is two, and is rejected. Needed so a generic function (`function f<T>(): T { return
+            // null }`) compiles uniformly across instantiations, including T=number.
+            number(std::nullptr_t) : _value{-std::numeric_limits<V>::quiet_NaN()}
+            {
+            }
+
             inline bool is_undefined() const
             {
                 return std::signbit(_value) && std::isnan(_value);

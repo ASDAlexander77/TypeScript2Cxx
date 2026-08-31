@@ -134,7 +134,9 @@ export class Preprocessor {
                     const getAccess = symbolInfo
                         && symbolInfo.declarations
                         && (symbolInfo.declarations.length > 0 && symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
-                            || symbolInfo.declarations.length > 1 && symbolInfo.declarations[1].kind === ts.SyntaxKind.SetAccessor)
+                            || symbolInfo.declarations.length > 1 && symbolInfo.declarations[1].kind === ts.SyntaxKind.SetAccessor
+                            || symbolInfo.declarations.length > 0 && symbolInfo.declarations[0].kind === ts.SyntaxKind.PropertySignature
+                                && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration)
                         || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo);
 
                     if (getAccess) {

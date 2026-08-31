@@ -652,7 +652,13 @@ export class Emitter {
 
     private processDeclaration(node: ts.Declaration): void {
         switch (node.kind) {
-            case ts.SyntaxKind.PropertySignature: this.processPropertyDeclaration(<ts.PropertySignature>node); return;
+            case ts.SyntaxKind.PropertySignature:
+                if (node.parent && node.parent.kind === ts.SyntaxKind.InterfaceDeclaration) {
+                    this.processInterfacePropertySignature(<ts.PropertySignature>node);
+                } else {
+                    this.processPropertyDeclaration(<ts.PropertySignature>node);
+                }
+                return;
             case ts.SyntaxKind.PropertyDeclaration: this.processPropertyDeclaration(<ts.PropertyDeclaration>node); return;
             case ts.SyntaxKind.Parameter: this.processPropertyDeclaration(<ts.ParameterDeclaration>node); return;
             case ts.SyntaxKind.MethodSignature: this.processMethodDeclaration(<ts.MethodSignature>node); return;
@@ -1360,6 +1366,10 @@ export class Emitter {
             this.processDeclaration(member);
         }
 
+        if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+            this.writeInterfaceMemberForwarders(<ts.ClassDeclaration>node);
+        }
+
         this.writer.cancelNewLine();
         this.writer.cancelNewLine();
 
@@ -1400,7 +1410,16 @@ export class Emitter {
                 }
             }
 
-            this.processExpression(node.name);
+            // a field implementing an interface *method* (`xyz(): number`) collides in name with the
+            // forwarding override the class must also emit for that method (a class cannot have both a
+            // field and a method called `xyz`), so give the field's storage a distinct spelling
+            const interfaceMethodSignature = node.kind === ts.SyntaxKind.PropertyDeclaration
+                && this.resolver.getInterfaceMethodSignatureForProperty(<ts.PropertyDeclaration>node);
+            if (interfaceMethodSignature) {
+                this.writer.writeString((<ts.Identifier>node.name).text + '_');
+            } else {
+                this.processExpression(node.name);
+            }
         } else {
             throw new Error('Not Implemented');
         }
@@ -1414,6 +1433,191 @@ export class Emitter {
         this.writer.EndOfStatement();
 
         this.writer.writeStringNewLine();
+    }
+
+    // interface property signatures compile to a pure-virtual get/set pair (not a plain field) so that
+    // ANY concrete member kind implementing them (field, accessor, or method) can be reached through a
+    // pointer/reference typed as the interface - a plain field would only be visible when the static type
+    // is the concrete class, silently reading/writing the wrong storage through the interface type. The
+    // setter defaults to a no-op override (rather than pure virtual) since TS's `implements` check does not
+    // require a settable member to actually be implemented by a real setter (e.g. a get-only accessor).
+    private processInterfacePropertySignature(node: ts.PropertySignature): void {
+        const effectiveType = node.type || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer);
+
+        this.writer.writeString('virtual ');
+        this.processPredefineType(effectiveType);
+        this.processType(effectiveType);
+        this.writer.writeString(' get_');
+        this.processExpression(<ts.Identifier>node.name);
+        this.writer.writeString('() = 0');
+        this.writer.EndOfStatement();
+
+        this.writer.writeString('virtual void set_');
+        this.processExpression(<ts.Identifier>node.name);
+        this.writer.writeString('(');
+        this.processType(effectiveType);
+        this.writer.writeString(' value) {}');
+        this.writer.writeStringNewLine();
+    }
+
+    // a class can satisfy an interface member using a different C++ member kind than the interface itself
+    // uses (see processInterfacePropertySignature and getInterfaceMethodSignatureForProperty) - when that
+    // happens, the natural member the class already emits doesn't override the interface's virtual
+    // member(s) by name, so synthesize the missing override(s) here, forwarding to whatever the class
+    // actually implemented.
+    private writeInterfaceMemberForwarders(classDeclaration: ts.ClassDeclaration): void {
+        for (const interfaceMember of this.resolver.getImplementedInterfaceMembers(classDeclaration)) {
+            if (interfaceMember.name.kind !== ts.SyntaxKind.Identifier) {
+                continue;
+            }
+
+            const name = (<ts.Identifier>interfaceMember.name).text;
+            const ownMembers = classDeclaration.members.filter(
+                m => m.name && m.name.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.name).text === name);
+            if (ownMembers.length === 0) {
+                // not implemented by this class directly (e.g. inherited from a base class) - leave as is
+                continue;
+            }
+
+            if (interfaceMember.kind === ts.SyntaxKind.MethodSignature) {
+                if (ownMembers.some(m => m.kind === ts.SyntaxKind.MethodDeclaration)) {
+                    // already a real method of the same name - naturally overrides, nothing to do
+                    continue;
+                }
+
+                const propertyMember = <ts.PropertyDeclaration>ownMembers.find(m => m.kind === ts.SyntaxKind.PropertyDeclaration);
+                const getterMember = ownMembers.find(m => m.kind === ts.SyntaxKind.GetAccessor);
+                if (propertyMember) {
+                    this.writeMethodForwarder(<ts.MethodSignature>interfaceMember, () => {
+                        this.writer.writeString(name + '_');
+                    });
+                } else if (getterMember) {
+                    this.writeMethodForwarder(<ts.MethodSignature>interfaceMember, () => {
+                        this.writer.writeString('get_' + name + '()');
+                    });
+                }
+            } else {
+                if (ownMembers.some(m => m.kind === ts.SyntaxKind.GetAccessor)) {
+                    // already a get/set accessor of the same name - get_/set_ naturally override, nothing to do
+                    continue;
+                }
+
+                const propertyMember = ownMembers.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration);
+                const methodMember = <ts.MethodDeclaration>ownMembers.find(m => m.kind === ts.SyntaxKind.MethodDeclaration);
+                if (propertyMember) {
+                    this.writePropertyForwarder(<ts.PropertySignature>interfaceMember, name, undefined);
+                } else if (methodMember) {
+                    this.writePropertyForwarder(<ts.PropertySignature>interfaceMember, name, methodMember);
+                }
+            }
+        }
+    }
+
+    private writeMethodForwarder(signature: ts.MethodSignature, writeTarget: () => void): void {
+        this.writer.writeString('virtual ');
+        this.processType(signature.type);
+        this.writer.writeString(' ');
+        this.processExpression(<ts.Identifier>signature.name);
+        this.writer.writeString('(');
+
+        let next = false;
+        signature.parameters.forEach(p => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processType(p.type);
+            this.writer.writeString(' ');
+            this.processExpression(<ts.Identifier>p.name);
+            next = true;
+        });
+
+        this.writer.writeString(') override ');
+        this.writer.BeginBlock();
+        this.writer.writeString('return ');
+        writeTarget();
+        this.writer.writeString('(');
+
+        next = false;
+        signature.parameters.forEach(p => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processExpression(<ts.Identifier>p.name);
+            next = true;
+        });
+
+        this.writer.writeString(')');
+        this.writer.EndOfStatement();
+        this.writer.EndBlock();
+    }
+
+    // `methodMember` is set when the class implements the interface property via a plain method
+    // (e.g. `abc() { return 30 }` implementing `abc: () => number`) - the getter then needs to return a
+    // bound reference to that method rather than the method's own return value. Otherwise the class
+    // implements it via a plain field of the same name, and the getter/setter simply forward to that field.
+    private writePropertyForwarder(signature: ts.PropertySignature, name: string, methodMember: ts.MethodDeclaration): void {
+        this.writer.writeString('virtual ');
+        this.processType(signature.type);
+        this.writer.writeString(' get_' + name + '() override ');
+        this.writer.BeginBlock();
+        this.writer.writeString('return ');
+        if (methodMember) {
+            this.writeBoundMethodReference(methodMember);
+        } else {
+            this.writer.writeString('this->' + name);
+        }
+
+        this.writer.EndOfStatement();
+        this.writer.EndBlock();
+
+        this.writer.writeString('virtual void set_' + name + '(');
+        this.processType(signature.type);
+        this.writer.writeString(' value) override ');
+        this.writer.BeginBlock();
+        if (!methodMember) {
+            // a method-backed property can't be reassigned through the interface; leave the setter a no-op
+            this.writer.writeString('this->' + name + ' = value');
+            this.writer.EndOfStatement();
+        }
+
+        this.writer.EndBlock();
+    }
+
+    // uses a plain capturing lambda rather than std::bind: the bind result's type isn't accepted by
+    // `any`'s templated constructor (it only recognizes actual member-function-pointer-shaped callables),
+    // whereas a lambda is - and it converts to std::function just as well for the function-typed case.
+    private writeBoundMethodReference(methodMember: ts.MethodDeclaration): void {
+        this.writer.writeString('[this](');
+
+        let next = false;
+        methodMember.parameters.forEach(p => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processType(p.type);
+            this.writer.writeString(' ');
+            this.processExpression(<ts.Identifier>p.name);
+            next = true;
+        });
+
+        this.writer.writeString(') { return this->');
+        this.processExpression(<ts.Identifier>methodMember.name);
+        this.writer.writeString('(');
+
+        next = false;
+        methodMember.parameters.forEach(p => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            this.processExpression(<ts.Identifier>p.name);
+            next = true;
+        });
+
+        this.writer.writeString('); }');
     }
 
     private processMethodDeclaration(node: ts.MethodDeclaration | ts.MethodSignature | ts.ConstructorDeclaration,
@@ -2269,12 +2473,16 @@ export class Emitter {
                     if (isClassMember && (<ts.Identifier>node.name).text === 'toString') {
                         this.writer.writeString('string');
                     } else {
-                        // only for a plain method: a get/set accessor can structurally implement an
-                        // interface method by returning a callable, so it must not be forced to the
-                        // interface method's own return type (e.g. `get xyz()` returning a closure
-                        // that satisfies `xyz(): number` when called)
+                        // for a plain method, pick up a base/interface method's declared return type
+                        // covariantly. For a get-accessor, only do the same when it implements an interface
+                        // *property* of the same name (returning that property's actual value) - not when
+                        // it implements an interface *method* by returning a callable (e.g. `get xyz()`
+                        // returning a closure that satisfies `xyz(): number` when called), which must keep
+                        // defaulting to `any`.
                         const baseReturnType = isClassMember && node.kind === ts.SyntaxKind.MethodDeclaration
-                            && this.resolver.getBaseMemberReturnTypeNode(<ts.MethodDeclaration>node);
+                            && this.resolver.getBaseMemberReturnTypeNode(<ts.MethodDeclaration>node)
+                            || isClassMember && node.kind === ts.SyntaxKind.GetAccessor
+                            && this.resolver.getInterfacePropertyTypeForAccessor(<ts.GetAccessorDeclaration>node);
                         if (baseReturnType) {
                             this.processType(baseReturnType);
                         } else {
@@ -3195,6 +3403,23 @@ export class Emitter {
         }
 
         let elementsType = (<any>node).parent.type;
+        if (!elementsType
+            && node.parent.kind === ts.SyntaxKind.BinaryExpression
+            && (<ts.BinaryExpression>node.parent).operatorToken.kind === ts.SyntaxKind.EqualsToken
+            && (<ts.BinaryExpression>node.parent).right === node) {
+            // `this.keys = []` (an assignment, not a declaration) has no `.type` on its parent to fall
+            // back on - resolve the assignment target's own declared type node instead (not a
+            // checker-computed type - `this.keys` doesn't resolve cleanly inside a generic class body), so
+            // an empty array literal still gets the right element type rather than defaulting to `any`
+            const target = (<ts.BinaryExpression>node.parent).left;
+            const targetName = target.kind === ts.SyntaxKind.PropertyAccessExpression
+                ? (<ts.PropertyAccessExpression>target).name
+                : target;
+            const targetSymbol = this.resolver.getSymbolAtLocation(<ts.Identifier>targetName);
+            const targetDeclaration = targetSymbol && targetSymbol.valueDeclaration;
+            elementsType = targetDeclaration && (<any>targetDeclaration).type;
+        }
+
         if (!elementsType) {
             if (node.elements.length !== 0) {
                 elementsType = this.resolver.typeToTypeNode(this.resolver.getTypeAtLocation(node.elements[0]));
@@ -3548,9 +3773,25 @@ export class Emitter {
 
         let next = false;
         if (node.arguments.length) {
+            // a bare numeric literal argument (`int`) to a template function/constructor can conflict
+            // with `T` already being deduced as `js::number` from another parameter (e.g. `mapSet(m, k, 1)`
+            // where `m: Map<number>` fixes T=js::number but the literal `1` deduces T=int) - box it to
+            // `js::number` up front so every deduction site agrees
+            const calleeSymbol = node.kind !== ts.SyntaxKind.NewExpression
+                && this.resolver.getSymbolAtLocation(node.expression);
+            const calleeDeclaration = calleeSymbol && calleeSymbol.valueDeclaration;
+            const calleeIsTemplate = calleeDeclaration
+                && (calleeDeclaration.kind === ts.SyntaxKind.FunctionDeclaration
+                    || calleeDeclaration.kind === ts.SyntaxKind.MethodDeclaration)
+                && this.isTemplate(<ts.FunctionDeclaration | ts.MethodDeclaration>calleeDeclaration);
+
             node.arguments.forEach(element => {
                 if (next) {
                     this.writer.writeString(', ');
+                }
+
+                if (calleeIsTemplate && element.kind === ts.SyntaxKind.NumericLiteral) {
+                    (<any>element).__boxing = true;
                 }
 
                 this.processExpression(element);
@@ -3625,8 +3866,19 @@ export class Emitter {
             return;
         }
 
+        // `js::as<I, T>` has a dedicated overload for `const std::shared_ptr<T>&` that itself returns
+        // `std::shared_ptr<I>` (using dynamic_pointer_cast) - it expects I to be the bare class name.
+        // Emitting the class name through the normal processType path here would wrap it in
+        // std::shared_ptr<...> (correct for declaring a variable of that type), double-wrapping the
+        // result of this specific overload into std::shared_ptr<std::shared_ptr<I>>. Source expressions
+        // that are already a class instance (not `any`, which instead relies on any's own conversion
+        // operator to std::shared_ptr<T> and does need the wrapped spelling) hit that overload, so skip
+        // the pointer wrapping only for those.
+        const exprType = this.resolver.getOrResolveTypeOf(node.expression);
+        const isClassToClass = this.resolver.isTypeFromSymbol(exprType, ts.SyntaxKind.ClassDeclaration);
+
         this.writer.writeString('as<');
-        this.processType(node.type);
+        this.processType(node.type, false, isClassToClass);
         this.writer.writeString('>(');
         this.processExpression(node.expression);
         this.writer.writeString(')');
@@ -3703,8 +3955,17 @@ export class Emitter {
             && symbolInfo.declarations
             && symbolInfo.declarations.length > 0
             && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
-                || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor)
+                || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
+                || symbolInfo.declarations[0].kind === ts.SyntaxKind.PropertySignature
+                    && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration)
             || node.name.text === 'length' && this.resolver.isArrayOrStringType(typeInfo);
+
+        // a field implementing an interface method (see processPropertyDeclaration) is stored under a
+        // renamed identifier so it doesn't collide with the forwarding override of the same name
+        const interfaceMethodSignature = symbolInfo
+            && symbolInfo.valueDeclaration
+            && symbolInfo.valueDeclaration.kind === ts.SyntaxKind.PropertyDeclaration
+            && this.resolver.getInterfaceMethodSignatureForProperty(<ts.PropertyDeclaration>symbolInfo.valueDeclaration);
 
         if (methodAccess) {
             if (isStaticMethodAccess) {
@@ -3762,7 +4023,11 @@ export class Emitter {
                 }
             }
 
-            this.processExpression(<ts.Identifier>node.name);
+            if (interfaceMethodSignature) {
+                this.writer.writeString(node.name.text + '_');
+            } else {
+                this.processExpression(<ts.Identifier>node.name);
+            }
 
             if (getAccess && (<any>node).__set !== true) {
                 this.writer.writeString('()');

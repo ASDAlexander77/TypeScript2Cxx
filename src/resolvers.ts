@@ -257,6 +257,90 @@ export class IdentifierResolver {
         return undefined;
     }
 
+    // collects the property/method signatures declared directly on the interfaces a class `implements`
+    // (single level - does not follow interfaces that themselves extend other interfaces), so the emitter
+    // can detect members the class must satisfy but implemented via a different C++ member kind than the
+    // interface uses (e.g. a plain field implementing an interface method, or a method implementing an
+    // interface property)
+    public getImplementedInterfaceMembers(classDeclaration: ts.ClassDeclaration): Array<ts.PropertySignature | ts.MethodSignature> {
+        const members: Array<ts.PropertySignature | ts.MethodSignature> = [];
+        if (!classDeclaration.heritageClauses) {
+            return members;
+        }
+
+        for (const heritageClause of classDeclaration.heritageClauses) {
+            if (heritageClause.token !== ts.SyntaxKind.ImplementsKeyword) {
+                continue;
+            }
+
+            for (const typeExpression of heritageClause.types) {
+                const baseType = this.typeChecker.getTypeAtLocation(typeExpression);
+                const baseDeclaration = baseType && baseType.symbol && baseType.symbol.declarations
+                    && baseType.symbol.declarations[0];
+                if (baseDeclaration && baseDeclaration.kind === ts.SyntaxKind.InterfaceDeclaration) {
+                    for (const member of (<ts.InterfaceDeclaration>baseDeclaration).members) {
+                        if (member.kind === ts.SyntaxKind.PropertySignature || member.kind === ts.SyntaxKind.MethodSignature) {
+                            members.push(<ts.PropertySignature | ts.MethodSignature>member);
+                        }
+                    }
+                }
+            }
+        }
+
+        return members;
+    }
+
+    // a class can implement an interface *method* (`xyz(): number`) via a property or get-accessor of
+    // function type instead of an actual method - that member's name then collides with the virtual
+    // override the class must also provide (C++ cannot have a field and a method share a name), so the
+    // emitter needs to know to rename the field/route accesses differently. Returns the interface's method
+    // signature when `member` is that kind of stand-in, otherwise undefined.
+    public getInterfaceMethodSignatureForProperty(
+        member: ts.PropertyDeclaration | ts.GetAccessorDeclaration): ts.MethodSignature {
+        const classDeclaration = member.parent as ts.ClassDeclaration;
+        if (!classDeclaration.heritageClauses || member.name.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+
+        const memberName = (<ts.Identifier>member.name).text;
+        for (const interfaceMember of this.getImplementedInterfaceMembers(classDeclaration)) {
+            if (interfaceMember.kind === ts.SyntaxKind.MethodSignature
+                && interfaceMember.name.kind === ts.SyntaxKind.Identifier
+                && (<ts.Identifier>interfaceMember.name).text === memberName) {
+                return <ts.MethodSignature>interfaceMember;
+            }
+        }
+
+        return undefined;
+    }
+
+    // a get-accessor implementing an interface property (`get abc() { ... }` implementing `abc: number`)
+    // naturally overrides that property's synthesized `get_abc()` (see processInterfacePropertySignature) -
+    // but only if its return type actually matches the interface's declared property type, since an
+    // un-annotated accessor otherwise defaults to `any`. Returns that property type when `accessor` is such
+    // a case, otherwise undefined. Deliberately does NOT match a MethodSignature of the same name - a
+    // get-accessor implementing an interface *method* returns a callable, not the method's own return type
+    // (see getInterfaceMethodSignatureForProperty), so it must keep defaulting to `any`.
+    public getInterfacePropertyTypeForAccessor(accessor: ts.GetAccessorDeclaration): ts.TypeNode {
+        const classDeclaration = accessor.parent as ts.ClassDeclaration;
+        if (classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration
+            || !classDeclaration.heritageClauses
+            || accessor.name.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+
+        const memberName = (<ts.Identifier>accessor.name).text;
+        for (const interfaceMember of this.getImplementedInterfaceMembers(classDeclaration)) {
+            if (interfaceMember.kind === ts.SyntaxKind.PropertySignature
+                && interfaceMember.name.kind === ts.SyntaxKind.Identifier
+                && (<ts.Identifier>interfaceMember.name).text === memberName) {
+                return (<ts.PropertySignature>interfaceMember).type;
+            }
+        }
+
+        return undefined;
+    }
+
     public getOrResolveTypeOf(location: ts.Node): ts.Type {
         const type = this.getTypeAtLocation(location);
         if (!type || this.isNotDetected(type)) {
