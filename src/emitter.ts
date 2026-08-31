@@ -2362,7 +2362,9 @@ export class Emitter {
             } else if (this.isTemplateType(effectiveType)) {
                 this.writer.writeString('P' + index);
             } else {
-                this.processType(effectiveType, isArrowFunction);
+                // an explicit parameter type annotation (e.g. `v: any`) should be honored even for a
+                // lambda/nested function; only fall back to `auto` when the type is actually inferred
+                this.processType(effectiveType, isArrowFunction && !element.type);
             }
 
             this.writer.writeString(' ');
@@ -3602,6 +3604,17 @@ export class Emitter {
     }
 
     private processAsExpression(node: ts.AsExpression): void {
+        // `x as T` where T is an unconstrained generic type parameter is a pure type
+        // assertion in TS, erased at runtime. Emitting a real js::as<T>(...) conversion breaks
+        // down once T is instantiated with something like std::nullptr_t, which cannot preserve
+        // the original value through the cast (it has exactly one possible value). Since the cast
+        // has no runtime effect in TS either way, skip it and let the value flow through untouched.
+        const targetType = this.resolver.getOrResolveTypeOf(node.type);
+        if (this.resolver.isTypeFromSymbol(targetType, ts.SyntaxKind.TypeParameter)) {
+            this.processExpression(node.expression);
+            return;
+        }
+
         this.writer.writeString('as<');
         this.processType(node.type);
         this.writer.writeString('>(');

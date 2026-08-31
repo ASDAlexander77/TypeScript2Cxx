@@ -106,6 +106,13 @@ namespace js
     template <class T>
     concept ArithmeticOrEnumOrNumber = (std::is_arithmetic_v<T> || std::is_enum_v<T> || std::is_same_v<T, number>)&&!std::is_same_v<T, bool> && !std::is_same_v<T, char_t>;
 
+    // like ArithmeticOrEnum, but also covers raw bool (deliberately excluded above): used where all that
+    // matters is "this C++ type can never represent JS undefined/null", since raw bool - like nullptr_t -
+    // can't participate in user-defined operator overloading at all, so `b == nullptr`/`b == undefined`
+    // must never be emitted for it
+    template <class T>
+    concept NeverNullish = ArithmeticOrEnum<T> || std::is_same_v<T, bool>;
+
     template <class T>
     concept BoolOrBoolean = (std::is_same_v<T, bool> || std::is_same_v<T, boolean>);
 
@@ -169,6 +176,15 @@ namespace js
         return static_cast<I>(t);
     }
 
+    // casting "as" a null type (e.g. a generic instantiated with TS `null`) never needs
+    // the actual value; the target type only has one possible value, nullptr itself
+    template <typename I, typename T>
+    requires std::is_same_v<I, std::nullptr_t>
+    inline I as(T)
+    {
+        return nullptr;
+    }
+
     template <typename I, typename T>
     inline I *as(T *t)
     {
@@ -204,6 +220,15 @@ namespace js
 
     template <typename T>
     constexpr const T &const_(T &t)
+    {
+        return static_cast<const T &>(t);
+    }
+
+    // for a temporary (e.g. const_(STR("fo"))[1]); safe since the temporary's lifetime extends to the
+    // end of the full expression, which is exactly where the returned reference gets used
+    template <typename T>
+    requires (!std::is_lvalue_reference_v<T>)
+    constexpr const T &const_(T &&t)
     {
         return static_cast<const T &>(t);
     }
@@ -597,7 +622,7 @@ constexpr const T const_(T t) {
     }    
 
     template <typename L, typename R = void>
-    requires (!ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
+    requires (!NeverNullish<L> && NeverNullish<R>)
     constexpr bool equals(const L& l, R r)
     {
         auto lIsUndef = l == undefined;
@@ -606,7 +631,7 @@ constexpr const T const_(T t) {
     }
 
     template <typename L = void, typename R>
-    requires (ArithmeticOrEnum<L> && !ArithmeticOrEnum<R>)
+    requires (NeverNullish<L> && !NeverNullish<R>)
     constexpr bool equals(L l, const R& r)
     {
         auto rIsUndef = r == undefined;
@@ -615,14 +640,14 @@ constexpr const T const_(T t) {
     }
 
     template <typename L = void, typename R = void>
-    requires (ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
+    requires (NeverNullish<L> && NeverNullish<R>)
     constexpr bool equals(L l, R r)
     {
         return l == r;
-    }    
+    }
 
     template <typename L, typename R>
-    requires (!ArithmeticOrEnum<L> && !ArithmeticOrEnum<R>)
+    requires (!NeverNullish<L> && !NeverNullish<R>)
     constexpr bool equals(const L& l, const R& r)
     {
         auto lIsUndef = l == undefined;
@@ -1719,6 +1744,9 @@ constexpr const T const_(T t) {
         return number(reinterpret_cast<size_t>(ptr._ptr));
     }
 
+    static js::number operator+(const undefined_t &v);
+    static js::number operator+(const boolean &v);
+
     template <typename T, class = std::enable_if_t<std::is_enum_v<T>>>
     T operator&(T t1, T t2)
     {
@@ -2090,34 +2118,26 @@ constexpr const T const_(T t) {
                 return result;
             }
 
-            template <typename F, class = decltype(F()())>
-            auto map(F p) -> array<undefined_t>
+            // std::declval instead of F() in the SFINAE checks: F is a capturing lambda here, which is
+            // never default-constructible, so constructing one just to probe its call signature (as the
+            // old code did) always failed; declval needs no instance. The two overloads are mutually
+            // exclusive based on which arity actually compiles against the callback's real parameter list.
+            template <typename F, class = decltype(std::declval<F>()(std::declval<E>()))>
+            auto map(F p) -> array<decltype(std::declval<F>()(std::declval<E>()))>
             {
-                std::vector<undefined_t> result;
-                std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v)
-                               {
-                                   mutable_(p)(v);
-                                   return undefined;
-                               });
-
-                return array<undefined_t>(result);
-            }
-
-            /*
-            template <typename F, class = decltype(F()(E()))>
-            auto map(F p) -> array<decltype(p(E()))>
-            {
-                std::vector<decltype(p(E()))> result;
+                using R = decltype(std::declval<F>()(std::declval<E>()));
+                std::vector<R> result;
                 std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v)
                                { return mutable_(p)(v); });
 
-                return array<decltype(p(E()))>(result);
+                return array<R>(result);
             }
 
-            template <typename F, class = decltype(F()(E(), 0))>
-            auto map(F p) -> array<decltype(p(E(), 0))>
+            template <typename F, class = decltype(std::declval<F>()(std::declval<E>(), 0))>
+            auto map(F p) -> array<decltype(std::declval<F>()(std::declval<E>(), 0))>
             {
-                std::vector<decltype(p(E(), 0))> result;
+                using R = decltype(std::declval<F>()(std::declval<E>(), 0));
+                std::vector<R> result;
                 auto first = &(get())[0];
                 std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v)
                                {
@@ -2125,9 +2145,8 @@ constexpr const T const_(T t) {
                                    return mutable_(p)(v, index);
                                });
 
-                return array<decltype(p(E(), 0))>(result);
+                return array<R>(result);
             }
-*/
 
             template <typename P>
             auto reduce(P p)
@@ -3009,14 +3028,31 @@ constexpr const T const_(T t) {
             return n != static_cast<js::number>(mutable_(val));
         }
 
+        // no separate operator!= here: a hand-written one with the same parameter type would make
+        // C++20 exclude this operator== as a reversed/rewritten candidate (e.g. for `js::string == any`),
+        // since the standard can't tell the two are consistent; `!=` is derived from this automatically instead
         bool operator==(const js::string &other) const
         {
             return static_cast<js::string>(*mutable_(this)) == other;
         }
 
-        bool operator!=(const js::string &other) const
+        // unary +, JS ToNumber coercion; reuses the same per-type conversions already used
+        // for standalone js::string/js::pointer_t/js::undefined_t/js::boolean values
+        js::number operator+() const
         {
-            return static_cast<js::string>(*mutable_(this)) != other;
+            switch (get_type())
+            {
+            case anyTypeId::number_type:
+                return mutable_(this)->number_ref();
+            case anyTypeId::string_type:
+                return js::operator+(mutable_(this)->string_ref());
+            case anyTypeId::boolean_type:
+                return js::operator+(mutable_(this)->boolean_ref());
+            case anyTypeId::pointer_type:
+                return js::operator+(mutable_(this)->get<js::pointer_t>());
+            default:
+                return js::number(NAN);
+            }
         }
 
         template <typename N = void>
@@ -3726,6 +3762,20 @@ constexpr const T const_(T t) {
             return *this;
         }
 
+        // assigning TS `null`/`undefined` to a captured-by-reference primitive resets it to its default value,
+        // since a raw T (e.g. int, double) has no null state of its own to represent
+        shared_type &operator=(std::nullptr_t)
+        {
+            *_value = T{};
+            return *this;
+        }
+
+        shared_type &operator=(undefined_t)
+        {
+            *_value = T{};
+            return *this;
+        }
+
         T &operator*() const
         {
             return *_value.get();
@@ -3769,6 +3819,14 @@ constexpr const T const_(T t) {
         auto operator+(Tv other) const
         {
             return get() + other;
+        }
+
+        // more specialized than operator+(Tv) above for a shared<Tv> right-hand side, so it wins
+        // partial ordering outright instead of competing with the reversed free-function overload below
+        template <class Tv>
+        auto operator+(const shared<Tv> &other) const
+        {
+            return get() + other.get();
         }
 
         template <class Tv = void>
@@ -3892,6 +3950,17 @@ constexpr const T const_(T t) {
         {
             return get() != other;
         }
+
+        // a captured-by-reference primitive (raw T, e.g. int/double) never holds JS null/undefined itself
+        friend bool operator==(std::nullptr_t, const shared_type &) { return false; }
+        friend bool operator!=(std::nullptr_t, const shared_type &) { return true; }
+        bool operator==(std::nullptr_t) const { return false; }
+        bool operator!=(std::nullptr_t) const { return true; }
+
+        friend bool operator==(undefined_t, const shared_type &) { return false; }
+        friend bool operator!=(undefined_t, const shared_type &) { return true; }
+        bool operator==(undefined_t) const { return false; }
+        bool operator!=(undefined_t) const { return true; }
 
         template <class Tv>
         friend bool operator==(const shared<Tv> &other, const shared_type &val)
