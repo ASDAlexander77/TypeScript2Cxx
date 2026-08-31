@@ -1,10 +1,13 @@
-echo off
+@echo off
+setlocal
 
 set START_DIR=%CD%
 cd ..
-if not exist __build (call build_cpp.bat)
-cd __build
-echo on
-call msbuild ALL_BUILD.vcxproj /p:Platform=x64 /p:Configuration=Debug /verbosity:quiet
-echo off
+
+if not exist __build (
+    cmake -S . -B __build -A x64
+)
+
+cmake --build __build --config Debug
+
 cd %START_DIR%

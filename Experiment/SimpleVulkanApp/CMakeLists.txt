@@ -22,10 +22,12 @@ message("CMAKE_SYSTEM_NAME = ${CMAKE_SYSTEM_NAME}")
 message("CMAKE_BUILD_TYPE  = ${CMAKE_BUILD_TYPE}")
 message("VULKAN_SDK  = $ENV{VULKAN_SDK}")
 
-
+if(NOT DEFINED ENV{VULKAN_SDK})
+    message(FATAL_ERROR "VULKAN_SDK environment variable is not set. Install the Vulkan SDK and restart your shell/IDE.")
+endif()
 
 # files
-file(GLOB SRC "src/*.cpp" "src/cpp/*.cpp" "src/native/*.cpp")
+file(GLOB SRC "src/cpp/*.cpp" "src/native/*.cpp")
 
 include_directories("./src" "./src/cpp" "./src/native" "../../cpplib")
 link_directories("./")
