@@ -1612,7 +1612,7 @@ constexpr const T const_(T t) {
 
             string_t toUpperCase()
             {
-                std::string result(this->operator std::string &());
+                T result(_value);
                 for (auto &c : result)
                 {
                     c = toupper(c);
@@ -1623,7 +1623,7 @@ constexpr const T const_(T t) {
 
             string_t toLowerCase()
             {
-                std::string result(this->operator std::string &());
+                T result(_value);
                 for (auto &c : result)
                 {
                     c = tolower(c);
@@ -2342,7 +2342,7 @@ constexpr const T const_(T t) {
 
             void Delete(js::number field)
             {
-                get().erase(field.operator std::string &());
+                get().erase(field.operator js::string());
             }
 
             void Delete(js::string field)
@@ -2350,10 +2350,7 @@ constexpr const T const_(T t) {
                 get().erase(field.operator std::string &());
             }
 
-            void Delete(js::any field)
-            {
-                get().erase(field.operator std::string &());
-            }
+            void Delete(js::any field);
 
             void Delete(js::undefined_t)
             {
@@ -2598,6 +2595,11 @@ constexpr const T const_(T t) {
             return get<std::shared_ptr<function>>();
         }
 
+        inline std::shared_ptr<function> function_ptr() const
+        {
+            return get<std::shared_ptr<function>>();
+        }
+
         inline const array_any &array_ref_const() const
         {
             return get<array_any>();
@@ -2649,7 +2651,7 @@ constexpr const T const_(T t) {
             {
                 if (get_type() == anyTypeId::array_type)
                 {
-                    return mutable_(array_ref())[t];
+                    return mutable_(array_ref_const())[t];
                 }
             }
 
@@ -2657,7 +2659,7 @@ constexpr const T const_(T t) {
             {
                 if (get_type() == anyTypeId::object_type)
                 {
-                    return (object_ref())[t];
+                    return mutable_(object_ref_const())[t];
                 }
             }
 
@@ -4058,7 +4060,7 @@ constexpr const T const_(T t) {
         template <typename K, typename V>
         any &object<K, V>::operator[](js::string s) const
         {
-            return mutable_(get())[(std::string)s];
+            return mutable_(get())[s];
         }
 
         template <typename K, typename V>
@@ -4076,13 +4078,19 @@ constexpr const T const_(T t) {
         template <typename K, typename V>
         any &object<K, V>::operator[](js::string s)
         {
-            return get()[(std::string)s];
+            return get()[s];
         }
 
         template <typename K, typename V>
         any &object<K, V>::operator[](undefined_t)
         {
             return get()["undefined"];
+        }
+
+        template <typename K, typename V>
+        void object<K, V>::Delete(js::any field)
+        {
+            get().erase(field.operator js::string());
         }
 
     } // namespace tmpl
