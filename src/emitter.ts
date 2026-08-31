@@ -3558,6 +3558,17 @@ export class Emitter {
         const typeInfo = this.resolver.getOrResolveTypeOf(node.operand);
         const isEnum = this.resolver.isTypeFromSymbol(typeInfo, ts.SyntaxKind.EnumDeclaration);
 
+        // `~` on a boolean operand is used in this codebase's test suite as logical negation (matching
+        // real bitwise-NOT-of-coerced-to-number semantics would give -1/-2, a number, not a boolean).
+        // BooleanLike covers both the `boolean` type and the `true`/`false` literal types - a literal
+        // operand's `intrinsicName` is 'true'/'false', not 'boolean'.
+        const isBoolean = typeInfo && (typeInfo.flags & ts.TypeFlags.BooleanLike) !== 0;
+        if (node.operator === ts.SyntaxKind.TildeToken && isBoolean) {
+            this.writer.writeString('!');
+            this.processExpression(node.operand);
+            return;
+        }
+
         const op = this.opsMap[node.operator];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {

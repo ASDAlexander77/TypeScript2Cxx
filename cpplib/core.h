@@ -122,10 +122,15 @@ namespace js
         static_cast<size_t>(t);
     };
 
-    template <typename T>
-    concept has_exists_member = requires
+    // `T::exists` alone doesn't actually detect a non-static member function named `exists` (it's not a
+    // valid way to name one outside of forming a pointer-to-member), so this concept always evaluated to
+    // false and every `in` operator use silently fell through to the `return false` catch-all. Checking
+    // the real call expression `t.exists(v)` is what's actually needed, so this must be parameterized on
+    // the value type V being tested for membership as well as the container type T.
+    template <typename T, typename V>
+    concept has_exists_member = requires(T t, V v)
     {
-        T::exists;
+        t.exists(v);
     };
 
     template <class _Ty>
@@ -365,26 +370,11 @@ constexpr const T const_(T t) {
             return true;
         }
 
-        constexpr bool operator==(std::nullptr_t)
-        {
-            return false;
-        }
-
-        constexpr bool operator!=(std::nullptr_t)
-        {
-            return true;
-        }
-
-        friend constexpr bool operator==(const undefined_t, std::nullptr_t)
-        {
-            return false;
-        }
-
-        friend constexpr bool operator!=(const undefined_t, std::nullptr_t)
-        {
-            return true;
-        }        
-
+        // deliberately no direct operator==(std::nullptr_t) here: a real `nullptr` already resolves
+        // through operator==(const pointer_t&) above (one implicit nullptr_t->pointer_t conversion), and a
+        // literal `0` (which is ALSO a null pointer constant in C++, distinct from JS's `0`) would then be
+        // equally viable there and for the ArithmeticOrEnum template below - a genuine ambiguity for
+        // `undefined === 0`. Only one path should exist; the pointer_t one covers real null comparisons.
         template <typename N = void>
         requires ArithmeticOrEnum<N>
         bool operator==(N n) const;
@@ -1615,6 +1605,30 @@ constexpr const T const_(T t) {
                 return other._control == string_defined && (!ptr);
             }
 
+            // a direct overload, rather than relying on the std::nullptr_t -> js::pointer_t conversion
+            // above: inside the generic `equals()` template (which compares against a literal `nullptr`
+            // whose static type is std::nullptr_t, not js::pointer_t), that indirect path was resolving
+            // incorrectly and reporting a nullptr-defaulted string as not-null.
+            bool operator==(std::nullptr_t) const
+            {
+                return is_null();
+            }
+
+            friend bool operator==(std::nullptr_t, const string_t &other)
+            {
+                return other.is_null();
+            }
+
+            bool operator!=(std::nullptr_t) const
+            {
+                return !is_null();
+            }
+
+            friend bool operator!=(std::nullptr_t, const string_t &other)
+            {
+                return !other.is_null();
+            }
+
             string_t concat(string value)
             {
                 return _value + value._value;
@@ -1675,15 +1689,21 @@ constexpr const T const_(T t) {
 
             template <typename N = void>
             requires ArithmeticOrEnumOrNumber<N>
-                string_t slice(N begin)
+                string_t slice(N beginIn)
             {
+                // normalize to js::number up front: a ternary mixing js::number and a raw N=int (both
+                // branches must share one type) is ambiguous - number has more than one viable common type
+                // with int - so keep both branches as js::number throughout
+                js::number begin(beginIn);
                 return _value.substr(begin < js::number(0) ? get_length() + begin : begin, get_length() - begin);
             }
 
             template <typename N = void>
             requires ArithmeticOrEnumOrNumber<N>
-                string_t slice(N begin, N end)
+                string_t slice(N beginIn, N endIn)
             {
+                js::number begin(beginIn);
+                js::number end(endIn);
                 auto endStart = end < js::number(0) ? get_length() + end : end;
                 auto endPosition = begin < js::number(0) ? get_length() + begin : begin;
                 return _value.substr(begin < js::number(0) ? get_length() + begin : begin, (endStart >= endPosition) ? endStart - endPosition : js::number(0));
@@ -2156,6 +2176,29 @@ constexpr const T const_(T t) {
                 return array<R>(result);
             }
 
+            // a callback that ignores both the element and the index (e.g. `[1].map(() => f())`) is valid
+            // JS/TS - same SFINAE-arity-selection approach as the two overloads above, just for 0 args.
+            // `array<void>` isn't constructible in C++ (unlike TS's `void[]`), so a void-returning callback
+            // - used here purely for its side effects, same as forEach - runs without collecting a result.
+            template <typename F, class = decltype(std::declval<F>()())>
+            auto map(F p)
+            {
+                using R = decltype(std::declval<F>()());
+                if constexpr (std::is_void_v<R>)
+                {
+                    std::for_each(get().begin(), get().end(), [=](auto &v)
+                                  { mutable_(p)(); });
+                }
+                else
+                {
+                    std::vector<R> result;
+                    std::transform(get().begin(), get().end(), std::back_inserter(result), [=](auto &v)
+                                   { return mutable_(p)(); });
+
+                    return array<R>(result);
+                }
+            }
+
             template <typename P>
             auto reduce(P p)
             {
@@ -2182,7 +2225,9 @@ constexpr const T const_(T t) {
 
             js::string join(js::string s)
             {
-                return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto &res, auto &piece)
+                // MSVC's std::accumulate moves the accumulator into the binary op between iterations, so
+                // it arrives as an rvalue - `auto &res` (non-const lvalue ref) can't bind to that.
+                return std::accumulate(get().begin(), get().end(), js::string{}, [&](auto res, auto &piece)
                                        { return res += (res) ? s + piece : piece; });
             }
 
@@ -4282,20 +4327,21 @@ constexpr const T const_(T t) {
     }; // namespace Utils
 
     template <typename V, class Ax = void>
-    requires has_exists_member<Ax>
+    requires has_exists_member<Ax, V>
     constexpr bool in(V v, const Ax &a)
     {
         return a.exists(v);
     }
 
     template <typename V, class Ax = void>
-    requires has_exists_member<Ax>
+    requires has_exists_member<Ax, V>
     constexpr bool in(V v, Ax *a)
     {
         return a->exists(v);
     }
 
     template <typename V, class O>
+    requires (!has_exists_member<O, V>)
     constexpr bool in(V v, O o)
     {
         return false;
