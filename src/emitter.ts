@@ -1867,6 +1867,22 @@ export class Emitter {
             const firstInitializer = declarationList.declarations.filter(d => d.initializer)[0]?.initializer;
             const effectiveType = firstType || this.resolver.getOrResolveTypeOfAsTypeNode(firstInitializer);
             const useAuto = autoAllowed && !!(firstInitializer);
+            // `let x = 0` (no annotation) would otherwise `auto`-deduce the plain C++ `int` from the bare
+            // literal - fine for arithmetic, but `int` can't later hold `x = null`/`undefined` (a legal,
+            // common JS pattern: number-typed variables are always nullable in JS). Box every literal
+            // initializer in this declaration to js::number so auto deduces that instead - all co-declared
+            // auto variables must deduce to the same type, so this needs to apply to each. Restricted to
+            // plain `let`/`const` statements - a `for (let i = 0; ...)` loop counter genuinely needs to
+            // stay a true integer (e.g. `i += Math.random() * 10` truncating via int's implicit
+            // conversion), not accumulate as a fractional js::number.
+            if (useAuto && declarationList.parent.kind === ts.SyntaxKind.VariableStatement) {
+                declarationList.declarations.forEach(d => {
+                    if (d.initializer && d.initializer.kind === ts.SyntaxKind.NumericLiteral) {
+                        (<any>d.initializer).__boxing = true;
+                    }
+                });
+            }
+
             this.processPredefineType(effectiveType);
             if (!forceCaptureRequired) {
                 this.processType(effectiveType, useAuto);
@@ -3167,50 +3183,58 @@ export class Emitter {
     private processSwitchStatementForAnyInternal(node: ts.SwitchStatement) {
 
         const switchName = `__switch${node.getFullStart()}_${node.getEnd()}`;
-        const isAllStatic = node.caseBlock.clauses
-            .filter(c => c.kind === ts.SyntaxKind.CaseClause)
-            .map(element => (<ts.CaseClause>element).expression)
-            .every(expression => expression.kind === ts.SyntaxKind.NumericLiteral
-                || expression.kind === ts.SyntaxKind.StringLiteral
-                || expression.kind === ts.SyntaxKind.TrueKeyword
-                || expression.kind === ts.SyntaxKind.FalseKeyword);
+        const clauses = node.caseBlock.clauses;
+        const defaultIndex = clauses.findIndex(c => c.kind === ts.SyntaxKind.DefaultClause);
 
-        if (isAllStatic) {
-            this.writer.writeString('static ');
-        }
-
-        this.writer.writeString(`switch_type ${switchName} = `);
-        this.writer.BeginBlock();
-
+        // number every case clause (its switch tag) in source order up front, but WALK them below in JS's
+        // actual matching order to find which one applies.
         let caseNumber = 0;
-        node.caseBlock.clauses.filter(c => c.kind === ts.SyntaxKind.CaseClause).forEach(element => {
-            if (caseNumber > 0) {
-                this.writer.writeStringNewLine(',');
+        const caseClauseNumbers = new Map<ts.CaseClause, number>();
+        clauses.forEach(c => {
+            if (c.kind === ts.SyntaxKind.CaseClause) {
+                caseClauseNumbers.set(<ts.CaseClause>c, ++caseNumber);
             }
-
-            this.writer.BeginBlockNoIntent();
-            this.writer.writeString('any(');
-            this.processExpression((<ts.CaseClause>element).expression);
-            this.writer.writeString('), ');
-            this.writer.writeString((++caseNumber).toString());
-            this.writer.EndBlockNoIntent();
         });
 
-        this.writer.EndBlock();
+        // a case expression (e.g. a function call) can have side effects, so - matching JS - it must be
+        // evaluated at most once, and only when actually reached: cases before `default` are checked in
+        // source order, then (only if none matched) cases after `default`, stopping at the first match. A
+        // precomputed lookup table (fine when every case value is a static constant) would evaluate every
+        // case expression unconditionally regardless of which one - if any - actually matches, which is
+        // wrong once a case expression isn't just a constant.
+        const asCaseClauses = (list: ts.CaseOrDefaultClause[]): ts.CaseClause[] =>
+            <ts.CaseClause[]>list.filter(c => c.kind === ts.SyntaxKind.CaseClause);
+        const beforeDefault = asCaseClauses(defaultIndex === -1 ? clauses.slice() : clauses.slice(0, defaultIndex));
+        const afterDefault = asCaseClauses(defaultIndex === -1 ? [] : clauses.slice(defaultIndex + 1));
+
+        this.writer.writeString(`size_t ${switchName} = [&]() -> size_t `);
+        this.writer.BeginBlock();
+        this.writer.writeString('auto __switchValue = ');
+        this.processExpression(node.expression);
         this.writer.EndOfStatement();
 
+        [...beforeDefault, ...afterDefault].forEach(clause => {
+            this.writer.writeString('if (equals(__switchValue, ');
+            this.processExpression(clause.expression);
+            this.writer.writeString(')) return ');
+            this.writer.writeString((<number>caseClauseNumbers.get(clause)).toString());
+            this.writer.EndOfStatement();
+        });
 
-        this.writer.writeString(`switch (${switchName}[`);
-        this.processExpression(node.expression);
-        this.writer.writeStringNewLine('])');
+        this.writer.writeString('return 0');
+        this.writer.EndOfStatement();
+        this.writer.EndBlock(true);
+        this.writer.writeString('()');
+        this.writer.EndOfStatement();
+
+        this.writer.writeStringNewLine(`switch (${switchName})`);
 
         this.writer.BeginBlock();
 
-        caseNumber = 0;
         node.caseBlock.clauses.forEach(element => {
             this.writer.DecreaseIntent();
             if (element.kind === ts.SyntaxKind.CaseClause) {
-                this.writer.writeString(`case ${++caseNumber}`);
+                this.writer.writeString(`case ${caseClauseNumbers.get(<ts.CaseClause>element)}`);
             } else {
                 this.writer.writeString('default');
             }
