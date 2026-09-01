@@ -139,7 +139,13 @@ export class Preprocessor {
                                 && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration)
                         || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo);
 
-                    if (getAccess) {
+                    // a value of an interface carrying an index signature is a dynamic map, and its named
+                    // members are reached by key rather than through a set_x() pair - so there is no
+                    // setter call to rewrite this into, it stays a plain assignment
+                    const isDynamicMap = this.resolver.isDynamicMapInterface(
+                        this.resolver.getOrResolveTypeOf(propertyAccess.expression));
+
+                    if (getAccess && !isDynamicMap) {
                         const newCall = ts.createCall(node.left, null, [node.right]);
                         (<any>newCall.expression).__set = true;
                         return this.fixupParentReferences(newCall, node.parent);

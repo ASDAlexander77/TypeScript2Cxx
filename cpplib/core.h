@@ -2836,6 +2836,14 @@ constexpr const T const_(T t) {
 #endif
             }
 
+            // reading a property that was never set is `undefined` in JS, not an error - and js::number
+            // has a representation for it, so hand that back rather than throwing (`o.height` on an object
+            // literal without a `height`, say, which JS code then tests with `if (!o.height)`)
+            if (get_type() == anyTypeId::undefined_type)
+            {
+                return js::number(undefined);
+            }
+
             throw "wrong type";
         }
 
@@ -4204,7 +4212,9 @@ constexpr const T const_(T t) {
         template <typename K, typename V>
         ObjectKeys<js::string, typename object<K, V>::object_type_base> object<K, V>::keys(const object<K, V> &obj)
         {
-            return ObjectKeys<js::string, object<K, V>::object_type_base>(obj->get());
+            // `operator->` (like the rest of object's accessors) is non-const, so reach the storage
+            // through mutable_ rather than requiring a const overload of every one of them
+            return ObjectKeys<js::string, object<K, V>::object_type_base>(mutable_(obj).get());
         }
 
         template <typename K, typename V>

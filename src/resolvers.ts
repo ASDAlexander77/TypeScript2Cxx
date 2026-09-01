@@ -78,6 +78,20 @@ export class IdentifierResolver {
             || (<any>typeInfo).intrinsicName === 'any';
     }
 
+    // An interface carrying an index signature (`{ [k: string]: string; foo: string }`) describes a
+    // dynamic map, and that's what a value of it compiles to - so even its *named* members have to be
+    // reached by key, not through the get_x()/set_x() pair a class-shaped interface gets.
+    public isDynamicMapInterface(typeInfo: ts.Type): boolean {
+        const declaration = typeInfo && typeInfo.symbol && typeInfo.symbol.declarations
+            && typeInfo.symbol.declarations[0];
+        return !!declaration
+            && declaration.kind === ts.SyntaxKind.InterfaceDeclaration
+            // the built-in types are interfaces with index signatures too (`Array`, `String`), but they
+            // have real runtime counterparts here rather than being dynamic maps
+            && !declaration.getSourceFile().isDeclarationFile
+            && (<ts.InterfaceDeclaration>declaration).members.some(m => m.kind === ts.SyntaxKind.IndexSignature);
+    }
+
     public isTypeFromSymbol(node: ts.Node | ts.Type, kind: ts.SyntaxKind) {
         return node
             && (<any>node).symbol

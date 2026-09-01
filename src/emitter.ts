@@ -13,6 +13,8 @@ export class Emitter {
     private opsMap: Map<number, string> = new Map<number, string>();
     private embeddedCPPTypes: Array<string>;
     private isWritingMain = false;
+    private insideObjectToInterfaceConversion = false;
+    private variableNamespacePrefix = '';
 
     public constructor(
         typeChecker: ts.TypeChecker, private options: ts.CompilerOptions,
@@ -638,6 +640,10 @@ export class Emitter {
     private processExpression(nodeIn: ts.Expression): void {
         const node = this.preprocessor.preprocessExpression(nodeIn);
         if (!node) {
+            return;
+        }
+
+        if (this.writeObjectToInterfaceConversion(node)) {
             return;
         }
 
@@ -1453,6 +1459,10 @@ export class Emitter {
 
         this.writer.writeStringNewLine();
 
+        if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+            this.writeObjectLiteralInterfaceAdapter(<ts.InterfaceDeclaration>node);
+        }
+
         if (node.modifiers && node.modifiers.some(m => m.kind === ts.SyntaxKind.DefaultKeyword)) {
             this.writer.writeString('using _default = ');
             this.processIdentifier(node.name);
@@ -1516,6 +1526,122 @@ export class Emitter {
     // is the concrete class, silently reading/writing the wrong storage through the interface type. The
     // setter defaults to a no-op override (rather than pure virtual) since TS's `implements` check does not
     // require a settable member to actually be implemented by a real setter (e.g. a get-only accessor).
+    // Wraps a js::object-shaped value (an object literal, or an `any` holding one) in the adapter for the
+    // interface it is flowing into, when that's what the surrounding context expects. Returns false - emit
+    // the expression normally - in every other case.
+    private writeObjectToInterfaceConversion(node: ts.Expression): boolean {
+        if (this.insideObjectToInterfaceConversion) {
+            return false;
+        }
+
+        if (node.kind !== ts.SyntaxKind.ObjectLiteralExpression
+            && node.kind !== ts.SyntaxKind.Identifier
+            && node.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+            return false;
+        }
+
+        // only a value that really is a dynamic map at runtime needs (or can use) the adapter
+        if (!this.resolver.isAnyLikeType(this.resolver.getOrResolveTypeOf(node))) {
+            return false;
+        }
+
+        const contextualType = this.resolver.getContextualType(node);
+        const declaration = contextualType && contextualType.symbol && contextualType.symbol.declarations
+            && contextualType.symbol.declarations[0];
+        if (!declaration
+            || declaration.kind !== ts.SyntaxKind.InterfaceDeclaration
+            || !this.hasObjectLiteralAdapter(<ts.InterfaceDeclaration>declaration)) {
+            return false;
+        }
+
+        this.writer.writeString(`std::make_shared<${this.objectLiteralAdapterName(<ts.InterfaceDeclaration>declaration, true)}>(`);
+        this.insideObjectToInterfaceConversion = true;
+        try {
+            this.processExpression(node);
+        } finally {
+            this.insideObjectToInterfaceConversion = false;
+        }
+
+        this.writer.writeString(')');
+        return true;
+    }
+
+    // An object literal compiles to a js::object - a dynamic string->any map - which has nothing in common
+    // with the shared_ptr<Interface> an interface-typed position expects. For an interface that is purely a
+    // set of properties, the gap can be closed with an adapter implementing the interface by reading and
+    // writing through the map, so a literal can still be passed where the interface is wanted. The map is
+    // shared (js::object holds a shared_ptr to its storage), so writes through the adapter are visible to
+    // whoever still holds the literal, as they are in JS.
+    private objectLiteralAdapterName(interfaceDeclaration: ts.InterfaceDeclaration, qualified: boolean = false): string {
+        const name = `${interfaceDeclaration.name.text}__from_object`;
+        return qualified ? this.namespacePrefixOf(interfaceDeclaration) + name : name;
+    }
+
+    // `A::B::` for a declaration nested in `namespace A { namespace B { ... } }`, empty at top level.
+    // Qualifying is always safe (a name can be reached by its full path from inside its own namespace
+    // too) and is required wherever the reference is emitted outside it - global variable definitions in
+    // the .cpp, for instance.
+    private namespacePrefixOf(declaration: ts.Node): string {
+        let prefix = '';
+        for (let parent = declaration.parent; parent; parent = parent.parent) {
+            if (parent.kind === ts.SyntaxKind.ModuleDeclaration
+                && (<ts.ModuleDeclaration>parent).name.kind === ts.SyntaxKind.Identifier) {
+                prefix = `${(<ts.Identifier>(<ts.ModuleDeclaration>parent).name).text}::${prefix}`;
+            }
+        }
+
+        return prefix;
+    }
+
+    // only property-only interfaces: a method member would have to be adapted into a callable stored in
+    // the map, which is a different (and much less common) shape than what this is for
+    private hasObjectLiteralAdapter(interfaceDeclaration: ts.InterfaceDeclaration): boolean {
+        return interfaceDeclaration.kind === ts.SyntaxKind.InterfaceDeclaration
+            && interfaceDeclaration.members.length > 0
+            && interfaceDeclaration.members.every(m => m.kind === ts.SyntaxKind.PropertySignature
+                && !!(<ts.PropertySignature>m).type
+                && m.name.kind === ts.SyntaxKind.Identifier);
+    }
+
+    private writeObjectLiteralInterfaceAdapter(interfaceDeclaration: ts.InterfaceDeclaration): void {
+        if (!this.hasObjectLiteralAdapter(interfaceDeclaration)) {
+            return;
+        }
+
+        const adapterName = this.objectLiteralAdapterName(interfaceDeclaration);
+        this.writer.writeString(`class ${adapterName} : public `);
+        this.writer.writeString(interfaceDeclaration.name.text);
+        this.writer.writeString(' ');
+        this.writer.BeginBlock();
+        this.writer.DecreaseIntent();
+        this.writer.writeString('public:');
+        this.writer.IncreaseIntent();
+        this.writer.writeStringNewLine();
+
+        this.writer.writeStringNewLine('js::object _o;');
+        this.writer.writeStringNewLine(`${adapterName}(js::object o) : _o(o) {}`);
+
+        interfaceDeclaration.members.forEach(member => {
+            const property = <ts.PropertySignature>member;
+            const name = (<ts.Identifier>property.name).text;
+
+            this.writer.writeString('virtual ');
+            this.processType(property.type);
+            this.writer.writeString(` get_${name}() override { return _o[STR("${name}")]; }`);
+            this.writer.writeStringNewLine();
+
+            this.writer.writeString(`virtual void set_${name}(`);
+            this.processType(property.type);
+            this.writer.writeString(` value) override { _o[STR("${name}")] = value; }`);
+            this.writer.writeStringNewLine();
+        });
+
+        this.writer.cancelNewLine();
+        this.writer.EndBlock();
+        this.writer.EndOfStatement();
+        this.writer.writeStringNewLine();
+    }
+
     private processInterfacePropertySignature(node: ts.PropertySignature): void {
         const effectiveType = node.type || this.resolver.getOrResolveTypeOfAsTypeNode(node.initializer);
 
@@ -1795,7 +1921,12 @@ export class Emitter {
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
             block.statements.forEach(s => {
-                if (this.isDeclarationStatement(s) || this.isVariableStatement(s)) {
+                if (this.isVariableStatement(s)) {
+                    // only declare it here - the definition (with its initializer) is emitted into the
+                    // .cpp by processModuleVariableStatements, exactly as for a top-level variable.
+                    // Defining it here instead would leave the same variable defined twice.
+                    this.processVariablesForwardDeclaration(<ts.VariableStatement>s);
+                } else if (this.isDeclarationStatement(s)) {
                     this.processStatement(s);
                 } else if (this.isNamespaceStatement(s)) {
                     this.processModuleDeclaration(<ts.ModuleDeclaration>s);
@@ -1832,19 +1963,30 @@ export class Emitter {
     }
 
     private processModuleVariableStatements(node: ts.ModuleDeclaration | ts.NamespaceDeclaration): void {
-        if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
-            const block = <ts.ModuleBlock>node.body;
-            block.statements.forEach(s => {
-                if (this.isVariableStatement(s)) {
-                    this.processStatement(s);
-                } else if (this.isNamespaceStatement(s)) {
-                    this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
-                }
-            });
-        } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
-            this.processModuleVariableStatements(node.body);
-        } else {
-            throw new Error('Not Implemented');
+        // these are emitted in the .cpp outside any namespace block, so the name being defined has to
+        // carry its namespace to match the declaration the header put inside one
+        const outerPrefix = this.variableNamespacePrefix;
+        if (node.name.kind === ts.SyntaxKind.Identifier) {
+            this.variableNamespacePrefix = `${outerPrefix}${(<ts.Identifier>node.name).text}::`;
+        }
+
+        try {
+            if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
+                const block = <ts.ModuleBlock>node.body;
+                block.statements.forEach(s => {
+                    if (this.isVariableStatement(s)) {
+                        this.processStatement(s);
+                    } else if (this.isNamespaceStatement(s)) {
+                        this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
+                    }
+                });
+            } else if (node.body.kind === ts.SyntaxKind.ModuleDeclaration) {
+                this.processModuleVariableStatements(node.body);
+            } else {
+                throw new Error('Not Implemented');
+            }
+        } finally {
+            this.variableNamespacePrefix = outerPrefix;
         }
     }
 
@@ -2157,6 +2299,10 @@ export class Emitter {
             });
             this.writer.writeString(']');
         } else if (name.kind === ts.SyntaxKind.Identifier) {
+            if (!forwardDeclaration && this.variableNamespacePrefix) {
+                this.writer.writeString(this.variableNamespacePrefix);
+            }
+
             this.writer.writeString(name.text);
         } else {
             throw new Error('Not implemented!');
@@ -3661,15 +3807,7 @@ export class Emitter {
                     const property = <ts.PropertyAssignment>element;
 
                     this.writer.writeString('object::pair{');
-
-                    if (property.name
-                        && (property.name.kind === ts.SyntaxKind.Identifier
-                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
-                        this.processExpression(ts.createStringLiteral(property.name.text));
-                    } else {
-                        this.processExpression(<ts.Expression>property.name);
-                    }
-
+                    this.writeObjectLiteralKey(property.name);
                     this.writer.writeString(', ');
                     this.processExpression(property.initializer);
                     this.writer.writeString('}');
@@ -3677,24 +3815,12 @@ export class Emitter {
                     const property = <ts.ShorthandPropertyAssignment>element;
 
                     this.writer.writeString('object::pair{');
+                    this.writeObjectLiteralKey(property.name);
 
-                    if (property.name
-                        && (property.name.kind === ts.SyntaxKind.Identifier
-                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
-                        this.processExpression(ts.createStringLiteral(property.name.text));
-                    } else {
-                        this.processExpression(<ts.Expression>property.name);
-                    }
-
+                    // `{ x }` is shorthand for `{ x: x }` - the value is the variable of that name, not
+                    // its name as a string
                     this.writer.writeString(', ');
-                    if (property.name
-                        && (property.name.kind === ts.SyntaxKind.Identifier
-                            || property.name.kind === ts.SyntaxKind.NumericLiteral)) {
-                        this.processExpression(ts.createStringLiteral(property.name.text));
-                    } else {
-                        this.processExpression(<ts.Expression>property.name);
-                    }
-
+                    this.processExpression(<ts.Expression>property.name);
                     this.writer.writeString('}');
                 }
 
@@ -3716,6 +3842,30 @@ export class Emitter {
             });
             this.writer.writeString(')');
         }
+    }
+
+    // Object keys are js::strings. A plain or numeric name becomes a string literal; a computed one is
+    // whatever the expression evaluates to - and if that's a number it has to be *converted* to its digits
+    // (JS stringifies the key), not fed to js::string's single-character constructor, which would take it
+    // for a character code.
+    private writeObjectLiteralKey(name: ts.PropertyName): void {
+        if (name
+            && (name.kind === ts.SyntaxKind.Identifier || name.kind === ts.SyntaxKind.NumericLiteral)) {
+            this.processExpression(ts.createStringLiteral(name.text));
+            return;
+        }
+
+        if (name && name.kind === ts.SyntaxKind.ComputedPropertyName) {
+            const keyExpression = (<ts.ComputedPropertyName>name).expression;
+            if (this.resolver.isNumberType(this.resolver.getOrResolveTypeOf(keyExpression))) {
+                this.writer.writeString('(string_empty + (');
+                this.processExpression(keyExpression);
+                this.writer.writeString('))');
+                return;
+            }
+        }
+
+        this.processExpression(<ts.Expression>name);
     }
 
     private processComputedPropertyName(node: ts.ComputedPropertyName): void {
@@ -4133,6 +4283,13 @@ export class Emitter {
             const elementAccessExpression = <ts.ElementAccessExpression>node.expression;
             this.processExpression(elementAccessExpression.expression);
             this.writer.writeString('.Delete(');
+            // `Delete` is overloaded on js::number/js::string/js::any, and a bare numeric literal is
+            // ambiguous between them (js::string has a single-char constructor, so `int` reaches it too) -
+            // same situation as indexing, see processElementAccessExpression
+            if (elementAccessExpression.argumentExpression.kind === ts.SyntaxKind.NumericLiteral) {
+                (<any>elementAccessExpression.argumentExpression).__boxing = true;
+            }
+
             this.processExpression(elementAccessExpression.argumentExpression);
             this.writer.writeString(')');
         } else {
@@ -4502,6 +4659,11 @@ export class Emitter {
                             this.processType(type);
                             this.writer.writeString('::');
                         }
+                    } else if (valDecl.kind === ts.SyntaxKind.VariableDeclaration) {
+                        // a namespace variable sits two levels deeper than the function or class the
+                        // check above is shaped for (declaration -> list -> statement -> block ->
+                        // namespace), so it needs the enclosing namespaces walked out properly
+                        this.writer.writeString(this.namespacePrefixOf(valDecl));
                     }
                 }
             }
@@ -4579,6 +4741,11 @@ export class Emitter {
                 this.writer.writeString('["');
                 this.processExpression(<ts.Identifier>node.name);
                 this.writer.writeString('"]');
+                return;
+            } else if (this.resolver.isDynamicMapInterface(typeInfo)) {
+                this.writer.writeString('[STR("');
+                this.processExpression(<ts.Identifier>node.name);
+                this.writer.writeString('")]');
                 return;
             } else if (this.resolver.isStaticAccess(typeInfo)
                 || node.expression.kind === ts.SyntaxKind.SuperKeyword
