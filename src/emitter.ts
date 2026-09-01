@@ -1843,9 +1843,156 @@ export class Emitter {
         }
     }
 
+    // Emits a `let [a, [b, c]] = expr;` array-destructuring declaration as C++17 structured bindings.
+    // A nested pattern has no name of its own to bind, so it gets a synthetic one and is then unpacked
+    // by a follow-up structured binding of its own (the nested value is itself a std::tuple, so this
+    // recurses cleanly). Flat patterns don't need any of this and stay on the simpler inline path in
+    // processVariableDeclarationOne.
+    private emitArrayBindingPatternDeclaration(pattern: ts.ArrayBindingPattern, writeInitializer: () => void): void {
+        const nested: Array<{ tempName: string, pattern: ts.ArrayBindingPattern }> = [];
+
+        this.writer.writeString('auto [');
+        let next = false;
+        pattern.elements.forEach(element => {
+            if (next) {
+                this.writer.writeString(', ');
+            }
+
+            next = true;
+
+            if (element.kind === ts.SyntaxKind.OmittedExpression) {
+                throw new Error('Not implemented');
+            }
+
+            const bindingElement = <ts.BindingElement>element;
+            if (bindingElement.name.kind === ts.SyntaxKind.Identifier) {
+                this.writer.writeString((<ts.Identifier>bindingElement.name).text);
+            } else if (bindingElement.name.kind === ts.SyntaxKind.ArrayBindingPattern) {
+                const tempName = `__destr${bindingElement.getFullStart()}_${bindingElement.getEnd()}`;
+                this.writer.writeString(tempName);
+                nested.push({ tempName, pattern: <ts.ArrayBindingPattern>bindingElement.name });
+            } else {
+                // an object pattern nested inside an array pattern would need the container's resolved
+                // type to pick its property-access form; nothing exercises it yet
+                throw new Error('Not implemented');
+            }
+        });
+
+        this.writer.writeString('] = ');
+        writeInitializer();
+        this.writer.EndOfStatement();
+
+        nested.forEach(item => {
+            this.emitArrayBindingPatternDeclaration(item.pattern, () => this.writer.writeString(item.tempName));
+        });
+    }
+
+    // Lowers `let { a, bb: { q, r } } = expr;`-style object destructuring into a sequence of plain
+    // `auto x = ...;` statements. Unlike array destructuring (which maps onto C++17 structured bindings
+    // directly), object destructuring picks fields by name and each binding can have its own type, so
+    // there's no single-expression C++ equivalent - it has to be desugared into multiple statements.
+    // `sourceExpressionWriter` emits the expression to read from (a temp var name, or a nested access
+    // already written by a parent call); `sourceType` is that expression's resolved TS type, used to
+    // decide between three property-access styles (mirroring processPropertyAccessExpression):
+    // js::object dynamic-map indexing for anonymous/`any` types, get_X() for interface/accessor
+    // properties, and plain ->X for real class fields.
+    private emitObjectDestructuringBindings(
+        pattern: ts.ObjectBindingPattern,
+        sourceExpressionWriter: () => void,
+        sourceType: ts.Type): void {
+
+        pattern.elements.forEach(element => {
+            if (element.dotDotDotToken) {
+                throw new Error('Not implemented');
+            }
+
+            const propertyNameNode = <ts.Identifier>(element.propertyName || element.name);
+            const propKey = propertyNameNode.text;
+
+            const symbolInfo = this.resolver.getSymbolAtLocation(propertyNameNode);
+            const isAccessorLike = !!(symbolInfo
+                && symbolInfo.declarations
+                && symbolInfo.declarations.length > 0
+                && (symbolInfo.declarations[0].kind === ts.SyntaxKind.GetAccessor
+                    || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
+                    || symbolInfo.declarations[0].kind === ts.SyntaxKind.PropertySignature
+                        && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration));
+            const isAnyLike = this.resolver.isAnyLikeType(sourceType);
+
+            const writeAccess = () => {
+                sourceExpressionWriter();
+                if (isAnyLike) {
+                    this.writer.writeString(`["${propKey}"]`);
+                } else {
+                    this.writer.writeString('->');
+                    this.writer.writeString(isAccessorLike ? `get_${propKey}()` : propKey);
+                }
+            };
+
+            if (element.name.kind === ts.SyntaxKind.ObjectBindingPattern) {
+                const tempName = `__destr${element.getFullStart()}_${element.getEnd()}`;
+                this.writer.writeString(`auto ${tempName} = `);
+                writeAccess();
+                this.writer.EndOfStatement();
+
+                // `checker.getTypeAtLocation()` on a *nested* binding element's propertyName doesn't
+                // resolve to the actual property type (comes back as the checker's internal error/any
+                // sentinel type instead) - go through the parent object type's property symbol instead,
+                // which resolves correctly.
+                const propSymbol = sourceType && sourceType.getProperty(propKey);
+                const nestedType = propSymbol
+                    ? this.resolver.getTypeOfSymbolAtLocation(propSymbol, propertyNameNode)
+                    : this.resolver.getOrResolveTypeOf(propertyNameNode);
+                this.emitObjectDestructuringBindings(
+                    <ts.ObjectBindingPattern>element.name, () => this.writer.writeString(tempName), nestedType);
+            } else if (element.name.kind === ts.SyntaxKind.Identifier) {
+                this.writer.writeString(`auto ${(<ts.Identifier>element.name).text} = `);
+                writeAccess();
+                this.writer.EndOfStatement();
+            } else {
+                throw new Error('Not implemented');
+            }
+        });
+    }
+
     private processVariableDeclarationList(declarationList: ts.VariableDeclarationList, forwardDeclaration?: boolean): boolean {
 
         if (this.isDeclare(declarationList.parent) && !forwardDeclaration) {
+            return false;
+        }
+
+        // Object destructuring has no single "type name = init;" line to write (see
+        // emitObjectDestructuringBindings), so it's handled as its own lowering path before the shared
+        // type-prefix logic below runs. Only supported as the sole declarator in the statement - nothing
+        // in this codebase's test suite mixes a destructuring pattern with plain co-declarators, and doing
+        // so would need a rethink of the shared type-prefix line those share.
+        if (!forwardDeclaration
+            && declarationList.declarations.length === 1
+            && declarationList.declarations[0].name.kind === ts.SyntaxKind.ObjectBindingPattern) {
+            const decl = declarationList.declarations[0];
+            const tempName = `__destr${decl.getFullStart()}_${decl.getEnd()}`;
+            this.writer.writeString(`auto ${tempName} = `);
+            this.processExpression(decl.initializer);
+            this.writer.EndOfStatement();
+            this.emitObjectDestructuringBindings(
+                <ts.ObjectBindingPattern>decl.name,
+                () => this.writer.writeString(tempName),
+                this.resolver.getOrResolveTypeOf(decl.initializer));
+            return false;
+        }
+
+        // likewise for an array pattern with a *nested* pattern in it - that needs a follow-up statement
+        // per nesting level, so it can't ride the single-line path either (flat ones still do)
+        if (!forwardDeclaration
+            && declarationList.declarations.length === 1
+            && declarationList.declarations[0].name.kind === ts.SyntaxKind.ArrayBindingPattern
+            && (<ts.ArrayBindingPattern>declarationList.declarations[0].name).elements
+                .some(e => e.kind === ts.SyntaxKind.BindingElement
+                    && (<ts.BindingElement>e).name.kind !== ts.SyntaxKind.Identifier)) {
+            const decl = declarationList.declarations[0];
+            this.emitArrayBindingPatternDeclaration(
+                <ts.ArrayBindingPattern>decl.name,
+                () => this.processExpression(decl.initializer));
             return false;
         }
 
@@ -2590,7 +2737,7 @@ export class Emitter {
         let defaultParams = false;
         let next = false;
         node.parameters.forEach((element, index) => {
-            if (element.name.kind !== ts.SyntaxKind.Identifier) {
+            if (element.name.kind !== ts.SyntaxKind.Identifier && element.name.kind !== ts.SyntaxKind.ObjectBindingPattern) {
                 throw new Error('Not implemented');
             }
 
@@ -2621,7 +2768,14 @@ export class Emitter {
             }
 
             this.writer.writeString(' ');
-            this.processExpression(element.name);
+            if (element.name.kind === ts.SyntaxKind.ObjectBindingPattern) {
+                // destructured parameter (`({a}) => ...`): the C++ signature needs a real name to bind
+                // to, so give it a synthetic one - the individual bindings (`a`, ...) are unpacked as the
+                // first statements of the function body, see the BeginBlock() handling below.
+                this.writer.writeString(`__param${element.getFullStart()}_${element.getEnd()}`);
+            } else {
+                this.processExpression(element.name);
+            }
 
             // extra symbol to change parameter name
             if (node.kind === ts.SyntaxKind.Constructor
@@ -2735,6 +2889,18 @@ export class Emitter {
                 this.processType(this.resolver.getOrResolveTypeOfAsTypeNode(node.parent));
                 this.writer.writeStringNewLine(' _this(this, [] (auto&) {/*to be finished*/});');
             }
+
+            // unpack destructured parameters (`({a}) => ...`) as the first statements of the body, reading
+            // off the synthetic parameter name written above.
+            node.parameters
+                .filter(e => e.name.kind === ts.SyntaxKind.ObjectBindingPattern)
+                .forEach(element => {
+                    const paramName = `__param${element.getFullStart()}_${element.getEnd()}`;
+                    this.emitObjectDestructuringBindings(
+                        <ts.ObjectBindingPattern>element.name,
+                        () => this.writer.writeString(paramName),
+                        this.resolver.getOrResolveTypeOf(element));
+                });
 
             (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
                 this.processStatementInternal(element, true);
@@ -3576,6 +3742,17 @@ export class Emitter {
             }
 
             this.writer.writeString('[');
+            // `js::object::operator[]` is overloaded for both js::string and js::number keys. A bare
+            // (unboxed) numeric-literal index like `obj[9]` is a raw C++ int, which is ambiguous between
+            // the two: js::string has a single-char converting constructor, so `int -> char_t -> js::string`
+            // and `int -> js::number` are two *different* one-step user-defined conversions, and the
+            // compiler can't rank one over the other (C2593). Boxing the literal to js::number first makes
+            // it an exact match for operator[](js::number), removing the ambiguity. Array indexing doesn't
+            // have this problem (array::operator[] has a single templated numeric overload, no js::string
+            // competitor), so it's deliberately left alone here.
+            if (type && type.kind !== ts.SyntaxKind.ArrayType && node.argumentExpression.kind === ts.SyntaxKind.NumericLiteral) {
+                (<any>node.argumentExpression).__boxing = true;
+            }
             this.processExpression(node.argumentExpression);
             this.writer.writeString(']');
         }
@@ -3670,6 +3847,34 @@ export class Emitter {
 
     private processBinaryExpression(node: ts.BinaryExpression): void {
         const opCode = node.operatorToken.kind;
+
+        // `[a, b] = expr` where expr is a js::array (rather than an array *literal*, which compiles to a
+        // std::tuple the std::tie form below can assign from): std::tie's tuple has no operator= taking a
+        // js::array, so unpack element-wise instead. Reading through const_() matters - js::array's
+        // non-const operator[] grows the array to fit an out-of-range index, while the const one yields
+        // `undefined` without mutating, which is what JS does for `[a, b, c] = [1, 2]`.
+        if (opCode === ts.SyntaxKind.EqualsToken
+            && node.left.kind === ts.SyntaxKind.ArrayLiteralExpression
+            && this.resolver.typeToTypeNode(this.resolver.getOrResolveTypeOf(node.right)).kind !== ts.SyntaxKind.TupleType) {
+            const tempName = `__destr${node.getFullStart()}_${node.getEnd()}`;
+            this.writer.writeString('[&]() { auto ');
+            this.writer.writeString(tempName);
+            this.writer.writeString(' = ');
+            this.processExpression(node.right);
+            this.writer.writeString('; ');
+            (<ts.ArrayLiteralExpression>node.left).elements.forEach((element, index) => {
+                if (element.kind === ts.SyntaxKind.OmittedExpression) {
+                    return;
+                }
+
+                this.processExpression(element);
+                this.writer.writeString(` = const_(${tempName})[${index}]; `);
+            });
+
+            this.writer.writeString(`return ${tempName}; }()`);
+            return;
+        }
+
         if (opCode === ts.SyntaxKind.InstanceOfKeyword) {
             this.writer.writeString('is<');
 

@@ -33,13 +33,29 @@ namespace js
 
 //#define OR(x, y) ((bool)(x) ? (x) : (y))
 //#define AND(x, y) ((bool)(x) ? (y) : (x))
-#define OR(x, y) ([&]() {                      \
-    auto vx = (x);                             \
-    return (static_cast<bool>(vx)) ? vx : static_cast<decltype(vx)>(y); \
+// The `x` operand is evaluated once into `vx` and its decltype is normally used as the common
+// type for the ternary (so `y` is cast into it). That breaks when `x` is a literal `null`/`nullptr`:
+// `decltype(vx)` becomes `std::nullptr_t`, and casting an unrelated `y` (e.g. js::string, shared_ptr<T>)
+// into `nullptr_t` is simply ill-formed - even though a nullptr_t `vx` is always falsy, so that branch
+// would never execute at runtime, both ternary branches still have to type-check at compile time. Since
+// a nullptr_t `vx` is unconditionally falsy, OR/AND's result in that case is statically known (OR always
+// yields `y`, AND always yields `vx`/nullptr without touching `y`), so special-case it with `if constexpr`
+// instead of relying on the general cast.
+#define OR(x, y) ([&]() {                                             \
+    auto vx = (x);                                                    \
+    if constexpr (std::is_null_pointer_v<decltype(vx)>) {             \
+        return (y);                                                   \
+    } else {                                                          \
+        return (static_cast<bool>(vx)) ? vx : static_cast<decltype(vx)>(y); \
+    }                                                                  \
 })()
-#define AND(x, y) ([&]() {                     \
-    auto vx = (x);                             \
-    return (static_cast<bool>(vx)) ? static_cast<decltype(vx)>(y) : vx; \
+#define AND(x, y) ([&]() {                                            \
+    auto vx = (x);                                                    \
+    if constexpr (std::is_null_pointer_v<decltype(vx)>) {             \
+        return vx;                                                    \
+    } else {                                                          \
+        return (static_cast<bool>(vx)) ? static_cast<decltype(vx)>(y) : vx; \
+    }                                                                  \
 })()
 
     struct undefined_t;
