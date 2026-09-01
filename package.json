@@ -24,7 +24,7 @@
   },
   "private": true,
   "dependencies": {
-    "cross-spawn": "^6.0.5",
+    "cross-spawn": "^6.0.6",
     "fs-extra": "^7.0.1",
     "install": "^0.12.2",
     "path": "^0.12.7",
