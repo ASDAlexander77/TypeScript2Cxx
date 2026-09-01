@@ -1378,7 +1378,22 @@ export class Emitter {
 
                 });
             });
-        } else {
+        }
+
+        // A class satisfying an interface structurally, with no `implements` written, still has to derive
+        // from it for shared_ptr<Class> -> shared_ptr<Interface> to work at all in C++ (see
+        // getImplicitInterfaces). The interface already derives from `object`, so it stands in for the
+        // default base below rather than being added alongside it.
+        if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+            this.resolver.getImplicitInterfaces(<ts.ClassDeclaration>node).forEach(interfaceDeclaration => {
+                this.writer.writeString(next ? ', ' : ' : ');
+                this.writer.writeString('public ');
+                this.writer.writeString(interfaceDeclaration.name.text);
+                next = true;
+            });
+        }
+
+        if (!next) {
             this.writer.writeString(' : public object');
         }
 
@@ -2886,6 +2901,26 @@ export class Emitter {
                         }
 
                         this.processType(declaration.type);
+                        next = true;
+                    });
+                }
+            }
+        }
+
+        // Same arity mismatch, in method form: TS lets a class implement `twoArg(x, y)` with a method that
+        // only declares `twoArg(x)`. In C++ that is a different signature, so it wouldn't override the base
+        // declaration at all and the class would stay abstract - pad it out to the inherited parameter list.
+        if (isClassMember && node.kind === ts.SyntaxKind.MethodDeclaration) {
+            const baseParameters = this.resolver.getBaseMemberParameters(<ts.MethodDeclaration>node);
+            if (baseParameters && baseParameters.length > node.parameters.length) {
+                const missing = baseParameters.slice(node.parameters.length);
+                if (missing.every(d => d.type && !this.typeNodeReferencesTypeParameter(d.type))) {
+                    missing.forEach(parameter => {
+                        if (next) {
+                            this.writer.writeString(', ');
+                        }
+
+                        this.processType(parameter.type);
                         next = true;
                     });
                 }

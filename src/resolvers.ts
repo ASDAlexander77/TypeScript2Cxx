@@ -2,6 +2,9 @@ import * as ts from 'typescript';
 
 export class IdentifierResolver {
 
+    private implicitInterfaces = new Map<ts.ClassDeclaration, ts.InterfaceDeclaration[]>();
+    private interfaceDeclarations = new Map<ts.SourceFile, ts.InterfaceDeclaration[]>();
+
     public constructor(private typeChecker: ts.TypeChecker) {
     }
 
@@ -234,22 +237,181 @@ export class IdentifierResolver {
 
     // finds an explicit return type declared on a same-named member of a base class/interface, so an
     // overriding method's return type can be emitted covariantly instead of defaulting to a mismatched type
-    public getBaseMemberReturnTypeNode(method: ts.MethodDeclaration): ts.TypeNode {
+    public getBaseMemberReturnTypeNode(method: ts.MethodDeclaration, depth: number = 0): ts.TypeNode {
         const classDeclaration = method.parent as ts.ClassDeclaration;
-        if (!classDeclaration.heritageClauses || method.name.kind !== ts.SyntaxKind.Identifier) {
+        if (method.name.kind !== ts.SyntaxKind.Identifier || depth > 16) {
             return undefined;
         }
 
         const methodName = (<ts.Identifier>method.name).text;
+        const implicitMember = this.findImplicitInterfaceMethod(classDeclaration, methodName);
+        if (implicitMember && implicitMember.type) {
+            return implicitMember.type;
+        }
+
+        if (!classDeclaration.heritageClauses) {
+            return undefined;
+        }
+
         for (const heritageClause of classDeclaration.heritageClauses) {
             for (const typeExpression of heritageClause.types) {
                 const baseType = this.typeChecker.getTypeAtLocation(typeExpression);
                 const property = baseType && baseType.getProperty(methodName);
                 const declaration = property && property.valueDeclaration;
                 if (declaration
-                    && (declaration.kind === ts.SyntaxKind.MethodDeclaration || declaration.kind === ts.SyntaxKind.MethodSignature)
-                    && (<ts.MethodDeclaration | ts.MethodSignature>declaration).type) {
-                    return (<ts.MethodDeclaration | ts.MethodSignature>declaration).type;
+                    && (declaration.kind === ts.SyntaxKind.MethodDeclaration
+                        || declaration.kind === ts.SyntaxKind.MethodSignature)) {
+                    const declaredType = (<ts.MethodDeclaration | ts.MethodSignature>declaration).type;
+                    if (declaredType) {
+                        return declaredType;
+                    }
+
+                    // The base member can be un-annotated itself and still take its type from further up -
+                    // `class B extends A` where A's method gets its return type from an interface A
+                    // implements. Without following that, B's override would default to `any` and no longer
+                    // match A's signature (C++ requires the return types to agree).
+                    if (declaration.kind === ts.SyntaxKind.MethodDeclaration && declaration !== method) {
+                        const inheritedType = this.getBaseMemberReturnTypeNode(
+                            <ts.MethodDeclaration>declaration, depth + 1);
+                        if (inheritedType) {
+                            return inheritedType;
+                        }
+                    }
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    // TS interfaces are satisfied structurally - a class needs no `implements` clause to be usable where
+    // the interface is expected. C++ has no such notion: a shared_ptr<A> only converts to shared_ptr<IFoo>
+    // if A actually derives from IFoo. So work out which of the interfaces declared alongside a class it
+    // satisfies structurally, and let the emitter add those as bases, as if `implements` had been written.
+    public getImplicitInterfaces(classDeclaration: ts.ClassDeclaration): ts.InterfaceDeclaration[] {
+        const cached = this.implicitInterfaces.get(classDeclaration);
+        if (cached) {
+            return cached;
+        }
+
+        const result: ts.InterfaceDeclaration[] = [];
+        // stored before the work below so a re-entrant lookup (a class satisfying an interface that
+        // mentions the class) sees an empty list rather than recursing
+        this.implicitInterfaces.set(classDeclaration, result);
+
+        // A class that already declares any heritage is left alone. Its own `implements` clauses are
+        // handled the normal way, and adding an interface base to a class that already extends another
+        // class would bring in a second `js::object` base - every inherited member access then becomes
+        // ambiguous.
+        if (classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration
+            || !classDeclaration.name
+            || classDeclaration.heritageClauses && classDeclaration.heritageClauses.length > 0) {
+            return result;
+        }
+
+        const classSymbol = classDeclaration.name && this.typeChecker.getSymbolAtLocation(classDeclaration.name);
+        if (!classSymbol) {
+            return result;
+        }
+
+        const classType = this.typeChecker.getDeclaredTypeOfSymbol(classSymbol);
+        const isAssignableTo = (<any>this.typeChecker).isTypeAssignableTo;
+        if (!classType || typeof isAssignableTo !== 'function') {
+            return result;
+        }
+
+        for (const interfaceDeclaration of this.collectInterfaceDeclarations(classDeclaration.getSourceFile())) {
+            // An interface with an index signature is a dynamic map at runtime here, not a class shape,
+            // and a call-signature-only one is a function type - neither is expressible as a base class.
+            if (interfaceDeclaration.members.length === 0
+                || interfaceDeclaration.members.some(m => m.kind === ts.SyntaxKind.IndexSignature
+                    || m.kind === ts.SyntaxKind.CallSignature
+                    || m.kind === ts.SyntaxKind.ConstructSignature)) {
+                continue;
+            }
+
+            // Declarations are emitted in source order, and a base class has to be complete at that
+            // point - an interface written after the class can't be one of its bases.
+            if (interfaceDeclaration.getStart() > classDeclaration.getStart()) {
+                continue;
+            }
+
+            const interfaceSymbol = this.typeChecker.getSymbolAtLocation(interfaceDeclaration.name);
+            const interfaceType = interfaceSymbol && this.typeChecker.getDeclaredTypeOfSymbol(interfaceSymbol);
+            if (interfaceType && isAssignableTo.call(this.typeChecker, classType, interfaceType)) {
+                result.push(interfaceDeclaration);
+            }
+        }
+
+        return result;
+    }
+
+    private collectInterfaceDeclarations(sourceFile: ts.SourceFile): ts.InterfaceDeclaration[] {
+        const cached = this.interfaceDeclarations.get(sourceFile);
+        if (cached) {
+            return cached;
+        }
+
+        const declarations: ts.InterfaceDeclaration[] = [];
+        const visit = (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.InterfaceDeclaration) {
+                declarations.push(<ts.InterfaceDeclaration>node);
+            }
+
+            ts.forEachChild(node, visit);
+        };
+
+        visit(sourceFile);
+        this.interfaceDeclarations.set(sourceFile, declarations);
+        return declarations;
+    }
+
+    // The parameter list a class method has to present in C++ to actually override the base/interface
+    // member of the same name. TS allows an implementing method to declare *fewer* parameters than the
+    // signature it satisfies; C++ treats that as an unrelated function, leaving the class abstract.
+    public findImplicitInterfaceMethod(classDeclaration: ts.ClassDeclaration, methodName: string): ts.MethodSignature {
+        if (classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration) {
+            return undefined;
+        }
+
+        for (const interfaceDeclaration of this.getImplicitInterfaces(classDeclaration)) {
+            for (const member of interfaceDeclaration.members) {
+                if (member.kind === ts.SyntaxKind.MethodSignature
+                    && member.name.kind === ts.SyntaxKind.Identifier
+                    && (<ts.Identifier>member.name).text === methodName) {
+                    return <ts.MethodSignature>member;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    public getBaseMemberParameters(method: ts.MethodDeclaration): ts.NodeArray<ts.ParameterDeclaration> {
+        const classDeclaration = method.parent as ts.ClassDeclaration;
+        if (method.name.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+
+        const methodName = (<ts.Identifier>method.name).text;
+        const implicitMember = this.findImplicitInterfaceMethod(classDeclaration, methodName);
+        if (implicitMember) {
+            return implicitMember.parameters;
+        }
+
+        if (!classDeclaration.heritageClauses) {
+            return undefined;
+        }
+
+        for (const heritageClause of classDeclaration.heritageClauses) {
+            for (const typeExpression of heritageClause.types) {
+                const baseType = this.typeChecker.getTypeAtLocation(typeExpression);
+                const property = baseType && baseType.getProperty(methodName);
+                const declaration = property && property.valueDeclaration;
+                if (declaration
+                    && (declaration.kind === ts.SyntaxKind.MethodDeclaration
+                        || declaration.kind === ts.SyntaxKind.MethodSignature)) {
+                    return (<ts.MethodDeclaration | ts.MethodSignature>declaration).parameters;
                 }
             }
         }
@@ -264,6 +426,19 @@ export class IdentifierResolver {
     // interface property)
     public getImplementedInterfaceMembers(classDeclaration: ts.ClassDeclaration): Array<ts.PropertySignature | ts.MethodSignature> {
         const members: Array<ts.PropertySignature | ts.MethodSignature> = [];
+
+        const collectFrom = (interfaceDeclaration: ts.InterfaceDeclaration) => {
+            for (const member of interfaceDeclaration.members) {
+                if (member.kind === ts.SyntaxKind.PropertySignature || member.kind === ts.SyntaxKind.MethodSignature) {
+                    members.push(<ts.PropertySignature | ts.MethodSignature>member);
+                }
+            }
+        };
+
+        // interfaces the class satisfies structurally count the same as declared ones - the emitter gives
+        // them the same C++ base-class treatment (see getImplicitInterfaces)
+        this.getImplicitInterfaces(classDeclaration).forEach(collectFrom);
+
         if (!classDeclaration.heritageClauses) {
             return members;
         }
@@ -298,7 +473,7 @@ export class IdentifierResolver {
     public getInterfaceMethodSignatureForProperty(
         member: ts.PropertyDeclaration | ts.GetAccessorDeclaration): ts.MethodSignature {
         const classDeclaration = member.parent as ts.ClassDeclaration;
-        if (!classDeclaration.heritageClauses || member.name.kind !== ts.SyntaxKind.Identifier) {
+        if (member.name.kind !== ts.SyntaxKind.Identifier) {
             return undefined;
         }
 
@@ -324,7 +499,6 @@ export class IdentifierResolver {
     public getInterfacePropertyTypeForAccessor(accessor: ts.GetAccessorDeclaration): ts.TypeNode {
         const classDeclaration = accessor.parent as ts.ClassDeclaration;
         if (classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration
-            || !classDeclaration.heritageClauses
             || accessor.name.kind !== ts.SyntaxKind.Identifier) {
             return undefined;
         }
