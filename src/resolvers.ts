@@ -367,6 +367,22 @@ export class IdentifierResolver {
         return this.typeChecker.getTypeOfSymbolAtLocation(symbol, location);
     }
 
+    public getContextualType(node: ts.Expression): ts.Type {
+        return this.typeChecker.getContextualType(node);
+    }
+
+    // The single call signature of `type`, or undefined if it isn't a (single-signature) function type.
+    // Used to reconcile JS's "any arity goes" function assignability with std::function's exact arity.
+    public getSingleCallSignature(type: ts.Type): ts.Signature {
+        const signatures = type && type.getCallSignatures();
+        return signatures && signatures.length === 1 ? signatures[0] : undefined;
+    }
+
+    public getCallSignatureParameters(type: ts.Type): ts.Symbol[] {
+        const signature = this.getSingleCallSignature(type);
+        return signature ? signature.getParameters() : undefined;
+    }
+
     public typeToTypeNode(type: ts.Type): ts.TypeNode {
         return this.typeChecker.typeToTypeNode(type);
     }

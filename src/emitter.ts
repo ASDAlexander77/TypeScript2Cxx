@@ -763,6 +763,30 @@ export class Emitter {
         return false;
     }
 
+    // whether a type node mentions a type parameter anywhere in it (`T`, `T[]`, `Foo<T>`, ...)
+    private typeNodeReferencesTypeParameter(node: ts.Node): boolean {
+        if (!node) {
+            return false;
+        }
+
+        if (node.kind === ts.SyntaxKind.TypeReference) {
+            const symbol = this.resolver.getSymbolAtLocation((<ts.TypeReferenceNode>node).typeName);
+            if (symbol && symbol.declarations
+                && symbol.declarations.some(d => d.kind === ts.SyntaxKind.TypeParameter)) {
+                return true;
+            }
+        }
+
+        let found = false;
+        ts.forEachChild(node, child => {
+            if (!found && this.typeNodeReferencesTypeParameter(child)) {
+                found = true;
+            }
+        });
+
+        return found;
+    }
+
     private isTemplateType(effectiveType: any): boolean {
         if (!effectiveType) {
             return false;
@@ -2840,6 +2864,34 @@ export class Emitter {
             next = true;
         });
 
+        // In JS a function can be used wherever a function type with *more* parameters is expected - the
+        // extra arguments are simply ignored (`a(f: (x, v, y) => void)` accepts `a(() => {})`). A C++
+        // lambda has to actually accept them to be convertible to that std::function, so pad the parameter
+        // list out with unnamed parameters of the contextually expected types.
+        if (isArrowFunction || isFunctionExpression) {
+            const contextualParameters =
+                this.resolver.getCallSignatureParameters(this.resolver.getContextualType(<ts.Expression><any>node));
+            if (contextualParameters && contextualParameters.length > node.parameters.length) {
+                const missing = contextualParameters.slice(node.parameters.length).map(p =>
+                    <ts.ParameterDeclaration>(p.valueDeclaration || p.declarations && p.declarations[0]));
+                // Only pad against a signature written in concrete types. A generic one (`array<T>::map`'s
+                // `(value: T, index: number, array: T[]) => U`) has no `T` in scope at the lambda, and its
+                // runtime counterpart in core.h already SFINAE-selects on the callback's own arity - so
+                // padding there would both fail to compile and pick the wrong overload.
+                const canPad = missing.every(d => d && d.type && !this.typeNodeReferencesTypeParameter(d.type));
+                if (canPad) {
+                    missing.forEach(declaration => {
+                        if (next) {
+                            this.writer.writeString(', ');
+                        }
+
+                        this.processType(declaration.type);
+                        next = true;
+                    });
+                }
+            }
+        }
+
         if (isArrowFunction || isFunctionExpression) {
             this.writer.writeStringNewLine(') mutable');
         } else {
@@ -4324,7 +4376,81 @@ export class Emitter {
         this.writer.writeString('; })');
     }
 
+    // JS lets a function be used where a function type with a *different* parameter count is expected -
+    // surplus arguments are ignored, missing ones come through as undefined. std::function needs an exact
+    // arity match, so a bare reference to a function whose arity differs from the expected signature is
+    // emitted as a forwarding lambda carrying the expected signature instead. Returns false (emit the
+    // plain identifier) whenever this doesn't apply.
+    private writeFunctionReferenceArityAdapter(node: ts.Identifier): boolean {
+        const parent = node.parent;
+        if (parent.kind === ts.SyntaxKind.CallExpression && (<ts.CallExpression>parent).expression === node
+            || parent.kind === ts.SyntaxKind.QualifiedName
+            || parent.kind === ts.SyntaxKind.PropertyAccessExpression
+                && (<ts.PropertyAccessExpression>parent).name === node) {
+            return false;
+        }
+
+        const symbol = this.resolver.getSymbolAtLocation(node);
+        const declaration = symbol && symbol.valueDeclaration;
+        if (!declaration || declaration.kind !== ts.SyntaxKind.FunctionDeclaration) {
+            return false;
+        }
+
+        const signature = this.resolver.getSingleCallSignature(this.resolver.getContextualType(node));
+        if (!signature) {
+            return false;
+        }
+
+        const contextualParameters = signature.getParameters();
+        const functionParameters = (<ts.FunctionDeclaration>declaration).parameters;
+        if (contextualParameters.length === functionParameters.length) {
+            return false;
+        }
+
+        const parameterDeclarations = contextualParameters.map(p =>
+            <ts.ParameterDeclaration>(p.valueDeclaration || p.declarations && p.declarations[0]));
+        if (parameterDeclarations.some(d => !d || !d.type)) {
+            // without an explicit type for every expected parameter there's no signature to write
+            return false;
+        }
+
+        this.writer.writeString('[](');
+        parameterDeclarations.forEach((parameterDeclaration, index) => {
+            if (index > 0) {
+                this.writer.writeString(', ');
+            }
+
+            this.processType(parameterDeclaration.type);
+            this.writer.writeString(` __p${index}`);
+        });
+
+        const returnType = signature.getReturnType();
+        const returnsValue = returnType && (returnType.flags & ts.TypeFlags.Void) === 0;
+        this.writer.writeString(`) { ${returnsValue ? 'return ' : ''}`);
+        this.writeIdentifierName(node);
+        this.writer.writeString('(');
+        const forwardedCount = Math.min(contextualParameters.length, functionParameters.length);
+        for (let index = 0; index < forwardedCount; index++) {
+            if (index > 0) {
+                this.writer.writeString(', ');
+            }
+
+            this.writer.writeString(`__p${index}`);
+        }
+
+        this.writer.writeString('); }');
+        return true;
+    }
+
     private processIdentifier(node: ts.Identifier): void {
+        if (this.writeFunctionReferenceArityAdapter(node)) {
+            return;
+        }
+
+        this.writeIdentifierName(node);
+    }
+
+    private writeIdentifierName(node: ts.Identifier): void {
 
         if (this.isWritingMain) {
             const isRightPartOfPropertyAccess = node.parent.kind === ts.SyntaxKind.QualifiedName
