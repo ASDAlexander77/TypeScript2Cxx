@@ -414,6 +414,47 @@ export class IdentifierResolver {
         return this.isFieldRedefinedAsAccessor(declaration);
     }
 
+    // A constructor body that assigns to a field a subclass redefined as an accessor has to run *after*
+    // the object is fully built: in C++ a virtual call from a base constructor resolves to the base's own
+    // override (the object is still only a base at that point), so the subclass's setter would never run -
+    // where JS, whose prototype is in place from the start, does call it. Such a body is emitted into a
+    // virtual __ctor() that `new` invokes once construction has finished (see js::construct).
+    // Deliberately limited to parameterless constructors: forwarding constructor arguments through to a
+    // second phase is a much bigger change, and nothing needs it.
+    public hasDeferredConstructorBody(classDeclaration: ts.ClassDeclaration): boolean {
+        if (!classDeclaration || classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration) {
+            return false;
+        }
+
+        const constructor = <ts.ConstructorDeclaration>classDeclaration.members.find(m =>
+            m.kind === ts.SyntaxKind.Constructor
+            && !!(<ts.ConstructorDeclaration>m).body
+            && (<ts.ConstructorDeclaration>m).parameters.length === 0);
+        if (!constructor) {
+            return false;
+        }
+
+        return [classDeclaration].concat(this.baseClassesOf(classDeclaration)).some(c =>
+            c.members.some(m => m.kind === ts.SyntaxKind.PropertyDeclaration
+                && this.isFieldRedefinedAsAccessor(<ts.PropertyDeclaration>m)));
+    }
+
+    // the nearest base class that also defers its constructor body, if any
+    public getDeferredConstructorBaseClass(classDeclaration: ts.ClassDeclaration): ts.ClassDeclaration {
+        return this.baseClassesOf(classDeclaration).find(c => this.hasDeferredConstructorBody(c));
+    }
+
+    // whether `new` on this class has to run the deferred second phase - true when the class itself or
+    // anything it inherits from has one
+    public needsPostConstruct(classDeclaration: ts.ClassDeclaration): boolean {
+        if (!classDeclaration || classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration) {
+            return false;
+        }
+
+        return [classDeclaration].concat(this.baseClassesOf(classDeclaration))
+            .some(c => this.hasDeferredConstructorBody(c));
+    }
+
     // the type a get-accessor overriding an inherited field has to return, so the override matches
     public getBasePropertyTypeForAccessor(accessor: ts.GetAccessorDeclaration): ts.TypeNode {
         const classDeclaration = <ts.ClassDeclaration>accessor.parent;

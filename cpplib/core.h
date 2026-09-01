@@ -2406,6 +2406,12 @@ constexpr const T const_(T t) {
 
             virtual void __set_property(K name, V value);
 
+            // second phase of construction (see js::construct) - a no-op unless a generated class needs
+            // its constructor body to run with the finished object's vtable in place
+            virtual void __ctor()
+            {
+            }
+
             constexpr operator bool()
             {
                 return !isUndefined;
@@ -5050,6 +5056,17 @@ namespace js
     // indexing is the whole story, or a real class instance, where the name has to be routed to a field
     // or accessor through the __get_property/__set_property overrides the emitter generates. Only
     // distinguishable at runtime, hence these.
+    // Two-phase construction for a class whose constructor body has to run with the finished object's
+    // vtable in place - see hasDeferredConstructorBody. The body lives in __ctor(), which only dispatches
+    // to a subclass override once make_shared has finished building the object.
+    template <typename T, typename... Args>
+    inline std::shared_ptr<T> construct(Args... args)
+    {
+        auto instance = std::make_shared<T>(args...);
+        instance->__ctor();
+        return instance;
+    }
+
     // A class instance is reached by member name, so any other kind of key has to be spelled the way JS
     // spells it. For a map the key is left exactly as written instead, so js::object's own overloads keep
     // deciding (a number indexes by its digits, `undefined` by the literal name).

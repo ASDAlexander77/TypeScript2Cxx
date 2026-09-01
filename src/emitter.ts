@@ -1460,6 +1460,12 @@ export class Emitter {
         if (node.kind === ts.SyntaxKind.ClassDeclaration) {
             this.writeInterfaceMemberForwarders(<ts.ClassDeclaration>node);
             this.writeDynamicPropertyAccessors(<ts.ClassDeclaration>node);
+
+            // second phase of construction, run by js::construct once the object is complete
+            if (this.resolver.hasDeferredConstructorBody(<ts.ClassDeclaration>node)) {
+                this.writer.writeString('virtual void __ctor() override;');
+                this.writer.writeStringNewLine();
+            }
         }
 
         this.writer.cancelNewLine();
@@ -3431,9 +3437,18 @@ export class Emitter {
                         this.resolver.getOrResolveTypeOf(element));
                 });
 
-            (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
-                this.processStatementInternal(element, true);
-            });
+            // A deferred constructor body belongs in __ctor(), emitted right after this constructor -
+            // see hasDeferredConstructorBody. The constructor keeps only its initializer list (written
+            // above), including the parameter-property assignments and any super() call.
+            const deferBody = node.kind === ts.SyntaxKind.Constructor
+                && implementationMode
+                && this.resolver.hasDeferredConstructorBody(<ts.ClassDeclaration>node.parent);
+
+            if (!deferBody) {
+                (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
+                    this.processStatementInternal(element, true);
+                });
+            }
 
             // add default return if no body
             if (noReturnStatement && node && node.type && node.type.kind !== ts.SyntaxKind.VoidKeyword) {
@@ -3444,6 +3459,29 @@ export class Emitter {
             }
 
             this.writer.EndBlock();
+
+            if (deferBody) {
+                this.writer.writeStringNewLine();
+                this.writer.writeString('void ');
+                this.writeClassName();
+                this.writer.writeString('::__ctor()');
+                this.writer.writeStringNewLine();
+                this.writer.BeginBlock();
+
+                const baseClass = this.resolver.getDeferredConstructorBaseClass(<ts.ClassDeclaration>node.parent);
+                if (baseClass) {
+                    // the base's own deferred body still has to run first, and exactly once - this is the
+                    // only call to it, since js::construct only invokes the most derived __ctor
+                    this.writer.writeString(`${baseClass.name.text}::__ctor()`);
+                    this.writer.EndOfStatement();
+                }
+
+                (<any>node.body).statements.filter((item, index) => index >= skipped).forEach(element => {
+                    this.processStatementInternal(element, true);
+                });
+
+                this.writer.EndBlock();
+            }
         }
     }
 
@@ -4848,8 +4886,17 @@ export class Emitter {
         const typeOfExpression = isNew && this.resolver.getOrResolveTypeOf(node.expression);
         const isArray = isNew && typeOfExpression && typeOfExpression.symbol && typeOfExpression.symbol.name === 'ArrayConstructor';
 
+        // a class whose constructor body was deferred has to be built through js::construct, which runs
+        // that second phase once the object is complete (see hasDeferredConstructorBody)
+        const newedClass = isNew && typeOfExpression && typeOfExpression.symbol
+            && <ts.ClassDeclaration>typeOfExpression.symbol.valueDeclaration;
+        const usesPostConstruct = !isArray
+            && newedClass
+            && newedClass.kind === ts.SyntaxKind.ClassDeclaration
+            && this.resolver.needsPostConstruct(newedClass);
+
         if (node.kind === ts.SyntaxKind.NewExpression && !isArray) {
-            this.writer.writeString('std::make_shared<');
+            this.writer.writeString(usesPostConstruct ? 'construct<' : 'std::make_shared<');
         }
 
         if (isArray) {
