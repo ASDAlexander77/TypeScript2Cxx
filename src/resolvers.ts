@@ -4,6 +4,8 @@ export class IdentifierResolver {
 
     private implicitInterfaces = new Map<ts.ClassDeclaration, ts.InterfaceDeclaration[]>();
     private interfaceDeclarations = new Map<ts.SourceFile, ts.InterfaceDeclaration[]>();
+    private classDeclarations = new Map<ts.SourceFile, ts.ClassDeclaration[]>();
+    private fieldsRedefinedAsAccessor = new Map<ts.PropertyDeclaration, boolean>();
 
     public constructor(private typeChecker: ts.TypeChecker) {
     }
@@ -90,6 +92,13 @@ export class IdentifierResolver {
             // have real runtime counterparts here rather than being dynamic maps
             && !declaration.getSourceFile().isDeclarationFile
             && (<ts.InterfaceDeclaration>declaration).members.some(m => m.kind === ts.SyntaxKind.IndexSignature);
+    }
+
+    // Just `any`, as opposed to isAnyLikeType which also covers anonymous object types. Those are known
+    // to be dynamic maps; a plain `any` may just as well be holding a class instance, and only it needs
+    // the runtime property dispatch.
+    public isPureAnyType(typeInfo: ts.Type): boolean {
+        return !!typeInfo && (<any>typeInfo).intrinsicName === 'any';
     }
 
     public isTypeFromSymbol(node: ts.Node | ts.Type, kind: ts.SyntaxKind) {
@@ -344,9 +353,12 @@ export class IdentifierResolver {
                 continue;
             }
 
-            // Declarations are emitted in source order, and a base class has to be complete at that
-            // point - an interface written after the class can't be one of its bases.
-            if (interfaceDeclaration.getStart() > classDeclaration.getStart()) {
+            // Only interfaces declared alongside the class, in the same namespace. Structural typing is
+            // global in TS, but silently giving a class a base from an unrelated namespace is surprising,
+            // brings in vtables and ambiguity it never asked for, and the name wouldn't even be in scope
+            // where the base is written. (Ordering within the scope is fine - the emitter puts every
+            // interface ahead of the classes in a declaration section.)
+            if (this.enclosingModuleOf(interfaceDeclaration) !== this.enclosingModuleOf(classDeclaration)) {
                 continue;
             }
 
@@ -358,6 +370,128 @@ export class IdentifierResolver {
         }
 
         return result;
+    }
+
+    // A subclass may redefine an inherited *field* as a get/set accessor pair. TS keeps that transparent -
+    // the base class's own `this.prop = x` then runs the subclass's setter - but a plain C++ field can't
+    // be overridden, so such a field has to be published as a virtual accessor pair instead, and every
+    // access to it routed through that. Answers whether `member` is such a field.
+    public isFieldRedefinedAsAccessor(member: ts.Declaration): boolean {
+        if (!member || member.kind !== ts.SyntaxKind.PropertyDeclaration) {
+            return false;
+        }
+
+        const property = <ts.PropertyDeclaration>member;
+        const classDeclaration = <ts.ClassDeclaration>property.parent;
+        if (property.name.kind !== ts.SyntaxKind.Identifier
+            || !classDeclaration
+            || classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration
+            || !classDeclaration.name) {
+            return false;
+        }
+
+        const cached = this.fieldsRedefinedAsAccessor.get(property);
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        const name = (<ts.Identifier>property.name).text;
+        const className = classDeclaration.name.text;
+        const result = this.collectClassDeclarations(classDeclaration.getSourceFile()).some(candidate =>
+            candidate !== classDeclaration
+            && candidate.members.some(m => (m.kind === ts.SyntaxKind.GetAccessor || m.kind === ts.SyntaxKind.SetAccessor)
+                && m.name && m.name.kind === ts.SyntaxKind.Identifier && (<ts.Identifier>m.name).text === name)
+            && this.classExtends(candidate, className));
+
+        this.fieldsRedefinedAsAccessor.set(property, result);
+        return result;
+    }
+
+    // whether `node.prop` names a field that some subclass turned into an accessor pair
+    public isPropertyAccessOfRedefinedField(name: ts.Identifier): boolean {
+        const symbol = this.typeChecker.getSymbolAtLocation(name);
+        const declaration = symbol && symbol.valueDeclaration;
+        return this.isFieldRedefinedAsAccessor(declaration);
+    }
+
+    // the type a get-accessor overriding an inherited field has to return, so the override matches
+    public getBasePropertyTypeForAccessor(accessor: ts.GetAccessorDeclaration): ts.TypeNode {
+        const classDeclaration = <ts.ClassDeclaration>accessor.parent;
+        if (classDeclaration.kind !== ts.SyntaxKind.ClassDeclaration
+            || accessor.name.kind !== ts.SyntaxKind.Identifier) {
+            return undefined;
+        }
+
+        const name = (<ts.Identifier>accessor.name).text;
+        for (const baseClass of this.baseClassesOf(classDeclaration)) {
+            for (const member of baseClass.members) {
+                if (member.kind === ts.SyntaxKind.PropertyDeclaration
+                    && member.name.kind === ts.SyntaxKind.Identifier
+                    && (<ts.Identifier>member.name).text === name) {
+                    return (<ts.PropertyDeclaration>member).type;
+                }
+            }
+        }
+
+        return undefined;
+    }
+
+    // the namespace a declaration sits in, or undefined at top level
+    private enclosingModuleOf(node: ts.Node): ts.Node {
+        for (let parent = node.parent; parent; parent = parent.parent) {
+            if (parent.kind === ts.SyntaxKind.ModuleDeclaration) {
+                return parent;
+            }
+        }
+
+        return undefined;
+    }
+
+    private classExtends(classDeclaration: ts.ClassDeclaration, baseName: string): boolean {
+        return this.baseClassesOf(classDeclaration).some(c => c.name && c.name.text === baseName);
+    }
+
+    private baseClassesOf(classDeclaration: ts.ClassDeclaration): ts.ClassDeclaration[] {
+        const result: ts.ClassDeclaration[] = [];
+        let current = classDeclaration;
+        for (let depth = 0; current && current.heritageClauses && depth < 16; depth++) {
+            const extendsClause = current.heritageClauses.find(h => h.token === ts.SyntaxKind.ExtendsKeyword);
+            const baseExpression = extendsClause && extendsClause.types[0] && extendsClause.types[0].expression;
+            if (!baseExpression || baseExpression.kind !== ts.SyntaxKind.Identifier) {
+                break;
+            }
+
+            const baseSymbol = this.typeChecker.getSymbolAtLocation(baseExpression);
+            const baseDeclaration = baseSymbol && baseSymbol.valueDeclaration;
+            if (!baseDeclaration || baseDeclaration.kind !== ts.SyntaxKind.ClassDeclaration) {
+                break;
+            }
+
+            current = <ts.ClassDeclaration>baseDeclaration;
+            result.push(current);
+        }
+
+        return result;
+    }
+
+    private collectClassDeclarations(sourceFile: ts.SourceFile): ts.ClassDeclaration[] {
+        const cached = this.classDeclarations.get(sourceFile);
+        if (cached) {
+            return cached;
+        }
+
+        const declarations: ts.ClassDeclaration[] = [];
+        const visit = (node: ts.Node) => {
+            if (node.kind === ts.SyntaxKind.ClassDeclaration) {
+                declarations.push(<ts.ClassDeclaration>node);
+            }
+
+            ts.forEachChild(node, visit);
+        };
+
+        visit(sourceFile);
+        this.classDeclarations.set(sourceFile, declarations);
+        return declarations;
     }
 
     private collectInterfaceDeclarations(sourceFile: ts.SourceFile): ts.InterfaceDeclaration[] {

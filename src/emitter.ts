@@ -197,6 +197,16 @@ export class Emitter {
         return false;
     }
 
+    // Interfaces are emitted ahead of everything else in a declaration section: a class deriving from one
+    // (declared or, more often, implicit - see getImplicitInterfaces) needs its complete definition at
+    // that point, and TS puts no ordering requirement on the source. Relative order is otherwise kept.
+    private interfacesFirst<T extends ts.Node>(statements: T[]): T[] {
+        const interfaces = statements.filter(s => s.kind === ts.SyntaxKind.InterfaceDeclaration);
+        return interfaces.length === 0
+            ? statements
+            : interfaces.concat(statements.filter(s => s.kind !== ts.SyntaxKind.InterfaceDeclaration));
+    }
+
     private isDeclarationStatement(f: ts.Statement | ts.Declaration): boolean {
         if (f.kind === ts.SyntaxKind.FunctionDeclaration
             || f.kind === ts.SyntaxKind.EnumDeclaration
@@ -445,9 +455,9 @@ export class Emitter {
                 this.writer.writeStringNewLine();
             }
 
-            sourceFile.statements
+            this.interfacesFirst(sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
-                .filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s))
+                .filter(s => this.isDeclarationStatement(s) || this.isVariableStatement(s)))
                 .forEach(s => {
                     if (this.isVariableStatement(s)) {
                         this.processForwardDeclaration(s);
@@ -1449,6 +1459,7 @@ export class Emitter {
 
         if (node.kind === ts.SyntaxKind.ClassDeclaration) {
             this.writeInterfaceMemberForwarders(<ts.ClassDeclaration>node);
+            this.writeDynamicPropertyAccessors(<ts.ClassDeclaration>node);
         }
 
         this.writer.cancelNewLine();
@@ -1518,6 +1529,27 @@ export class Emitter {
         this.writer.EndOfStatement();
 
         this.writer.writeStringNewLine();
+
+        // a field a subclass redefines as an accessor pair has to be reachable virtually, so publish it
+        // as one here too (the storage keeps the field's own name; every access goes through these)
+        if (!implementationMode
+            && node.kind === ts.SyntaxKind.PropertyDeclaration
+            && node.name.kind === ts.SyntaxKind.Identifier
+            && this.resolver.isFieldRedefinedAsAccessor(<ts.PropertyDeclaration>node)) {
+            const name = (<ts.Identifier>node.name).text;
+
+            this.writer.writeString('virtual ');
+            this.processType(effectiveType);
+            this.writer.writeString(` get_${name}() { return this->${name}; }`);
+            this.writer.writeStringNewLine();
+
+            this.writer.writeString('virtual void ');
+            this.writer.writeString(`set_${name}(`);
+            this.processType(effectiveType);
+            this.writer.writeString(` value) { this->${name} = value; }`);
+            this.writer.writeStringNewLine();
+            this.writer.writeStringNewLine();
+        }
     }
 
     // interface property signatures compile to a pure-virtual get/set pair (not a plain field) so that
@@ -1540,6 +1572,14 @@ export class Emitter {
             return false;
         }
 
+        // an explicit `x as Foo` already emits its own as<>() cast - wrapping inside it would nest the
+        // conversion twice
+        if (node.parent
+            && (node.parent.kind === ts.SyntaxKind.AsExpression
+                || node.parent.kind === ts.SyntaxKind.TypeAssertionExpression)) {
+            return false;
+        }
+
         // only a value that really is a dynamic map at runtime needs (or can use) the adapter
         if (!this.resolver.isAnyLikeType(this.resolver.getOrResolveTypeOf(node))) {
             return false;
@@ -1554,7 +1594,17 @@ export class Emitter {
             return false;
         }
 
-        this.writer.writeString(`std::make_shared<${this.objectLiteralAdapterName(<ts.InterfaceDeclaration>declaration, true)}>(`);
+        const adapterName = this.objectLiteralAdapterName(<ts.InterfaceDeclaration>declaration, true);
+        if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
+            // statically known to be a map, so construct the adapter over it directly
+            this.writer.writeString(`std::make_shared<${adapterName}>(`);
+        } else {
+            // an `any` can be holding either a map or a real instance of a class implementing the
+            // interface - to_interface decides at runtime
+            const interfaceName = this.namespacePrefixOf(declaration) + (<ts.InterfaceDeclaration>declaration).name.text;
+            this.writer.writeString(`to_interface<${interfaceName}, ${adapterName}>(`);
+        }
+
         this.insideObjectToInterfaceConversion = true;
         try {
             this.processExpression(node);
@@ -1593,14 +1643,15 @@ export class Emitter {
         return prefix;
     }
 
-    // only property-only interfaces: a method member would have to be adapted into a callable stored in
-    // the map, which is a different (and much less common) shape than what this is for
+    // properties and methods can both be adapted (a method by invoking the callable stored under its
+    // name); anything else - index or call signatures - describes something that isn't a class shape
     private hasObjectLiteralAdapter(interfaceDeclaration: ts.InterfaceDeclaration): boolean {
         return interfaceDeclaration.kind === ts.SyntaxKind.InterfaceDeclaration
             && interfaceDeclaration.members.length > 0
-            && interfaceDeclaration.members.every(m => m.kind === ts.SyntaxKind.PropertySignature
-                && !!(<ts.PropertySignature>m).type
-                && m.name.kind === ts.SyntaxKind.Identifier);
+            && interfaceDeclaration.members.every(m => m.name
+                && m.name.kind === ts.SyntaxKind.Identifier
+                && (m.kind === ts.SyntaxKind.PropertySignature && !!(<ts.PropertySignature>m).type
+                    || m.kind === ts.SyntaxKind.MethodSignature));
     }
 
     private writeObjectLiteralInterfaceAdapter(interfaceDeclaration: ts.InterfaceDeclaration): void {
@@ -1621,10 +1672,51 @@ export class Emitter {
         this.writer.writeStringNewLine('js::object _o;');
         this.writer.writeStringNewLine(`${adapterName}(js::object o) : _o(o) {}`);
 
-        interfaceDeclaration.members.forEach(member => {
-            const property = <ts.PropertySignature>member;
-            const name = (<ts.Identifier>property.name).text;
+        // dynamic access has to reach the literal behind the adapter, not the adapter's own (empty) map
+        this.writer.writeStringNewLine('virtual any __get_property(string name) override { return _o[name]; }');
+        this.writer.writeStringNewLine(
+            'virtual void __set_property(string name, any value) override { _o[name] = value; }');
 
+        interfaceDeclaration.members.forEach(member => {
+            const name = (<ts.Identifier>member.name).text;
+
+            if (member.kind === ts.SyntaxKind.MethodSignature) {
+                // the map holds a callable under this name - unwrap it to the method's own signature and
+                // call it, which is what invoking the method means for a plain object
+                const method = <ts.MethodSignature>member;
+                const writeSignature = (withNames: boolean) => {
+                    method.parameters.forEach((parameter, index) => {
+                        if (index > 0) {
+                            this.writer.writeString(', ');
+                        }
+
+                        this.processType(parameter.type
+                            || this.resolver.getOrResolveTypeOfAsTypeNode(parameter.initializer));
+                        if (withNames) {
+                            this.writer.writeString(` __p${index}`);
+                        }
+                    });
+                };
+
+                this.writer.writeString('virtual ');
+                this.processType(method.type);
+                this.writer.writeString(` ${name}(`);
+                writeSignature(true);
+                this.writer.writeString(') override { return _o[STR("' + name + '")].operator std::function<');
+                this.processType(method.type);
+                this.writer.writeString('(');
+                writeSignature(false);
+                this.writer.writeString(')>()(');
+                method.parameters.forEach((parameter, index) => {
+                    this.writer.writeString(index > 0 ? `, __p${index}` : `__p${index}`);
+                });
+
+                this.writer.writeString('); }');
+                this.writer.writeStringNewLine();
+                return;
+            }
+
+            const property = <ts.PropertySignature>member;
             this.writer.writeString('virtual ');
             this.processType(property.type);
             this.writer.writeString(` get_${name}() override { return _o[STR("${name}")]; }`);
@@ -1666,6 +1758,165 @@ export class Emitter {
     // happens, the natural member the class already emits doesn't override the interface's virtual
     // member(s) by name, so synthesize the missing override(s) here, forwarding to whatever the class
     // actually implemented.
+    // C++ has no reflection, so reaching a class member by name at runtime (`v.foo` where `v` is an `any`
+    // that happens to hold an instance) needs the mapping written out. Emits the class's overrides of
+    // js::object's __get_property/__set_property, one branch per own member, deferring to the base class
+    // for anything else - which ends at the map lookup js::object itself does, so a name the class never
+    // declared still behaves like a JS property.
+    private writeDynamicPropertyAccessors(classDeclaration: ts.ClassDeclaration): void {
+        const byName = new Map<string, {
+            name: string, accessor: boolean, readable: boolean, writable: boolean,
+            method?: ts.MethodDeclaration, storage?: string
+        }>();
+        const entryFor = (name: string, accessor: boolean) => {
+            let entry = byName.get(name);
+            if (!entry) {
+                entry = { name, accessor, readable: false, writable: false };
+                byName.set(name, entry);
+            }
+
+            return entry;
+        };
+
+        classDeclaration.members.forEach(member => {
+            if (!member.name || member.name.kind !== ts.SyntaxKind.Identifier || this.isStatic(member)) {
+                return;
+            }
+
+            const name = (<ts.Identifier>member.name).text;
+            switch (member.kind) {
+                case ts.SyntaxKind.PropertyDeclaration:
+                    // a field a subclass redefines as an accessor is published as a virtual pair, so reach
+                    // it through that here too - otherwise dynamic access would bypass the override
+                    const field = entryFor(name,
+                        this.resolver.isFieldRedefinedAsAccessor(<ts.PropertyDeclaration>member));
+                    field.readable = true;
+                    field.writable = true;
+                    // a field standing in for an interface method is stored under a renamed symbol (see
+                    // processPropertyDeclaration), so the storage to read and write is that one
+                    if (this.resolver.getInterfaceMethodSignatureForProperty(<ts.PropertyDeclaration>member)) {
+                        field.storage = `${name}_`;
+                    }
+
+                    break;
+                case ts.SyntaxKind.GetAccessor:
+                    // a property may declare only one half of the pair - emitting a branch for the missing
+                    // one would call a get_/set_ that was never generated
+                    entryFor(name, true).readable = true;
+                    break;
+                case ts.SyntaxKind.SetAccessor:
+                    entryFor(name, true).writable = true;
+                    break;
+                case ts.SyntaxKind.MethodDeclaration:
+                    // reading a method by name yields the callable, as in JS (`f.abc` then `f.abc()`)
+                    const method = entryFor(name, false);
+                    method.readable = true;
+                    method.method = <ts.MethodDeclaration>member;
+                    break;
+                default:
+                    break;
+            }
+        });
+
+        const members = Array.from(byName.values());
+        const seen = new Set<string>(byName.keys());
+
+        // constructor parameter properties (`constructor(public x: number)`) are fields too
+        classDeclaration.members
+            .filter(m => m.kind === ts.SyntaxKind.Constructor)
+            .forEach(constructor => {
+                (<ts.ConstructorDeclaration>constructor).parameters
+                    .filter(p => p.modifiers && this.hasAccessModifier(p.modifiers)
+                        && p.name.kind === ts.SyntaxKind.Identifier)
+                    .forEach(p => {
+                        const name = (<ts.Identifier>p.name).text;
+                        if (!seen.has(name)) {
+                            seen.add(name);
+                            members.push({ name, accessor: false, readable: true, writable: true });
+                        }
+                    });
+            });
+
+        if (members.length === 0) {
+            return;
+        }
+
+        const baseName = this.dynamicPropertyBaseName(classDeclaration);
+
+        this.writer.writeString('virtual any __get_property(string name) override ');
+        this.writer.BeginBlock();
+        members.filter(m => m.readable).forEach(member => {
+            if (member.method) {
+                // Wrap the method in a lambda of its own signature - `any` takes callables, not member
+                // function pointers. The signature has to be the one actually emitted, which may have been
+                // padded out to an interface's parameter list (see the padding in
+                // processFunctionExpressionInternal), or the call below wouldn't match.
+                const baseParameters = this.resolver.getBaseMemberParameters(member.method);
+                const parameters = baseParameters && baseParameters.length > member.method.parameters.length
+                    ? baseParameters
+                    : member.method.parameters;
+
+                this.writer.writeString(`if (name == STR("${member.name}")) return any([this](`);
+                parameters.forEach((parameter, index) => {
+                    if (index > 0) {
+                        this.writer.writeString(', ');
+                    }
+
+                    this.processType(parameter.type
+                        || this.resolver.getOrResolveTypeOfAsTypeNode(parameter.initializer));
+                    this.writer.writeString(` __p${index}`);
+                });
+
+                this.writer.writeString(`) { return this->${member.name}(`);
+                parameters.forEach((parameter, index) => {
+                    this.writer.writeString(index > 0 ? `, __p${index}` : `__p${index}`);
+                });
+
+                this.writer.writeStringNewLine('); });');
+                return;
+            }
+
+            // to_any rather than any(...) directly: not every field type has an `any` representation (an
+            // array<T> or a std::function of some shape), and one that doesn't must not break the build
+            this.writer.writeStringNewLine(
+                `if (name == STR("${member.name}")) return to_any(${member.accessor ? `get_${member.name}()` : `this->${member.storage || member.name}`});`);
+        });
+        this.writer.writeString(`return ${baseName}::__get_property(name);`);
+        this.writer.writeStringNewLine();
+        this.writer.EndBlock();
+        this.writer.writeStringNewLine();
+
+        this.writer.writeString('virtual void __set_property(string name, any value) override ');
+        this.writer.BeginBlock();
+        members.filter(m => m.writable).forEach(member => {
+            this.writer.writeStringNewLine(member.accessor
+                ? `if (name == STR("${member.name}")) { set_${member.name}(value); return; }`
+                : `if (name == STR("${member.name}")) { assign_any(this->${member.storage || member.name}, value); return; }`);
+        });
+        this.writer.writeString(`${baseName}::__set_property(name, value);`);
+        this.writer.writeStringNewLine();
+        this.writer.EndBlock();
+        this.writer.writeStringNewLine();
+    }
+
+    // the class to defer an unknown property name to - a base class if there is one, otherwise js::object
+    private dynamicPropertyBaseName(classDeclaration: ts.ClassDeclaration): string {
+        if (classDeclaration.heritageClauses) {
+            for (const heritageClause of classDeclaration.heritageClauses) {
+                if (heritageClause.token !== ts.SyntaxKind.ExtendsKeyword) {
+                    continue;
+                }
+
+                const type = heritageClause.types[0];
+                if (type && type.expression.kind === ts.SyntaxKind.Identifier) {
+                    return (<ts.Identifier>type.expression).text;
+                }
+            }
+        }
+
+        return 'object';
+    }
+
     private writeInterfaceMemberForwarders(classDeclaration: ts.ClassDeclaration): void {
         for (const interfaceMember of this.resolver.getImplementedInterfaceMembers(classDeclaration)) {
             if (interfaceMember.name.kind !== ts.SyntaxKind.Identifier) {
@@ -1920,7 +2171,7 @@ export class Emitter {
 
         if (node.body.kind === ts.SyntaxKind.ModuleBlock) {
             const block = <ts.ModuleBlock>node.body;
-            block.statements.forEach(s => {
+            this.interfacesFirst(block.statements.slice()).forEach(s => {
                 if (this.isVariableStatement(s)) {
                     // only declare it here - the definition (with its initializer) is emitted into the
                     // .cpp by processModuleVariableStatements, exactly as for a top-level variable.
@@ -2455,6 +2706,12 @@ export class Emitter {
                 this.writer.writeString('string');
                 break;
             case ts.SyntaxKind.TypeLiteral:
+                // An anonymous *shape* (`{ a: number }`) is a structural constraint, and in JS a class
+                // instance satisfies it just as well as an object literal does. `js::object` can only ever
+                // be the literal, so use `any` and let the property access decide at runtime which it is
+                // (see get_property). One carrying an index signature really is a map, and stays one.
+                this.writer.writeString(this.isAnonymousShapeTypeNode(<ts.TypeLiteralNode>type) ? 'any' : 'object');
+                break;
             case ts.SyntaxKind.ObjectLiteralExpression:
                 this.writer.writeString('object');
                 break;
@@ -2875,7 +3132,10 @@ export class Emitter {
                         const baseReturnType = isClassMember && node.kind === ts.SyntaxKind.MethodDeclaration
                             && this.resolver.getBaseMemberReturnTypeNode(<ts.MethodDeclaration>node)
                             || isClassMember && node.kind === ts.SyntaxKind.GetAccessor
-                            && this.resolver.getInterfacePropertyTypeForAccessor(<ts.GetAccessorDeclaration>node);
+                            && (this.resolver.getInterfacePropertyTypeForAccessor(<ts.GetAccessorDeclaration>node)
+                                // an accessor overriding an inherited field takes that field's type, or the
+                                // two get_ overrides wouldn't have matching signatures
+                                || this.resolver.getBasePropertyTypeForAccessor(<ts.GetAccessorDeclaration>node));
                         if (baseReturnType) {
                             this.processType(baseReturnType);
                         } else {
@@ -3985,6 +4245,17 @@ export class Emitter {
                     && binaryExpression.left === node;
             }
 
+            // reading an element of a value statically typed `any` - see processPropertyAccessExpression;
+            // the writing side is handled at the assignment (writeAnyPropertyAssignment)
+            if (!isWriting && this.resolver.isPureAnyType(this.resolver.getOrResolveTypeOf(node.expression))) {
+                this.writer.writeString('get_property(');
+                this.processExpression(node.expression);
+                this.writer.writeString(', ');
+                this.processExpression(node.argumentExpression);
+                this.writer.writeString(')');
+                return;
+            }
+
             dereference = type
                 && type.kind !== ts.SyntaxKind.TypeLiteral
                 && type.kind !== ts.SyntaxKind.StringKeyword
@@ -4061,6 +4332,15 @@ export class Emitter {
             return;
         }
 
+        if ((node.operator === ts.SyntaxKind.PlusPlusToken || node.operator === ts.SyntaxKind.MinusMinusToken)
+            && this.writeAccessorReadModifyWrite(
+                node.operand,
+                node.operator === ts.SyntaxKind.PlusPlusToken ? '+' : '-',
+                () => this.writer.writeString('1'),
+                false)) {
+            return;
+        }
+
         const op = this.opsMap[node.operator];
         const isFunction = op.substr(0, 2) === '__';
         if (isFunction) {
@@ -4084,7 +4364,104 @@ export class Emitter {
         }
     }
 
+    // `{ a: number }` - an anonymous type describing a shape, as opposed to `{ [k: string]: string }`,
+    // which describes a map
+    private isAnonymousShapeTypeNode(type: ts.TypeLiteralNode): boolean {
+        return !!type.members
+            && type.members.length > 0
+            && type.members.every(m => m.kind === ts.SyntaxKind.PropertySignature
+                || m.kind === ts.SyntaxKind.MethodSignature);
+    }
+
+    // the same question for a resolved type rather than a written type node
+    private isAnonymousShapeType(typeInfo: ts.Type): boolean {
+        if (!typeInfo || !this.resolver.isAnyLikeType(typeInfo) || this.resolver.isPureAnyType(typeInfo)) {
+            return false;
+        }
+
+        const declaration = typeInfo.symbol && typeInfo.symbol.declarations && typeInfo.symbol.declarations[0];
+        return !!declaration
+            && declaration.kind === ts.SyntaxKind.TypeLiteral
+            && this.isAnonymousShapeTypeNode(<ts.TypeLiteralNode>declaration);
+    }
+
+    // whether `obj.p` reads and writes through a get_p()/set_p() pair rather than being a plain field
+    private isAccessorBackedProperty(node: ts.PropertyAccessExpression): boolean {
+        if (node.name.kind !== ts.SyntaxKind.Identifier) {
+            return false;
+        }
+
+        const typeInfo = this.resolver.getOrResolveTypeOf(node.expression);
+        if (this.resolver.isAnyLikeType(typeInfo) || this.resolver.isDynamicMapInterface(typeInfo)) {
+            // reached by key instead - `obj["p"]` is a real lvalue, so it needs none of this
+            return false;
+        }
+
+        if (this.resolver.isPropertyAccessOfRedefinedField(<ts.Identifier>node.name)) {
+            return true;
+        }
+
+        const symbolInfo = this.resolver.getSymbolAtLocation(node.name);
+        const declarations = symbolInfo && symbolInfo.declarations;
+        return !!declarations
+            && declarations.length > 0
+            && (declarations[0].kind === ts.SyntaxKind.GetAccessor
+                || declarations[0].kind === ts.SyntaxKind.SetAccessor
+                || declarations[0].kind === ts.SyntaxKind.PropertySignature
+                    && declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration);
+    }
+
+    // `obj.p++`, `--obj.p` and `obj.p += v` on an accessor-backed property can't use the C++ operator of
+    // the same name: `obj->get_p()` yields a temporary, so the modification would be applied to that copy
+    // and thrown away. Emit the read-modify-write explicitly instead, with `obj` evaluated once (it can
+    // have side effects of its own - `getf().x++`) and exactly one get and one set, as in JS.
+    private writeAccessorReadModifyWrite(
+        target: ts.Expression,
+        op: string,
+        writeOperand: () => void,
+        resultIsOldValue: boolean): boolean {
+
+        if (!target || target.kind !== ts.SyntaxKind.PropertyAccessExpression) {
+            return false;
+        }
+
+        const propertyAccess = <ts.PropertyAccessExpression>target;
+        if (!this.isAccessorBackedProperty(propertyAccess)) {
+            return false;
+        }
+
+        const name = (<ts.Identifier>propertyAccess.name).text;
+        const objectName = `__obj${target.getFullStart()}_${target.getEnd()}`;
+        const valueName = `__val${target.getFullStart()}_${target.getEnd()}`;
+
+        this.writer.writeString(`[&]() { auto ${objectName} = `);
+        this.processExpression(propertyAccess.expression);
+        this.writer.writeString(`; auto ${valueName} = ${objectName}->get_${name}()`);
+
+        if (resultIsOldValue) {
+            this.writer.writeString(`; ${objectName}->set_${name}(${valueName} ${op} `);
+            writeOperand();
+            this.writer.writeString(')');
+        } else {
+            this.writer.writeString(` ${op} `);
+            writeOperand();
+            this.writer.writeString(`; ${objectName}->set_${name}(${valueName})`);
+        }
+
+        this.writer.writeString(`; return ${valueName}; }()`);
+        return true;
+    }
+
     private processPostfixUnaryExpression(node: ts.PostfixUnaryExpression): void {
+        if ((node.operator === ts.SyntaxKind.PlusPlusToken || node.operator === ts.SyntaxKind.MinusMinusToken)
+            && this.writeAccessorReadModifyWrite(
+                node.operand,
+                node.operator === ts.SyntaxKind.PlusPlusToken ? '+' : '-',
+                () => this.writer.writeString('1'),
+                true)) {
+            return;
+        }
+
         this.processExpression(node.operand);
         this.writer.writeString(this.opsMap[node.operator]);
     }
@@ -4118,6 +4495,48 @@ export class Emitter {
         }
     }
 
+    // `v.foo = x` / `v[k] = x` where `v` is statically `any`: emitted as set_property so a class instance
+    // behind the `any` has the write routed to its field or setter rather than into a map it doesn't use.
+    private writeAnyPropertyAssignment(node: ts.BinaryExpression): boolean {
+        const target = node.left;
+        let objectExpression: ts.Expression;
+        let writeKey: () => void;
+
+        if (target.kind === ts.SyntaxKind.PropertyAccessExpression
+            && (<ts.PropertyAccessExpression>target).name.kind === ts.SyntaxKind.Identifier) {
+            objectExpression = (<ts.PropertyAccessExpression>target).expression;
+            const name = (<ts.Identifier>(<ts.PropertyAccessExpression>target).name).text;
+            writeKey = () => this.writer.writeString(`STR("${name}")`);
+        } else if (target.kind === ts.SyntaxKind.ElementAccessExpression) {
+            objectExpression = (<ts.ElementAccessExpression>target).expression;
+            writeKey = () => {
+                const key = (<ts.ElementAccessExpression>target).argumentExpression;
+                // a bare numeric key is ambiguous between js::number and js::string, as in plain indexing
+                if (key.kind === ts.SyntaxKind.NumericLiteral) {
+                    (<any>key).__boxing = true;
+                }
+
+                this.processExpression(key);
+            };
+        } else {
+            return false;
+        }
+
+        const objectType = this.resolver.getOrResolveTypeOf(objectExpression);
+        if (!this.resolver.isPureAnyType(objectType) && !this.isAnonymousShapeType(objectType)) {
+            return false;
+        }
+
+        this.writer.writeString('set_property(');
+        this.processExpression(objectExpression);
+        this.writer.writeString(', ');
+        writeKey();
+        this.writer.writeString(', ');
+        this.processExpression(node.right);
+        this.writer.writeString(')');
+        return true;
+    }
+
     private processBinaryExpression(node: ts.BinaryExpression): void {
         const opCode = node.operatorToken.kind;
 
@@ -4145,6 +4564,31 @@ export class Emitter {
             });
 
             this.writer.writeString(`return ${tempName}; }()`);
+            return;
+        }
+
+        // `obj.p += v` on an accessor-backed property, same reasoning as `obj.p++` (the plain `=` form is
+        // rewritten into a setter call by the preprocessor, which handles that case already)
+        const compoundOperators: { [kind: number]: string } = {
+            [ts.SyntaxKind.PlusEqualsToken]: '+',
+            [ts.SyntaxKind.MinusEqualsToken]: '-',
+            [ts.SyntaxKind.AsteriskEqualsToken]: '*',
+            [ts.SyntaxKind.SlashEqualsToken]: '/',
+            [ts.SyntaxKind.PercentEqualsToken]: '%',
+            [ts.SyntaxKind.AmpersandEqualsToken]: '&',
+            [ts.SyntaxKind.BarEqualsToken]: '|',
+            [ts.SyntaxKind.CaretEqualsToken]: '^'
+        };
+
+        if (compoundOperators[opCode]
+            && this.writeAccessorReadModifyWrite(
+                node.left, compoundOperators[opCode], () => this.processExpression(node.right), false)) {
+            return;
+        }
+
+        // writing a property of a value statically typed `any` - the counterpart of the get_property read
+        // in processPropertyAccessExpression/processElementAccessExpression
+        if (opCode === ts.SyntaxKind.EqualsToken && this.writeAnyPropertyAssignment(node)) {
             return;
         }
 
@@ -4694,7 +5138,10 @@ export class Emitter {
                 || symbolInfo.declarations[0].kind === ts.SyntaxKind.SetAccessor
                 || symbolInfo.declarations[0].kind === ts.SyntaxKind.PropertySignature
                     && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration)
-            || node.name.text === 'length' && this.resolver.isArrayOrStringType(typeInfo);
+            || node.name.text === 'length' && this.resolver.isArrayOrStringType(typeInfo)
+            // a field some subclass redefines as an accessor is published as a virtual pair, so reading it
+            // has to go through the getter for the override to take effect
+            || this.resolver.isPropertyAccessOfRedefinedField(<ts.Identifier>node.name);
 
         // a field implementing an interface method (see processPropertyDeclaration) is stored under a
         // renamed identifier so it doesn't collide with the forwarding override of the same name
@@ -4724,6 +5171,18 @@ export class Emitter {
                 this.writer.writeString(')');
             }
         } else {
+            // a value statically typed `any` may be holding a dynamic map or a real class instance, and
+            // only the latter needs the name routed to a field/accessor - decided at runtime by
+            // get_property. (Writes go through set_property, see processBinaryExpression.)
+            if ((this.resolver.isPureAnyType(typeInfo) || this.isAnonymousShapeType(typeInfo))
+                && node.name.kind === ts.SyntaxKind.Identifier
+                && (<any>node).__set !== true) {
+                this.writer.writeString('get_property(');
+                this.processExpression(node.expression);
+                this.writer.writeString(`, STR("${(<ts.Identifier>node.name).text}"))`);
+                return;
+            }
+
             if (node.expression.kind === ts.SyntaxKind.NewExpression
                 || node.expression.kind === ts.SyntaxKind.ArrayLiteralExpression) {
                 this.writer.writeString('(');

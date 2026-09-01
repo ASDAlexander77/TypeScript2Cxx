@@ -137,7 +137,10 @@ export class Preprocessor {
                             || symbolInfo.declarations.length > 1 && symbolInfo.declarations[1].kind === ts.SyntaxKind.SetAccessor
                             || symbolInfo.declarations.length > 0 && symbolInfo.declarations[0].kind === ts.SyntaxKind.PropertySignature
                                 && symbolInfo.declarations[0].parent.kind === ts.SyntaxKind.InterfaceDeclaration)
-                        || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo);
+                        || propertyAccess.name.text === 'length' && this.resolver.isArrayOrStringTypeFromSymbol(symbolInfo)
+                        // see isFieldRedefinedAsAccessor - assigning to such a field must call the setter,
+                        // so a subclass that redefined it as an accessor actually runs
+                        || this.resolver.isPropertyAccessOfRedefinedField(<ts.Identifier>propertyAccess.name);
 
                     // a value of an interface carrying an index signature is a dynamic map, and its named
                     // members are reached by key rather than through a set_x() pair - so there is no

@@ -675,28 +675,32 @@ constexpr const T const_(T t) {
         return ((lIsUndef || lIsNull) && (rIsUndef || rIsNull)) || l == r;
     }
 
+    // Constrained so exactly one of the four applies to any pair of operands, mirroring equals() above.
+    // With the by-value overloads constrained on only one side and the by-reference one not at all, a call
+    // like `not_equals(js::number, int)` matched two of them equally well and was ambiguous.
     template <typename L, typename R = void>
-    requires ArithmeticOrEnum<R>
+    requires (!NeverNullish<L> && NeverNullish<R>)
     constexpr bool not_equals(const L& l, R r)
     {
         return !equals(l, r);
     }
 
     template <typename L = void, typename R>
-    requires ArithmeticOrEnum<L>
+    requires (NeverNullish<L> && !NeverNullish<R>)
     constexpr bool not_equals(L l, const R& r)
     {
         return !equals(l, r);
     }
 
     template <typename L = void, typename R = void>
-    requires (ArithmeticOrEnum<L> && ArithmeticOrEnum<R>)
+    requires (NeverNullish<L> && NeverNullish<R>)
     constexpr bool not_equals(L l, R r)
     {
         return l != r;
-    } 
+    }
 
     template <typename L, typename R>
+    requires (!NeverNullish<L> && !NeverNullish<R>)
     constexpr bool not_equals(const L& l, const R& r)
     {
         return !equals(l, r);
@@ -2393,6 +2397,15 @@ constexpr const T const_(T t) {
             {
             }
 
+            // Reaching a property by name at runtime (`v.foo` / `v["foo"]` on an `any`). Every generated
+            // class derives from this, and overrides these to route a name to its own field or accessor -
+            // C++ has no reflection, so the mapping has to be emitted per class. The defaults here are the
+            // plain map behaviour, which is also the fallback for a name a class doesn't declare (JS lets
+            // properties be added to any object).
+            virtual V __get_property(K name);
+
+            virtual void __set_property(K name, V value);
+
             constexpr operator bool()
             {
                 return !isUndefined;
@@ -2756,7 +2769,11 @@ constexpr const T const_(T t) {
                 }
             }
 
-            if constexpr (is_stringish_v<T>)
+            // an object indexes by any key js::object itself accepts - a number keys by its digits, and
+            // `undefined` by that literal name, both of which JS allows on a plain object
+            if constexpr (is_stringish_v<T>
+                || std::is_same_v<T, js::number>
+                || std::is_same_v<T, js::undefined_t>)
             {
                 if (get_type() == anyTypeId::object_type)
                 {
@@ -2778,7 +2795,9 @@ constexpr const T const_(T t) {
                 }
             }
 
-            if constexpr (is_stringish_v<T>)
+            if constexpr (is_stringish_v<T>
+                || std::is_same_v<T, js::number>
+                || std::is_same_v<T, js::undefined_t>)
             {
                 if (get_type() == anyTypeId::object_type)
                 {
@@ -3687,6 +3706,12 @@ constexpr const T const_(T t) {
             case anyTypeId::object_type:
                 return TXT("object");
 
+            case anyTypeId::function_type:
+                return TXT("function");
+
+            case anyTypeId::class_type:
+                return TXT("object");
+
             default:
                 return TXT("error");
             }
@@ -4281,6 +4306,18 @@ constexpr const T const_(T t) {
         void object<K, V>::Delete(js::any field)
         {
             get().erase(field.operator js::string());
+        }
+
+        template <typename K, typename V>
+        V object<K, V>::__get_property(K name)
+        {
+            return (*this)[name];
+        }
+
+        template <typename K, typename V>
+        void object<K, V>::__set_property(K name, V value)
+        {
+            (*this)[name] = value;
         }
 
     } // namespace tmpl
@@ -4958,6 +4995,108 @@ namespace js
     };
 
     // end of HTML
+
+    // An interface-typed position can receive either a real class instance or a plain object literal -
+    // in JS they are interchangeable, but here they have entirely different representations (a class
+    // deriving from the interface, versus a dynamic string->any map). Which one it is can only be known
+    // at runtime, so pick there: cast the instance, or view the map through the generated adapter `A`.
+    // Defined here rather than beside the other as<>/cast helpers because `any` is a concrete (non
+    // dependent) parameter type, so its members are looked up where this is written, not where it is
+    // instantiated - which needs the complete definition to already be in scope.
+    template <typename I, typename A>
+    inline std::shared_ptr<I> to_interface(js::any v)
+    {
+        if (v.get_type() == js::any::anyTypeId::class_type)
+        {
+            return std::dynamic_pointer_cast<I>(v.get<std::shared_ptr<js::object>>());
+        }
+
+        return std::static_pointer_cast<I>(std::make_shared<A>(v.operator js::object()));
+    }
+
+    // Not every member type has an `any` representation (an array<T>, or a std::function of some shape),
+    // and the generated by-name property tables cover every member of a class - so reading or writing one
+    // of those through a name fails at runtime rather than refusing to compile the whole program.
+    // (a `requires` on the expression itself rather than std::is_constructible / std::is_assignable -
+    // several of any's constructors are templates with defaulted parameters that those traits report as
+    // viable even where the conversion does not actually hold)
+    template <typename T>
+    inline js::any to_any(const T &value)
+    {
+        if constexpr (requires { js::any(value); })
+        {
+            return js::any(value);
+        }
+        else
+        {
+            throw "not implemented";
+        }
+    }
+
+    template <typename T>
+    inline void assign_any(T &target, js::any value)
+    {
+        if constexpr (requires { target = value; })
+        {
+            target = value;
+        }
+        else
+        {
+            throw "not implemented";
+        }
+    }
+
+    // Property access on a value that is statically just `any`: it may be holding a dynamic map, where
+    // indexing is the whole story, or a real class instance, where the name has to be routed to a field
+    // or accessor through the __get_property/__set_property overrides the emitter generates. Only
+    // distinguishable at runtime, hence these.
+    // A class instance is reached by member name, so any other kind of key has to be spelled the way JS
+    // spells it. For a map the key is left exactly as written instead, so js::object's own overloads keep
+    // deciding (a number indexes by its digits, `undefined` by the literal name).
+    inline js::string property_key(js::string name)
+    {
+        return name;
+    }
+
+    inline js::string property_key(const char_t *name)
+    {
+        return js::string(name);
+    }
+
+    inline js::string property_key(js::undefined_t)
+    {
+        return js::string(TXT("undefined"));
+    }
+
+    template <typename N = void>
+    requires ArithmeticOrEnumOrNumber<N>
+    inline js::string property_key(N n)
+    {
+        return js::string(js::number(n).operator tstring());
+    }
+
+    template <typename K>
+    inline js::any get_property(js::any v, K name)
+    {
+        if (v.get_type() == js::any::anyTypeId::class_type)
+        {
+            return v.get<std::shared_ptr<js::object>>()->__get_property(property_key(name));
+        }
+
+        return v[name];
+    }
+
+    template <typename K>
+    inline void set_property(js::any v, K name, js::any value)
+    {
+        if (v.get_type() == js::any::anyTypeId::class_type)
+        {
+            v.get<std::shared_ptr<js::object>>()->__set_property(property_key(name), value);
+            return;
+        }
+
+        v[name] = value;
+    }
 } // namespace js
 
 #endif // CORE_H
