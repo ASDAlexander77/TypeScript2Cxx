@@ -229,6 +229,40 @@ export class Emitter {
         return false;
     }
 
+    // whether `node` sits in the initializer of a top-level (or namespace-level) variable, which is the
+    // one place an expression is written outside any function body. Anything that introduces a scope of
+    // its own on the way up means there are locals around, so it isn't namespace scope.
+    private isNamespaceScopeExpression(node: ts.Node): boolean {
+        for (let current = node; current.parent; current = current.parent) {
+            switch (current.parent.kind) {
+                case ts.SyntaxKind.SourceFile:
+                case ts.SyntaxKind.ModuleBlock:
+                    return current.kind === ts.SyntaxKind.VariableStatement;
+                case ts.SyntaxKind.Block:
+                case ts.SyntaxKind.CaseBlock:
+                case ts.SyntaxKind.CatchClause:
+                case ts.SyntaxKind.ForStatement:
+                case ts.SyntaxKind.ForInStatement:
+                case ts.SyntaxKind.ForOfStatement:
+                case ts.SyntaxKind.WhileStatement:
+                case ts.SyntaxKind.DoStatement:
+                case ts.SyntaxKind.IfStatement:
+                case ts.SyntaxKind.FunctionDeclaration:
+                case ts.SyntaxKind.FunctionExpression:
+                case ts.SyntaxKind.ArrowFunction:
+                case ts.SyntaxKind.MethodDeclaration:
+                case ts.SyntaxKind.Constructor:
+                case ts.SyntaxKind.GetAccessor:
+                case ts.SyntaxKind.SetAccessor:
+                case ts.SyntaxKind.ClassDeclaration:
+                case ts.SyntaxKind.ClassExpression:
+                    return false;
+            }
+        }
+
+        return false;
+    }
+
     private isNamespaceStatement(f: ts.Node): boolean {
         if (f.kind === ts.SyntaxKind.ModuleDeclaration
             || f.kind === ts.SyntaxKind.NamespaceExportDeclaration) {
@@ -1254,7 +1288,19 @@ export class Emitter {
 
             if (member.initializer) {
                 this.writer.writeString(' = ');
-                this.processExpression(member.initializer);
+
+                // TS enums are emitted as scoped enums, whose enumerators must be initialized by something
+                // convertible to the underlying type - and a scoped enum value (`D0 = En.D`) is not
+                const initializerType = this.resolver.getOrResolveTypeOf(member.initializer);
+                const isEnumValue = this.resolver.isTypeFromSymbol(initializerType, ts.SyntaxKind.EnumMember)
+                    || this.resolver.isTypeFromSymbol(initializerType, ts.SyntaxKind.EnumDeclaration);
+                if (isEnumValue) {
+                    this.writer.writeString('static_cast<int>(');
+                    this.processExpression(member.initializer);
+                    this.writer.writeString(')');
+                } else {
+                    this.processExpression(member.initializer);
+                }
             }
 
             next = true;
@@ -3214,8 +3260,15 @@ export class Emitter {
                 }
 
                 // lambda or noname function
-                const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
-                this.writer.writeString(`[${byReference}]`);
+                if (this.isNamespaceScopeExpression(node)) {
+                    // a lambda initializing a namespace-scope variable is a non-local lambda: there are no
+                    // automatic variables around it to capture (everything in scope is a global), and a
+                    // capture-default there is ill-formed - clang rejects it outright
+                    this.writer.writeString('[]');
+                } else {
+                    const byReference = (<any>node).__lambda_by_reference ? '&' : '=';
+                    this.writer.writeString(`[${byReference}]`);
+                }
             }
         }
 

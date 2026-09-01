@@ -26,6 +26,15 @@
 #include <variant>
 #include <chrono>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
+
+#ifdef _WIN32
+// declared here rather than by pulling in <windows.h>, which would drag a pile of macros
+// (min/max, and names this library also uses) into every translation unit - see request_timer_resolution
+extern "C" __declspec(dllimport) unsigned int __stdcall timeBeginPeriod(unsigned int uPeriod);
+#pragma comment(lib, "winmm.lib")
+#endif
 #include <future>
 
 namespace js
@@ -41,22 +50,23 @@ namespace js
 // a nullptr_t `vx` is unconditionally falsy, OR/AND's result in that case is statically known (OR always
 // yields `y`, AND always yields `vx`/nullptr without touching `y`), so special-case it with `if constexpr`
 // instead of relying on the general cast.
-#define OR(x, y) ([&]() {                                             \
-    auto vx = (x);                                                    \
+// `x` is passed as the generic lambda's argument rather than assigned inside it so that `vx`'s type is
+// dependent: outside a template, the discarded branch of an `if constexpr` is still type-checked, and
+// the cast in the else branch is ill-formed for a nullptr_t `vx`.
+#define OR(x, y) ([&](auto vx) {                                      \
     if constexpr (std::is_null_pointer_v<decltype(vx)>) {             \
         return (y);                                                   \
     } else {                                                          \
         return (static_cast<bool>(vx)) ? vx : static_cast<decltype(vx)>(y); \
     }                                                                  \
-})()
-#define AND(x, y) ([&]() {                                            \
-    auto vx = (x);                                                    \
+})((x))
+#define AND(x, y) ([&](auto vx) {                                     \
     if constexpr (std::is_null_pointer_v<decltype(vx)>) {             \
         return vx;                                                    \
     } else {                                                          \
         return (static_cast<bool>(vx)) ? static_cast<decltype(vx)>(y) : vx; \
     }                                                                  \
-})()
+})((x))
 
     struct undefined_t;
     struct any;
@@ -639,12 +649,48 @@ constexpr const T const_(T t) {
         return false;
     }    
 
+    // `nullptr == undefined` has no single best candidate - undefined_t converts to nullptr_t (making
+    // the built-in nullptr_t comparison viable) and nullptr converts to pointer_t (making undefined_t's
+    // own operator== viable), each at the cost of one user-defined conversion. The operands the generic
+    // equals() below tests are known statically, so answer for the nullish ones directly rather than
+    // asking the operators a question they cannot answer.
+    template <typename T>
+    constexpr bool is_undefined_value(const T &value)
+    {
+        if constexpr (std::is_null_pointer_v<T>)
+        {
+            return false;
+        }
+        else
+        {
+            return value == undefined;
+        }
+    }
+
+    template <typename T>
+    constexpr bool is_null_value(const T &value)
+    {
+        if constexpr (std::is_null_pointer_v<T>)
+        {
+            return true;
+        }
+        else if constexpr (std::is_same_v<T, undefined_t>)
+        {
+            // reported by is_undefined_value instead; every caller tests both
+            return false;
+        }
+        else
+        {
+            return value == nullptr;
+        }
+    }
+
     template <typename L, typename R = void>
     requires (!NeverNullish<L> && NeverNullish<R>)
     constexpr bool equals(const L& l, R r)
     {
-        auto lIsUndef = l == undefined;
-        auto lIsNull = l == nullptr;
+        auto lIsUndef = is_undefined_value(l);
+        auto lIsNull = is_null_value(l);
         return !lIsUndef && !lIsNull && l == r;
     }
 
@@ -652,8 +698,8 @@ constexpr const T const_(T t) {
     requires (NeverNullish<L> && !NeverNullish<R>)
     constexpr bool equals(L l, const R& r)
     {
-        auto rIsUndef = r == undefined;
-        auto rIsNull = r == nullptr;
+        auto rIsUndef = is_undefined_value(r);
+        auto rIsNull = is_null_value(r);
         return !rIsUndef && !rIsNull && r == l;
     }
 
@@ -668,10 +714,10 @@ constexpr const T const_(T t) {
     requires (!NeverNullish<L> && !NeverNullish<R>)
     constexpr bool equals(const L& l, const R& r)
     {
-        auto lIsUndef = l == undefined;
-        auto lIsNull = l == nullptr;
-        auto rIsUndef = r == undefined;
-        auto rIsNull = r == nullptr;
+        auto lIsUndef = is_undefined_value(l);
+        auto lIsNull = is_null_value(l);
+        auto rIsUndef = is_undefined_value(r);
+        auto rIsNull = is_null_value(r);
         return ((lIsUndef || lIsNull) && (rIsUndef || rIsNull)) || l == r;
     }
 
@@ -1679,7 +1725,10 @@ constexpr const T const_(T t) {
                 js::number charCodeAt(N n)
             const
             {
-                return static_cast<size_t>(_value[n]);
+                // through the unsigned character type first: char is signed here, so a byte of a
+                // non-ASCII character would otherwise sign-extend into a huge size_t (and back out of
+                // fromCharCode as garbage) instead of its own 0..255 value
+                return static_cast<size_t>(static_cast<std::make_unsigned_t<char_t>>(_value[n]));
             }
 
             template <typename N = void>
@@ -3862,8 +3911,16 @@ constexpr const T const_(T t) {
     template <typename T>
     struct shared;
 
+    template <typename V>
+    struct is_shared : std::false_type {};
+    template <typename V>
+    struct is_shared<shared<V>> : std::true_type {};
+
+    // Guards the reversed friend operators below, whose job is to handle a left operand that is not a
+    // shared<> at all. Excluding only shared<T2> left a `shared<string> + shared<number>` matching both
+    // the left operand's member operator and the right operand's friend, with neither more specialized.
     template <class T1, class T2>
-    concept NotShared = !std::is_same_v<T1, shared<T2>>;
+    concept NotShared = !is_shared<std::remove_cvref_t<T1>>::value;
 
     template <typename V>
     struct is_shared_ptr : std::false_type {};
@@ -4463,6 +4520,7 @@ constexpr const T const_(T t) {
 #define MAIN                                                             \
     int wmain(int argc, char_t **argv)                                   \
     {                                                                    \
+        js::scheduler_guard __running;                                   \
         try                                                              \
         {                                                                \
             Main();                                                      \
@@ -4497,6 +4555,7 @@ constexpr const T const_(T t) {
 #define MAIN                                                             \
     int main(int argc, char_t **argv)                                    \
     {                                                                    \
+        js::scheduler_guard __running;                                   \
         try                                                              \
         {                                                                \
             Main();                                                      \
@@ -4533,15 +4592,129 @@ constexpr const T const_(T t) {
 namespace js
 {
 
+    // JavaScript has no shared-memory preemptive concurrency: work scheduled in the background
+    // is serialized on the event loop and only gets to run where the running code yields. Mapping
+    // it straight onto std::thread would instead let two of them interleave in the middle of a
+    // statement, so `x = x + 1` from two of them can lose an update. This lock keeps exactly one
+    // of them running at a time and is handed over at the yield points (see sleep).
+    inline std::mutex &scheduler_lock()
+    {
+        static std::mutex lock;
+        return lock;
+    }
+
+    // whether *this* thread is the one currently holding the lock, so sleep only hands over a
+    // lock it actually owns (code running before main - static initializers - holds nothing)
+    inline bool &scheduler_lock_held()
+    {
+        static thread_local bool held = false;
+        return held;
+    }
+
+    // held for as long as one JS thread (the main one included, see MAIN) is running
+    struct scheduler_guard
+    {
+        scheduler_guard()
+        {
+            scheduler_lock().lock();
+            scheduler_lock_held() = true;
+        }
+
+        ~scheduler_guard()
+        {
+            scheduler_lock_held() = false;
+            scheduler_lock().unlock();
+        }
+    };
+
+    // Background work is queued, so it also has to *start* in the order it was queued: two tasks
+    // that then sleep for different amounts of time are ordered by those sleeps, and that ordering
+    // is lost if the OS happens to run the later one's start-up first. The ticket is taken by the
+    // thread doing the queueing, so it records creation order rather than thread start-up order.
+    inline std::mutex &scheduler_queue_lock()
+    {
+        static std::mutex lock;
+        return lock;
+    }
+
+    inline std::condition_variable &scheduler_queue_signal()
+    {
+        static std::condition_variable signal;
+        return signal;
+    }
+
+    inline size_t &scheduler_queued()
+    {
+        static size_t queued = 0;
+        return queued;
+    }
+
+    inline size_t &scheduler_started()
+    {
+        static size_t started = 0;
+        return started;
+    }
+
     template <class _Fn, class... _Args>
     static void thread(_Fn f, _Args... args)
     {
-        new std::thread(f, args...);
+        size_t ticket;
+        {
+            std::unique_lock<std::mutex> queue(scheduler_queue_lock());
+            ticket = scheduler_queued()++;
+        }
+
+        new std::thread([f, ticket, args...]() {
+            {
+                std::unique_lock<std::mutex> queue(scheduler_queue_lock());
+                scheduler_queue_signal().wait(queue, [ticket] { return scheduler_started() == ticket; });
+            }
+
+            scheduler_guard running;
+
+            // only once this one is the running task does the next queued one get to start, so
+            // they take their first turn in queue order
+            {
+                std::unique_lock<std::mutex> queue(scheduler_queue_lock());
+                scheduler_started()++;
+            }
+
+            scheduler_queue_signal().notify_all();
+
+            f(args...);
+        });
+    }
+
+    // Windows' default timer granularity is ~15.6ms, so every sleep shorter than that rounds up to
+    // the same instant and two timers set 1ms and 11ms out fire together, in arbitrary order.
+    // Asking for 1ms once, for the life of the process, is what a JS runtime does on this platform.
+    inline void request_timer_resolution()
+    {
+#ifdef _WIN32
+        static const auto requested = timeBeginPeriod(1);
+        (void)requested;
+#endif
     }
 
     static void sleep(js::number n)
     {
+        request_timer_resolution();
+
+        // the yield point: whatever is queued in the background runs while this one waits
+        const auto yielding = scheduler_lock_held();
+        if (yielding)
+        {
+            scheduler_lock_held() = false;
+            scheduler_lock().unlock();
+        }
+
         std::this_thread::sleep_for(std::chrono::milliseconds(static_cast<size_t>(n)));
+
+        if (yielding)
+        {
+            scheduler_lock().lock();
+            scheduler_lock_held() = true;
+        }
     }
 
     static number parseInt(const js::string &value, int base = 10)
