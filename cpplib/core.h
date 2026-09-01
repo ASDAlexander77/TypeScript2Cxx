@@ -267,6 +267,22 @@ constexpr const T const_(T t) {
 }
 */
 
+    // std::to_string has no overload taking a scoped enum - and TS enums are emitted as `enum struct`,
+    // which (unlike a plain `enum`) does not implicitly convert to an arithmetic type. Go through the
+    // underlying type so an enum stringifies as its numeric value, the way JS does it.
+    template <typename N>
+    inline tstring to_tstring_value(N value)
+    {
+        if constexpr (std::is_enum_v<N>)
+        {
+            return to_tstring(static_cast<std::underlying_type_t<N>>(value));
+        }
+        else
+        {
+            return to_tstring(value);
+        }
+    }
+
     template <typename T>
     constexpr T &mutable_(const T &t)
     {
@@ -1494,14 +1510,14 @@ constexpr const T const_(T t) {
             requires ArithmeticOrEnum<N>
                 string_t operator+(N value)
             {
-                return string(_value + to_tstring(value));
+                return string(_value + to_tstring_value(value));
             }
 
             template <typename N = void>
             requires ArithmeticOrEnum<N>
             friend string_t operator+(N value, const string_t &val)
             {
-                return string(to_tstring(value) + val._value);
+                return string(to_tstring_value(value) + val._value);
             }
 
             string_t operator+(js::number value)

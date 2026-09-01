@@ -477,6 +477,13 @@ export class Emitter {
 
             const positionBeforeVars = this.writer.newSection();
 
+            // A top-level `let x = <literal>` is fine as a static initializer, but one whose initializer
+            // has side effects (`let x = f()`) is a *statement* in TS: it has to run in source order along
+            // with the rest of the top-level code, not before main() as part of static init. Such a
+            // declaration is emitted bare here and its initialization deferred to its rightful position in
+            // Main below - and so is every later top-level initializer, since one of those reading a
+            // deferred variable would otherwise see it before the deferred assignment had run.
+            let deferRestOfInitializers = false;
             sourceFile.statements
                 .map(v => this.preprocessor.preprocessStatement(v))
                 .filter(s => this.isVariableStatement(s)
@@ -487,7 +494,29 @@ export class Emitter {
                         this.processModuleVariableStatements(<ts.ModuleDeclaration>s);
                         this.isWritingMain = false;
                     } else {
+                        const declarations = (<ts.VariableStatement>s).declarationList.declarations;
+                        deferRestOfInitializers = deferRestOfInitializers
+                            || declarations.some(d => d.initializer && this.expressionHasSideEffect(d.initializer));
+                        const deferInitializer = deferRestOfInitializers
+                            && declarations.some(d => !!d.initializer);
+                        if (deferInitializer) {
+                            (<any>s).__deferred_initializer = true;
+                            declarations.forEach(d => {
+                                if (d.initializer) {
+                                    (<any>d.initializer).__skip_initializer = true;
+                                }
+                            });
+                        }
+
                         this.processStatement(<ts.Statement>s);
+
+                        if (deferInitializer) {
+                            declarations.forEach(d => {
+                                if (d.initializer) {
+                                    (<any>d.initializer).__skip_initializer = false;
+                                }
+                            });
+                        }
                     }
                 });
 
@@ -504,10 +533,17 @@ export class Emitter {
             const position = this.writer.newSection();
 
             sourceFile.statements.filter(s => !this.isDeclarationStatement(s) && !this.isVariableStatement(s)
-                || this.isNamespaceStatement(s)).forEach(s => {
+                || this.isNamespaceStatement(s)
+                || (<any>s).__deferred_initializer).forEach(s => {
                 if (this.isNamespaceStatement(s)) {
                     this.processModuleImplementationInMain(<ts.ModuleDeclaration>s);
                 } else {
+                    if ((<any>s).__deferred_initializer) {
+                        // declared above at namespace scope - only the initialization belongs here, so
+                        // suppress the type and let it emit as a plain assignment
+                        (<any>(<ts.VariableStatement>s).declarationList).__ignore_type = true;
+                    }
+
                     this.processStatement(s);
                 }
             });
@@ -2088,10 +2124,10 @@ export class Emitter {
         }
 
         if (!forwardDeclaration) {
-            if (initializer) {
+            if (initializer && !(<any>initializer).__skip_initializer) {
                 this.writer.writeString(' = ');
                 this.processExpression(initializer);
-            } else {
+            } else if (!initializer) {
                 if (type && type.kind === ts.SyntaxKind.TupleType) {
                     this.processDefaultValue(type);
                 }
