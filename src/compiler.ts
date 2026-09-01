@@ -122,7 +122,13 @@ export class Run {
     }
 
     public compileSources(sources: string[], cmdLineOptions: any): void {
-        this.generateBinary(ts.createProgram(sources, {}), sources, undefined, cmdLineOptions);
+        // Without these, every @types package that happens to be installed alongside is loaded into the
+        // program - @types/node alone pulls in the ES2015+ libs, whose globals then shadow same-named
+        // declarations in the source being compiled (a `class Map<T>` of its own stops resolving, and
+        // everything inferred through it decays to unknown). What a file compiles to should not depend
+        // on what else is in node_modules; tsconfig.test.json already opts out the same way.
+        this.generateBinary(
+            ts.createProgram(sources, { types: [], typeRoots: [] }), sources, undefined, cmdLineOptions);
     }
 
     public compileWithConfig(configPath: string, cmdLineOptions: any): void {

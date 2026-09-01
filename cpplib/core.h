@@ -2461,6 +2461,15 @@ constexpr const T const_(T t) {
             {
             }
 
+            // The value this object stands in for, if it is standing in for one. TS lets a primitive be
+            // given an interface type to brand it (`0 as any as MFX`); C++ needs an object to point at,
+            // so the emitted adapter carries the primitive and hands it back here when asked to convert
+            // to one. An ordinary object stands only for itself, hence undefined.
+            virtual V __unbox()
+            {
+                return V(undefined);
+            }
+
             constexpr operator bool()
             {
                 return !isUndefined;
@@ -2570,6 +2579,10 @@ constexpr const T const_(T t) {
     } // namespace tmpl
 
     typedef tmpl::object<string, any> object;
+
+    // reaches object::__unbox, so it can only be defined once object is complete - see the end of this
+    // namespace. Declared here because any's conversion operators below need it.
+    js::number unboxed_number(any value);
 
     struct any
     {
@@ -2916,6 +2929,12 @@ constexpr const T const_(T t) {
             if (get_type() == anyTypeId::undefined_type)
             {
                 return js::number(undefined);
+            }
+
+            // a class instance standing in for a primitive (see object::__unbox) converts back to it
+            if (get_type() == anyTypeId::class_type)
+            {
+                return unboxed_number(*this);
             }
 
             throw "wrong type";
@@ -5190,7 +5209,21 @@ namespace js
             return std::dynamic_pointer_cast<I>(v.get<std::shared_ptr<js::object>>());
         }
 
-        return std::static_pointer_cast<I>(std::make_shared<A>(v.operator js::object()));
+        // anything else - a map, or a primitive branded with the interface's type - is carried by the
+        // adapter as-is, which is also what lets `x as any as number` recover a branded primitive
+        return std::static_pointer_cast<I>(std::make_shared<A>(v));
+    }
+
+    inline js::number unboxed_number(js::any value)
+    {
+        auto boxed = value.get<std::shared_ptr<js::object>>()->__unbox();
+        if (boxed.get_type() == js::any::anyTypeId::undefined_type)
+        {
+            // a real object, standing only for itself - there is no number in there
+            throw "wrong type";
+        }
+
+        return boxed.operator js::number();
     }
 
     // Not every member type has an `any` representation (an array<T>, or a std::function of some shape),

@@ -1721,13 +1721,18 @@ export class Emitter {
         this.writer.IncreaseIntent();
         this.writer.writeStringNewLine();
 
-        this.writer.writeStringNewLine('js::object _o;');
-        this.writer.writeStringNewLine(`${adapterName}(js::object o) : _o(o) {}`);
+        // held as `any` rather than `js::object` so the adapter can also carry a primitive branded with
+        // this interface's type (`0 as any as MFX`), which __unbox hands back
+        this.writer.writeStringNewLine('js::any _o;');
+        this.writer.writeStringNewLine(`${adapterName}(js::any o) : _o(o) {}`);
 
         // dynamic access has to reach the literal behind the adapter, not the adapter's own (empty) map
         this.writer.writeStringNewLine('virtual any __get_property(string name) override { return _o[name]; }');
         this.writer.writeStringNewLine(
             'virtual void __set_property(string name, any value) override { _o[name] = value; }');
+        this.writer.writeStringNewLine(
+            'virtual any __unbox() override '
+            + '{ return _o.get_type() == any::anyTypeId::object_type ? any(undefined) : _o; }');
 
         interfaceDeclaration.members.forEach(member => {
             const name = (<ts.Identifier>member.name).text;
@@ -5077,6 +5082,24 @@ export class Emitter {
         // the pointer wrapping only for those.
         const exprType = this.resolver.getOrResolveTypeOf(node.expression);
         const isClassToClass = this.resolver.isTypeFromSymbol(exprType, ts.SyntaxKind.ClassDeclaration);
+
+        // `x as I` for an interface I: what x is holding can be a real instance implementing I, a plain
+        // map, or - the branded-primitive idiom, `0 as any as MFX` - a primitive wearing I's type. as<>
+        // can only do the first; to_interface decides at runtime and wraps the other two in the adapter.
+        const targetDeclaration = targetType && targetType.symbol && targetType.symbol.declarations
+            && targetType.symbol.declarations[0];
+        if (targetDeclaration
+            && targetDeclaration.kind === ts.SyntaxKind.InterfaceDeclaration
+            && this.hasObjectLiteralAdapter(<ts.InterfaceDeclaration>targetDeclaration)
+            && this.resolver.isAnyLikeType(exprType)) {
+            const interfaceName = this.namespacePrefixOf(targetDeclaration)
+                + (<ts.InterfaceDeclaration>targetDeclaration).name.text;
+            const adapterName = this.objectLiteralAdapterName(<ts.InterfaceDeclaration>targetDeclaration, true);
+            this.writer.writeString(`to_interface<${interfaceName}, ${adapterName}>(`);
+            this.processExpression(node.expression);
+            this.writer.writeString(')');
+            return;
+        }
 
         this.writer.writeString('as<');
         this.processType(node.type, false, isClassToClass);
